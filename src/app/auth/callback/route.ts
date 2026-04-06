@@ -1,0 +1,34 @@
+import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
+
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url)
+  const code = searchParams.get('code')
+  const next = searchParams.get('next') ?? '/'
+
+  if (code) {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error) {
+      // Auto-upsert profile with Google name so reviews/posts show real name
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const fullName = user.user_metadata?.full_name || user.user_metadata?.name || null
+          await supabase.from('profiles').upsert({
+            id: user.id,
+            email: user.email,
+            ...(fullName ? { full_name: fullName } : {}),
+          }, { onConflict: 'id', ignoreDuplicates: false })
+        }
+      } catch { /* non-fatal */ }
+
+      // next may be a full URL (e.g. https://abcd.ourdahanu.in) or a path (e.g. /dashboard)
+      const isFullUrl = next.startsWith('https://') || next.startsWith('http://')
+      const redirectUrl = isFullUrl ? next : `${origin}${next}`
+      return NextResponse.redirect(redirectUrl)
+    }
+  }
+
+  return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+}

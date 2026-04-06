@@ -1,0 +1,46 @@
+'use client'
+
+import { useState, useTransition } from 'react'
+import { ThumbsUp } from 'lucide-react'
+import { toggleRecommendation } from '@/app/actions/listing-interactions'
+
+interface Props {
+  listingId: string
+  subdomain?: string | null
+  initialRecommended: boolean
+  initialCount: number
+  isLoggedIn: boolean
+}
+
+export default function RecommendButton({
+  listingId, subdomain, initialRecommended, initialCount, isLoggedIn,
+}: Props) {
+  const [isRecommended, setIsRecommended] = useState(initialRecommended)
+  const [count, setCount] = useState(initialCount)
+  const [isPending, startTransition] = useTransition()
+
+  const handle = () => {
+    if (!isLoggedIn) { window.location.href = '/login'; return }
+    startTransition(async () => {
+      const res = await toggleRecommendation(listingId, subdomain)
+      if (res.error) return
+      setIsRecommended(res.isRecommended)
+      setCount(c => res.isRecommended ? c + 1 : c - 1)
+    })
+  }
+
+  return (
+    <button
+      onClick={handle}
+      disabled={isPending}
+      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
+        isRecommended
+          ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
+          : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-600'
+      } disabled:opacity-50`}
+    >
+      <ThumbsUp size={14} className={isRecommended ? 'fill-amber-500 text-amber-500' : ''} />
+      <span>{count > 0 ? `${count} Recommend${count === 1 ? '' : 's'}` : 'Recommend'}</span>
+    </button>
+  )
+}

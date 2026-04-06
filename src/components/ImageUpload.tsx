@@ -1,0 +1,190 @@
+'use client'
+
+import { useState, useRef } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Camera, Upload, X, Loader2 } from 'lucide-react'
+
+interface ImageUploadProps {
+  bucket: string
+  onUpload: (url: string) => void
+  label?: string
+}
+
+export default function ImageUpload({ bucket, onUpload, label = 'Upload Image' }: ImageUploadProps) {
+  const [uploading, setUploading] = useState(false)
+  const [preview, setPreview] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const compressImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      const objectUrl = URL.createObjectURL(file)
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl)
+        // Scale down if wider/taller than 1920px
+        const MAX = 1920
+        let { width, height } = img
+        if (width > MAX || height > MAX) {
+          if (width > height) {
+            height = Math.round((height * MAX) / width)
+            width = MAX
+          } else {
+            width = Math.round((width * MAX) / height)
+            height = MAX
+          }
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(img, 0, 0, width, height)
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob)
+            else reject(new Error('Compression failed'))
+          },
+          'image/jpeg',
+          0.85,
+        )
+      }
+      img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('Could not load image')) }
+      img.src = objectUrl
+    })
+  }
+
+  const handleFile = async (file: File) => {
+    setError(null)
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file.')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be under 5MB.')
+      return
+    }
+
+    // Show local preview immediately
+    const objectUrl = URL.createObjectURL(file)
+    setPreview(objectUrl)
+    setUploading(true)
+
+    try {
+      const compressed = await compressImage(file)
+      const supabase = createClient()
+      const ext = 'jpg'
+      const path = `public/${Date.now()}-${file.name.replace(/\.[^.]+$/, '')}.${ext}`
+
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(path, compressed, { upsert: true, contentType: 'image/jpeg' })
+
+      if (uploadError) throw uploadError
+
+      const { data } = supabase.storage.from(bucket).getPublicUrl(path)
+      onUpload(data.publicUrl)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed. Please try again.')
+      setPreview(null)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) handleFile(file)
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files?.[0]
+    if (file) handleFile(file)
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+  }
+
+  const clearPreview = () => {
+    setPreview(null)
+    setError(null)
+    if (inputRef.current) inputRef.current.value = ''
+  }
+
+  return (
+    <div className="w-full">
+      {label && (
+        <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>
+      )}
+
+      {preview ? (
+        <div className="relative rounded-2xl overflow-hidden border-2 border-green-300 bg-gray-50">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={preview}
+            alt="Preview"
+            className="w-full max-h-64 object-cover"
+          />
+          {uploading && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <div className="bg-white rounded-2xl px-5 py-3 flex items-center gap-3 shadow-lg">
+                <Loader2 size={18} className="animate-spin text-green-600" />
+                <span className="text-sm font-medium text-gray-700">Uploading…</span>
+              </div>
+            </div>
+          )}
+          {!uploading && (
+            <button
+              type="button"
+              onClick={clearPreview}
+              className="absolute top-2 right-2 bg-white/90 hover:bg-white text-red-600 rounded-full p-1.5 shadow transition-colors"
+              aria-label="Remove image"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+      ) : (
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onClick={() => inputRef.current?.click()}
+          className="border-2 border-dashed border-gray-300 hover:border-green-400 rounded-2xl p-10 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors bg-gray-50 hover:bg-green-50"
+        >
+          <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
+            {uploading ? (
+              <Loader2 size={24} className="animate-spin text-green-600" />
+            ) : (
+              <Camera size={24} className="text-green-600" />
+            )}
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-semibold text-gray-700 flex items-center justify-center gap-1.5">
+              <Upload size={14} className="text-green-600" />
+              Click or drag &amp; drop to upload
+            </p>
+            <p className="text-xs text-gray-400 mt-1">Images only · Auto-compressed on upload</p>
+          </div>
+        </div>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleChange}
+      />
+
+      {error && (
+        <p className="mt-2 text-sm text-red-600 flex items-center gap-1.5">
+          <X size={14} />
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}

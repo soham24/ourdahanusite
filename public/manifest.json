@@ -1,0 +1,21 @@
+{
+  "name": "OurDahanu",
+  "short_name": "OurDahanu",
+  "description": "The online home for Dahanu's community",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "icons": [
+    { "src": "/logo.png", "sizes": "any", "type": "image/png" },
+    { "src": "/logo.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "categories": ["news", "social", "utilities"],
+  "lang": "en-IN",
+  "shortcuts": [
+    { "name": "Emergency", "url": "/emergency", "description": "Emergency contacts" },
+    { "name": "Events", "url": "/events", "description": "Upcoming events" },
+    { "name": "Forum", "url": "/forum", "description": "Community forum" }
+  ]
+}
