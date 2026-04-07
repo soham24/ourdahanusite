@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Calendar, MapPin, Newspaper, MessageCircle, Package, Megaphone, Shield, Mail, Briefcase, Users, BadgePercent, ShoppingBag } from 'lucide-react'
+import { LayoutDashboard, Calendar, MapPin, Newspaper, MessageCircle, Package, Megaphone, Shield, Mail, Briefcase, Users, BadgePercent, ShoppingBag, Sparkles } from 'lucide-react'
 import { getUserRole } from '@/app/actions/admin'
 
 export const unstable_instant = false
@@ -19,6 +19,7 @@ const MOD_LINKS = [
 
 // Extra links visible to admin only
 const ADMIN_ONLY_LINKS = [
+  { href: '/admin/featured', label: 'Featured', icon: <Sparkles size={16} /> },
   { href: '/admin/orders', label: 'Orders', icon: <ShoppingBag size={16} /> },
   { href: '/admin/emergency', label: 'Emergency', icon: <Megaphone size={16} /> },
   { href: '/admin/newsletter', label: 'Newsletter', icon: <Mail size={16} /> },

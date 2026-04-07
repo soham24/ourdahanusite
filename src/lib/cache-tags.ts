@@ -10,6 +10,7 @@ export const CACHE_TAGS = {
   listings: 'listings',
   listingCategories: 'listing-categories',
   jobs: 'jobs',
+  settings: 'settings',
   listing: (listingId: string) => `listing:${listingId}`,
 } as const
 
@@ -44,4 +45,9 @@ export function revalidateCouponCache() {
 
 export function revalidateEmergencyCache() {
   revalidateTag(CACHE_TAGS.emergency, 'max')
+}
+
+export function revalidateSettingsCache() {
+  revalidateTag(CACHE_TAGS.settings, 'max')
+  revalidateTag(CACHE_TAGS.home, 'max')
 }

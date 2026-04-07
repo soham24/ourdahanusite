@@ -13,7 +13,7 @@ import {
   Store,
 } from 'lucide-react'
 
-import { getHomePageData } from '@/lib/data/home'
+import { getHomePageData, type FeaturedListing } from '@/lib/data/home'
 import { summarizeAddress } from '@/lib/listing-content'
 import { getCategoryPath } from '@/lib/listing-category'
 import { getListingHref } from '@/lib/listing-url'
@@ -90,6 +90,119 @@ const CATEGORY_COLORS = [
   { bg: '#F5F3FF', border: '#DDD6FE', text: '#5B21B6', hover: '#EDE9FE' },
 ]
 
+function FeaturedSpotlight({ listing }: { listing: FeaturedListing }) {
+  const href = getListingHref(listing.id, listing.subdomain)
+  const address = summarizeAddress(listing.address, 2)
+
+  return (
+    <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      {/* Section label */}
+      <div className="flex items-center gap-3 mb-4">
+        <span className="text-[11px] font-bold uppercase tracking-widest text-chikoo-gold">⭐ Featured Spotlight</span>
+        <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, rgba(212,149,42,0.4), transparent)' }} />
+      </div>
+
+      <Link href={href} className="group block">
+        <div
+          className="relative overflow-hidden rounded-[2rem] transition-all duration-300 group-hover:shadow-warm-lg"
+          style={{ background: 'linear-gradient(135deg, #FBF0DC 0%, #F0E4C4 50%, #E8D5A8 100%)' }}
+        >
+          {/* Warli pattern watermark */}
+          <div className="absolute inset-0 warli-pattern opacity-[0.07] pointer-events-none" />
+
+          <div className="relative grid md:grid-cols-[420px_1fr]">
+            {/* Image */}
+            <div className="relative h-60 md:h-auto min-h-[280px] overflow-hidden rounded-t-[2rem] md:rounded-t-none md:rounded-l-[2rem]">
+              {listing.image_url ? (
+                <Image
+                  src={listing.image_url}
+                  alt={listing.name}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                  priority
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center text-8xl opacity-20"
+                  style={{ background: 'linear-gradient(135deg, #E8C99A, #D4952A22)' }}>
+                  🏪
+                </div>
+              )}
+              {/* Edge fade into content on desktop */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#F0E4C4] hidden md:block" />
+              {/* Gold ribbon */}
+              <div className="absolute top-4 left-4">
+                <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold text-chikoo-bark shadow-md"
+                  style={{ background: 'linear-gradient(135deg, #D4952A, #E8A832)' }}>
+                  ⭐ Featured
+                </span>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-7 md:p-10 flex flex-col justify-center">
+              {/* Category badge */}
+              <span className="inline-flex items-center w-fit rounded-full bg-warli-terra/10 border border-warli-terra/20 px-2.5 py-0.5 text-[11px] font-semibold text-warli-terra mb-3">
+                {CATEGORY_EMOJIS[listing.category] ?? '🏪'} {listing.category}
+              </span>
+
+              {/* Name */}
+              <h2 className="text-2xl md:text-3xl font-bold text-chikoo-bark leading-tight group-hover:text-warli-terra transition-colors">
+                {listing.name}
+              </h2>
+
+              {/* Tagline */}
+              {listing.tagline && (
+                <p className="mt-2 text-sm text-chikoo-brown/75 leading-relaxed max-w-md line-clamp-2">
+                  {listing.tagline}
+                </p>
+              )}
+
+              {/* Rating + address row */}
+              <div className="flex flex-wrap items-center gap-4 mt-4 text-sm">
+                {listing.rating && listing.rating > 0 ? (
+                  <div className="flex items-center gap-1.5">
+                    <Star size={14} className="fill-yellow-400 text-yellow-400" />
+                    <span className="font-bold text-chikoo-bark">{listing.rating.toFixed(1)}</span>
+                    <span className="text-xs text-chikoo-brown/55">({listing.review_count ?? 0} reviews)</span>
+                  </div>
+                ) : (
+                  <span className="text-xs bg-warli-light text-warli-terra font-medium px-2.5 py-1 rounded-full">New on OurDahanu</span>
+                )}
+                {listing.verified && (
+                  <span className="inline-flex items-center gap-1 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full font-medium">
+                    <CheckCircle size={11} /> Verified
+                  </span>
+                )}
+                {address && (
+                  <span className="flex items-center gap-1 text-xs text-chikoo-brown/60">
+                    <MapPin size={11} className="text-warli-terra" />
+                    {address}
+                  </span>
+                )}
+              </div>
+
+              {/* Visit CTA */}
+              <div className="mt-7 flex flex-wrap gap-3 items-center">
+                <span
+                  className="inline-flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-bold text-white transition-all group-hover:scale-[1.03]"
+                  style={{ background: 'linear-gradient(135deg, #C4663A, #8B3A1A)', boxShadow: '0 4px 16px rgba(196,102,58,0.35)' }}
+                >
+                  Visit Page <ArrowRight size={14} />
+                </span>
+                {listing.subdomain && (
+                  <span className="text-xs text-chikoo-brown/50 font-mono">
+                    {listing.subdomain}.ourdahanu.in
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </Link>
+    </section>
+  )
+}
+
 function formatStat(value: number, fallback: string): string {
   if (!value) return fallback
   if (value >= 1000) return `${Math.round(value / 100) / 10}k+`
@@ -105,6 +218,7 @@ export default async function HomePage() {
     totalListings,
     totalJobs,
     pricing,
+    featuredListing,
   } = await getHomePageData()
 
   const topCategories = topCategoryLabels
@@ -263,6 +377,11 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ─────────────────────────────────────────────────────────────────
+          3.5 FEATURED SPOTLIGHT — admin-pinned listing
+      ───────────────────────────────────────────────────────────────── */}
+      {featuredListing && <FeaturedSpotlight listing={featuredListing} />}
 
       {/* ─────────────────────────────────────────────────────────────────
           4. CATEGORY GRID — color-coded, inviting

@@ -20,6 +20,20 @@ export interface HomeListing {
   verified: boolean | null
 }
 
+export interface FeaturedListing {
+  id: string
+  name: string
+  category: string
+  address: string | null
+  rating: number | null
+  review_count: number | null
+  image_url: string | null
+  tagline: string | null
+  subdomain: string | null
+  verified: boolean | null
+  phone: string | null
+}
+
 export interface HomeJob {
   id: string
   title: string
@@ -41,6 +55,7 @@ export async function getHomePageData() {
   cacheTag(CACHE_TAGS.listingCategories)
   cacheTag(CACHE_TAGS.jobs)
   cacheTag(CACHE_TAGS.pricing)
+  cacheTag(CACHE_TAGS.settings)
 
   const pricing = await getCachedPricingConfig()
 
@@ -50,6 +65,7 @@ export async function getHomePageData() {
   let totalListings = 0
   let totalJobs = 0
   let categoryCounts: Record<string, number> = {}
+  let featuredListing: FeaturedListing | null = null
 
   try {
     const supabase = createPublicClient()
@@ -59,6 +75,7 @@ export async function getHomePageData() {
       { data: jobData },
       listingCountResult,
       jobCountResult,
+      { data: settingRow },
     ] = await Promise.all([
       supabase
         .from('listings')
@@ -88,12 +105,28 @@ export async function getHomePageData() {
         .select('id', { count: 'exact', head: true })
         .eq('approved', true)
         .in('status', ['open', 'hiring']),
+      supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'featured_listing_subdomain')
+        .maybeSingle(),
     ])
 
     listings = (listingData ?? []) as HomeListing[]
     recentJobs = (jobData ?? []) as HomeJob[]
     totalListings = listingCountResult.count ?? 0
     totalJobs = jobCountResult.count ?? 0
+
+    const featuredSubdomain = (settingRow as { value: string } | null)?.value ?? null
+    if (featuredSubdomain) {
+      const { data: featuredData } = await supabase
+        .from('listings')
+        .select('id, name, category, address, rating, review_count, image_url, tagline, subdomain, verified, phone')
+        .eq('subdomain', featuredSubdomain)
+        .eq('approved', true)
+        .maybeSingle()
+      featuredListing = (featuredData as FeaturedListing | null) ?? null
+    }
 
     const listingCategories = (categoryRows ?? []) as Array<{ category: string | null }>
 
@@ -132,5 +165,6 @@ export async function getHomePageData() {
     totalListings,
     totalJobs,
     pricing,
+    featuredListing,
   }
 }
