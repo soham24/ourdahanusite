@@ -9,6 +9,7 @@ import EmergencyRibbon, { EmergencyRibbonFallback } from '@/components/Emergency
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import StructuredData from '@/components/StructuredData'
 import { buildAbsoluteUrl, SITE_URL } from '@/lib/site'
+import { Analytics } from '@vercel/analytics/next'
 
 const METADATA_BASE_URL = 'https://ourdahanu.in'
 const LOGO_URL = 'https://ourdahanu.in/logo.png'
@@ -128,6 +129,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <BottomTabBar />
         </Suspense>
         <ServiceWorkerRegistration />
+        <Analytics />
       </body>
     </html>
   )
