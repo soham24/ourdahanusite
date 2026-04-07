@@ -72,6 +72,22 @@ html {
   display: none;
 }
 
+/* Ping animation for live badge */
+@keyframes ping {
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+.animate-ping {
+  animation: ping 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Horizontal snap scroll for card rows */
+.snap-x {
+  scroll-snap-type: x mandatory;
+}
+.snap-start {
+  scroll-snap-align: start;
+}
+
 /* Warm card shadow utility */
 .shadow-warm {
   box-shadow: 0 4px 16px rgba(196, 102, 58, 0.10), 0 1px 4px rgba(61, 26, 8, 0.06);
