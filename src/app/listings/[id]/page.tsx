@@ -387,6 +387,14 @@ async function ListingDetailContent({
           name: svc.name,
           ...(svc.desc ? { description: svc.desc } : {}),
           ...(svc.image ? { image: svc.image } : {}),
+          ...(svc.type === 'product' && svc.price ? {
+            offers: {
+              '@type': 'Offer',
+              price: svc.price.replace(/[^\d.]/g, '') || svc.price,
+              priceCurrency: 'INR',
+              availability: 'https://schema.org/InStock',
+            },
+          } : {}),
         },
         ...(svc.price ? { price: svc.price.replace(/[^\d.]/g, '') || svc.price, priceCurrency: 'INR', priceSpecification: { '@type': 'PriceSpecification', price: svc.price } } : {}),
       })),
