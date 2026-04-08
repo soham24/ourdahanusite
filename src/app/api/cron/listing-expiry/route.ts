@@ -41,7 +41,7 @@ export async function GET(request: Request) {
   // ── 1. Auto-expire listings past their expires_at ──────────────────────────
   const { data: expiredListings } = await adminClient
     .from('listings')
-    .select('id, name, owner_id')
+    .select('id, name, owner_id, phone')
     .eq('approved', true)
     .not('expires_at', 'is', null)
     .lt('expires_at', now.toISOString())
@@ -54,12 +54,13 @@ export async function GET(request: Request) {
         .update({ approved: false })
         .eq('id', listing.id)
 
-      // Notify owner (fire-and-forget, non-blocking)
+      // Notify owner via email + WhatsApp (fire-and-forget, non-blocking)
       void notifyListingExpiry(
         listing.owner_id as string,
         listing.name    as string,
         listing.id      as string,
         0,
+        listing.phone   as string | null,
       )
 
       stats.expired++
@@ -81,7 +82,7 @@ export async function GET(request: Request) {
 
     const { data: dueListings } = await adminClient
       .from('listings')
-      .select('id, name, owner_id, reminders_sent')
+      .select('id, name, owner_id, phone, reminders_sent')
       .eq('approved', true)
       .not('expires_at', 'is', null)
       .gt('expires_at', now.toISOString())   // still active
@@ -99,6 +100,7 @@ export async function GET(request: Request) {
           listing.name    as string,
           listing.id      as string,
           days as ReminderDays,
+          listing.phone   as string | null,
         )
 
         // Mark this milestone as sent

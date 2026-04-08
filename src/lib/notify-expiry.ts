@@ -132,18 +132,33 @@ function buildEmailHtml(
 }
 
 /**
- * Sends an expiry reminder or "expired" notification to a listing owner.
- * @param ownerId   - Supabase auth user ID of the listing owner
+ * Sends an expiry reminder or "expired" notification to a listing owner
+ * via email (Resend) and WhatsApp (Meta Cloud API).
+ *
+ * @param ownerId     - Supabase auth user ID of the listing owner
  * @param listingName - Business name
  * @param listingId   - Listing UUID (used to build the renewal URL)
  * @param daysLeft    - Days until expiry (0 = already expired)
+ * @param phone       - Optional business phone number for WhatsApp notification
  */
 export async function notifyListingExpiry(
   ownerId: string,
   listingName: string,
   listingId: string,
   daysLeft: ReminderDays,
+  phone?: string | null,
 ): Promise<void> {
+  const renewUrl = `https://ourdahanu.in/my-business/renew/${listingId}`
+
+  // ── WhatsApp (fire-and-forget, non-blocking) ─────────────────────────────
+  if (phone) {
+    const { waNotifyListingExpiry } = await import('@/lib/whatsapp')
+    void waNotifyListingExpiry(phone, listingName, renewUrl, daysLeft).catch(err =>
+      console.error('[notifyListingExpiry:whatsapp]', err)
+    )
+  }
+
+  // ── Email via Resend ─────────────────────────────────────────────────────
   try {
     if (!process.env.RESEND_API_KEY) return
 
@@ -153,8 +168,6 @@ export async function notifyListingExpiry(
 
     const { data: { user } } = await adminClient.auth.admin.getUserById(ownerId)
     if (!user?.email) return
-
-    const renewUrl = `https://ourdahanu.in/my-business/renew/${listingId}`
 
     const { Resend } = await import('resend')
     const resend = new Resend(process.env.RESEND_API_KEY)

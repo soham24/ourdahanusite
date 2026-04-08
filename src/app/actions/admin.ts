@@ -227,6 +227,33 @@ export async function approveContent(formData: FormData) {
   // Send approval notification email (fire-and-forget)
   notifyApproval(table, id)
 
+  // WhatsApp notification for listing approvals
+  if (table === 'listings') {
+    void (async () => {
+      try {
+        const adminClient = createAdminClient()
+        const db = adminClient ?? supabase
+        const { data: listing } = await db
+          .from('listings')
+          .select('name, subdomain, phone')
+          .eq('id', id)
+          .single()
+        if (listing?.phone) {
+          const { waNotifyListingApproved } = await import('@/lib/whatsapp')
+          const { getCanonicalListingUrl } = await import('@/lib/listing-url')
+          const url = getCanonicalListingUrl(id, listing.subdomain as string | null)
+          void waNotifyListingApproved(
+            listing.phone as string,
+            listing.name as string,
+            url,
+          )
+        }
+      } catch (err) {
+        console.error('[approveContent:whatsapp]', err)
+      }
+    })()
+  }
+
   if (table === 'listings') {
     revalidatePublicListingCollections()
     revalidatePublicListingContent(id)
