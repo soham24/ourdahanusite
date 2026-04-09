@@ -95,3 +95,88 @@ html {
 .shadow-warm-lg {
   box-shadow: 0 8px 32px rgba(196, 102, 58, 0.14), 0 2px 8px rgba(61, 26, 8, 0.08);
 }
+
+/* ─── OurDahanu Loading Animation ─── */
+
+/* Warli circle — slow spin */
+@keyframes warli-spin {
+  to { transform: rotate(360deg); }
+}
+.animate-warli-spin {
+  animation: warli-spin 4s linear infinite;
+}
+
+/* Inner ring — reverse spin */
+@keyframes warli-spin-reverse {
+  to { transform: rotate(-360deg); }
+}
+.animate-warli-spin-reverse {
+  animation: warli-spin-reverse 6s linear infinite;
+}
+
+/* Center pulse — breathing sun */
+@keyframes warli-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+.animate-warli-pulse {
+  animation: warli-pulse 2s ease-in-out infinite;
+}
+
+/* Dot orbit */
+@keyframes warli-orbit {
+  0% { transform: rotate(0deg) translateX(52px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(52px) rotate(-360deg); }
+}
+.animate-warli-orbit {
+  animation: warli-orbit 3s linear infinite;
+}
+.animate-warli-orbit-delayed {
+  animation: warli-orbit 3s linear infinite;
+  animation-delay: -1s;
+}
+.animate-warli-orbit-delayed-2 {
+  animation: warli-orbit 3s linear infinite;
+  animation-delay: -2s;
+}
+
+/* Text shimmer — warm gold sweep */
+@keyframes warli-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.animate-warli-shimmer {
+  background: linear-gradient(
+    90deg,
+    #8B3A1A 0%,
+    #C4663A 25%,
+    #D4952A 50%,
+    #C4663A 75%,
+    #8B3A1A 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: warli-shimmer 3s ease-in-out infinite;
+}
+
+/* Fade-in entrance */
+@keyframes warli-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-warli-fade-in {
+  animation: warli-fade-in 0.5s ease-out both;
+}
+
+/* Skeleton shimmer for content placeholders */
+@keyframes skeleton-shimmer {
+  0% { background-position: -468px 0; }
+  100% { background-position: 468px 0; }
+}
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #F5E6CA 25%, #FBF0DC 37%, #F5E6CA 63%);
+  background-size: 936px 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
