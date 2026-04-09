@@ -39,7 +39,7 @@ export default function QASection({ listingId, subdomain, questions: initial, is
 
   const handleAsk = () => {
     if (!isLoggedIn) {
-      window.location.href = buildAbsoluteUrl('/login')
+      window.location.href = buildAbsoluteUrl(`/login?next=${encodeURIComponent(window.location.pathname)}`)
       return
     }
     if (!questionText.trim()) return
@@ -167,7 +167,7 @@ export default function QASection({ listingId, subdomain, questions: initial, is
             Sign in to ask the business owner a question.
           </p>
           <Link
-            href={buildAbsoluteUrl('/login')}
+            href={buildAbsoluteUrl(`/login?next=${encodeURIComponent(`/listings/${listingId}`)}`)}
             className="inline-flex items-center gap-2 rounded-xl bg-warli-terra px-4 py-2.5 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep"
           >
             Sign In to Ask

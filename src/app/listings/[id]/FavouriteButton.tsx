@@ -18,7 +18,7 @@ export default function FavouriteButton({ listingId, subdomain, initialFavourite
 
   const handle = () => {
     if (!isLoggedIn) {
-      window.location.href = '/login'
+      window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`
       return
     }
     setError('')

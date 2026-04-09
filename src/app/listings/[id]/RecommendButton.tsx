@@ -20,7 +20,7 @@ export default function RecommendButton({
   const [isPending, startTransition] = useTransition()
 
   const handle = () => {
-    if (!isLoggedIn) { window.location.href = '/login'; return }
+    if (!isLoggedIn) { window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`; return }
     startTransition(async () => {
       const res = await toggleRecommendation(listingId, subdomain)
       if (res.error) return

@@ -440,7 +440,7 @@ async function ListingDetailContent({
   const displayAddress = formatAddressForDisplay(listing.address as string | null)
   const directionsUrl = buildDirectionsUrl(listing.map_url as string | null, listing.address as string | null)
   const platformListingsUrl = buildAbsoluteUrl('/listings')
-  const platformLoginUrl = buildAbsoluteUrl('/login')
+  const platformLoginUrl = buildAbsoluteUrl(`/login?next=${encodeURIComponent(`/listings/${listingId}`)}`)
   const platformEditUrl = buildAbsoluteUrl(`/my-business/edit/${listingId}`)
   const hasReviews = reviewCount > 0 && rating > 0
 

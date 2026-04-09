@@ -56,7 +56,7 @@ export default function PollCard({ poll, userVote, isLoggedIn }: Props) {
   const handleVote = (optionId: string) => {
     if (hasEnded) return
     if (!isLoggedIn) {
-      window.location.href = '/login'
+      window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`
       return
     }
 
@@ -189,7 +189,7 @@ export default function PollCard({ poll, userVote, isLoggedIn }: Props) {
           {totalVotes} vote{totalVotes !== 1 ? 's' : ''}
         </span>
         {!isLoggedIn && !hasEnded && (
-          <span className="text-xs text-chikoo-brown/50">Sign in to vote</span>
+          <a href={`/login?next=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '/polls')}`} className="text-xs text-warli-terra hover:underline">Sign in to vote</a>
         )}
         {hasEnded && (
           <span className="text-xs text-gray-400 flex items-center gap-1">
