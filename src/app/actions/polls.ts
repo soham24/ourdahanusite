@@ -58,21 +58,22 @@ export async function castVote(
  * Admin: create a new poll.
  */
 export async function createPoll(
-  _prev: { error?: string; success?: boolean },
+  _prev: { error?: string; success?: boolean; fields?: { title: string; options: string; ends_at: string } },
   formData: FormData,
-): Promise<{ error?: string; success?: boolean }> {
+): Promise<{ error?: string; success?: boolean; fields?: { title: string; options: string; ends_at: string } }> {
   const supabase = await createClient()
   const { user, role } = await getUserRole(supabase)
   if (role !== 'admin') return { error: 'Admin access required' }
 
-  const title = (formData.get('title') as string)?.trim()
-  const optionsRaw = (formData.get('options') as string)?.trim()
-  const endsAt = formData.get('ends_at') as string
+  const title = (formData.get('title') as string)?.trim() ?? ''
+  const optionsRaw = (formData.get('options') as string)?.trim() ?? ''
+  const endsAt = (formData.get('ends_at') as string) ?? ''
+  const fields = { title, options: optionsRaw, ends_at: endsAt }
 
-  if (!title) return { error: 'Title is required.' }
-  if (!optionsRaw) return { error: 'Options are required.' }
-  if (!endsAt) return { error: 'End time is required.' }
-  if (new Date(endsAt) <= new Date()) return { error: 'End time must be in the future.' }
+  if (!title) return { error: 'Title is required.', fields }
+  if (!optionsRaw) return { error: 'Options are required.', fields }
+  if (!endsAt) return { error: 'End time is required.', fields }
+  if (new Date(endsAt) <= new Date()) return { error: 'End time must be in the future.', fields }
 
   // Parse options — one per line
   const lines = optionsRaw
@@ -80,8 +81,8 @@ export async function createPoll(
     .map(l => l.trim())
     .filter(Boolean)
 
-  if (lines.length < 2) return { error: 'At least 2 options are required.' }
-  if (lines.length > 10) return { error: 'Maximum 10 options allowed.' }
+  if (lines.length < 2) return { error: 'At least 2 options are required.', fields }
+  if (lines.length > 10) return { error: 'Maximum 10 options allowed.', fields }
 
   const options = lines.map((label, i) => ({
     id: `opt_${i + 1}`,
@@ -89,7 +90,7 @@ export async function createPoll(
   }))
 
   const admin = createAdminClient()
-  if (!admin) return { error: 'Server configuration error — missing service role key.' }
+  if (!admin) return { error: 'Server configuration error — missing service role key.', fields }
 
   const { error } = await admin.from('polls').insert({
     title,
@@ -99,7 +100,7 @@ export async function createPoll(
     active: true,
   })
 
-  if (error) return { error: error.message }
+  if (error) return { error: error.message, fields }
 
   revalidatePollsCache()
   revalidatePath('/admin/polls')

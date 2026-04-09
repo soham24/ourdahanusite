@@ -1,14 +1,22 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useRef, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { createPoll } from '@/app/actions/polls'
 
 export default function CreatePollForm() {
   const [state, action, isPending] = useActionState(createPoll, {})
+  const formRef = useRef<HTMLFormElement>(null)
+
+  // Only reset the form on success
+  useEffect(() => {
+    if (state.success && formRef.current) {
+      formRef.current.reset()
+    }
+  }, [state.success])
 
   return (
-    <form action={action} className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+    <form ref={formRef} action={action} className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
       {state.error && (
         <div className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
           {state.error}
@@ -29,6 +37,7 @@ export default function CreatePollForm() {
           id="title"
           name="title"
           required
+          defaultValue={state.fields?.title ?? ''}
           placeholder="What should be the next community event?"
           className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-warli-terra focus:ring-1 focus:ring-warli-terra/30 outline-none transition"
         />
@@ -43,6 +52,7 @@ export default function CreatePollForm() {
           name="options"
           required
           rows={5}
+          defaultValue={state.fields?.options ?? ''}
           placeholder={"Beach cleanup drive\nFood festival\nTree plantation\nCricket tournament"}
           className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-warli-terra focus:ring-1 focus:ring-warli-terra/30 outline-none transition resize-none"
         />
@@ -58,6 +68,7 @@ export default function CreatePollForm() {
           id="ends_at"
           name="ends_at"
           required
+          defaultValue={state.fields?.ends_at ?? ''}
           className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-warli-terra focus:ring-1 focus:ring-warli-terra/30 outline-none transition"
         />
       </div>
