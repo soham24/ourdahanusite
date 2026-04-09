@@ -2,38 +2,32 @@ import { OurDahanuLoaderCompact } from '@/components/OurDahanuLoader'
 
 export default function ListingDetailLoading() {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      {/* Hero image skeleton */}
-      <div className="w-full h-56 sm:h-72 lg:h-80 rounded-2xl skeleton-shimmer mb-6" />
-
-      {/* Title + badge row */}
-      <div className="flex items-start gap-3 mb-4">
-        <div className="h-8 w-64 rounded skeleton-shimmer" />
-        <div className="h-6 w-20 rounded-full skeleton-shimmer shrink-0" />
+    <div className="min-h-screen bg-gray-50 animate-warli-fade-in">
+      {/* Hero skeleton */}
+      <div className="relative w-full h-48 md:h-64 bg-gradient-to-br from-warli-terra/30 to-chikoo-bark/20 overflow-hidden">
+        <div className="absolute inset-0 skeleton-shimmer opacity-40" />
       </div>
 
-      {/* Category + address */}
-      <div className="space-y-2 mb-6">
-        <div className="h-4 w-36 rounded skeleton-shimmer" />
-        <div className="h-4 w-56 rounded skeleton-shimmer" />
-      </div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Profile card skeleton */}
+        <div className="relative -mt-12 mb-6">
+          <div className="bg-white rounded-2xl border border-warli-sand/30 shadow-warm p-6">
+            <div className="flex items-start gap-5">
+              <div className="w-20 h-20 rounded-2xl skeleton-shimmer shrink-0" />
+              <div className="flex-1 space-y-3">
+                <div className="h-7 w-56 rounded-lg skeleton-shimmer" />
+                <div className="h-4 w-40 rounded skeleton-shimmer" />
+                <div className="flex gap-3">
+                  <div className="h-6 w-28 rounded-full skeleton-shimmer" />
+                  <div className="h-6 w-24 rounded-full skeleton-shimmer" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      {/* Description lines */}
-      <div className="space-y-3 mb-8">
-        <div className="h-4 w-full rounded skeleton-shimmer" />
-        <div className="h-4 w-full rounded skeleton-shimmer" />
-        <div className="h-4 w-4/5 rounded skeleton-shimmer" />
-        <div className="h-4 w-3/5 rounded skeleton-shimmer" />
+        <OurDahanuLoaderCompact message="Loading business details&hellip;" />
       </div>
-
-      {/* Contact buttons skeleton */}
-      <div className="flex gap-3 mb-8">
-        <div className="h-11 w-32 rounded-lg skeleton-shimmer" />
-        <div className="h-11 w-32 rounded-lg skeleton-shimmer" />
-        <div className="h-11 w-28 rounded-lg skeleton-shimmer" />
-      </div>
-
-      <OurDahanuLoaderCompact message="Loading business details\u2026" />
     </div>
   )
 }

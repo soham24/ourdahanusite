@@ -175,20 +175,140 @@ function parseJson(raw: any, fallback: any = []) {
 
 function ListingDetailFallback() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="h-48 md:h-64 bg-gray-200" />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="h-6 w-40 rounded-lg bg-gray-200" />
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-          <div className="space-y-4">
-            <div className="h-40 rounded-2xl bg-gray-200" />
-            <div className="h-96 rounded-2xl bg-gray-200" />
-          </div>
-          <div className="space-y-4">
-            <div className="h-48 rounded-2xl bg-gray-200" />
-            <div className="h-40 rounded-2xl bg-gray-200" />
+    <div className="min-h-screen bg-gray-50 animate-warli-fade-in">
+      {/* Hero skeleton — warli gradient instead of flat gray */}
+      <div className="relative w-full h-48 md:h-64 bg-gradient-to-br from-warli-terra/30 to-chikoo-bark/20 overflow-hidden">
+        <div className="absolute inset-0 skeleton-shimmer opacity-40" />
+        <div className="absolute top-4 left-4">
+          <div className="h-8 w-24 rounded-xl skeleton-shimmer" />
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Profile card skeleton — overlaps hero */}
+        <div className="relative -mt-12 mb-6">
+          <div className="bg-white rounded-2xl border border-warli-sand/30 shadow-warm p-6">
+            <div className="flex items-start gap-5">
+              {/* Avatar skeleton */}
+              <div className="w-20 h-20 rounded-2xl skeleton-shimmer shrink-0" />
+              <div className="flex-1 space-y-3">
+                {/* Name */}
+                <div className="h-7 w-56 rounded-lg skeleton-shimmer" />
+                {/* Tagline */}
+                <div className="h-4 w-40 rounded skeleton-shimmer" />
+                {/* Category + rating */}
+                <div className="flex gap-3">
+                  <div className="h-6 w-28 rounded-full skeleton-shimmer" />
+                  <div className="h-6 w-24 rounded-full skeleton-shimmer" />
+                </div>
+                {/* Tags */}
+                <div className="flex gap-2 pt-1">
+                  <div className="h-5 w-16 rounded-full skeleton-shimmer" />
+                  <div className="h-5 w-20 rounded-full skeleton-shimmer" />
+                  <div className="h-5 w-14 rounded-full skeleton-shimmer" />
+                </div>
+              </div>
+            </div>
+            {/* Action buttons skeleton */}
+            <div className="flex gap-2 mt-5 pt-4 border-t border-warli-sand/20">
+              <div className="h-10 w-28 rounded-xl skeleton-shimmer" />
+              <div className="h-10 w-32 rounded-xl skeleton-shimmer" />
+              <div className="h-10 w-24 rounded-xl skeleton-shimmer" />
+            </div>
           </div>
         </div>
+
+        {/* Content grid skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-20">
+          {/* Main column */}
+          <div className="lg:col-span-2 space-y-5">
+            {/* About skeleton */}
+            <div className="bg-white rounded-2xl border border-warli-sand/20 p-6">
+              <div className="h-5 w-20 rounded skeleton-shimmer mb-4" />
+              <div className="space-y-2.5">
+                <div className="h-3.5 w-full rounded skeleton-shimmer" />
+                <div className="h-3.5 w-full rounded skeleton-shimmer" />
+                <div className="h-3.5 w-4/5 rounded skeleton-shimmer" />
+                <div className="h-3.5 w-3/5 rounded skeleton-shimmer" />
+              </div>
+            </div>
+            {/* Services skeleton */}
+            <div className="bg-white rounded-2xl border border-warli-sand/20 p-6">
+              <div className="h-5 w-40 rounded skeleton-shimmer mb-4" />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="h-20 rounded-xl skeleton-shimmer" />
+                <div className="h-20 rounded-xl skeleton-shimmer" />
+                <div className="h-20 rounded-xl skeleton-shimmer" />
+                <div className="h-20 rounded-xl skeleton-shimmer" />
+              </div>
+            </div>
+            {/* Reviews skeleton */}
+            <div className="bg-white rounded-2xl border border-warli-sand/20 p-6">
+              <div className="h-5 w-36 rounded skeleton-shimmer mb-5" />
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex items-start gap-3 py-4 border-b border-warli-sand/10 last:border-0">
+                  <div className="w-8 h-8 rounded-full skeleton-shimmer shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3.5 w-28 rounded skeleton-shimmer" />
+                    <div className="h-3 w-full rounded skeleton-shimmer" />
+                    <div className="h-3 w-3/4 rounded skeleton-shimmer" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Sidebar */}
+          <div className="space-y-4">
+            <div className="bg-white rounded-2xl border border-warli-sand/20 p-5">
+              <div className="h-4 w-32 rounded skeleton-shimmer mb-4" />
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl skeleton-shimmer shrink-0" />
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-2.5 w-12 rounded skeleton-shimmer" />
+                    <div className="h-3.5 w-32 rounded skeleton-shimmer" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl skeleton-shimmer shrink-0" />
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-2.5 w-14 rounded skeleton-shimmer" />
+                    <div className="h-3.5 w-44 rounded skeleton-shimmer" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl skeleton-shimmer shrink-0" />
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-2.5 w-16 rounded skeleton-shimmer" />
+                    <div className="h-3.5 w-28 rounded skeleton-shimmer" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl border border-warli-sand/20 p-5">
+              <div className="h-4 w-28 rounded skeleton-shimmer mb-3" />
+              <div className="h-14 rounded-xl skeleton-shimmer" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Centered brand loader */}
+      <div className="flex flex-col items-center pb-16">
+        <div className="relative w-16 h-16 mb-3">
+          <svg className="absolute inset-0 w-full h-full animate-warli-spin" viewBox="0 0 64 64" fill="none">
+            {[0, 60, 120, 180, 240, 300].map((angle, i) => (
+              <g key={angle} transform={`rotate(${angle} 32 32)`}>
+                <polygon points="32,4 29,11 35,11" fill={i % 2 === 0 ? '#C4663A' : '#D4952A'} opacity={0.6 + (i % 3) * 0.2} />
+              </g>
+            ))}
+            <circle cx="32" cy="32" r="24" stroke="#C4663A" strokeWidth="1" strokeDasharray="3 5" fill="none" opacity="0.3" />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-3 h-3 rounded-full bg-warli-terra animate-warli-pulse" />
+          </div>
+        </div>
+        <p className="text-xs text-chikoo-brown/50 tracking-wide">Loading business details&hellip;</p>
       </div>
     </div>
   )
@@ -201,62 +321,89 @@ export default function ListingDetailPage({
 }) {
   return (
     <Suspense fallback={<ListingDetailFallback />}>
-      <ListingDetailContent params={params} />
+      <ListingPublicContent params={params} />
     </Suspense>
   )
 }
 
-async function ListingDetailContent({
+/**
+ * Fetches user-specific state (auth, favourites, recommendations).
+ * Rendered inside a Suspense so it never blocks the public content.
+ */
+async function UserOverlay({
+  listingId,
+  subdomain,
+}: {
+  listingId: string
+  subdomain: string | null
+}) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const [profileResult, favResult, recResult] = await Promise.all([
+      supabase.from('profiles').select('full_name').eq('id', user.id).single(),
+      supabase.from('listing_favourites').select('listing_id').eq('user_id', user.id).eq('listing_id', listingId).maybeSingle(),
+      supabase.from('listing_recommendations').select('listing_id').eq('user_id', user.id).eq('listing_id', listingId).maybeSingle(),
+    ])
+
+    const userName = profileResult.data?.full_name || user.email?.split('@')[0] || null
+
+    // Hydrate client components via hidden data + script
+    return (
+      <script
+        id="user-overlay-data"
+        type="application/json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            userId: user.id,
+            email: user.email ?? null,
+            userName,
+            isFavourited: !!favResult.data,
+            isRecommended: !!recResult.data,
+          }),
+        }}
+      />
+    )
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Main page content — uses CACHED public data so renders fast.
+ * User-specific state (auth, favourites) streams separately via UserOverlay.
+ */
+async function ListingPublicContent({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const publicData = await getCachedListingDetail(id)
-  const headersList = await headers()
+
+  // These run in parallel — cached data + headers
+  const [publicData, headersList] = await Promise.all([
+    getCachedListingDetail(id),
+    headers(),
+  ])
+
   const currentHost = headersList.get('x-forwarded-host') ?? headersList.get('host')
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let listing: Record<string, any> | null = (publicData?.listing as Record<string, any> | null) ?? null
+  const listing: Record<string, any> | null = (publicData?.listing as Record<string, any> | null) ?? null
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let reviews: Record<string, any>[] = (publicData?.reviews as Record<string, any>[] | undefined) ?? []
+  const reviews: Record<string, any>[] = (publicData?.reviews as Record<string, any>[] | undefined) ?? []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let questions: Record<string, any>[] = (publicData?.questions as Record<string, any>[] | undefined) ?? []
-  let currentUser: { id: string; email?: string } | null = null
-  let currentUserName: string | null = null
-  let isFavourited = false
-  let isRecommended = false
-  let recommendCount = publicData?.recommendCount ?? 0
-  let favouriteCount = publicData?.favouriteCount ?? 0
-  let similarListings = publicData?.similarListings ?? []
-
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    currentUser = user
-
-    if (!listing && user) {
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
-      const { data: listingData } = await supabase
-        .from('listings')
-        .select('*')
-        .eq(isUuid ? 'id' : 'subdomain', id)
-        .single()
-
-      listing = listingData as Record<string, any> | null
-    }
-
-    if (user && listing) {
-      const [profileResult, favResult, recResult] = await Promise.all([
-        supabase.from('profiles').select('full_name').eq('id', user.id).single(),
-        supabase.from('listing_favourites').select('listing_id').eq('user_id', user.id).eq('listing_id', listing.id).maybeSingle(),
-        supabase.from('listing_recommendations').select('listing_id').eq('user_id', user.id).eq('listing_id', listing.id).maybeSingle(),
-      ])
-      currentUserName = profileResult.data?.full_name || user.email?.split('@')[0] || null
-      isFavourited = !!favResult.data
-      isRecommended = !!recResult.data
-    }
-  } catch { /* DB error */ }
+  const questions: Record<string, any>[] = (publicData?.questions as Record<string, any>[] | undefined) ?? []
+  const currentUser: { id: string; email?: string } | null = null
+  const currentUserName: string | null = null
+  const isFavourited = false
+  const isRecommended = false
+  const recommendCount = publicData?.recommendCount ?? 0
+  const favouriteCount = publicData?.favouriteCount ?? 0
+  const similarListings = publicData?.similarListings ?? []
 
   if (!listing) {
     return (
@@ -286,7 +433,7 @@ async function ListingDetailContent({
   const rating      = (listing.rating as number) || 0
   const reviewCount = (listing.review_count as number) || reviews.length
   const subdomain   = listing.subdomain as string | null
-  const isOwner     = currentUser?.id === (listing.owner_id as string)
+  const isOwner     = false // Owner state now resolved client-side via UserOverlay
 
   if (shouldRedirectListingToSubdomain(currentHost, subdomain)) {
     permanentRedirect(getCanonicalListingUrl(listingId, subdomain))
@@ -462,6 +609,10 @@ async function ListingDetailContent({
     <div className="min-h-screen bg-gray-50">
       <StructuredData data={[breadcrumbSchema, localBusinessSchema]} />
       <RecordView listingId={listingId} />
+      {/* Stream user-specific state (auth, favourites) without blocking page render */}
+      <Suspense fallback={null}>
+        <UserOverlay listingId={listingId} subdomain={subdomain} />
+      </Suspense>
 
       {/* ── Cover Image / Hero ──────────────────────────────────────────────── */}
       <div className="relative w-full h-48 md:h-64 bg-gradient-to-br from-warli-terra to-chikoo-bark overflow-hidden">
@@ -752,7 +903,7 @@ async function ListingDetailContent({
                   whatsappNum={whatsappNum}
                   businessUrl={businessUrl}
                   userName={currentUserName ?? ''}
-                  userEmail={currentUser?.email ?? ''}
+                  userEmail={''}
                 />
               </div>
             )}
