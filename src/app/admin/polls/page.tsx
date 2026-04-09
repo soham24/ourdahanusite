@@ -1,7 +1,8 @@
-import { ArrowLeft, BarChart3, Clock, Trash2, Plus } from 'lucide-react'
+import { ArrowLeft, BarChart3, Clock } from 'lucide-react'
 import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin-client'
-import { createPoll, deletePoll } from '@/app/actions/polls'
+import CreatePollForm from './CreatePollForm'
+import DeletePollButton from './DeletePollButton'
 
 interface PollOption {
   id: string
@@ -86,7 +87,6 @@ export default async function AdminPollsPage() {
             polls.map(poll => {
               const { text: timeText, ended } = timeLabel(poll.ends_at)
               const votes = voteCounts[poll.id] ?? 0
-              const deletePollWithId = deletePoll.bind(null, poll.id)
 
               return (
                 <div
@@ -126,15 +126,7 @@ export default async function AdminPollsPage() {
                     </div>
                   </div>
 
-                  <form action={deletePollWithId}>
-                    <button
-                      type="submit"
-                      className="text-gray-400 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50"
-                      title="End poll"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </form>
+                  <DeletePollButton pollId={poll.id} />
                 </div>
               )
             })
@@ -144,56 +136,7 @@ export default async function AdminPollsPage() {
         {/* ── Create New Poll ─────────────────────────────────────── */}
         <div>
           <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500 mb-4">Create New Poll</h2>
-          <form action={createPoll} className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
-            <div>
-              <label htmlFor="title" className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
-                Question
-              </label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                required
-                placeholder="What should be the next community event?"
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-warli-terra focus:ring-1 focus:ring-warli-terra/30 outline-none transition"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="options" className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
-                Options (one per line)
-              </label>
-              <textarea
-                id="options"
-                name="options"
-                required
-                rows={5}
-                placeholder={"Beach cleanup drive\nFood festival\nTree plantation\nCricket tournament"}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-warli-terra focus:ring-1 focus:ring-warli-terra/30 outline-none transition resize-none"
-              />
-              <p className="text-xs text-gray-400 mt-1">2-10 options. One per line.</p>
-            </div>
-
-            <div>
-              <label htmlFor="ends_at" className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
-                End Time
-              </label>
-              <input
-                type="datetime-local"
-                id="ends_at"
-                name="ends_at"
-                required
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-warli-terra focus:ring-1 focus:ring-warli-terra/30 outline-none transition"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full flex items-center justify-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-bold px-5 py-3 rounded-xl transition-colors text-sm"
-            >
-              <Plus size={16} /> Create Poll
-            </button>
-          </form>
+          <CreatePollForm />
         </div>
       </div>
     </div>

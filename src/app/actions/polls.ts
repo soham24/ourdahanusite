@@ -57,17 +57,22 @@ export async function castVote(
 /**
  * Admin: create a new poll.
  */
-export async function createPoll(formData: FormData): Promise<void> {
+export async function createPoll(
+  _prev: { error?: string; success?: boolean },
+  formData: FormData,
+): Promise<{ error?: string; success?: boolean }> {
   const supabase = await createClient()
   const { user, role } = await getUserRole(supabase)
-  if (role !== 'admin') return
+  if (role !== 'admin') return { error: 'Admin access required' }
 
   const title = (formData.get('title') as string)?.trim()
   const optionsRaw = (formData.get('options') as string)?.trim()
   const endsAt = formData.get('ends_at') as string
 
-  if (!title || !optionsRaw || !endsAt) return
-  if (new Date(endsAt) <= new Date()) return
+  if (!title) return { error: 'Title is required.' }
+  if (!optionsRaw) return { error: 'Options are required.' }
+  if (!endsAt) return { error: 'End time is required.' }
+  if (new Date(endsAt) <= new Date()) return { error: 'End time must be in the future.' }
 
   // Parse options — one per line
   const lines = optionsRaw
@@ -75,7 +80,8 @@ export async function createPoll(formData: FormData): Promise<void> {
     .map(l => l.trim())
     .filter(Boolean)
 
-  if (lines.length < 2 || lines.length > 10) return
+  if (lines.length < 2) return { error: 'At least 2 options are required.' }
+  if (lines.length > 10) return { error: 'Maximum 10 options allowed.' }
 
   const options = lines.map((label, i) => ({
     id: `opt_${i + 1}`,
@@ -83,9 +89,9 @@ export async function createPoll(formData: FormData): Promise<void> {
   }))
 
   const admin = createAdminClient()
-  if (!admin) return
+  if (!admin) return { error: 'Server configuration error — missing service role key.' }
 
-  await admin.from('polls').insert({
+  const { error } = await admin.from('polls').insert({
     title,
     options,
     ends_at: new Date(endsAt).toISOString(),
@@ -93,26 +99,36 @@ export async function createPoll(formData: FormData): Promise<void> {
     active: true,
   })
 
+  if (error) return { error: error.message }
+
   revalidatePollsCache()
   revalidatePath('/admin/polls')
+  return { success: true }
 }
 
 /**
  * Admin: soft-delete a poll (set active = false).
  */
-export async function deletePoll(pollId: string, _formData?: FormData): Promise<void> {
+export async function deletePoll(
+  pollId: string,
+  _prev: { error?: string; success?: boolean },
+  _formData?: FormData,
+): Promise<{ error?: string; success?: boolean }> {
   const supabase = await createClient()
   const { role } = await getUserRole(supabase)
-  if (role !== 'admin') return
+  if (role !== 'admin') return { error: 'Admin access required' }
 
   const admin = createAdminClient()
-  if (!admin) return
+  if (!admin) return { error: 'Server configuration error' }
 
-  await admin
+  const { error } = await admin
     .from('polls')
     .update({ active: false })
     .eq('id', pollId)
 
+  if (error) return { error: error.message }
+
   revalidatePollsCache()
   revalidatePath('/admin/polls')
+  return { success: true }
 }

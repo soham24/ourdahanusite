@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS polls (
 
 ALTER TABLE polls ENABLE ROW LEVEL SECURITY;
 
+-- Grant access to Supabase roles
+GRANT SELECT ON polls TO anon, authenticated;
+
 -- Anyone can read active polls
 CREATE POLICY "Active polls are public" ON polls
   FOR SELECT USING (active = true);
@@ -36,9 +39,13 @@ CREATE TABLE IF NOT EXISTS poll_votes (
 
 ALTER TABLE poll_votes ENABLE ROW LEVEL SECURITY;
 
--- Users can see their own votes
-CREATE POLICY "Users can view own votes" ON poll_votes
-  FOR SELECT USING (auth.uid() = user_id);
+-- Grant access to Supabase roles
+GRANT SELECT ON poll_votes TO anon, authenticated;
+GRANT INSERT, UPDATE ON poll_votes TO authenticated;
+
+-- Anyone can read votes (needed for counting results)
+CREATE POLICY "Vote counts are public" ON poll_votes
+  FOR SELECT USING (true);
 
 -- Users can insert their own vote
 CREATE POLICY "Authenticated users can vote" ON poll_votes
