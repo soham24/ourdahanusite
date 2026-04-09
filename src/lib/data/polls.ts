@@ -1,0 +1,137 @@
+import 'server-only'
+
+import { cacheLife, cacheTag } from 'next/cache'
+
+import { CACHE_TAGS } from '@/lib/cache-tags'
+import { createPublicClient } from '@/lib/supabase/public'
+
+export interface PollOption {
+  id: string
+  label: string
+}
+
+export interface Poll {
+  id: string
+  title: string
+  options: PollOption[]
+  ends_at: string
+  created_at: string
+  active: boolean
+}
+
+export interface PollWithResults extends Poll {
+  vote_counts: Record<string, number>
+  total_votes: number
+}
+
+/** Count votes per option from a flat array of vote rows */
+function countVotes(
+  votes: { option_id: string }[],
+  options: PollOption[],
+): { vote_counts: Record<string, number>; total_votes: number } {
+  const vote_counts: Record<string, number> = {}
+  for (const opt of options) vote_counts[opt.id] = 0
+  for (const v of votes) {
+    vote_counts[v.option_id] = (vote_counts[v.option_id] ?? 0) + 1
+  }
+  return { vote_counts, total_votes: votes.length }
+}
+
+/**
+ * Get the most recent active poll (for the homepage).
+ * Returns null if no active poll exists.
+ */
+export async function getActivePoll(): Promise<PollWithResults | null> {
+  'use cache'
+  cacheLife({ stale: 60, revalidate: 120, expire: 600 })
+  cacheTag(CACHE_TAGS.polls)
+  cacheTag(CACHE_TAGS.home)
+
+  const supabase = createPublicClient()
+
+  const { data: pollData } = await supabase
+    .from('polls')
+    .select('*')
+    .eq('active', true)
+    .gt('ends_at', new Date().toISOString())
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const poll = pollData as { id: string; title: string; options: PollOption[]; ends_at: string; created_at: string; active: boolean } | null
+  if (!poll) return null
+
+  const options = poll.options ?? []
+
+  const { data: voteData } = await supabase
+    .from('poll_votes')
+    .select('option_id')
+    .eq('poll_id', poll.id)
+
+  const votes = (voteData ?? []) as { option_id: string }[]
+  const counts = countVotes(votes, options)
+
+  return {
+    id: poll.id,
+    title: poll.title,
+    options,
+    ends_at: poll.ends_at,
+    created_at: poll.created_at,
+    active: poll.active,
+    ...counts,
+  }
+}
+
+/**
+ * Get all active polls (for the /polls page).
+ * Includes ended polls that are still active (not soft-deleted).
+ */
+export async function getAllPolls(): Promise<PollWithResults[]> {
+  'use cache'
+  cacheLife({ stale: 60, revalidate: 120, expire: 600 })
+  cacheTag(CACHE_TAGS.polls)
+
+  const supabase = createPublicClient()
+
+  type PollRow = { id: string; title: string; options: PollOption[]; ends_at: string; created_at: string; active: boolean }
+  type VoteRow = { poll_id: string; option_id: string }
+
+  const { data: pollsData } = await supabase
+    .from('polls')
+    .select('*')
+    .eq('active', true)
+    .order('created_at', { ascending: false })
+
+  const polls = (pollsData ?? []) as PollRow[]
+  if (polls.length === 0) return []
+
+  const pollIds = polls.map(p => p.id)
+
+  const { data: allVotesData } = await supabase
+    .from('poll_votes')
+    .select('poll_id, option_id')
+    .in('poll_id', pollIds)
+
+  const allVotes = (allVotesData ?? []) as VoteRow[]
+
+  // Group votes by poll_id
+  const votesByPoll: Record<string, VoteRow[]> = {}
+  for (const v of allVotes) {
+    if (!votesByPoll[v.poll_id]) votesByPoll[v.poll_id] = []
+    votesByPoll[v.poll_id].push(v)
+  }
+
+  return polls.map(poll => {
+    const options = poll.options ?? []
+    const counts = countVotes(votesByPoll[poll.id] ?? [], options)
+    return {
+      id: poll.id,
+      title: poll.title,
+      options,
+      ends_at: poll.ends_at,
+      created_at: poll.created_at,
+      active: poll.active,
+      ...counts,
+    }
+  })
+}

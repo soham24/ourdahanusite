@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 
 import { getHomePageData, type FeaturedListing } from '@/lib/data/home'
+import PollCard from '@/components/PollCard'
 import { summarizeAddress } from '@/lib/listing-content'
 import { getCategoryPath } from '@/lib/listing-category'
 import { getListingHref } from '@/lib/listing-url'
@@ -219,6 +220,7 @@ export default async function HomePage() {
     totalJobs,
     pricing,
     featuredListing,
+    activePoll,
   } = await getHomePageData()
 
   const topCategories = topCategoryLabels
@@ -677,6 +679,30 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ─────────────────────────────────────────────────────────────────
+          7.5 COMMUNITY POLL — active poll on homepage
+      ───────────────────────────────────────────────────────────────── */}
+      {activePoll && (
+        <>
+          <div className="warli-divider" />
+          <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-chikoo-bark">Community Poll</h2>
+                <p className="text-sm text-chikoo-brown mt-1">Have your say — vote and see what Dahanu thinks</p>
+              </div>
+              <Link href="/polls"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-warli-terra hover:text-warli-deep transition-colors">
+                All polls <ArrowRight size={14} />
+              </Link>
+            </div>
+            <div className="max-w-xl">
+              <PollCard poll={activePoll} userVote={null} isLoggedIn={false} />
+            </div>
+          </section>
+        </>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────────
           8. ABOUT DAHANU — local identity & pride
