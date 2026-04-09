@@ -321,69 +321,23 @@ export default function ListingDetailPage({
 }) {
   return (
     <Suspense fallback={<ListingDetailFallback />}>
-      <ListingPublicContent params={params} />
+      <ListingDetailContent params={params} />
     </Suspense>
   )
 }
 
 /**
- * Fetches user-specific state (auth, favourites, recommendations).
- * Rendered inside a Suspense so it never blocks the public content.
+ * Main page content — fetches cached listing data + user auth in parallel.
+ * The branded ListingDetailFallback skeleton shows while this loads.
  */
-async function UserOverlay({
-  listingId,
-  subdomain,
-}: {
-  listingId: string
-  subdomain: string | null
-}) {
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return null
-
-    const [profileResult, favResult, recResult] = await Promise.all([
-      supabase.from('profiles').select('full_name').eq('id', user.id).single(),
-      supabase.from('listing_favourites').select('listing_id').eq('user_id', user.id).eq('listing_id', listingId).maybeSingle(),
-      supabase.from('listing_recommendations').select('listing_id').eq('user_id', user.id).eq('listing_id', listingId).maybeSingle(),
-    ])
-
-    const userName = profileResult.data?.full_name || user.email?.split('@')[0] || null
-
-    // Hydrate client components via hidden data + script
-    return (
-      <script
-        id="user-overlay-data"
-        type="application/json"
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            userId: user.id,
-            email: user.email ?? null,
-            userName,
-            isFavourited: !!favResult.data,
-            isRecommended: !!recResult.data,
-          }),
-        }}
-      />
-    )
-  } catch {
-    return null
-  }
-}
-
-/**
- * Main page content — uses CACHED public data so renders fast.
- * User-specific state (auth, favourites) streams separately via UserOverlay.
- */
-async function ListingPublicContent({
+async function ListingDetailContent({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
 
-  // These run in parallel — cached data + headers
+  // Fetch cached data + headers in parallel for faster render
   const [publicData, headersList] = await Promise.all([
     getCachedListingDetail(id),
     headers(),
@@ -392,18 +346,48 @@ async function ListingPublicContent({
   const currentHost = headersList.get('x-forwarded-host') ?? headersList.get('host')
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const listing: Record<string, any> | null = (publicData?.listing as Record<string, any> | null) ?? null
+  let listing: Record<string, any> | null = (publicData?.listing as Record<string, any> | null) ?? null
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const reviews: Record<string, any>[] = (publicData?.reviews as Record<string, any>[] | undefined) ?? []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const questions: Record<string, any>[] = (publicData?.questions as Record<string, any>[] | undefined) ?? []
-  const currentUser: { id: string; email?: string } | null = null
-  const currentUserName: string | null = null
-  const isFavourited = false
-  const isRecommended = false
+  let currentUser: { id: string; email?: string } | null = null
+  let currentUserName: string | null = null
+  let isFavourited = false
+  let isRecommended = false
   const recommendCount = publicData?.recommendCount ?? 0
   const favouriteCount = publicData?.favouriteCount ?? 0
   const similarListings = publicData?.similarListings ?? []
+
+  // Auth check — runs after cached data is already available
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    currentUser = user
+
+    if (!listing && user) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+      const { data: listingData } = await supabase
+        .from('listings')
+        .select('*')
+        .eq(isUuid ? 'id' : 'subdomain', id)
+        .single()
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      listing = listingData as Record<string, any> | null
+    }
+
+    if (user && listing) {
+      const [profileResult, favResult, recResult] = await Promise.all([
+        supabase.from('profiles').select('full_name').eq('id', user.id).single(),
+        supabase.from('listing_favourites').select('listing_id').eq('user_id', user.id).eq('listing_id', listing.id).maybeSingle(),
+        supabase.from('listing_recommendations').select('listing_id').eq('user_id', user.id).eq('listing_id', listing.id).maybeSingle(),
+      ])
+      currentUserName = profileResult.data?.full_name || user.email?.split('@')[0] || null
+      isFavourited = !!favResult.data
+      isRecommended = !!recResult.data
+    }
+  } catch { /* auth error — render as logged out */ }
 
   if (!listing) {
     return (
@@ -433,7 +417,7 @@ async function ListingPublicContent({
   const rating      = (listing.rating as number) || 0
   const reviewCount = (listing.review_count as number) || reviews.length
   const subdomain   = listing.subdomain as string | null
-  const isOwner     = false // Owner state now resolved client-side via UserOverlay
+  const isOwner     = currentUser?.id === (listing.owner_id as string)
 
   if (shouldRedirectListingToSubdomain(currentHost, subdomain)) {
     permanentRedirect(getCanonicalListingUrl(listingId, subdomain))
@@ -609,10 +593,6 @@ async function ListingPublicContent({
     <div className="min-h-screen bg-gray-50">
       <StructuredData data={[breadcrumbSchema, localBusinessSchema]} />
       <RecordView listingId={listingId} />
-      {/* Stream user-specific state (auth, favourites) without blocking page render */}
-      <Suspense fallback={null}>
-        <UserOverlay listingId={listingId} subdomain={subdomain} />
-      </Suspense>
 
       {/* ── Cover Image / Hero ──────────────────────────────────────────────── */}
       <div className="relative w-full h-48 md:h-64 bg-gradient-to-br from-warli-terra to-chikoo-bark overflow-hidden">
@@ -903,7 +883,7 @@ async function ListingPublicContent({
                   whatsappNum={whatsappNum}
                   businessUrl={businessUrl}
                   userName={currentUserName ?? ''}
-                  userEmail={''}
+                  userEmail={currentUser?.email ?? ''}
                 />
               </div>
             )}
