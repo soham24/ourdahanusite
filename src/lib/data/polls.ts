@@ -3,6 +3,7 @@ import 'server-only'
 import { cacheLife, cacheTag } from 'next/cache'
 
 import { CACHE_TAGS } from '@/lib/cache-tags'
+import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createPublicClient } from '@/lib/supabase/public'
 
 export interface PollOption {
@@ -24,6 +25,15 @@ export interface PollWithResults extends Poll {
   total_votes: number
 }
 
+type PollRow = {
+  id: string
+  title: string
+  options: PollOption[]
+  ends_at: string
+  created_at: string
+  active: boolean
+}
+
 /** Count votes per option from a flat array of vote rows */
 function countVotes(
   votes: { option_id: string }[],
@@ -35,6 +45,28 @@ function countVotes(
     vote_counts[v.option_id] = (vote_counts[v.option_id] ?? 0) + 1
   }
   return { vote_counts, total_votes: votes.length }
+}
+
+function getVoteReader() {
+  return createAdminClient() ?? createPublicClient()
+}
+
+function toPollWithResults(
+  poll: PollRow,
+  votes: { option_id: string }[],
+): PollWithResults {
+  const options = poll.options ?? []
+  const counts = countVotes(votes, options)
+
+  return {
+    id: poll.id,
+    title: poll.title,
+    options,
+    ends_at: poll.ends_at,
+    created_at: poll.created_at,
+    active: poll.active,
+    ...counts,
+  }
 }
 
 /**
@@ -58,28 +90,45 @@ export async function getActivePoll(): Promise<PollWithResults | null> {
     .limit(1)
     .maybeSingle()
 
-  const poll = pollData as { id: string; title: string; options: PollOption[]; ends_at: string; created_at: string; active: boolean } | null
+  const poll = pollData as PollRow | null
   if (!poll) return null
 
-  const options = poll.options ?? []
+  const voteReader = getVoteReader()
 
-  const { data: voteData } = await supabase
+  const { data: voteData } = await voteReader
     .from('poll_votes')
     .select('option_id')
     .eq('poll_id', poll.id)
 
   const votes = (voteData ?? []) as { option_id: string }[]
-  const counts = countVotes(votes, options)
+  return toPollWithResults(poll, votes)
+}
 
-  return {
-    id: poll.id,
-    title: poll.title,
-    options,
-    ends_at: poll.ends_at,
-    created_at: poll.created_at,
-    active: poll.active,
-    ...counts,
-  }
+export async function getPollById(id: string): Promise<PollWithResults | null> {
+  'use cache'
+  cacheLife({ stale: 60, revalidate: 120, expire: 600 })
+  cacheTag(CACHE_TAGS.polls)
+
+  const supabase = createPublicClient()
+
+  const { data: pollData } = await supabase
+    .from('polls')
+    .select('*')
+    .eq('id', id)
+    .eq('active', true)
+    .maybeSingle()
+
+  const poll = pollData as PollRow | null
+  if (!poll) return null
+
+  const voteReader = getVoteReader()
+  const { data: voteData } = await voteReader
+    .from('poll_votes')
+    .select('option_id')
+    .eq('poll_id', poll.id)
+
+  const votes = (voteData ?? []) as { option_id: string }[]
+  return toPollWithResults(poll, votes)
 }
 
 /**
@@ -92,8 +141,6 @@ export async function getAllPolls(): Promise<PollWithResults[]> {
   cacheTag(CACHE_TAGS.polls)
 
   const supabase = createPublicClient()
-
-  type PollRow = { id: string; title: string; options: PollOption[]; ends_at: string; created_at: string; active: boolean }
   type VoteRow = { poll_id: string; option_id: string }
 
   const { data: pollsData } = await supabase
@@ -106,8 +153,9 @@ export async function getAllPolls(): Promise<PollWithResults[]> {
   if (polls.length === 0) return []
 
   const pollIds = polls.map(p => p.id)
+  const voteReader = getVoteReader()
 
-  const { data: allVotesData } = await supabase
+  const { data: allVotesData } = await voteReader
     .from('poll_votes')
     .select('poll_id, option_id')
     .in('poll_id', pollIds)
@@ -122,16 +170,6 @@ export async function getAllPolls(): Promise<PollWithResults[]> {
   }
 
   return polls.map(poll => {
-    const options = poll.options ?? []
-    const counts = countVotes(votesByPoll[poll.id] ?? [], options)
-    return {
-      id: poll.id,
-      title: poll.title,
-      options,
-      ends_at: poll.ends_at,
-      created_at: poll.created_at,
-      active: poll.active,
-      ...counts,
-    }
+    return toPollWithResults(poll, votesByPoll[poll.id] ?? [])
   })
 }
