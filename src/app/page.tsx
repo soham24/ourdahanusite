@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import {
   ArrowRight,
   Briefcase,
@@ -14,7 +15,7 @@ import {
 } from 'lucide-react'
 
 import { getHomePageData, type FeaturedListing } from '@/lib/data/home'
-import PollCard from '@/components/PollCard'
+import HomepagePollCard, { HomepagePollCardFallback } from '@/components/HomepagePollCard'
 import { summarizeAddress } from '@/lib/listing-content'
 import { getCategoryPath } from '@/lib/listing-category'
 import { getListingHref } from '@/lib/listing-url'
@@ -698,7 +699,9 @@ export default async function HomePage() {
               </Link>
             </div>
             <div className="max-w-xl">
-              <PollCard poll={activePoll} userVote={null} isLoggedIn={false} />
+              <Suspense fallback={<HomepagePollCardFallback />}>
+                <HomepagePollCard poll={activePoll} />
+              </Suspense>
             </div>
           </section>
         </>

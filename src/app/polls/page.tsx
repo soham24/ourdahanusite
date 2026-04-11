@@ -79,6 +79,7 @@ export default async function PollsPage() {
                     poll={poll}
                     userVote={userVotes[poll.id] ?? null}
                     isLoggedIn={isLoggedIn}
+                    loginNextPath="/polls"
                   />
                 ))}
               </div>
@@ -96,6 +97,7 @@ export default async function PollsPage() {
                     poll={poll}
                     userVote={userVotes[poll.id] ?? null}
                     isLoggedIn={isLoggedIn}
+                    loginNextPath="/polls"
                   />
                 ))}
               </div>

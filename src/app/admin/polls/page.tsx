@@ -109,6 +109,12 @@ export default async function AdminPollsPage() {
                       <span className="flex items-center gap-1">
                         <BarChart3 size={11} /> {votes} vote{votes !== 1 ? 's' : ''}
                       </span>
+                      <Link
+                        href={`/polls/${poll.id}`}
+                        className="font-medium text-warli-terra hover:underline"
+                      >
+                        Standalone page
+                      </Link>
                       <span
                         className={`flex items-center gap-1 font-semibold ${
                           ended ? 'text-gray-400' : 'text-amber-600'

@@ -1,5 +1,5 @@
 -- ============================================================
--- Polls feature — community polls with time-limited voting
+-- Polls feature - community polls with time-limited voting
 -- ============================================================
 
 -- Polls table
@@ -40,20 +40,51 @@ CREATE TABLE IF NOT EXISTS poll_votes (
 ALTER TABLE poll_votes ENABLE ROW LEVEL SECURITY;
 
 -- Grant access to Supabase roles
-GRANT SELECT ON poll_votes TO anon, authenticated;
+GRANT SELECT ON poll_votes TO authenticated;
 GRANT INSERT, UPDATE ON poll_votes TO authenticated;
 
--- Anyone can read votes (needed for counting results)
-CREATE POLICY "Vote counts are public" ON poll_votes
-  FOR SELECT USING (true);
+-- Users can read only their own votes.
+-- Aggregate counts should be read server-side with the service-role client.
+CREATE POLICY "Users can read own votes" ON poll_votes
+  FOR SELECT USING (auth.uid() = user_id);
 
--- Users can insert their own vote
-CREATE POLICY "Authenticated users can vote" ON poll_votes
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+-- Users can insert a vote only for active, unexpired polls and valid option IDs
+CREATE POLICY "Authenticated users can vote on active polls" ON poll_votes
+  FOR INSERT WITH CHECK (
+    auth.uid() = user_id
+    AND EXISTS (
+      SELECT 1
+      FROM polls p
+      WHERE p.id = poll_id
+        AND p.active = true
+        AND p.ends_at > now()
+        AND EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(p.options) AS opt
+          WHERE opt->>'id' = option_id
+        )
+    )
+  );
 
--- Users can update their own vote (before end time — enforced in server action)
-CREATE POLICY "Users can update own vote" ON poll_votes
-  FOR UPDATE USING (auth.uid() = user_id);
+-- Users can update their own vote only while the poll remains active and open
+CREATE POLICY "Users can update own active vote" ON poll_votes
+  FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (
+    auth.uid() = user_id
+    AND EXISTS (
+      SELECT 1
+      FROM polls p
+      WHERE p.id = poll_id
+        AND p.active = true
+        AND p.ends_at > now()
+        AND EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(p.options) AS opt
+          WHERE opt->>'id' = option_id
+        )
+    )
+  );
 
 -- Index for counting votes per option
 CREATE INDEX idx_poll_votes_poll_option ON poll_votes (poll_id, option_id);

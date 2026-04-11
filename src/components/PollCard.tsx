@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useTransition, useEffect } from 'react'
 import { BarChart3, Clock, CheckCircle, Lock } from 'lucide-react'
 import { castVote } from '@/app/actions/polls'
@@ -20,6 +21,8 @@ interface Props {
   }
   userVote: string | null
   isLoggedIn: boolean
+  loginNextPath?: string
+  pollHref?: string | null
 }
 
 function timeLeft(endsAt: string): string {
@@ -33,7 +36,13 @@ function timeLeft(endsAt: string): string {
   return `${mins}m left`
 }
 
-export default function PollCard({ poll, userVote, isLoggedIn }: Props) {
+export default function PollCard({
+  poll,
+  userVote,
+  isLoggedIn,
+  loginNextPath = '/polls',
+  pollHref = `/polls/${poll.id}`,
+}: Props) {
   const [selected, setSelected] = useState<string | null>(userVote)
   const [hasVoted, setHasVoted] = useState(!!userVote)
   const [voteCounts, setVoteCounts] = useState(poll.vote_counts)
@@ -56,7 +65,7 @@ export default function PollCard({ poll, userVote, isLoggedIn }: Props) {
   const handleVote = (optionId: string) => {
     if (hasEnded) return
     if (!isLoggedIn) {
-      window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`
+      window.location.assign(`/login?next=${encodeURIComponent(loginNextPath)}`)
       return
     }
 
@@ -184,12 +193,24 @@ export default function PollCard({ poll, userVote, isLoggedIn }: Props) {
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-3 flex items-center justify-between border-t border-gray-50">
-        <span className="text-xs text-gray-400">
-          {totalVotes} vote{totalVotes !== 1 ? 's' : ''}
-        </span>
+      <div className="px-6 py-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-50">
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-400">
+            {totalVotes} vote{totalVotes !== 1 ? 's' : ''}
+          </span>
+          {pollHref && (
+            <Link href={pollHref} className="text-xs text-warli-terra hover:underline">
+              Standalone page
+            </Link>
+          )}
+        </div>
         {!isLoggedIn && !hasEnded && (
-          <a href={`/login?next=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '/polls')}`} className="text-xs text-warli-terra hover:underline">Sign in to vote</a>
+          <a
+            href={`/login?next=${encodeURIComponent(loginNextPath)}`}
+            className="text-xs text-warli-terra hover:underline"
+          >
+            Sign in to vote
+          </a>
         )}
         {hasEnded && (
           <span className="text-xs text-gray-400 flex items-center gap-1">

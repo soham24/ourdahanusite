@@ -4,19 +4,46 @@ import { useActionState, useRef, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { createPoll } from '@/app/actions/polls'
 
+function syncEndsAtUtcValue(
+  endsAtInput: HTMLInputElement | null,
+  endsAtUtcInput: HTMLInputElement | null,
+) {
+  if (!endsAtUtcInput) return
+
+  const localValue = endsAtInput?.value ?? ''
+  if (!localValue) {
+    endsAtUtcInput.value = ''
+    return
+  }
+
+  const parsedDate = new Date(localValue)
+  endsAtUtcInput.value = Number.isNaN(parsedDate.getTime())
+    ? ''
+    : parsedDate.toISOString()
+}
+
 export default function CreatePollForm() {
   const [state, action, isPending] = useActionState(createPoll, {})
   const formRef = useRef<HTMLFormElement>(null)
+  const endsAtRef = useRef<HTMLInputElement>(null)
+  const endsAtUtcRef = useRef<HTMLInputElement>(null)
 
   // Only reset the form on success
   useEffect(() => {
     if (state.success && formRef.current) {
       formRef.current.reset()
     }
-  }, [state.success])
+
+    syncEndsAtUtcValue(endsAtRef.current, endsAtUtcRef.current)
+  }, [state.fields?.ends_at, state.success])
 
   return (
-    <form ref={formRef} action={action} className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+    <form
+      ref={formRef}
+      action={action}
+      onSubmit={() => syncEndsAtUtcValue(endsAtRef.current, endsAtUtcRef.current)}
+      className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5"
+    >
       {state.error && (
         <div className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
           {state.error}
@@ -67,10 +94,13 @@ export default function CreatePollForm() {
           type="datetime-local"
           id="ends_at"
           name="ends_at"
+          ref={endsAtRef}
           required
           defaultValue={state.fields?.ends_at ?? ''}
+          onInput={() => syncEndsAtUtcValue(endsAtRef.current, endsAtUtcRef.current)}
           className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-warli-terra focus:ring-1 focus:ring-warli-terra/30 outline-none transition"
         />
+        <input ref={endsAtUtcRef} type="hidden" name="ends_at_utc" />
       </div>
 
       <button

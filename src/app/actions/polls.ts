@@ -6,6 +6,16 @@ import { createAdminClient } from '@/lib/supabase/admin-client'
 import { getUserRole } from '@/app/actions/admin'
 import { revalidatePollsCache } from '@/lib/cache-tags'
 
+type PollFormState = {
+  error?: string
+  success?: boolean
+  fields?: {
+    title: string
+    options: string
+    ends_at: string
+  }
+}
+
 /**
  * Cast or change a vote on a poll.
  * Upserts into poll_votes — handles both first vote and vote change.
@@ -58,9 +68,11 @@ export async function castVote(
  * Admin: create a new poll.
  */
 export async function createPoll(
-  _prev: { error?: string; success?: boolean; fields?: { title: string; options: string; ends_at: string } },
+  _prev: PollFormState,
   formData: FormData,
-): Promise<{ error?: string; success?: boolean; fields?: { title: string; options: string; ends_at: string } }> {
+): Promise<PollFormState> {
+  void _prev
+
   const supabase = await createClient()
   const { user, role } = await getUserRole(supabase)
   if (role !== 'admin') return { error: 'Admin access required' }
@@ -68,12 +80,20 @@ export async function createPoll(
   const title = (formData.get('title') as string)?.trim() ?? ''
   const optionsRaw = (formData.get('options') as string)?.trim() ?? ''
   const endsAt = (formData.get('ends_at') as string) ?? ''
+  const endsAtUtc = (formData.get('ends_at_utc') as string)?.trim() ?? ''
   const fields = { title, options: optionsRaw, ends_at: endsAt }
 
   if (!title) return { error: 'Title is required.', fields }
   if (!optionsRaw) return { error: 'Options are required.', fields }
   if (!endsAt) return { error: 'End time is required.', fields }
-  if (new Date(endsAt) <= new Date()) return { error: 'End time must be in the future.', fields }
+  if (!endsAtUtc) return { error: 'Could not determine your local end time. Please try again.', fields }
+
+  const parsedEndsAt = new Date(endsAtUtc)
+  if (Number.isNaN(parsedEndsAt.getTime())) {
+    return { error: 'Choose a valid end time.', fields }
+  }
+
+  if (parsedEndsAt <= new Date()) return { error: 'End time must be in the future.', fields }
 
   // Parse options — one per line
   const lines = optionsRaw
@@ -95,7 +115,7 @@ export async function createPoll(
   const { error } = await admin.from('polls').insert({
     title,
     options,
-    ends_at: new Date(endsAt).toISOString(),
+    ends_at: parsedEndsAt.toISOString(),
     created_by: user?.id ?? null,
     active: true,
   })
@@ -115,6 +135,9 @@ export async function deletePoll(
   _prev: { error?: string; success?: boolean },
   _formData?: FormData,
 ): Promise<{ error?: string; success?: boolean }> {
+  void _prev
+  void _formData
+
   const supabase = await createClient()
   const { role } = await getUserRole(supabase)
   if (role !== 'admin') return { error: 'Admin access required' }
