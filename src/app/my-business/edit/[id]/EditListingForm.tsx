@@ -421,6 +421,7 @@ export default function EditListingForm({ listing }: Props) {
                     placeholder="yourbusiness"
                     className="flex-1 px-3 py-3 focus:outline-none text-sm bg-white" />
                 </div>
+                <p className="mt-1 text-xs text-gray-400">Only enter your username, not the full URL.</p>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
