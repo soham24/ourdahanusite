@@ -16,6 +16,7 @@ import ImageCropUpload from '@/components/ImageCropUpload'
 import CompactImageUpload from '@/components/CompactImageUpload'
 import PhoneInput from '@/components/PhoneInput'
 import LocationPicker from '@/components/LocationPicker'
+import { MAX_SERVICE_ITEMS } from '@/lib/listing-content'
 import { normalizeOptionalUrl } from '@/lib/url'
 import { getListingHref } from '@/lib/listing-url'
 import {
@@ -195,10 +196,14 @@ export default function EditListingForm({ listing }: Props) {
   const [deliveryInfo, setDeliveryInfo] = useState<{ areas: string; note: string }>(initialDeliveryInfo)
 
   const addService = () =>
-    setServices((current) => [
-      ...current,
-      { type: 'service', name: '', desc: '', price: '', image: '', imageAspect: NEW_SERVICE_IMAGE_ASPECT },
-    ])
+    setServices((current) => {
+      if (current.length >= MAX_SERVICE_ITEMS) return current
+
+      return [
+        ...current,
+        { type: 'service', name: '', desc: '', price: '', image: '', imageAspect: NEW_SERVICE_IMAGE_ASPECT },
+      ]
+    })
   const removeService = (i: number) => setServices(s => s.filter((_, idx) => idx !== i))
   const updateService = (i: number, field: keyof Service, val: Service[keyof Service]) =>
     setServices(s => s.map((svc, idx) => idx === i ? { ...svc, [field]: val } : svc))
@@ -480,10 +485,11 @@ export default function EditListingForm({ listing }: Props) {
               <div>
                 <h3 className="font-semibold text-gray-800">Services & Products</h3>
                 <p className="text-xs text-gray-400 mt-0.5">List what you offer — customers see these on your profile page. Service photos can be square, horizontal, or vertical.</p>
+                <p className="text-xs text-gray-400 mt-1">Up to {MAX_SERVICE_ITEMS} items per listing.</p>
               </div>
-              <button type="button" onClick={addService}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-warli-terra border border-warli-terra px-3 py-1.5 rounded-xl hover:bg-warli-light transition-colors">
-                <Plus size={14} /> Add Item
+              <button type="button" onClick={addService} disabled={services.length >= MAX_SERVICE_ITEMS}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-warli-terra border border-warli-terra px-3 py-1.5 rounded-xl hover:bg-warli-light transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent">
+                <Plus size={14} /> {services.length >= MAX_SERVICE_ITEMS ? 'Limit Reached' : 'Add Item'}
               </button>
             </div>
 
@@ -561,6 +567,9 @@ export default function EditListingForm({ listing }: Props) {
                   </div>
                 ))}
               </div>
+            )}
+            {services.length > 0 && (
+              <p className="text-right text-xs text-gray-400">{services.length}/{MAX_SERVICE_ITEMS} items</p>
             )}
         </div>
 

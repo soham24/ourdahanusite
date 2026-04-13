@@ -5,6 +5,8 @@ import {
   type ServiceImageAspect,
 } from '@/lib/service-image'
 
+export const MAX_SERVICE_ITEMS = 30
+
 function collapseSpaces(value: string): string {
   return value.replace(/\s+/g, ' ').trim()
 }
@@ -201,7 +203,7 @@ export function normalizeServiceItems(values: unknown): NormalizedService[] {
       ...(imageAspect ? { imageAspect } : {}),
     })
 
-    if (normalized.length >= 20) break
+    if (normalized.length >= MAX_SERVICE_ITEMS) break
   }
 
   return normalized
