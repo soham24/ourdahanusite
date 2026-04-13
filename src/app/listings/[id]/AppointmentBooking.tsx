@@ -3,7 +3,17 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
-import { Calendar, CheckCircle, Clock3, Loader2, ShieldCheck } from 'lucide-react'
+import {
+  ArrowRight,
+  Calendar,
+  CheckCircle,
+  Clock3,
+  CreditCard,
+  Loader2,
+  ShieldCheck,
+  Sparkles,
+  Users,
+} from 'lucide-react'
 
 import {
   bookAppointment,
@@ -62,14 +72,28 @@ function addIndiaDays(dateString: string, days: number): string {
 
 function formatSelectedDate(value: string): string {
   return new Date(`${value}T12:00:00+05:30`).toLocaleDateString('en-IN', {
+    weekday: 'short',
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    timeZone: 'Asia/Kolkata',
+  })
+}
+
+function formatTimeLabel(value: string): string {
+  return new Date(`1970-01-01T${value}:00+05:30`).toLocaleTimeString('en-IN', {
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'Asia/Kolkata',
   })
 }
 
 function formatSlotLabel(slot: AppointmentSlot): string {
-  return `${slot.start} - ${slot.end}`
+  return `${formatTimeLabel(slot.start)} - ${formatTimeLabel(slot.end)}`
+}
+
+function formatFee(value: number): string {
+  return value > 0 ? `Rs ${value.toLocaleString('en-IN')}` : 'Free'
 }
 
 export default function AppointmentBooking({
@@ -99,6 +123,38 @@ export default function AppointmentBooking({
   const [name, setName] = useState(userName)
   const [phone, setPhone] = useState(userPhone)
   const [notes, setNotes] = useState('')
+
+  const availableSlotsCount = useMemo(
+    () => slots.filter((slot) => slot.available).length,
+    [slots],
+  )
+
+  const selectedSlotLabel = selectedSlot
+    ? formatSlotLabel(selectedSlot)
+    : 'Pick a time slot to continue'
+
+  const bookingHighlights = [
+    {
+      label: 'Fee',
+      value: formatFee(bookingFee),
+      tone: 'text-warli-terra',
+    },
+    {
+      label: 'Slot Length',
+      value: `${appointmentSettings.slot_duration} min`,
+      tone: 'text-gray-900',
+    },
+    {
+      label: 'Capacity',
+      value: `${appointmentSettings.capacity} / slot`,
+      tone: 'text-gray-900',
+    },
+    {
+      label: 'Booking Window',
+      value: `${appointmentSettings.advance_days} days`,
+      tone: 'text-gray-900',
+    },
+  ]
 
   useEffect(() => {
     let active = true
@@ -260,175 +316,334 @@ export default function AppointmentBooking({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="w-1 h-4 bg-warli-terra rounded-full inline-block" />
-        <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-          <Calendar size={15} className="text-warli-terra" />
-          Book an Appointment
-        </h2>
-      </div>
-      <p className="text-sm text-gray-500 mb-5">
-        Pick a date, choose an available slot, and confirm your booking for {listingName}.
-      </p>
+    <section className="relative overflow-hidden rounded-[28px] border border-[#e7d8ca] bg-gradient-to-br from-[#fff7ef] via-white to-[#f4ede4]">
+      <div className="absolute -top-24 right-0 h-56 w-56 rounded-full bg-[#f5dfc5] blur-3xl opacity-70" />
+      <div className="absolute bottom-0 left-0 h-48 w-48 rounded-full bg-[#f2e8d9] blur-3xl opacity-70" />
 
-      {status === 'success' && confirmation ? (
-        <div className="rounded-2xl border border-green-200 bg-green-50 px-5 py-6">
-          <div className="flex items-start gap-3">
-            <CheckCircle size={22} className="text-green-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-green-800">Appointment confirmed</h3>
-              <p className="text-sm text-green-700 mt-1">
-                {formatSelectedDate(confirmation.date)} at {formatSlotLabel(confirmation.slot)}
-              </p>
-              <p className="text-sm text-green-700 mt-1">
-                {bookingFee > 0 ? `Payment received: Rs ${bookingFee.toLocaleString('en-IN')}` : 'No payment was required for this booking.'}
-              </p>
+      <div className="relative space-y-6 p-6 lg:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#e9c9a7] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-warli-terra">
+              <Sparkles size={13} />
+              Appointment Booking
+            </span>
+            <h2 className="mt-4 text-2xl font-bold text-[#2d160b] sm:text-3xl">
+              Reserve a time with {listingName}
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-[#6f5748] sm:text-[15px]">
+              Choose a date, pick a live slot, and confirm instantly. The booking summary stays visible throughout
+              the flow so the customer always knows what is being booked and what will be charged.
+            </p>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {['Choose date', 'Pick slot', bookingFee > 0 ? 'Pay & confirm' : 'Confirm instantly'].map((step, index) => (
+                <div
+                  key={step}
+                  className="inline-flex items-center gap-2 rounded-full bg-[#3D1A08] px-3 py-1.5 text-xs font-semibold text-warli-cream"
+                >
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-[11px]">
+                    {index + 1}
+                  </span>
+                  {step}
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      ) : (
-        <div className="space-y-5">
-          <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-5">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Choose Date</label>
-              <input
-                type="date"
-                min={today}
-                max={maxDate}
-                value={selectedDate}
-                onChange={(event) => setSelectedDate(event.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm"
-              />
-              <p className="text-xs text-gray-400 mt-2">
-                Booking window: up to {appointmentSettings.advance_days} days ahead
-              </p>
-            </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-semibold text-gray-700">Available Slots</label>
-                {status === 'loading-slots' && (
-                  <span className="inline-flex items-center gap-1 text-xs text-gray-400">
-                    <Loader2 size={12} className="animate-spin" />
-                    Loading
-                  </span>
-                )}
+          <div className="grid w-full gap-3 sm:grid-cols-2 lg:w-[360px]">
+            {bookingHighlights.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3 shadow-[0_10px_30px_rgba(61,26,8,0.05)] backdrop-blur"
+              >
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9b7a67]">{item.label}</p>
+                <p className={`mt-1 text-base font-bold ${item.tone}`}>{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {status === 'success' && confirmation ? (
+          <div className="rounded-[24px] border border-green-200 bg-gradient-to-br from-green-50 to-white p-6 shadow-sm">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-600 text-white">
+                  <CheckCircle size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-green-900">Appointment confirmed</h3>
+                  <p className="mt-1 text-sm text-green-800">
+                    {formatSelectedDate(confirmation.date)} at {formatSlotLabel(confirmation.slot)}
+                  </p>
+                  <p className="mt-2 text-sm text-green-700">
+                    {bookingFee > 0
+                      ? `Payment received: ${formatFee(bookingFee)}`
+                      : 'No payment was required for this booking.'}
+                  </p>
+                </div>
               </div>
 
-              {slots.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-gray-200 px-4 py-5 text-sm text-gray-400">
-                  {error || 'No slots available for this date.'}
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/dashboard/appointments"
+                  className="inline-flex items-center gap-2 rounded-xl bg-green-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-800"
+                >
+                  View My Appointments
+                  <ArrowRight size={14} />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmation(null)
+                    setSelectedSlot(null)
+                    setStatus('idle')
+                  }}
+                  className="inline-flex items-center rounded-xl border border-green-200 px-4 py-2.5 text-sm font-semibold text-green-800 transition-colors hover:border-green-300 hover:bg-green-50"
+                >
+                  Book Another Slot
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-[0_20px_50px_rgba(61,26,8,0.06)] backdrop-blur lg:p-6">
+              <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
+                <div className="rounded-2xl border border-[#efe2d6] bg-[#fffaf5] p-4">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-[#7d5a47]">
+                    <Calendar size={15} className="text-warli-terra" />
+                    Step 1
+                  </div>
+                  <h3 className="mt-2 text-lg font-bold text-[#2d160b]">Choose a date</h3>
+                  <p className="mt-1 text-sm text-[#7c6253]">
+                    Booking window stays open for up to {appointmentSettings.advance_days} days ahead.
+                  </p>
+
+                  <input
+                    type="date"
+                    min={today}
+                    max={maxDate}
+                    value={selectedDate}
+                    onChange={(event) => setSelectedDate(event.target.value)}
+                    className="mt-4 w-full rounded-2xl border border-[#decbbb] bg-white px-4 py-3 text-sm text-gray-800 focus:border-warli-terra focus:outline-none"
+                  />
+
+                  <div className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-[#6b5547]">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9f806d]">Selected Date</p>
+                    <p className="mt-1 font-semibold text-[#2d160b]">{formatSelectedDate(selectedDate)}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-[#efe2d6] bg-white p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-[#7d5a47]">
+                        <Clock3 size={15} className="text-warli-terra" />
+                        Step 2
+                      </div>
+                      <h3 className="mt-1 text-lg font-bold text-[#2d160b]">Pick a live time slot</h3>
+                      <p className="mt-1 text-sm text-[#7c6253]">
+                        {availableSlotsCount > 0
+                          ? `${availableSlotsCount} open slot${availableSlotsCount === 1 ? '' : 's'} for this date`
+                          : 'Live availability updates as bookings come in'}
+                      </p>
+                    </div>
+
+                    {status === 'loading-slots' && (
+                      <span className="inline-flex items-center gap-2 rounded-full bg-[#f8efe7] px-3 py-1 text-xs font-semibold text-[#8a6754]">
+                        <Loader2 size={12} className="animate-spin" />
+                        Loading slots
+                      </span>
+                    )}
+                  </div>
+
+                  {slots.length === 0 ? (
+                    <div className="mt-4 rounded-2xl border border-dashed border-[#ead9ca] bg-[#fcf7f2] px-4 py-8 text-center text-sm text-[#8c7364]">
+                      {error || 'No slots available for this date.'}
+                    </div>
+                  ) : (
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                      {slots.map((slot) => {
+                        const isSelected = selectedSlot?.start === slot.start
+                        return (
+                          <button
+                            key={slot.start}
+                            type="button"
+                            disabled={!slot.available}
+                            onClick={() => {
+                              setSelectedSlot(slot)
+                              setError('')
+                            }}
+                            className={`group rounded-2xl border px-4 py-3 text-left transition-all ${
+                              !slot.available
+                                ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400'
+                                : isSelected
+                                ? 'border-warli-terra bg-[#fff3e7] shadow-[0_10px_25px_rgba(196,102,58,0.14)]'
+                                : 'border-[#ead8c8] bg-white hover:-translate-y-0.5 hover:border-[#d9b89e] hover:shadow-[0_10px_25px_rgba(61,26,8,0.08)]'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-sm font-semibold text-[#2d160b]">{formatSlotLabel(slot)}</p>
+                                <p className="mt-1 text-xs text-[#8c7364]">
+                                  {slot.available ? `${slot.remaining} left` : 'Full'}
+                                </p>
+                              </div>
+                              {slot.available && (
+                                <span
+                                  className={`rounded-full px-2 py-1 text-[11px] font-semibold ${
+                                    isSelected
+                                      ? 'bg-warli-terra text-white'
+                                      : 'bg-[#f6ebe2] text-warli-terra'
+                                  }`}
+                                >
+                                  {isSelected ? 'Selected' : 'Open'}
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {!isLoggedIn ? (
+                <div className="mt-5 rounded-[24px] border border-[#efdac8] bg-[#fff7f0] p-5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-[#2d160b]">Sign in to complete the booking</p>
+                      <p className="mt-1 text-sm text-[#7c6253]">
+                        The booking will be attached to your account so you can track or cancel it later from your dashboard.
+                      </p>
+                    </div>
+                    <Link
+                      href={`/login?next=${encodeURIComponent(pathname || `/listings/${listingId}`)}`}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-warli-terra px-5 py-3 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep"
+                    >
+                      Sign In to Book
+                      <ArrowRight size={15} />
+                    </Link>
+                  </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {slots.map((slot) => {
-                    const isSelected = selectedSlot?.start === slot.start
-                    return (
-                      <button
-                        key={slot.start}
-                        type="button"
-                        disabled={!slot.available}
-                        onClick={() => {
-                          setSelectedSlot(slot)
-                          setError('')
-                        }}
-                        className={`rounded-xl border px-3 py-3 text-left transition-colors ${
-                          !slot.available
-                            ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
-                            : isSelected
-                            ? 'border-warli-terra bg-warli-light text-warli-terra'
-                            : 'border-gray-200 hover:border-warli-sand text-gray-700'
-                        }`}
-                      >
-                        <div className="font-semibold text-sm">{formatSlotLabel(slot)}</div>
-                        <div className="text-xs mt-1">
-                          {slot.available
-                            ? `${slot.remaining} left`
-                            : 'Full'}
-                        </div>
-                      </button>
-                    )
-                  })}
+                <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                  <div className="rounded-2xl border border-[#efe2d6] bg-[#fffaf5] p-4">
+                    <p className="text-sm font-semibold text-[#2d160b]">Guest details</p>
+                    <p className="mt-1 text-sm text-[#7c6253]">
+                      These details are shared with the business after the booking is confirmed.
+                    </p>
+
+                    <div className="mt-4 space-y-4">
+                      <div>
+                        <label className="mb-1.5 block text-sm font-semibold text-gray-700">Your Name</label>
+                        <input
+                          type="text"
+                          value={name}
+                          onChange={(event) => setName(event.target.value)}
+                          className="w-full rounded-xl border border-[#decbbb] bg-white px-4 py-3 text-sm text-gray-800 focus:border-warli-terra focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 block text-sm font-semibold text-gray-700">Phone Number</label>
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(event) => setPhone(event.target.value)}
+                          className="w-full rounded-xl border border-[#decbbb] bg-white px-4 py-3 text-sm text-gray-800 focus:border-warli-terra focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-[#efe2d6] bg-white p-4">
+                    <p className="text-sm font-semibold text-[#2d160b]">Notes for the business</p>
+                    <p className="mt-1 text-sm text-[#7c6253]">
+                      Add context, questions, or anything the business should know before the appointment.
+                    </p>
+
+                    <textarea
+                      value={notes}
+                      onChange={(event) => setNotes(event.target.value)}
+                      rows={6}
+                      placeholder="Optional notes or questions"
+                      className="mt-4 w-full resize-none rounded-xl border border-[#decbbb] bg-[#fffdfb] px-4 py-3 text-sm text-gray-800 focus:border-warli-terra focus:outline-none"
+                    />
+
+                    <div className="mt-4 rounded-xl bg-[#f8efe7] px-4 py-3 text-sm text-[#6a5447]">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9f806d]">Account Email</p>
+                      <p className="mt-1 font-medium text-[#2d160b]">{userEmail || 'Stored on your account'}</p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
-          </div>
 
-          {!isLoggedIn ? (
-            <div className="rounded-2xl border border-warli-sand bg-warli-light/60 px-4 py-5 text-center">
-              <p className="text-sm text-gray-700 mb-3">Sign in to confirm your appointment.</p>
-              <Link
-                href={`/login?next=${encodeURIComponent(pathname || `/listings/${listingId}`)}`}
-                className="inline-block bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
-              >
-                Sign In to Book
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Your Name</label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm"
-                  />
+            <aside className="rounded-[28px] bg-[#3D1A08] p-5 text-warli-cream shadow-[0_24px_60px_rgba(61,26,8,0.24)] lg:p-6">
+              <div className="flex items-center gap-2 text-sm font-semibold text-[#f4d8c0]">
+                <ShieldCheck size={15} />
+                Booking Summary
+              </div>
+
+              <div className="mt-4 rounded-2xl bg-white/8 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d9b79d]">Business</p>
+                <p className="mt-1 text-lg font-bold">{listingName}</p>
+                <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d9b79d]">Selected Slot</p>
+                <p className="mt-1 text-base font-semibold">{selectedSlotLabel}</p>
+                <p className="mt-1 text-sm text-[#f4d8c0]">{formatSelectedDate(selectedDate)}</p>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <div className="flex items-center gap-2 text-[#f1cfb4]">
+                    <CreditCard size={14} />
+                    <span className="text-xs font-semibold uppercase tracking-[0.18em]">Amount</span>
+                  </div>
+                  <p className="mt-2 text-xl font-bold">{formatFee(bookingFee)}</p>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number</label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(event) => setPhone(event.target.value)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Notes</label>
-                  <textarea
-                    value={notes}
-                    onChange={(event) => setNotes(event.target.value)}
-                    rows={3}
-                    placeholder="Optional notes or questions for the business"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm resize-none"
-                  />
+                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <div className="flex items-center gap-2 text-[#f1cfb4]">
+                    <Users size={14} />
+                    <span className="text-xs font-semibold uppercase tracking-[0.18em]">Capacity</span>
+                  </div>
+                  <p className="mt-2 text-xl font-bold">{appointmentSettings.capacity} per slot</p>
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-warli-light border border-warli-sand p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700">Booking Summary</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {selectedSlot
-                        ? `${formatSelectedDate(selectedDate)} at ${formatSlotLabel(selectedSlot)}`
-                        : 'Select a slot to continue'}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-500">Fee</p>
-                    <p className="text-lg font-bold text-warli-terra">
-                      {bookingFee > 0 ? `Rs ${bookingFee.toLocaleString('en-IN')}` : 'Free'}
-                    </p>
-                  </div>
+              <div className="mt-5 space-y-2 rounded-2xl border border-white/10 bg-black/10 p-4 text-sm text-[#f0dbca]">
+                <div className="flex items-start gap-2">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-[#f0b176]" />
+                  <p>Slots are generated from the business availability and update live as bookings happen.</p>
                 </div>
+                <div className="flex items-start gap-2">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-[#f0b176]" />
+                  <p>
+                    {bookingFee > 0
+                      ? 'Payment is handled securely through Razorpay before the appointment is confirmed.'
+                      : 'This listing currently offers free appointment booking with instant confirmation.'}
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-[#f0b176]" />
+                  <p>After booking, the appointment will show up in your dashboard for tracking and cancellation.</p>
+                </div>
+              </div>
 
-                {error && (
-                  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                    {error}
-                  </div>
-                )}
+              {error && (
+                <div className="mt-4 rounded-2xl border border-red-300/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                  {error}
+                </div>
+              )}
 
+              {isLoggedIn ? (
                 <button
                   type="button"
                   onClick={() => void handleConfirm()}
                   disabled={!selectedSlot || status === 'processing' || status === 'loading-slots'}
-                  className="mt-5 w-full inline-flex items-center justify-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-5 py-3 rounded-xl transition-colors disabled:opacity-60"
+                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-warli-cream px-5 py-3.5 text-sm font-semibold text-[#3D1A08] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {status === 'processing' ? (
                     <>
@@ -437,23 +652,24 @@ export default function AppointmentBooking({
                     </>
                   ) : (
                     <>
-                      <Clock3 size={15} />
-                      {bookingFee > 0 ? `Pay and Confirm` : 'Confirm Booking'}
+                      {bookingFee > 0 ? <CreditCard size={15} /> : <CheckCircle size={15} />}
+                      {bookingFee > 0 ? 'Pay and Confirm' : 'Confirm Booking'}
                     </>
                   )}
                 </button>
-
-                {bookingFee > 0 && (
-                  <p className="text-xs text-gray-500 mt-3 flex items-center gap-1.5">
-                    <ShieldCheck size={12} className="text-warli-terra" />
-                    Secure payment via Razorpay
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+              ) : (
+                <Link
+                  href={`/login?next=${encodeURIComponent(pathname || `/listings/${listingId}`)}`}
+                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-warli-cream px-5 py-3.5 text-sm font-semibold text-[#3D1A08] transition-colors hover:bg-white"
+                >
+                  Sign In to Continue
+                  <ArrowRight size={15} />
+                </Link>
+              )}
+            </aside>
+          </div>
+        )}
+      </div>
+    </section>
   )
 }

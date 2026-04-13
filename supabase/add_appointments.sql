@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS appointments (
   status text NOT NULL DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'completed', 'cancelled', 'no_show')),
   cancelled_by text CHECK (cancelled_by IN ('user', 'owner', 'admin')),
   cancellation_reason text,
+  customer_reminder_sent_at timestamptz,
+  owner_reminder_sent_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CHECK (slot_end > slot_start),

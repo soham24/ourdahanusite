@@ -17,7 +17,7 @@ import type { ReminderDays } from '@/lib/notify-expiry'
 
 export async function GET(request: Request) {
   // ── Auth: verify CRON_SECRET if configured ──────────────────────────────────
-  const cronSecret = process.env.CRON_SECRET
+  const cronSecret = process.env.CRON_SECRET?.trim()
   if (cronSecret) {
     const authHeader = request.headers.get('authorization')
     if (authHeader !== `Bearer ${cronSecret}`) {

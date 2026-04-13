@@ -62,6 +62,10 @@ function getIndiaNowInfo() {
   return `${lookup.year}-${lookup.month}-${lookup.day}`
 }
 
+function getAppointmentInstant(bookingDate: string, slotStart: string): Date {
+  return new Date(`${bookingDate}T${slotStart}:00+05:30`)
+}
+
 function addIndiaDays(dateString: string, days: number): string {
   const base = new Date(`${dateString}T12:00:00+05:30`)
   base.setUTCDate(base.getUTCDate() + days)
@@ -189,7 +193,7 @@ export async function bookAppointment(
   const slotStart = normalizeSlotTime(String(formData.get('slot_start') ?? ''))
   const userName = normalizeInlineText(String(formData.get('user_name') ?? ''), 80)
   const userPhone = normalizePhoneOrNull(String(formData.get('user_phone') ?? ''))
-  const userEmail = normalizeInlineText(String(formData.get('user_email') ?? user.email ?? ''), 120)
+  const userEmail = normalizeInlineText(String(user.email ?? formData.get('user_email') ?? ''), 120)
   const notes = normalizeInlineText(String(formData.get('notes') ?? ''), 500)
 
   if (!listingId || !bookingDate || !slotStart || !userName || !userPhone) {
@@ -463,6 +467,11 @@ export async function updateAppointmentStatus(
 
   if (appointment.status !== 'confirmed' && appointment.status !== 'completed' && appointment.status !== 'no_show') {
     return { error: 'This appointment cannot be updated.' }
+  }
+
+  const appointmentInstant = getAppointmentInstant(appointment.booking_date, appointment.slot_start)
+  if (appointment.status === 'confirmed' && appointmentInstant.getTime() > Date.now()) {
+    return { error: 'This appointment can only be marked after its scheduled time.' }
   }
 
   const adminClient = createAdminClient()
