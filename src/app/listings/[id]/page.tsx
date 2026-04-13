@@ -26,6 +26,7 @@ import RecommendButton from './RecommendButton'
 import QASection from './QASection'
 import ServicesSection from './ServicesSection'
 import { getCachedListingDetail } from '@/lib/data/listing-detail'
+import type { ServiceImageAspect } from '@/lib/service-image'
 
 export async function generateMetadata({
   params,
@@ -161,7 +162,14 @@ function inferAddressLocality(address: string): string {
   return 'Dahanu'
 }
 
-type Service = { type?: 'service' | 'product'; name: string; desc?: string; price?: string; image?: string }
+type Service = {
+  type?: 'service' | 'product'
+  name: string
+  desc?: string
+  price?: string
+  image?: string
+  imageAspect?: ServiceImageAspect
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseJson(raw: any, fallback: any = []) {

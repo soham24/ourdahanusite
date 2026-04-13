@@ -18,6 +18,12 @@ import PhoneInput from '@/components/PhoneInput'
 import LocationPicker from '@/components/LocationPicker'
 import { normalizeOptionalUrl } from '@/lib/url'
 import { getListingHref } from '@/lib/listing-url'
+import {
+  DEFAULT_SERVICE_IMAGE_ASPECT,
+  NEW_SERVICE_IMAGE_ASPECT,
+  normalizeServiceImageAspect,
+  type ServiceImageAspect,
+} from '@/lib/service-image'
 
 const CATEGORIES = [
   'Restaurants', 'Homemade Food', 'Hotels & Stay', 'Grocery & Shops',
@@ -49,6 +55,7 @@ interface Service {
   desc: string
   price: string
   image?: string
+  imageAspect: ServiceImageAspect
 }
 
 interface Props {
@@ -78,12 +85,33 @@ export default function EditListingForm({ listing }: Props) {
 
   // Services state
   const initialServices: Service[] = (() => {
+    let parsed: unknown = []
+
     try {
       const raw = listing.services
-      if (Array.isArray(raw)) return raw
-      if (typeof raw === 'string') return JSON.parse(raw)
+      if (Array.isArray(raw)) parsed = raw
+      else if (typeof raw === 'string') parsed = JSON.parse(raw)
     } catch { /* ignore */ }
-    return []
+
+    if (!Array.isArray(parsed)) return []
+
+    return parsed
+      .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object')
+      .map((entry) => {
+        const image = typeof entry.image === 'string' ? entry.image : ''
+
+        return {
+          type: entry.type === 'product' ? 'product' : 'service',
+          name: typeof entry.name === 'string' ? entry.name : '',
+          desc: typeof entry.desc === 'string' ? entry.desc : '',
+          price: typeof entry.price === 'string' ? entry.price : '',
+          image,
+          imageAspect: normalizeServiceImageAspect(
+            entry.imageAspect,
+            image ? DEFAULT_SERVICE_IMAGE_ASPECT : NEW_SERVICE_IMAGE_ASPECT,
+          ),
+        }
+      })
   })()
   const [services, setServices] = useState<Service[]>(initialServices)
 
@@ -166,9 +194,13 @@ export default function EditListingForm({ listing }: Props) {
   })()
   const [deliveryInfo, setDeliveryInfo] = useState<{ areas: string; note: string }>(initialDeliveryInfo)
 
-  const addService = () => setServices(s => [...s, { type: 'service', name: '', desc: '', price: '', image: '' }])
+  const addService = () =>
+    setServices((current) => [
+      ...current,
+      { type: 'service', name: '', desc: '', price: '', image: '', imageAspect: NEW_SERVICE_IMAGE_ASPECT },
+    ])
   const removeService = (i: number) => setServices(s => s.filter((_, idx) => idx !== i))
-  const updateService = (i: number, field: keyof Service, val: string) =>
+  const updateService = (i: number, field: keyof Service, val: Service[keyof Service]) =>
     setServices(s => s.map((svc, idx) => idx === i ? { ...svc, [field]: val } : svc))
 
   const addTag = () => {
@@ -447,7 +479,7 @@ export default function EditListingForm({ listing }: Props) {
             <div className="flex items-center justify-between mb-2">
               <div>
                 <h3 className="font-semibold text-gray-800">Services & Products</h3>
-                <p className="text-xs text-gray-400 mt-0.5">List what you offer — customers see these on your profile page</p>
+                <p className="text-xs text-gray-400 mt-0.5">List what you offer — customers see these on your profile page. Service photos can be square, horizontal, or vertical.</p>
               </div>
               <button type="button" onClick={addService}
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-warli-terra border border-warli-terra px-3 py-1.5 rounded-xl hover:bg-warli-light transition-colors">
@@ -500,8 +532,10 @@ export default function EditListingForm({ listing }: Props) {
                     <div className="flex gap-3">
                       <CompactImageUpload
                         value={svc.image || ''}
+                        aspect={svc.imageAspect}
                         onUpload={url => updateService(i, 'image', url)}
                         onClear={() => updateService(i, 'image', '')}
+                        onAspectChange={(nextAspect) => updateService(i, 'imageAspect', nextAspect)}
                       />
                       <div className="flex-1 space-y-3">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

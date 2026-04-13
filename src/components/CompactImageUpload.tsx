@@ -1,42 +1,84 @@
 'use client'
 
-import { useRef, useState, useCallback } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import Cropper from 'react-easy-crop'
 import { createClient } from '@/lib/supabase/client'
-import { Camera, Loader2, X, ZoomIn, ZoomOut, RotateCw, Check } from 'lucide-react'
+import { Camera, Check, Loader2, RotateCw, X, ZoomIn, ZoomOut } from 'lucide-react'
+import {
+  SERVICE_IMAGE_ASPECT_OPTIONS,
+  getServiceImageAspectOption,
+  type ServiceImageAspect,
+} from '@/lib/service-image'
 
 interface Props {
   value: string
+  aspect: ServiceImageAspect
   onUpload: (url: string) => void
   onClear: () => void
-  size?: number
+  onAspectChange: (aspect: ServiceImageAspect) => void
 }
 
-interface CropArea { x: number; y: number; width: number; height: number }
+interface CropArea {
+  x: number
+  y: number
+  width: number
+  height: number
+}
 
-async function getCroppedBlob(src: string, pixelCrop: CropArea, rotation: number, outputSize: number): Promise<Blob> {
-  const image = await new Promise<HTMLImageElement>((res, rej) => {
+async function getCroppedBlob(
+  src: string,
+  pixelCrop: CropArea,
+  rotation: number,
+  outputWidth: number,
+  outputHeight: number,
+): Promise<Blob> {
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
-    img.onload = () => res(img)
-    img.onerror = rej
+    img.onload = () => resolve(img)
+    img.onerror = reject
     img.src = src
   })
+
   const canvas = document.createElement('canvas')
-  canvas.width = outputSize
-  canvas.height = outputSize
-  const ctx = canvas.getContext('2d')!
+  canvas.width = outputWidth
+  canvas.height = outputHeight
+
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas is not available')
+
   const rad = (rotation * Math.PI) / 180
-  ctx.translate(outputSize / 2, outputSize / 2)
+  ctx.translate(outputWidth / 2, outputHeight / 2)
   ctx.rotate(rad)
-  ctx.translate(-outputSize / 2, -outputSize / 2)
-  ctx.drawImage(image, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, 0, 0, outputSize, outputSize)
-  return new Promise<Blob>((res, rej) =>
-    canvas.toBlob(b => (b ? res(b) : rej(new Error('toBlob failed'))), 'image/jpeg', 0.9)
+  ctx.translate(-outputWidth / 2, -outputHeight / 2)
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    outputWidth,
+    outputHeight,
+  )
+
+  return new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error('toBlob failed'))),
+      'image/jpeg',
+      0.9,
+    ),
   )
 }
 
-export default function CompactImageUpload({ value, onUpload, onClear, size = 480 }: Props) {
+export default function CompactImageUpload({
+  value,
+  aspect,
+  onUpload,
+  onClear,
+  onAspectChange,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [src, setSrc] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
@@ -46,76 +88,167 @@ export default function CompactImageUpload({ value, onUpload, onClear, size = 48
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
 
+  const aspectOption = getServiceImageAspectOption(aspect)
+
   const onCropComplete = useCallback((_: unknown, areaPixels: CropArea) => {
     setCroppedArea(areaPixels)
   }, [])
 
   const handleFile = (file: File) => {
-    if (!file.type.startsWith('image/')) { setError('Images only'); return }
+    if (!file.type.startsWith('image/')) {
+      setError('Images only')
+      return
+    }
+
     setError('')
     const reader = new FileReader()
-    reader.onload = () => { setSrc(reader.result as string); setCrop({ x: 0, y: 0 }); setZoom(1); setRotation(0) }
+    reader.onload = () => {
+      setSrc(reader.result as string)
+      setCrop({ x: 0, y: 0 })
+      setZoom(1)
+      setRotation(0)
+    }
     reader.readAsDataURL(file)
   }
 
   const handleConfirm = async () => {
     if (!src || !croppedArea) return
+
     setError('')
+
     try {
-      const blob = await getCroppedBlob(src, croppedArea, rotation, size)
+      const nextAspect = getServiceImageAspectOption(aspect)
+      const blob = await getCroppedBlob(
+        src,
+        croppedArea,
+        rotation,
+        nextAspect.outputWidth,
+        nextAspect.outputHeight,
+      )
+
       setSrc(null)
       setUploading(true)
+
       const supabase = createClient()
       const path = `public/${Date.now()}-svc.jpg`
-      const { error: upErr } = await supabase.storage.from('uploads').upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
-      if (upErr) throw upErr
+      const { error: uploadError } = await supabase.storage
+        .from('uploads')
+        .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
+
+      if (uploadError) throw uploadError
+
       const { data } = supabase.storage.from('uploads').getPublicUrl(path)
       onUpload(data.publicUrl)
-    } catch { setError('Upload failed') } finally { setUploading(false) }
+    } catch {
+      setError('Upload failed')
+    } finally {
+      setUploading(false)
+    }
   }
 
-  // ── Crop modal overlay ────────────────────────────────────────────────────
+  const renderAspectSelector = (tone: 'light' | 'dark') => (
+    <div className="grid grid-cols-3 gap-1.5">
+      {SERVICE_IMAGE_ASPECT_OPTIONS.map((option) => {
+        const active = option.value === aspect
+
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onAspectChange(option.value)}
+            className={
+              tone === 'dark'
+                ? `rounded-lg border px-2 py-2 text-left transition-colors ${
+                    active
+                      ? 'border-warli-sand bg-warli-terra/25 text-warli-cream'
+                      : 'border-gray-700 bg-gray-900 text-gray-300 hover:border-gray-500 hover:text-white'
+                  }`
+                : `rounded-lg border px-2 py-2 text-left transition-colors ${
+                    active
+                      ? 'border-warli-sand bg-warli-light text-warli-terra'
+                      : 'border-gray-200 bg-white text-gray-500 hover:border-warli-sand hover:text-gray-700'
+                  }`
+            }
+          >
+            <span className="block text-[11px] font-semibold leading-tight">{option.label}</span>
+            <span className="block text-[10px] opacity-75">{option.shortLabel}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+
   if (src) {
     return (
-      <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-        <div className="bg-gray-900 rounded-2xl overflow-hidden w-full max-w-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+        <div className="w-full max-w-md overflow-hidden rounded-2xl bg-gray-900">
           <div className="relative" style={{ height: 300 }}>
             <Cropper
               image={src}
               crop={crop}
               zoom={zoom}
               rotation={rotation}
-              aspect={1}
+              aspect={aspectOption.aspectRatio}
               onCropChange={setCrop}
               onZoomChange={setZoom}
               onCropComplete={onCropComplete}
               style={{ containerStyle: { borderRadius: 0 } }}
             />
           </div>
-          <div className="bg-gray-800 px-4 py-3 space-y-3">
-            <div className="flex items-center gap-3">
-              <ZoomOut size={14} className="text-gray-400 flex-shrink-0" />
-              <input type="range" min={1} max={3} step={0.05} value={zoom}
-                onChange={e => setZoom(Number(e.target.value))}
-                className="flex-1 accent-warli-terra" />
-              <ZoomIn size={14} className="text-gray-400 flex-shrink-0" />
+
+          <div className="space-y-3 bg-gray-800 px-4 py-3">
+            <div>
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                Photo Shape
+              </p>
+              {renderAspectSelector('dark')}
             </div>
+
             <div className="flex items-center gap-3">
-              <RotateCw size={14} className="text-gray-400 flex-shrink-0" />
-              <input type="range" min={-180} max={180} step={1} value={rotation}
-                onChange={e => setRotation(Number(e.target.value))}
-                className="flex-1 accent-warli-terra" />
-              <span className="text-xs text-gray-400 w-10 text-right">{rotation}°</span>
+              <ZoomOut size={14} className="shrink-0 text-gray-400" />
+              <input
+                type="range"
+                min={1}
+                max={3}
+                step={0.05}
+                value={zoom}
+                onChange={(event) => setZoom(Number(event.target.value))}
+                className="flex-1 accent-warli-terra"
+              />
+              <ZoomIn size={14} className="shrink-0 text-gray-400" />
             </div>
+
+            <div className="flex items-center gap-3">
+              <RotateCw size={14} className="shrink-0 text-gray-400" />
+              <input
+                type="range"
+                min={-180}
+                max={180}
+                step={1}
+                value={rotation}
+                onChange={(event) => setRotation(Number(event.target.value))}
+                className="flex-1 accent-warli-terra"
+              />
+              <span className="w-10 text-right text-xs text-gray-400">{rotation}°</span>
+            </div>
+
             <div className="flex items-center justify-between gap-3 pt-1">
-              <button type="button" onClick={() => setSrc(null)}
-                className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors px-3 py-1.5">
+              <button
+                type="button"
+                onClick={() => setSrc(null)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-400 transition-colors hover:text-white"
+              >
                 <X size={14} /> Cancel
               </button>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">{size}×{size}px</span>
-                <button type="button" onClick={handleConfirm}
-                  className="flex items-center gap-1.5 bg-warli-terra hover:bg-warli-deep text-warli-cream text-sm font-semibold px-4 py-1.5 rounded-xl transition-colors">
+                <span className="text-xs text-gray-500">
+                  {aspectOption.outputWidth}×{aspectOption.outputHeight}px
+                </span>
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  className="flex items-center gap-1.5 rounded-xl bg-warli-terra px-4 py-1.5 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep"
+                >
                   <Check size={14} /> Apply Crop
                 </button>
               </div>
@@ -126,41 +259,71 @@ export default function CompactImageUpload({ value, onUpload, onClear, size = 48
     )
   }
 
-  // ── Existing photo ────────────────────────────────────────────────────────
-  if (value) {
-    return (
-      <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-gray-200 bg-gray-50">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={value} alt="" className="w-full h-full object-cover" />
-        {uploading && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <Loader2 size={14} className="animate-spin text-white" />
-          </div>
-        )}
-        {!uploading && (
-          <button type="button" onClick={onClear}
-            className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] hover:bg-red-600 transition-colors">
-            ×
-          </button>
-        )}
-        {error && <p className="text-[10px] text-red-500 mt-0.5 w-16 text-center absolute bottom-0 left-0 bg-white/80">{error}</p>}
-      </div>
-    )
+  const previewStyle = {
+    width: `${aspectOption.thumbnailWidth}px`,
+    height: `${aspectOption.thumbnailHeight}px`,
   }
 
-  // ── Upload button ─────────────────────────────────────────────────────────
   return (
-    <div className="flex-shrink-0">
-      <button type="button" onClick={() => inputRef.current?.click()} disabled={uploading}
-        className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-200 hover:border-warli-sand bg-gray-50 hover:bg-warli-light flex flex-col items-center justify-center gap-0.5 transition-colors disabled:opacity-50">
-        {uploading
-          ? <Loader2 size={16} className="animate-spin text-warli-terra" />
-          : <Camera size={16} className="text-gray-400" />}
-        <span className="text-[9px] text-gray-400 leading-tight text-center">Photo</span>
-      </button>
-      <input ref={inputRef} type="file" accept="image/*" className="hidden"
-        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = '' }} />
-      {error && <p className="text-[10px] text-red-500 mt-0.5 w-16 text-center">{error}</p>}
+    <div className="flex shrink-0 flex-col gap-1.5">
+      {value ? (
+        <div
+          className="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
+          style={previewStyle}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={value} alt="" className="h-full w-full object-cover" />
+          <span className="absolute bottom-1 left-1 rounded-full bg-black/60 px-1.5 py-0.5 text-[9px] font-semibold text-white">
+            {aspectOption.label}
+          </span>
+          {uploading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <Loader2 size={14} className="animate-spin text-white" />
+            </div>
+          )}
+          {!uploading && (
+            <button
+              type="button"
+              onClick={onClear}
+              className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-black/60 text-[10px] text-white transition-colors hover:bg-red-600"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="flex flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 transition-colors hover:border-warli-sand hover:bg-warli-light disabled:opacity-50"
+          style={previewStyle}
+        >
+          {uploading ? (
+            <Loader2 size={16} className="animate-spin text-warli-terra" />
+          ) : (
+            <Camera size={16} className="text-gray-400" />
+          )}
+          <span className="text-center text-[9px] leading-tight text-gray-400">Photo</span>
+          <span className="text-center text-[9px] leading-tight text-gray-400">{aspectOption.shortLabel}</span>
+        </button>
+      )}
+
+      {renderAspectSelector('light')}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0]
+          if (file) handleFile(file)
+          event.target.value = ''
+        }}
+      />
+
+      {error && <p className="w-20 text-center text-[10px] text-red-500">{error}</p>}
     </div>
   )
 }
