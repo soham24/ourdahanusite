@@ -92,6 +92,19 @@ function formatSlotLabel(slot: AppointmentSlot): string {
   return `${formatTimeLabel(slot.start)} - ${formatTimeLabel(slot.end)}`
 }
 
+function getSlotPeriod(slot: AppointmentSlot): 'morning' | 'afternoon' | 'evening' {
+  const hour = Number.parseInt(slot.start.split(':')[0], 10)
+  if (hour < 12) return 'morning'
+  if (hour < 17) return 'afternoon'
+  return 'evening'
+}
+
+const PERIOD_META = {
+  morning: { label: 'Morning', icon: '☀️' },
+  afternoon: { label: 'Afternoon', icon: '🌤️' },
+  evening: { label: 'Evening', icon: '🌙' },
+} as const
+
 function formatFee(value: number): string {
   return value > 0 ? `Rs ${value.toLocaleString('en-IN')}` : 'Free'
 }
@@ -462,48 +475,59 @@ export default function AppointmentBooking({
                       {error || 'No slots available for this date.'}
                     </div>
                   ) : (
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                      {slots.map((slot) => {
-                        const isSelected = selectedSlot?.start === slot.start
+                    <div className="mt-4 space-y-4">
+                      {(['morning', 'afternoon', 'evening'] as const).map((period) => {
+                        const periodSlots = slots.filter((s) => getSlotPeriod(s) === period)
+                        if (periodSlots.length === 0) return null
+                        const meta = PERIOD_META[period]
                         return (
-                          <button
-                            key={slot.start}
-                            type="button"
-                            disabled={!slot.available}
-                            onClick={() => {
-                              setSelectedSlot(slot)
-                              setError('')
-                            }}
-                            className={`group rounded-2xl border px-4 py-3 text-left transition-all ${
-                              !slot.available
-                                ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400'
-                                : isSelected
-                                ? 'border-warli-terra bg-[#fff3e7] shadow-[0_10px_25px_rgba(196,102,58,0.14)]'
-                                : 'border-[#ead8c8] bg-white hover:-translate-y-0.5 hover:border-[#d9b89e] hover:shadow-[0_10px_25px_rgba(61,26,8,0.08)]'
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <p className="text-sm font-semibold text-[#2d160b]">{formatSlotLabel(slot)}</p>
-                                <p className="mt-1 text-xs text-[#8c7364]">
-                                  {slot.available ? `${slot.remaining} left` : 'Full'}
-                                </p>
-                              </div>
-                              {slot.available && (
-                                <span
-                                  className={`rounded-full px-2 py-1 text-[11px] font-semibold ${
-                                    isSelected
-                                      ? 'bg-warli-terra text-white'
-                                      : 'bg-[#f6ebe2] text-warli-terra'
-                                  }`}
-                                >
-                                  {isSelected ? 'Selected' : 'Open'}
-                                </span>
-                              )}
+                          <div key={period}>
+                            <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.15em] text-[#9b7a67]">
+                              <span>{meta.icon}</span>
+                              {meta.label}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {periodSlots.map((slot) => {
+                                const isSelected = selectedSlot?.start === slot.start
+                                return (
+                                  <button
+                                    key={slot.start}
+                                    type="button"
+                                    disabled={!slot.available}
+                                    onClick={() => {
+                                      setSelectedSlot(slot)
+                                      setError('')
+                                    }}
+                                    className={`relative rounded-xl border px-3 py-2 text-center text-sm font-medium transition-all ${
+                                      !slot.available
+                                        ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 line-through'
+                                        : isSelected
+                                        ? 'border-warli-terra bg-warli-terra text-white shadow-md'
+                                        : 'border-[#e4d3c4] bg-white text-[#2d160b] hover:border-warli-terra hover:bg-[#fff5ec]'
+                                    }`}
+                                    title={`${formatSlotLabel(slot)}${slot.available ? ` — ${slot.remaining} left` : ' — Full'}`}
+                                  >
+                                    {formatTimeLabel(slot.start)}
+                                    {slot.available && slot.remaining <= (appointmentSettings.capacity > 1 ? Math.ceil(appointmentSettings.capacity / 2) : 0) && (
+                                      <span className={`absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${
+                                        isSelected ? 'bg-white text-warli-terra' : 'bg-orange-100 text-orange-600'
+                                      }`}>
+                                        {slot.remaining}
+                                      </span>
+                                    )}
+                                  </button>
+                                )
+                              })}
                             </div>
-                          </button>
+                          </div>
                         )
                       })}
+                      {selectedSlot && (
+                        <div className="rounded-xl border border-warli-terra/20 bg-[#fff5ec] px-3 py-2 text-sm text-[#5a3825]">
+                          <span className="font-semibold text-warli-terra">Selected:</span>{' '}
+                          {formatSlotLabel(selectedSlot)} — {selectedSlot.remaining} spot{selectedSlot.remaining === 1 ? '' : 's'} left
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
