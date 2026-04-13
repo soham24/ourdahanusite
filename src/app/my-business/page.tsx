@@ -423,6 +423,25 @@ export default async function MyBusinessPage({
         </Link>
       </div>
 
+      <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-warli-light rounded-xl flex items-center justify-center">
+            <Calendar size={18} className="text-warli-terra" />
+          </div>
+          <div>
+            <p className="font-semibold text-gray-900 text-sm">Appointments</p>
+            <p className="text-xs text-gray-400">View and manage bookings across your listings</p>
+          </div>
+        </div>
+        <Link
+          href="/my-business/appointments"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-warli-terra hover:text-warli-deep border border-warli-sand hover:border-warli-terra px-3 py-2 rounded-xl transition-colors"
+        >
+          <ArrowUpRight size={14} />
+          View Appointments
+        </Link>
+      </div>
+
       {/* Recent Reviews */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-6">
         <h2 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">

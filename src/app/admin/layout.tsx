@@ -21,6 +21,7 @@ const MOD_LINKS = [
 const ADMIN_ONLY_LINKS = [
   { href: '/admin/featured', label: 'Featured', icon: <Sparkles size={16} /> },
   { href: '/admin/polls', label: 'Polls', icon: <BarChart3 size={16} /> },
+  { href: '/admin/appointments', label: 'Appointments', icon: <Calendar size={16} /> },
   { href: '/admin/orders', label: 'Orders', icon: <ShoppingBag size={16} /> },
   { href: '/admin/emergency', label: 'Emergency', icon: <Megaphone size={16} /> },
   { href: '/admin/newsletter', label: 'Newsletter', icon: <Mail size={16} /> },

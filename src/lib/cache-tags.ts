@@ -12,6 +12,7 @@ export const CACHE_TAGS = {
   jobs: 'jobs',
   settings: 'settings',
   polls: 'polls',
+  appointments: 'appointments',
   listing: (listingId: string) => `listing:${listingId}`,
 } as const
 
@@ -56,4 +57,9 @@ export function revalidateSettingsCache() {
 export function revalidatePollsCache() {
   revalidateTag(CACHE_TAGS.polls, 'max')
   revalidateTag(CACHE_TAGS.home, 'max')
+}
+
+export function revalidateAppointmentsCache(listingId: string) {
+  revalidateTag(CACHE_TAGS.appointments, 'max')
+  revalidatePublicListingDetail(listingId)
 }

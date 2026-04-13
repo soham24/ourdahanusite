@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Briefcase, Plus, UserCircle, User, Clock, CheckCircle, Shield, Store, Edit2, LogOut } from 'lucide-react'
+import { Briefcase, Plus, UserCircle, User, Clock, CheckCircle, Shield, Store, Edit2, LogOut, Calendar } from 'lucide-react'
 import { updateProfile } from '@/app/actions/profile'
 import { getUserRole } from '@/app/actions/admin'
 
@@ -127,9 +127,16 @@ export default async function DashboardPage() {
           <div className="text-xs text-gray-500">My Listings</div>
         </Link>
 
-        {/* Coming soon stats */}
+        <Link href="/dashboard/appointments"
+          className="bg-white border border-gray-100 hover:border-warli-sand hover:shadow-md rounded-2xl p-4 text-center transition-all group">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-warli-light text-warli-terra">
+            <Calendar size={18} />
+          </div>
+          <div className="text-2xl font-bold text-gray-900 group-hover:text-warli-terra transition-colors">↗</div>
+          <div className="text-xs text-gray-500">Appointments</div>
+        </Link>
+
         {[
-          { label: 'Events', emoji: '📅' },
           { label: 'News', emoji: '📰' },
         ].map(s => (
           <div key={s.label} className="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-4 text-center opacity-50 cursor-not-allowed">
@@ -167,6 +174,14 @@ export default async function DashboardPage() {
             <Store size={18} />
           </div>
           <div className="text-xs font-semibold text-gray-700 group-hover:text-warli-terra transition-colors">Add Listing</div>
+        </Link>
+
+        <Link href="/dashboard/appointments"
+          className="bg-white border border-gray-100 hover:border-warli-sand hover:shadow-md rounded-2xl p-4 text-center transition-all group">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-warli-light text-warli-terra">
+            <Calendar size={18} />
+          </div>
+          <div className="text-xs font-semibold text-gray-700 group-hover:text-warli-terra transition-colors">My Appointments</div>
         </Link>
 
         {/* Coming soon quick actions */}

@@ -25,7 +25,9 @@ import FavouriteButton from './FavouriteButton'
 import RecommendButton from './RecommendButton'
 import QASection from './QASection'
 import ServicesSection from './ServicesSection'
+import AppointmentBooking from './AppointmentBooking'
 import { getCachedListingDetail } from '@/lib/data/listing-detail'
+import { normalizeAppointmentSettings } from '@/lib/listing-content'
 import type { ServiceImageAspect } from '@/lib/service-image'
 
 export async function generateMetadata({
@@ -361,6 +363,7 @@ async function ListingDetailContent({
   const questions: Record<string, any>[] = (publicData?.questions as Record<string, any>[] | undefined) ?? []
   let currentUser: { id: string; email?: string } | null = null
   let currentUserName: string | null = null
+  let currentUserPhone: string | null = null
   let isFavourited = false
   let isRecommended = false
   const recommendCount = publicData?.recommendCount ?? 0
@@ -387,11 +390,12 @@ async function ListingDetailContent({
 
     if (user && listing) {
       const [profileResult, favResult, recResult] = await Promise.all([
-        supabase.from('profiles').select('full_name').eq('id', user.id).single(),
+        supabase.from('profiles').select('full_name, phone').eq('id', user.id).single(),
         supabase.from('listing_favourites').select('listing_id').eq('user_id', user.id).eq('listing_id', listing.id).maybeSingle(),
         supabase.from('listing_recommendations').select('listing_id').eq('user_id', user.id).eq('listing_id', listing.id).maybeSingle(),
       ])
       currentUserName = profileResult.data?.full_name || user.email?.split('@')[0] || null
+      currentUserPhone = profileResult.data?.phone || null
       isFavourited = !!favResult.data
       isRecommended = !!recResult.data
     }
@@ -440,6 +444,12 @@ async function ListingDetailContent({
   const paymentMethods: string[] = parseJson(listing.payment_methods, [])
   const deliveryInfo: { areas?: string; note?: string } | null = parseJson(listing.delivery_info, null)
   const beforeAfter: { before: string; after: string } | null = parseJson(listing.before_after, null)
+  const appointmentSettings = normalizeAppointmentSettings(listing.appointment_settings)
+  const appointmentsEnabled = listing.appointments_enabled === true && !!appointmentSettings
+  const appointmentBookingFee = (() => {
+    const parsed = Number.parseFloat(String(listing.appointment_booking_fee ?? '0'))
+    return Number.isFinite(parsed) ? parsed : 0
+  })()
 
   const whatsappNum  = (listing.whatsapp as string) || (listing.phone as string) || null
   const whatsappLink = whatsappNum ? `https://wa.me/${whatsappNum.replace(/\D/g, '')}` : null
@@ -894,6 +904,19 @@ async function ListingDetailContent({
                   userEmail={currentUser?.email ?? ''}
                 />
               </div>
+            )}
+
+            {appointmentsEnabled && appointmentSettings && (
+              <AppointmentBooking
+                listingId={listingId}
+                listingName={String(listing.name)}
+                bookingFee={appointmentBookingFee}
+                appointmentSettings={appointmentSettings}
+                isLoggedIn={!!currentUser}
+                userName={currentUserName ?? ''}
+                userPhone={currentUserPhone ?? ''}
+                userEmail={currentUser?.email ?? ''}
+              />
             )}
 
             {/* Recommend + Quote CTA */}

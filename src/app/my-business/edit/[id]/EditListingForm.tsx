@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   ArrowLeft, Save, Plus, Trash2, Loader2, CheckCircle,
   AtSign, Share2, Phone, Globe, MapPin, Clock,
-  Tag, Image as ImageIcon, Briefcase, Info,
+  Tag, Image as ImageIcon, Briefcase, Info, Calendar,
   Video, Sparkles, Award, Truck, CreditCard, Megaphone, Gift,
 } from 'lucide-react'
 import { updateListing } from '@/app/actions/listings'
@@ -16,7 +16,13 @@ import ImageCropUpload from '@/components/ImageCropUpload'
 import CompactImageUpload from '@/components/CompactImageUpload'
 import PhoneInput from '@/components/PhoneInput'
 import LocationPicker from '@/components/LocationPicker'
-import { MAX_SERVICE_ITEMS } from '@/lib/listing-content'
+import {
+  DEFAULT_APPOINTMENT_SETTINGS,
+  MAX_SERVICE_ITEMS,
+  normalizeAppointmentSettings,
+  type AppointmentSettings,
+  type AppointmentWeekday,
+} from '@/lib/listing-content'
 import { normalizeOptionalUrl } from '@/lib/url'
 import { getListingHref } from '@/lib/listing-url'
 import {
@@ -64,12 +70,22 @@ interface Props {
   listing: Record<string, any>
 }
 
-type TabId = 'basic' | 'contact' | 'services' | 'branding' | 'media' | 'extras'
+type TabId = 'basic' | 'contact' | 'appointments' | 'services' | 'branding' | 'media' | 'extras'
 
 const PAYMENT_OPTIONS = ['Cash', 'UPI', 'Debit Card', 'Credit Card', 'Net Banking', 'Cheque', 'Online Transfer']
 const RESPONSE_TIME_OPTIONS = ['Usually replies within 1 hour', 'Within a few hours', 'Within 24 hours', 'Within 2–3 days']
 
 interface Highlight { label: string; value: string }
+
+const APPOINTMENT_DAYS: Array<{ key: AppointmentWeekday; label: string }> = [
+  { key: 'mon', label: 'Monday' },
+  { key: 'tue', label: 'Tuesday' },
+  { key: 'wed', label: 'Wednesday' },
+  { key: 'thu', label: 'Thursday' },
+  { key: 'fri', label: 'Friday' },
+  { key: 'sat', label: 'Saturday' },
+  { key: 'sun', label: 'Sunday' },
+]
 
 export default function EditListingForm({ listing }: Props) {
   const router = useRouter()
@@ -80,6 +96,7 @@ export default function EditListingForm({ listing }: Props) {
   const [error, setError] = useState('')
   const [newProfileUrl, setNewProfileUrl] = useState('')
   const [newCoverUrl, setNewCoverUrl] = useState('')
+  const appointmentsEnabled = listing.appointments_enabled === true
 
   // Category state
   const [category, setCategory] = useState<string>(String(listing.category || ''))
@@ -195,6 +212,22 @@ export default function EditListingForm({ listing }: Props) {
   })()
   const [deliveryInfo, setDeliveryInfo] = useState<{ areas: string; note: string }>(initialDeliveryInfo)
 
+  const initialAppointmentSettings: AppointmentSettings = (() => {
+    if (!appointmentsEnabled) return DEFAULT_APPOINTMENT_SETTINGS
+
+    let parsed: unknown = null
+    try {
+      const raw = listing.appointment_settings
+      if (raw && typeof raw === 'object') parsed = raw
+      else if (typeof raw === 'string') parsed = JSON.parse(raw)
+    } catch {
+      parsed = null
+    }
+
+    return normalizeAppointmentSettings(parsed) ?? DEFAULT_APPOINTMENT_SETTINGS
+  })()
+  const [appointmentSettings, setAppointmentSettings] = useState<AppointmentSettings>(initialAppointmentSettings)
+
   const addService = () =>
     setServices((current) => {
       if (current.length >= MAX_SERVICE_ITEMS) return current
@@ -223,6 +256,38 @@ export default function EditListingForm({ listing }: Props) {
     }
   }
 
+  const toggleAppointmentDay = (day: AppointmentWeekday, isOpen: boolean) => {
+    setAppointmentSettings((current) => ({
+      ...current,
+      availability: {
+        ...current.availability,
+        [day]: isOpen
+          ? current.availability[day] ?? { start: '09:00', end: '18:00' }
+          : null,
+      },
+    }))
+  }
+
+  const updateAppointmentDay = (
+    day: AppointmentWeekday,
+    field: 'start' | 'end',
+    value: string,
+  ) => {
+    setAppointmentSettings((current) => {
+      const currentDay = current.availability[day] ?? { start: '09:00', end: '18:00' }
+      return {
+        ...current,
+        availability: {
+          ...current.availability,
+          [day]: {
+            ...currentDay,
+            [field]: value,
+          },
+        },
+      }
+    })
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
@@ -239,6 +304,9 @@ export default function EditListingForm({ listing }: Props) {
     fd.set('payment_methods', JSON.stringify(paymentMethods))
     fd.set('delivery_info', JSON.stringify(deliveryInfo.areas || deliveryInfo.note ? deliveryInfo : null))
     fd.set('before_after', JSON.stringify(beforeAfter.before && beforeAfter.after ? beforeAfter : null))
+    if (appointmentsEnabled) {
+      fd.set('appointment_settings', JSON.stringify(appointmentSettings))
+    }
     const result = await updateListing(listing.id as string, fd)
     setSaving(false)
     if (result?.error) {
@@ -253,6 +321,9 @@ export default function EditListingForm({ listing }: Props) {
   const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
     { id: 'basic',    label: 'Basic',    icon: <Info size={15} /> },
     { id: 'contact',  label: 'Contact',  icon: <Phone size={15} /> },
+    ...(appointmentsEnabled
+      ? [{ id: 'appointments' as const, label: 'Appointments', icon: <Calendar size={15} /> }]
+      : []),
     { id: 'services', label: 'Services', icon: <Briefcase size={15} /> },
     { id: 'branding', label: 'Brand',    icon: <ImageIcon size={15} /> },
     { id: 'media',    label: 'Media',    icon: <Video size={15} /> },
@@ -480,6 +551,139 @@ export default function EditListingForm({ listing }: Props) {
         </div>
 
         {/* ── SERVICES / PRICING ─────────────────────────────────────────── */}
+        <div className={activeTab === 'appointments' ? 'bg-white border border-gray-100 rounded-2xl p-6 space-y-6' : 'hidden'}>
+            <div className="text-xs text-blue-600 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
+              Appointments are enabled for this listing by the main admin. Set your weekly schedule, slot duration, and per-slot capacity here.
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Slot Duration</label>
+                <div className="flex gap-2">
+                  {[15, 30, 60].map((duration) => (
+                    <button
+                      key={duration}
+                      type="button"
+                      onClick={() => setAppointmentSettings((current) => ({ ...current, slot_duration: duration }))}
+                      className={`flex-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                        appointmentSettings.slot_duration === duration
+                          ? 'border-warli-terra bg-warli-light text-warli-terra'
+                          : 'border-gray-200 text-gray-600 hover:border-warli-sand'
+                      }`}
+                    >
+                      {duration} min
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Capacity Per Slot</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={appointmentSettings.capacity}
+                  onChange={(event) =>
+                    setAppointmentSettings((current) => ({
+                      ...current,
+                      capacity: Math.max(1, Math.min(20, Number.parseInt(event.target.value || '1', 10) || 1)),
+                    }))
+                  }
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Buffer Time</label>
+                <select
+                  value={appointmentSettings.buffer_minutes}
+                  onChange={(event) =>
+                    setAppointmentSettings((current) => ({
+                      ...current,
+                      buffer_minutes: Number.parseInt(event.target.value, 10) || 0,
+                    }))
+                  }
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm bg-white"
+                >
+                  {[0, 5, 10, 15].map((minutes) => (
+                    <option key={minutes} value={minutes}>
+                      {minutes} min
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Advance Booking Days</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="90"
+                  value={appointmentSettings.advance_days}
+                  onChange={(event) =>
+                    setAppointmentSettings((current) => ({
+                      ...current,
+                      advance_days: Math.max(1, Math.min(90, Number.parseInt(event.target.value || '30', 10) || 30)),
+                    }))
+                  }
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold text-gray-700">Weekly Availability</h3>
+                <p className="text-xs text-gray-400 mt-1">Open the days you want to accept bookings and set the booking window for each day.</p>
+              </div>
+              <div className="space-y-3">
+                {APPOINTMENT_DAYS.map(({ key, label }) => {
+                  const dayWindow = appointmentSettings.availability[key]
+                  const isOpen = !!dayWindow
+
+                  return (
+                    <div key={key} className="grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-3 rounded-xl border border-gray-100 p-4">
+                      <div className="flex items-center justify-between sm:justify-start sm:gap-3">
+                        <span className="font-medium text-gray-900 text-sm">{label}</span>
+                        <button
+                          type="button"
+                          onClick={() => toggleAppointmentDay(key, !isOpen)}
+                          className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                            isOpen
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-100 text-gray-500'
+                          }`}
+                        >
+                          {isOpen ? 'Open' : 'Closed'}
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <input
+                          type="time"
+                          value={dayWindow?.start ?? '09:00'}
+                          onChange={(event) => updateAppointmentDay(key, 'start', event.target.value)}
+                          disabled={!isOpen}
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm disabled:bg-gray-50 disabled:text-gray-400"
+                        />
+                        <input
+                          type="time"
+                          value={dayWindow?.end ?? '18:00'}
+                          onChange={(event) => updateAppointmentDay(key, 'end', event.target.value)}
+                          disabled={!isOpen}
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm disabled:bg-gray-50 disabled:text-gray-400"
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+        </div>
+
         <div className={activeTab === 'services' ? 'bg-white border border-gray-100 rounded-2xl p-6 space-y-4' : 'hidden'}>
             <div className="flex items-center justify-between mb-2">
               <div>

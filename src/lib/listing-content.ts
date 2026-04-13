@@ -7,8 +7,57 @@ import {
 
 export const MAX_SERVICE_ITEMS = 30
 
+export type AppointmentWeekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
+
+export type AppointmentDayWindow = {
+  start: string
+  end: string
+}
+
+export type AppointmentSettings = {
+  slot_duration: number
+  capacity: number
+  buffer_minutes: number
+  advance_days: number
+  availability: Record<AppointmentWeekday, AppointmentDayWindow | null>
+}
+
+const APPOINTMENT_WEEKDAYS: AppointmentWeekday[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+
+export const DEFAULT_APPOINTMENT_SETTINGS: AppointmentSettings = {
+  slot_duration: 30,
+  capacity: 1,
+  buffer_minutes: 0,
+  advance_days: 30,
+  availability: {
+    mon: null,
+    tue: null,
+    wed: null,
+    thu: null,
+    fri: null,
+    sat: null,
+    sun: null,
+  },
+}
+
 function collapseSpaces(value: string): string {
   return value.replace(/\s+/g, ' ').trim()
+}
+
+function clampInteger(value: unknown, minimum: number, maximum: number, fallback: number): number {
+  const parsed = Number.parseInt(String(value ?? ''), 10)
+  if (!Number.isFinite(parsed)) return fallback
+  return Math.min(maximum, Math.max(minimum, parsed))
+}
+
+function normalizeTimeString(value: unknown): string | null {
+  const normalized = String(value ?? '').trim()
+  return /^([01]\d|2[0-3]):([0-5]\d)$/.test(normalized) ? normalized : null
+}
+
+function timeStringToMinutes(value: string): number {
+  const [hours, minutes] = value.split(':').map((segment) => Number.parseInt(segment, 10))
+  return hours * 60 + minutes
 }
 
 export function normalizeInlineText(
@@ -253,4 +302,43 @@ export function normalizeBeforeAfter(
 
   if (!before || !after) return null
   return { before, after }
+}
+
+export function normalizeAppointmentSettings(value: unknown): AppointmentSettings | null {
+  if (!value || typeof value !== 'object') return null
+
+  const source = value as Record<string, unknown>
+  const rawAvailability =
+    source.availability && typeof source.availability === 'object'
+      ? (source.availability as Record<string, unknown>)
+      : {}
+
+  const availability = APPOINTMENT_WEEKDAYS.reduce<Record<AppointmentWeekday, AppointmentDayWindow | null>>(
+    (result, day) => {
+      const entry = rawAvailability[day]
+      if (!entry || typeof entry !== 'object') {
+        result[day] = null
+        return result
+      }
+
+      const start = normalizeTimeString((entry as Record<string, unknown>).start)
+      const end = normalizeTimeString((entry as Record<string, unknown>).end)
+      if (!start || !end || timeStringToMinutes(end) <= timeStringToMinutes(start)) {
+        result[day] = null
+        return result
+      }
+
+      result[day] = { start, end }
+      return result
+    },
+    { ...DEFAULT_APPOINTMENT_SETTINGS.availability },
+  )
+
+  return {
+    slot_duration: clampInteger(source.slot_duration, 15, 240, DEFAULT_APPOINTMENT_SETTINGS.slot_duration),
+    capacity: clampInteger(source.capacity, 1, 20, DEFAULT_APPOINTMENT_SETTINGS.capacity),
+    buffer_minutes: clampInteger(source.buffer_minutes, 0, 60, DEFAULT_APPOINTMENT_SETTINGS.buffer_minutes),
+    advance_days: clampInteger(source.advance_days, 1, 90, DEFAULT_APPOINTMENT_SETTINGS.advance_days),
+    availability,
+  }
 }

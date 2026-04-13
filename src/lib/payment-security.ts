@@ -4,7 +4,7 @@ import { getCachedPricingConfig } from '@/lib/data/pricing'
 import { normalizeInlineText, normalizeServiceItems } from '@/lib/listing-content'
 import { createPublicClient } from '@/lib/supabase/public'
 
-type FlowKind = 'job' | 'listing' | 'order'
+type FlowKind = 'job' | 'listing' | 'order' | 'appointment'
 
 type PricingKind = 'job' | 'listing'
 
