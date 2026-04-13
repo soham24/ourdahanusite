@@ -1,4 +1,9 @@
 import { normalizeOptionalUrlOrNull } from '@/lib/url'
+import {
+  DEFAULT_SERVICE_IMAGE_ASPECT,
+  normalizeServiceImageAspect,
+  type ServiceImageAspect,
+} from '@/lib/service-image'
 
 function collapseSpaces(value: string): string {
   return value.replace(/\s+/g, ' ').trim()
@@ -161,6 +166,7 @@ type NormalizedService = {
   desc?: string
   price?: string
   image?: string
+  imageAspect?: ServiceImageAspect
 }
 
 export function normalizeServiceItems(values: unknown): NormalizedService[] {
@@ -181,6 +187,10 @@ export function normalizeServiceItems(values: unknown): NormalizedService[] {
     const desc = normalizeMultilineText('desc' in entry ? String(entry.desc ?? '') : '', 280) ?? undefined
     const price = normalizeInlineText('price' in entry ? String(entry.price ?? '') : '', 32) ?? undefined
     const image = normalizeOptionalUrlOrNull('image' in entry ? String(entry.image ?? '') : '') ?? undefined
+    const imageAspect =
+      'imageAspect' in entry || image
+        ? normalizeServiceImageAspect('imageAspect' in entry ? entry.imageAspect : undefined, DEFAULT_SERVICE_IMAGE_ASPECT)
+        : undefined
 
     normalized.push({
       ...(type ? { type } : {}),
@@ -188,6 +198,7 @@ export function normalizeServiceItems(values: unknown): NormalizedService[] {
       ...(desc ? { desc } : {}),
       ...(price ? { price } : {}),
       ...(image ? { image } : {}),
+      ...(imageAspect ? { imageAspect } : {}),
     })
 
     if (normalized.length >= 20) break
