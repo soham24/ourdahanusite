@@ -380,7 +380,7 @@ export default function ListingSubmitForm({
               title="Enter a valid UPI ID (e.g. name@bank or number@paytm)"
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
             <p className="mt-1 text-xs text-gray-400">
-              Orders from customers will be paid to this UPI ID. You keep 97% — platform fee is 3%.
+              Orders from customers will be paid to this UPI ID.
             </p>
           </div>
 
