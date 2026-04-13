@@ -406,9 +406,9 @@ export default function AppointmentBooking({
             </div>
           </div>
         ) : (
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_360px]">
             <div className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-[0_20px_50px_rgba(61,26,8,0.06)] backdrop-blur lg:p-6">
-              <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
+              <div className="grid gap-5 xl:grid-cols-[minmax(240px,280px)_minmax(0,1fr)]">
                 <div className="rounded-2xl border border-[#efe2d6] bg-[#fffaf5] p-4">
                   <div className="flex items-center gap-2 text-sm font-semibold text-[#7d5a47]">
                     <Calendar size={15} className="text-warli-terra" />
