@@ -41,7 +41,7 @@ export async function generateMetadata({
 
   const titleParts = [job.title]
   if (job.company) titleParts.push(job.company)
-  const pageTitle = `${titleParts.join(' — ')} | Jobs | OurDahanu`
+  const pageTitle = `Job Opening Dahanu — ${titleParts.join(' — ')} | OurDahanu`
 
   const jobUrl = buildAbsoluteUrl(`/jobs/${id}`)
 
