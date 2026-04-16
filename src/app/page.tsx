@@ -33,12 +33,14 @@ export const metadata: Metadata = {
       'Discover Dahanu businesses, restaurants, hotels, services, local jobs, and community updates on OurDahanu.',
     url: 'https://ourdahanu.in/',
     type: 'website',
+    images: [{ url: 'https://ourdahanu.in/logo.png' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Dahanu Business Directory, Local Jobs & Community',
     description:
       'Discover Dahanu businesses, restaurants, hotels, services, local jobs, and community updates on OurDahanu.',
+    images: ['https://ourdahanu.in/logo.png'],
   },
 }
 
