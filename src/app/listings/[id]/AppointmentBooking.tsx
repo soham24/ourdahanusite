@@ -136,6 +136,7 @@ export default function AppointmentBooking({
   const [name, setName] = useState(userName)
   const [phone, setPhone] = useState(userPhone)
   const [notes, setNotes] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; phone?: string; slot?: string }>({})
 
   const availableSlotsCount = useMemo(
     () => slots.filter((slot) => slot.available).length,
@@ -260,11 +261,41 @@ export default function AppointmentBooking({
     setStatus('success')
   }
 
-  async function handleConfirm() {
+  function validateFields(): boolean {
+    const errors: { name?: string; phone?: string; slot?: string } = {}
+
     if (!selectedSlot) {
-      setError('Please choose a slot first.')
-      return
+      errors.slot = 'Please select a time slot.'
     }
+
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      errors.name = 'Name is required.'
+    } else if (trimmedName.length < 2) {
+      errors.name = 'Name must be at least 2 characters.'
+    }
+
+    const trimmedPhone = phone.trim().replace(/[\s\-()]/g, '')
+    if (!trimmedPhone) {
+      errors.phone = 'Phone number is required.'
+    } else if (!/^\+?\d{10,13}$/.test(trimmedPhone)) {
+      errors.phone = 'Enter a valid 10-digit phone number.'
+    }
+
+    setFieldErrors(errors)
+
+    if (Object.keys(errors).length > 0) {
+      setError(Object.values(errors).join(' '))
+      return false
+    }
+
+    setError('')
+    return true
+  }
+
+  async function handleConfirm() {
+    if (!validateFields()) return
+    if (!selectedSlot) return // type guard — validateFields already checks this
 
     if (bookingFee <= 0) {
       await submitBooking()
@@ -497,6 +528,7 @@ export default function AppointmentBooking({
                                     onClick={() => {
                                       setSelectedSlot(slot)
                                       setError('')
+                                      if (fieldErrors.slot) setFieldErrors((prev) => ({ ...prev, slot: undefined }))
                                     }}
                                     className={`relative rounded-xl border px-3 py-2 text-center text-sm font-medium transition-all ${
                                       !slot.available
@@ -561,23 +593,45 @@ export default function AppointmentBooking({
 
                     <div className="mt-4 space-y-4">
                       <div>
-                        <label className="mb-1.5 block text-sm font-semibold text-gray-700">Your Name</label>
+                        <label className="mb-1.5 block text-sm font-semibold text-gray-700">Your Name <span className="text-red-500">*</span></label>
                         <input
                           type="text"
                           value={name}
-                          onChange={(event) => setName(event.target.value)}
-                          className="w-full rounded-xl border border-[#decbbb] bg-white px-4 py-3 text-sm text-gray-800 focus:border-warli-terra focus:outline-none"
+                          onChange={(event) => {
+                            setName(event.target.value)
+                            if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: undefined }))
+                          }}
+                          placeholder="Enter your full name"
+                          className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-gray-800 focus:outline-none ${
+                            fieldErrors.name
+                              ? 'border-red-400 focus:border-red-500'
+                              : 'border-[#decbbb] focus:border-warli-terra'
+                          }`}
                         />
+                        {fieldErrors.name && (
+                          <p className="mt-1 text-xs text-red-500">{fieldErrors.name}</p>
+                        )}
                       </div>
 
                       <div>
-                        <label className="mb-1.5 block text-sm font-semibold text-gray-700">Phone Number</label>
+                        <label className="mb-1.5 block text-sm font-semibold text-gray-700">Phone Number <span className="text-red-500">*</span></label>
                         <input
                           type="tel"
                           value={phone}
-                          onChange={(event) => setPhone(event.target.value)}
-                          className="w-full rounded-xl border border-[#decbbb] bg-white px-4 py-3 text-sm text-gray-800 focus:border-warli-terra focus:outline-none"
+                          onChange={(event) => {
+                            setPhone(event.target.value)
+                            if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }))
+                          }}
+                          placeholder="10-digit mobile number"
+                          className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-gray-800 focus:outline-none ${
+                            fieldErrors.phone
+                              ? 'border-red-400 focus:border-red-500'
+                              : 'border-[#decbbb] focus:border-warli-terra'
+                          }`}
                         />
+                        {fieldErrors.phone && (
+                          <p className="mt-1 text-xs text-red-500">{fieldErrors.phone}</p>
+                        )}
                       </div>
                     </div>
                   </div>
