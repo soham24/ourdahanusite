@@ -1,9 +1,68 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
+import { buildAbsoluteUrl } from '@/lib/site'
 import { MapPin, Clock, Users, Mail, Phone, MessageCircle, ArrowLeft, Briefcase } from 'lucide-react'
 import JobStatusButton from './JobStatusButton'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const supabase = createPublicClient()
+
+  const { data: jobData } = await supabase
+    .from('jobs')
+    .select('title, company, description, location, type, category')
+    .eq('id', id)
+    .single()
+
+  const job = jobData as {
+    title: string
+    company: string | null
+    description: string | null
+    location: string | null
+    type: string | null
+    category: string | null
+  } | null
+
+  if (!job) {
+    return { title: 'Job Not Found | OurDahanu' }
+  }
+
+  const description = job.description
+    ? job.description.slice(0, 160).replace(/\s+/g, ' ').trim() + (job.description.length > 160 ? '…' : '')
+    : `${job.type} job at ${job.company || 'a local business'} in Dahanu.`
+
+  const titleParts = [job.title]
+  if (job.company) titleParts.push(job.company)
+  const pageTitle = `${titleParts.join(' — ')} | Jobs | OurDahanu`
+
+  const jobUrl = buildAbsoluteUrl(`/jobs/${id}`)
+
+  return {
+    title: pageTitle,
+    description,
+    alternates: { canonical: jobUrl },
+    openGraph: {
+      title: `${job.title}${job.company ? ` at ${job.company}` : ''}`,
+      description,
+      url: jobUrl,
+      type: 'article',
+      siteName: 'OurDahanu',
+    },
+    twitter: {
+      card: 'summary',
+      title: `${job.title}${job.company ? ` at ${job.company}` : ''}`,
+      description,
+    },
+  }
+}
 
 const TYPE_COLORS: Record<string, string> = {
   'Full-time':   'bg-blue-100 text-blue-700',
