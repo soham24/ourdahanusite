@@ -67,11 +67,13 @@ export async function generateMetadata({
       url: jobUrl,
       type: 'article',
       siteName: 'OurDahanu',
+      images: [{ url: 'https://ourdahanu.in/logo.png' }],
     },
     twitter: {
       card: 'summary',
       title: ogTitle,
       description,
+      images: ['https://ourdahanu.in/logo.png'],
     },
   }
 }

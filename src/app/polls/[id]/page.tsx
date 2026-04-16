@@ -37,11 +37,13 @@ export async function generateMetadata({
       description: 'Vote on this community poll and see what Dahanu thinks.',
       url: pollUrl,
       type: 'article',
+      images: [{ url: 'https://ourdahanu.in/logo.png' }],
     },
     twitter: {
       card: 'summary',
       title: poll.title,
       description: 'Vote on this community poll and see what Dahanu thinks.',
+      images: ['https://ourdahanu.in/logo.png'],
     },
   }
 }

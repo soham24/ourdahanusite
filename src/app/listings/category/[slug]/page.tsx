@@ -68,11 +68,13 @@ export async function generateMetadata({
       description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in Dahanu, Bordi, and Gholvad on OurDahanu.`,
       url: getCategoryPath(category),
       type: 'website',
+      images: [{ url: 'https://ourdahanu.in/logo.png' }],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${category} in Dahanu`,
       description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in Dahanu, Bordi, and Gholvad on OurDahanu.`,
+      images: ['https://ourdahanu.in/logo.png'],
     },
   }
 }
