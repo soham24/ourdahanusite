@@ -35,13 +35,25 @@ export async function generateMetadata({
     return { title: 'Job Not Found | OurDahanu' }
   }
 
-  const description = job.description
-    ? job.description.slice(0, 160).replace(/\s+/g, ' ').trim() + (job.description.length > 160 ? '…' : '')
-    : `${job.type} job at ${job.company || 'a local business'} in Dahanu.`
+  const descSnippet = job.description
+    ? job.description.slice(0, 300).replace(/\s+/g, ' ').trim() + (job.description.length > 300 ? '…' : '')
+    : ''
+
+  const metaParts: string[] = []
+  if (job.type) metaParts.push(job.type)
+  if (job.location) metaParts.push(job.location)
+  if (job.company) metaParts.push(job.company)
+
+  const prefix = metaParts.length > 0 ? `${metaParts.join(' | ')} — ` : ''
+  const description = descSnippet
+    ? `${prefix}${descSnippet}`
+    : `${job.type || 'Job'} opening at ${job.company || 'a local business'} in Dahanu. Apply now on OurDahanu.`
 
   const titleParts = [job.title]
   if (job.company) titleParts.push(job.company)
   const pageTitle = `Job Opening Dahanu — ${titleParts.join(' — ')} | OurDahanu`
+
+  const ogTitle = `Job Opening Dahanu — ${job.title}${job.company ? ` at ${job.company}` : ''}`
 
   const jobUrl = buildAbsoluteUrl(`/jobs/${id}`)
 
@@ -50,7 +62,7 @@ export async function generateMetadata({
     description,
     alternates: { canonical: jobUrl },
     openGraph: {
-      title: `${job.title}${job.company ? ` at ${job.company}` : ''}`,
+      title: ogTitle,
       description,
       url: jobUrl,
       type: 'article',
@@ -58,7 +70,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: 'summary',
-      title: `${job.title}${job.company ? ` at ${job.company}` : ''}`,
+      title: ogTitle,
       description,
     },
   }
