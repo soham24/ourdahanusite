@@ -26,13 +26,20 @@ function formatDate(dateString: string) {
   })
 }
 
+/** Normalise Postgres time (HH:MM or HH:MM:SS) to HH:MM:SS for Date parsing */
+function normaliseTime(t: string): string {
+  const parts = t.split(':')
+  if (parts.length === 2) return `${t}:00`
+  return t
+}
+
 function formatTimeRange(start: string, end: string) {
-  const startLabel = new Date(`1970-01-01T${start}:00+05:30`).toLocaleTimeString('en-IN', {
+  const startLabel = new Date(`1970-01-01T${normaliseTime(start)}+05:30`).toLocaleTimeString('en-IN', {
     hour: 'numeric',
     minute: '2-digit',
     timeZone: 'Asia/Kolkata',
   })
-  const endLabel = new Date(`1970-01-01T${end}:00+05:30`).toLocaleTimeString('en-IN', {
+  const endLabel = new Date(`1970-01-01T${normaliseTime(end)}+05:30`).toLocaleTimeString('en-IN', {
     hour: 'numeric',
     minute: '2-digit',
     timeZone: 'Asia/Kolkata',
@@ -41,7 +48,7 @@ function formatTimeRange(start: string, end: string) {
 }
 
 function isFutureAppointment(appointment: AppointmentRecord): boolean {
-  const appointmentDate = new Date(`${appointment.booking_date}T${appointment.slot_start}:00+05:30`)
+  const appointmentDate = new Date(`${appointment.booking_date}T${normaliseTime(appointment.slot_start)}+05:30`)
   return appointmentDate.getTime() > Date.now()
 }
 
