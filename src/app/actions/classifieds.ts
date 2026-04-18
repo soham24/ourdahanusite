@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { sendNotificationToAdmins } from '@/lib/notifications'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -41,9 +42,12 @@ export async function submitClassified(formData: FormData) {
 
   if (error) throw new Error(error.message)
 
-  void import('@/lib/notify-admin').then(m =>
-    m.notifyAdmin('classified', title, sellerName)
-  )
+  void sendNotificationToAdmins('admin.new_submission', {
+    kind: 'classified',
+    title,
+    submitterName: sellerName,
+    reviewPath: '/admin/classifieds',
+  }).catch(err => console.error('[notify:new-classified]', err))
 
   revalidatePath('/classifieds')
   redirect('/classifieds?submitted=1')

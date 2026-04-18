@@ -5,15 +5,17 @@
  * Secured with CRON_SECRET env var.
  *
  * What it does:
- *  1. Finds approved listings whose expires_at has passed → sets approved=false + sends "expired" email
+ *  1. Finds approved listings whose expires_at has passed → sets approved=false + sends "expired" notification
  *  2. For each milestone (30/15/5/3/1 days before expiry), finds listings due for that reminder
- *     and sends an email, then marks that milestone as sent in reminders_sent[]
+ *     and sends a notification, then marks that milestone as sent in reminders_sent[]
+ *
+ * Notifications fan out through the unified engine (in-app + email + telegram +
+ * whatsapp) based on the owner's `notification_preferences`.
  */
 
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
-import { notifyListingExpiry } from '@/lib/notify-expiry'
-import type { ReminderDays } from '@/lib/notify-expiry'
+import { sendNotification } from '@/lib/notifications'
 
 export async function GET(request: Request) {
   // ── Auth: verify CRON_SECRET if configured ──────────────────────────────────
@@ -41,7 +43,7 @@ export async function GET(request: Request) {
   // ── 1. Auto-expire listings past their expires_at ──────────────────────────
   const { data: expiredListings } = await adminClient
     .from('listings')
-    .select('id, name, owner_id, phone')
+    .select('id, name, owner_id')
     .eq('approved', true)
     .not('expires_at', 'is', null)
     .lt('expires_at', now.toISOString())
@@ -54,14 +56,14 @@ export async function GET(request: Request) {
         .update({ approved: false })
         .eq('id', listing.id)
 
-      // Notify owner via email + WhatsApp (fire-and-forget, non-blocking)
-      void notifyListingExpiry(
-        listing.owner_id as string,
-        listing.name    as string,
-        listing.id      as string,
-        0,
-        listing.phone   as string | null,
-      )
+      // Notify owner via the unified engine (fire-and-forget, non-blocking)
+      if (listing.owner_id && listing.name) {
+        void sendNotification(listing.owner_id as string, 'listing.expiring', {
+          listingId: listing.id as string,
+          listingName: listing.name as string,
+          daysLeft: 0,
+        }).catch((err) => console.error('[cron/listing-expiry:expired]', err))
+      }
 
       stats.expired++
     } catch {
@@ -69,7 +71,7 @@ export async function GET(request: Request) {
     }
   }
 
-  // ── 2. Send reminder emails for each milestone ─────────────────────────────
+  // ── 2. Send reminder notifications for each milestone ──────────────────────
   // For each milestone, find listings that:
   //   • are still approved (not yet expired)
   //   • have an expires_at set
@@ -82,7 +84,7 @@ export async function GET(request: Request) {
 
     const { data: dueListings } = await adminClient
       .from('listings')
-      .select('id, name, owner_id, phone, reminders_sent')
+      .select('id, name, owner_id, reminders_sent')
       .eq('approved', true)
       .not('expires_at', 'is', null)
       .gt('expires_at', now.toISOString())   // still active
@@ -95,13 +97,13 @@ export async function GET(request: Request) {
       if (sent.includes(days)) continue
 
       try {
-        await notifyListingExpiry(
-          listing.owner_id as string,
-          listing.name    as string,
-          listing.id      as string,
-          days as ReminderDays,
-          listing.phone   as string | null,
-        )
+        if (listing.owner_id && listing.name) {
+          await sendNotification(listing.owner_id as string, 'listing.expiring', {
+            listingId: listing.id as string,
+            listingName: listing.name as string,
+            daysLeft: days,
+          })
+        }
 
         // Mark this milestone as sent
         await adminClient

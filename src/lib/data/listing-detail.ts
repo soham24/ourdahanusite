@@ -20,6 +20,17 @@ interface SimilarListing {
   rating: number
 }
 
+export interface ListingProductPublic {
+  id: string
+  type: 'product' | 'service'
+  name: string
+  description: string | null
+  price_paise: number
+  quantity_in_stock: number | null
+  image_url: string | null
+  sort_order: number
+}
+
 export interface ListingDetailData {
   listing: ListingRecord
   reviews: ReviewRecord[]
@@ -27,6 +38,9 @@ export interface ListingDetailData {
   recommendCount: number
   favouriteCount: number
   similarListings: SimilarListing[]
+  products: ListingProductPublic[]
+  /** True only when both admin-enabled AND the owner's keys are verified. */
+  marketplaceReady: boolean
 }
 
 export async function getCachedListingDetail(idOrSubdomain: string): Promise<ListingDetailData | null> {
@@ -54,12 +68,16 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
 
     cacheTag(CACHE_TAGS.listing(listingId))
 
+    const paymentsEnabled = listing.payments_enabled === true
+
     const [
       reviewResult,
       questionResult,
       recCountResult,
       favCountResult,
       similarResult,
+      productsResult,
+      paymentConfigResult,
     ] = await Promise.all([
       supabase
         .from('reviews')
@@ -89,6 +107,22 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
             .neq('id', listingId)
             .limit(4)
         : Promise.resolve({ data: [] as SimilarListing[] }),
+      paymentsEnabled
+        ? supabase
+            .from('listing_products')
+            .select('id, type, name, description, price_paise, quantity_in_stock, image_url, sort_order')
+            .eq('listing_id', listingId)
+            .eq('is_active', true)
+            .order('sort_order', { ascending: true })
+            .order('created_at', { ascending: true })
+        : Promise.resolve({ data: [] as ListingProductPublic[] }),
+      paymentsEnabled
+        ? supabase
+            .from('listing_payment_configs')
+            .select('verified_at')
+            .eq('listing_id', listingId)
+            .maybeSingle()
+        : Promise.resolve({ data: null as { verified_at: string | null } | null }),
     ])
 
     const rawReviews = (reviewResult.data ?? []) as ReviewRecord[]
@@ -116,6 +150,10 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
       }
     }
 
+    const products = (productsResult.data ?? []) as ListingProductPublic[]
+    const paymentConfig = (paymentConfigResult.data ?? null) as { verified_at: string | null } | null
+    const marketplaceReady = paymentsEnabled && !!paymentConfig?.verified_at
+
     return {
       listing,
       reviews,
@@ -123,6 +161,8 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
       recommendCount: recCountResult.count ?? 0,
       favouriteCount: favCountResult.count ?? 0,
       similarListings: (similarResult.data ?? []) as SimilarListing[],
+      products,
+      marketplaceReady,
     }
   } catch {
     return null

@@ -26,7 +26,9 @@ import RecommendButton from './RecommendButton'
 import QASection from './QASection'
 import ServicesSection from './ServicesSection'
 import AppointmentBooking from './AppointmentBooking'
-import { getCachedListingDetail } from '@/lib/data/listing-detail'
+import ProductCard from '@/components/ProductCard'
+import BuyButton from '@/components/BuyButton'
+import { getCachedListingDetail, type ListingProductPublic } from '@/lib/data/listing-detail'
 import { normalizeAppointmentSettings } from '@/lib/listing-content'
 import type { ServiceImageAspect } from '@/lib/service-image'
 
@@ -369,6 +371,8 @@ async function ListingDetailContent({
   const recommendCount = publicData?.recommendCount ?? 0
   const favouriteCount = publicData?.favouriteCount ?? 0
   const similarListings = publicData?.similarListings ?? []
+  const marketplaceProducts: ListingProductPublic[] = publicData?.products ?? []
+  const marketplaceReady = publicData?.marketplaceReady ?? false
 
   // Auth check — runs after cached data is already available
   try {
@@ -903,6 +907,47 @@ async function ListingDetailContent({
                   userName={currentUserName ?? ''}
                   userEmail={currentUser?.email ?? ''}
                 />
+              </div>
+            )}
+
+            {/* Marketplace — shoppable products & services */}
+            {marketplaceReady && marketplaceProducts.length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                <div className="flex items-center justify-between mb-4 gap-2">
+                  <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-warli-terra rounded-full inline-block" />
+                    Shop
+                  </h2>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-[11px] font-semibold text-green-700">
+                    <CheckCircle size={11} />
+                    Direct payment to {String(listing.name)}
+                  </span>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {marketplaceProducts.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      buySlot={
+                        <BuyButton
+                          product={{
+                            id: product.id,
+                            name: product.name,
+                            pricePaise: product.price_paise,
+                            quantityInStock: product.quantity_in_stock,
+                            listingName: String(listing.name),
+                            type: product.type,
+                          }}
+                          isSignedIn={!!currentUser}
+                          loginHref={platformLoginUrl}
+                          userName={currentUserName ?? ''}
+                          userPhone={currentUserPhone ?? ''}
+                          userEmail={currentUser?.email ?? ''}
+                        />
+                      }
+                    />
+                  ))}
+                </div>
               </div>
             )}
 

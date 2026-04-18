@@ -7,6 +7,10 @@ import {
   revalidatePublicListingContent,
 } from '@/lib/cache-tags'
 import {
+  sendNotification,
+  sendNotificationToAdmins,
+} from '@/lib/notifications'
+import {
   normalizeAppointmentSettings,
   normalizeBeforeAfter,
   normalizeDeliveryInfo,
@@ -158,9 +162,12 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
 
   if (error) return { error: error.message }
 
-  void import('@/lib/notify-admin').then(m =>
-    m.notifyAdmin('listing', name, user.email ?? undefined)
-  )
+  void sendNotificationToAdmins('admin.new_submission', {
+    kind: 'listing',
+    title: name,
+    submitterName: user.email ?? null,
+    reviewPath: '/admin/listings',
+  }).catch(err => console.error('[notify:new-listing-paid]', err))
 
   revalidatePublicListingCollections()
   revalidatePath('/listings')
@@ -372,9 +379,12 @@ export async function submitListing(formData: FormData) {
 
   if (error) throw new Error(error.message)
 
-  void import('@/lib/notify-admin').then(m =>
-    m.notifyAdmin('listing', name, user.email ?? undefined)
-  )
+  void sendNotificationToAdmins('admin.new_submission', {
+    kind: 'listing',
+    title: name,
+    submitterName: user.email ?? null,
+    reviewPath: '/admin/listings',
+  }).catch(err => console.error('[notify:new-listing-free]', err))
 
   revalidatePublicListingCollections()
   revalidatePath('/listings')
@@ -438,18 +448,34 @@ export async function submitReview(formData: FormData) {
     'Anonymous'
 
   if (listingMeta?.name) {
-    void import('@/lib/notify-admin').then(m =>
-      m.notifyNewReview({
-        listingId,
-        listingName: listingMeta.name as string,
-        subdomain: (listingMeta.subdomain as string | null) || null,
-        rating,
-        reviewer,
-        comment: comment?.trim() || null,
-      })
-    ).catch(err => {
-      console.error('[submitReview:telegram]', err)
-    })
+    void (async () => {
+      try {
+        const { data: ownerRow } = await dbClient
+          .from('listings')
+          .select('owner_id')
+          .eq('id', listingId)
+          .maybeSingle()
+
+        const reviewPayload = {
+          listingId,
+          listingName: listingMeta.name as string,
+          subdomain: (listingMeta.subdomain as string | null) || null,
+          reviewerName: reviewer,
+          rating,
+          comment: comment?.trim() || null,
+        }
+
+        const ownerId = (ownerRow?.owner_id as string | null | undefined) ?? null
+        await Promise.allSettled([
+          ownerId
+            ? sendNotification(ownerId, 'review.new', { ...reviewPayload, recipient: 'owner' })
+            : Promise.resolve(),
+          sendNotificationToAdmins('review.new', { ...reviewPayload, recipient: 'admin' }),
+        ])
+      } catch (err) {
+        console.error('[submitReview:notify]', err)
+      }
+    })()
   }
 }
 

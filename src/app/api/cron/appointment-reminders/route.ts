@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { sendAppointmentReminderEmails } from '@/lib/notify-appointment'
+import { sendNotification } from '@/lib/notifications'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 
 const REMINDER_WINDOW_MS = 2 * 60 * 60 * 1000
@@ -50,11 +50,6 @@ type AppointmentReminderRow = {
     subdomain: string | null
     owner_id: string | null
   }> | null
-}
-
-function toNumber(value: number | string | null | undefined): number {
-  const parsed = typeof value === 'number' ? value : Number.parseFloat(String(value ?? '0'))
-  return Number.isFinite(parsed) ? parsed : 0
 }
 
 export async function GET(request: Request) {
@@ -116,35 +111,50 @@ export async function GET(request: Request) {
     stats.queued++
 
     try {
-      const result = await sendAppointmentReminderEmails({
+      const basePayload = {
         listingId: appointment.listing_id,
         listingName: appointment.listing?.name ?? 'Business',
-        listingSubdomain: appointment.listing?.subdomain ?? null,
-        ownerUserId: appointment.listing?.owner_id ?? null,
-        customerUserId: appointment.user_id,
-        customerName: appointment.user_name,
-        customerPhone: appointment.user_phone,
-        customerEmail: appointment.user_email,
+        subdomain: appointment.listing?.subdomain ?? null,
         bookingDate: appointment.booking_date,
         slotStart: appointment.slot_start.slice(0, 5),
         slotEnd: appointment.slot_end.slice(0, 5),
-        bookingFee: toNumber(appointment.booking_fee),
-        notes: appointment.notes,
-        ownerReminderPending,
-        customerReminderPending,
-      })
+      }
+
+      const ownerId = appointment.listing?.owner_id ?? null
+      const sendOwner =
+        ownerReminderPending && ownerId
+          ? sendNotification(ownerId, 'appointment.reminder', {
+              ...basePayload,
+              recipient: 'owner',
+            })
+          : Promise.resolve(false)
+      const sendCustomer = customerReminderPending
+        ? sendNotification(appointment.user_id, 'appointment.reminder', {
+            ...basePayload,
+            recipient: 'buyer',
+          })
+        : Promise.resolve(false)
+
+      const [ownerResult, customerResult] = await Promise.allSettled([sendOwner, sendCustomer])
+
+      const ownerOk =
+        ownerResult.status === 'fulfilled' ? Boolean(ownerResult.value) : false
+      const customerOk =
+        customerResult.status === 'fulfilled' ? Boolean(customerResult.value) : false
 
       const sentAt = new Date().toISOString()
       const patch: Record<string, string> = {}
 
-      if (result.ownerSent && ownerReminderPending) {
+      // Mark the reminder as sent even if the dispatcher didn't write an
+      // in-app row — it may have dispatched email/telegram/whatsapp instead.
+      // Only skip marking if the send explicitly failed (rejected promise).
+      if (ownerReminderPending && ownerResult.status === 'fulfilled') {
         patch.owner_reminder_sent_at = sentAt
-        stats.ownerSent++
+        if (ownerOk) stats.ownerSent++
       }
-
-      if (result.customerSent && customerReminderPending) {
+      if (customerReminderPending && customerResult.status === 'fulfilled') {
         patch.customer_reminder_sent_at = sentAt
-        stats.customerSent++
+        if (customerOk) stats.customerSent++
       }
 
       if (Object.keys(patch).length > 0) {
