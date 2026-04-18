@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 
+import NotificationBell from '@/components/NotificationBell'
 import { createClient } from '@/lib/supabase/client'
 import { buildAbsoluteUrl } from '@/lib/site'
 
@@ -62,6 +63,18 @@ export default function NavbarAuthControls({ mobile = false }: NavbarAuthControl
           >
             My Business
           </Link>
+          <Link
+            href={buildAbsoluteUrl('/account/orders')}
+            className="flex items-center gap-2 text-chikoo-brown font-medium py-2.5 px-3 rounded-xl text-sm hover:bg-warli-light/50 transition-colors"
+          >
+            My Orders
+          </Link>
+          <Link
+            href={buildAbsoluteUrl('/account/notifications')}
+            className="flex items-center gap-2 text-chikoo-brown font-medium py-2.5 px-3 rounded-xl text-sm hover:bg-warli-light/50 transition-colors"
+          >
+            Notifications
+          </Link>
           <div className="flex items-center justify-between py-2">
             <Link href={buildAbsoluteUrl('/dashboard')} className="flex items-center gap-2 text-sm font-medium text-chikoo-brown">
               <img src={getAvatarUrl(user)} alt="avatar" className="w-8 h-8 rounded-full" />
@@ -94,6 +107,13 @@ export default function NavbarAuthControls({ mobile = false }: NavbarAuthControl
         >
           My Business
         </Link>
+        <Link
+          href={buildAbsoluteUrl('/account/orders')}
+          className="text-sm font-medium text-chikoo-brown hover:text-warli-terra px-3 py-1.5 rounded-lg hover:bg-warli-light transition-colors"
+        >
+          My Orders
+        </Link>
+        <NotificationBell userId={user.id} />
         <Link
           href={buildAbsoluteUrl('/dashboard')}
           className="flex items-center gap-2 text-sm text-chikoo-brown hover:text-warli-terra"

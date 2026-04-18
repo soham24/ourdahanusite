@@ -14,6 +14,7 @@ import { createClient } from '@/lib/supabase/server'
 export interface Order {
   id: string
   listing_id: string | null
+  product_id: string | null
   buyer_id: string | null
   buyer_name: string
   buyer_phone: string
@@ -27,6 +28,10 @@ export interface Order {
   commission_amount: number
   seller_payout_amount: number
   seller_upi_id: string
+  payment_flow: 'platform_upi_payout' | 'owner_razorpay'
+  owner_razorpay_order_id: string | null
+  owner_razorpay_payment_id: string | null
+  owner_razorpay_signature: string | null
   razorpay_order_id: string | null
   razorpay_payment_id: string | null
   payment_status: string

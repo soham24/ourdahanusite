@@ -8,6 +8,7 @@ import {
   revalidatePublicListingCollections,
   revalidatePublicListingContent,
 } from '@/lib/cache-tags'
+import { sendNotification } from '@/lib/notifications'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -89,10 +90,17 @@ const CONTENT_LABEL: Record<string, string> = {
   jobs: 'job posting',
 }
 
-/** Send an approval notification email to the content submitter (non-blocking) */
-async function notifyApproval(table: string, id: string) {
+/**
+ * Send an approval notification to the submitter of non-listing content
+ * (events, classifieds, forum posts, news, jobs).
+ *
+ * Listings go through the unified `sendNotification('listing.approved')` path
+ * instead, since that also fires WhatsApp + Telegram + in-app in one shot.
+ */
+async function notifyGenericApproval(table: string, id: string) {
   try {
     if (!process.env.RESEND_API_KEY) return
+    if (table === 'listings') return // listings use sendNotification path
 
     const adminClient = createAdminClient()
     if (!adminClient) return
@@ -100,7 +108,6 @@ async function notifyApproval(table: string, id: string) {
     const submitterField = SUBMITTER_FIELD[table]
     if (!submitterField) return
 
-    // Get the submitter ID and title from the row
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: row } = await (adminClient as any)
       .from(table)
@@ -114,7 +121,6 @@ async function notifyApproval(table: string, id: string) {
     const submitterId = (row as any)[submitterField] as string
     if (!submitterId) return
 
-    // Look up the user's email via admin auth
     const { data: { user } } = await adminClient.auth.admin.getUserById(submitterId)
     const email = user?.email
     if (!email) return
@@ -123,17 +129,7 @@ async function notifyApproval(table: string, id: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const contentTitle = ((row as any).title || (row as any).name || 'Your submission') as string
     const siteUrl = 'https://ourdahanu.in'
-    // For listings with a subdomain, use the subdomain URL; otherwise link to the specific item
-    let viewUrl: string
-    if (table === 'listings') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const subdomain = (row as any).subdomain as string | null
-      viewUrl = subdomain
-        ? `https://${subdomain}.ourdahanu.in`
-        : `${siteUrl}/listings/${id}`
-    } else {
-      viewUrl = `${siteUrl}${TABLE_PATH_MAP[table] || '/'}/${id}`
-    }
+    const viewUrl = `${siteUrl}${TABLE_PATH_MAP[table] || '/'}/${id}`
 
     const { Resend } = await import('resend')
     const resend = new Resend(process.env.RESEND_API_KEY)
@@ -224,34 +220,32 @@ export async function approveContent(formData: FormData) {
   const { error } = await db.from(table).update(update).eq('id', id)
   if (error) throw new Error(error.message)
 
-  // Send approval notification email (fire-and-forget)
-  notifyApproval(table, id)
-
-  // WhatsApp notification for listing approvals
+  // Send approval notification (fire-and-forget)
+  // Listings go through the unified sendNotification('listing.approved') which
+  // handles in-app + email + whatsapp + telegram in one shot. Other content
+  // types fall back to the generic email-only notifier.
   if (table === 'listings') {
     void (async () => {
       try {
-        const adminClient = createAdminClient()
         const db = adminClient ?? supabase
         const { data: listing } = await db
           .from('listings')
-          .select('name, subdomain, phone')
+          .select('name, subdomain, owner_id')
           .eq('id', id)
           .single()
-        if (listing?.phone) {
-          const { waNotifyListingApproved } = await import('@/lib/whatsapp')
-          const { getCanonicalListingUrl } = await import('@/lib/listing-url')
-          const url = getCanonicalListingUrl(id, listing.subdomain as string | null)
-          void waNotifyListingApproved(
-            listing.phone as string,
-            listing.name as string,
-            url,
-          )
+        if (listing?.owner_id && listing?.name) {
+          await sendNotification(listing.owner_id as string, 'listing.approved', {
+            listingId: id,
+            listingName: listing.name as string,
+            subdomain: (listing.subdomain as string | null) ?? null,
+          })
         }
       } catch (err) {
-        console.error('[approveContent:whatsapp]', err)
+        console.error('[approveContent:listing-notify]', err)
       }
     })()
+  } else {
+    notifyGenericApproval(table, id)
   }
 
   if (table === 'listings') {
@@ -271,6 +265,7 @@ export async function rejectContent(formData: FormData) {
   const supabase = await createClient()
   const table = formData.get('table') as string
   const id = formData.get('id') as string
+  const reason = (formData.get('reason') as string | null)?.trim() || null
 
   // job_reviewer can reject jobs; everything else requires admin
   if (table === 'jobs') {
@@ -279,12 +274,42 @@ export async function rejectContent(formData: FormData) {
     await requireAdmin(supabase)
   }
 
+  // Capture listing details BEFORE deleting so we can notify the owner
+  let listingRejectionContext: {
+    ownerId: string
+    listingName: string
+  } | null = null
+
+  if (table === 'listings') {
+    const adminClient = createAdminClient()
+    const db = adminClient ?? supabase
+    const { data: listing } = await db
+      .from('listings')
+      .select('name, owner_id')
+      .eq('id', id)
+      .single()
+    if (listing?.owner_id && listing?.name) {
+      listingRejectionContext = {
+        ownerId: listing.owner_id as string,
+        listingName: listing.name as string,
+      }
+    }
+  }
+
   const { error } = await supabase
     .from(table)
     .delete()
     .eq('id', id)
 
   if (error) throw new Error(error.message)
+
+  if (listingRejectionContext) {
+    void sendNotification(listingRejectionContext.ownerId, 'listing.rejected', {
+      listingId: id,
+      listingName: listingRejectionContext.listingName,
+      reason,
+    }).catch((err) => console.error('[rejectContent:listing-notify]', err))
+  }
 
   if (table === 'listings') {
     revalidatePublicListingCollections()

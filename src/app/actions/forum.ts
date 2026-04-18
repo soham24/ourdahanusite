@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { sendNotificationToAdmins } from '@/lib/notifications'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -52,9 +53,12 @@ export async function createThread(formData: FormData) {
 
   if (error) throw new Error(error.message)
 
-  void import('@/lib/notify-admin').then(m =>
-    m.notifyAdmin('forum', title, authorName)
-  )
+  void sendNotificationToAdmins('admin.new_submission', {
+    kind: 'forum',
+    title,
+    submitterName: authorName,
+    reviewPath: '/admin/forum',
+  }).catch(err => console.error('[notify:new-forum]', err))
 
   revalidatePath('/forum')
   redirect('/forum/' + data.id)

@@ -1,37 +1,109 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
-import { ShoppingBag, CheckCircle, XCircle, Clock, Loader2, Package, Wrench } from 'lucide-react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
+import {
+  ShoppingBag,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Loader2,
+  Package,
+  CreditCard,
+  Wallet,
+} from 'lucide-react'
 import { getMyListingOrders, updateOrderStatus } from '@/app/actions/orders'
 import type { Order } from '@/app/actions/orders'
+import { updateMarketplaceOrderStatus } from '@/app/actions/marketplace-orders'
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+function FlowBadge({ flow }: { flow: Order['payment_flow'] }) {
+  if (flow === 'owner_razorpay') {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-warli-light text-warli-deep">
+        <CreditCard size={10} />
+        Direct payment
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">
+      <Wallet size={10} />
+      UPI via OurDahanu
+    </span>
+  )
+}
+
 function PayoutBadge({ status }: { status: string }) {
+  if (status === 'not_applicable') {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+        <CheckCircle size={10} />
+        Paid to you
+      </span>
+    )
+  }
   if (status === 'paid')
-    return <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700"><CheckCircle size={10} />Paid out</span>
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+        <CheckCircle size={10} />
+        Paid out
+      </span>
+    )
   if (status === 'failed')
-    return <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-600"><XCircle size={10} />Payout failed</span>
-  return <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700"><Clock size={10} />Pending payout</span>
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-600">
+        <XCircle size={10} />
+        Payout failed
+      </span>
+    )
+  return (
+    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
+      <Clock size={10} />
+      Pending payout
+    </span>
+  )
 }
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'fulfilled')
-    return <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700"><CheckCircle size={10} />Fulfilled</span>
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+        <CheckCircle size={10} />
+        Fulfilled
+      </span>
+    )
   if (status === 'cancelled')
-    return <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500"><XCircle size={10} />Cancelled</span>
-  return <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600"><Clock size={10} />Confirmed</span>
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+        <XCircle size={10} />
+        Cancelled
+      </span>
+    )
+  return (
+    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">
+      <Clock size={10} />
+      Confirmed
+    </span>
+  )
 }
 
-function OrderRow({ order, onStatusChange }: { order: Order; onStatusChange: (id: string, status: 'fulfilled' | 'cancelled') => void }) {
+function OrderRow({
+  order,
+  onStatusChange,
+}: {
+  order: Order
+  onStatusChange: (order: Order, status: 'fulfilled' | 'cancelled') => void
+}) {
   const [isPending, startTransition] = useTransition()
   const isActive = order.status === 'confirmed'
+  const isMarketplace = order.payment_flow === 'owner_razorpay'
 
   const handleAction = (status: 'fulfilled' | 'cancelled') => {
     startTransition(() => {
-      onStatusChange(order.id, status)
+      onStatusChange(order, status)
     })
   }
 
@@ -43,29 +115,58 @@ function OrderRow({ order, onStatusChange }: { order: Order; onStatusChange: (id
             <span className="font-semibold text-gray-900 text-sm">{order.service_name}</span>
             <StatusBadge status={order.status} />
             <PayoutBadge status={order.payout_status} />
+            <FlowBadge flow={order.payment_flow} />
           </div>
           <p className="text-xs text-gray-400">{formatDate(order.created_at)}</p>
         </div>
         <div className="text-right flex-shrink-0">
-          <p className="font-bold text-warli-terra">₹{order.amount_total.toLocaleString('en-IN')}</p>
-          <p className="text-xs text-gray-400">×{order.quantity} @ ₹{order.service_price.toLocaleString('en-IN')}</p>
-          <p className="text-xs text-green-600 mt-0.5">You get ₹{order.seller_payout_amount.toLocaleString('en-IN')}</p>
+          <p className="font-bold text-warli-terra">
+            ₹{Number(order.amount_total).toLocaleString('en-IN')}
+          </p>
+          <p className="text-xs text-gray-400">
+            ×{order.quantity} @ ₹{Number(order.service_price).toLocaleString('en-IN')}
+          </p>
+          <p className="text-xs text-green-600 mt-0.5">
+            {isMarketplace ? 'Received directly' : 'You get'} ₹
+            {Number(order.seller_payout_amount).toLocaleString('en-IN')}
+          </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600">
-        <div><span className="text-gray-400">Buyer: </span>{order.buyer_name}</div>
-        <div><span className="text-gray-400">Phone: </span>
-          <a href={`tel:${order.buyer_phone}`} className="text-warli-terra hover:underline">{order.buyer_phone}</a>
+        <div>
+          <span className="text-gray-400">Buyer: </span>
+          {order.buyer_name}
+        </div>
+        <div>
+          <span className="text-gray-400">Phone: </span>
+          <a href={`tel:${order.buyer_phone}`} className="text-warli-terra hover:underline">
+            {order.buyer_phone}
+          </a>
         </div>
         {order.delivery_address && (
-          <div className="sm:col-span-2"><span className="text-gray-400">Address: </span>{order.delivery_address}</div>
+          <div className="sm:col-span-2">
+            <span className="text-gray-400">Address: </span>
+            {order.delivery_address}
+          </div>
         )}
         {order.notes && (
-          <div className="sm:col-span-2"><span className="text-gray-400">Notes: </span>{order.notes}</div>
+          <div className="sm:col-span-2">
+            <span className="text-gray-400">Notes: </span>
+            {order.notes}
+          </div>
         )}
-        {order.payout_error && (
-          <div className="sm:col-span-2 text-red-500"><span className="font-medium">Payout error: </span>{order.payout_error}</div>
+        {!isMarketplace && order.payout_error && (
+          <div className="sm:col-span-2 text-red-500">
+            <span className="font-medium">Payout error: </span>
+            {order.payout_error}
+          </div>
+        )}
+        {isMarketplace && order.owner_razorpay_payment_id && (
+          <div className="sm:col-span-2 text-gray-400">
+            <span>Razorpay Payment: </span>
+            <span className="font-mono text-gray-600">{order.owner_razorpay_payment_id}</span>
+          </div>
         )}
       </div>
 
@@ -93,10 +194,14 @@ function OrderRow({ order, onStatusChange }: { order: Order; onStatusChange: (id
   )
 }
 
+type FlowFilter = 'all' | 'owner_razorpay' | 'platform_upi_payout'
+type StatusFilter = 'all' | 'confirmed' | 'fulfilled' | 'cancelled'
+
 export default function MyOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'confirmed' | 'fulfilled' | 'cancelled'>('all')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [flowFilter, setFlowFilter] = useState<FlowFilter>('all')
 
   useEffect(() => {
     getMyListingOrders().then(({ orders }) => {
@@ -105,24 +210,40 @@ export default function MyOrdersPage() {
     })
   }, [])
 
-  const handleStatusChange = async (id: string, status: 'fulfilled' | 'cancelled') => {
-    const result = await updateOrderStatus(id, status)
+  const handleStatusChange = async (order: Order, status: 'fulfilled' | 'cancelled') => {
+    const result =
+      order.payment_flow === 'owner_razorpay'
+        ? await updateMarketplaceOrderStatus(order.id, status)
+        : await updateOrderStatus(order.id, status)
     if (!result.error) {
-      setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o))
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status } : o)))
     }
   }
 
-  const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter)
+  const flowFiltered = useMemo(
+    () => (flowFilter === 'all' ? orders : orders.filter((o) => o.payment_flow === flowFilter)),
+    [orders, flowFilter],
+  )
+
+  const filtered =
+    statusFilter === 'all' ? flowFiltered : flowFiltered.filter((o) => o.status === statusFilter)
+
   const counts = {
-    all:       orders.length,
-    confirmed: orders.filter(o => o.status === 'confirmed').length,
-    fulfilled: orders.filter(o => o.status === 'fulfilled').length,
-    cancelled: orders.filter(o => o.status === 'cancelled').length,
+    all: flowFiltered.length,
+    confirmed: flowFiltered.filter((o) => o.status === 'confirmed').length,
+    fulfilled: flowFiltered.filter((o) => o.status === 'fulfilled').length,
+    cancelled: flowFiltered.filter((o) => o.status === 'cancelled').length,
   }
 
-  const totalRevenue = orders
-    .filter(o => o.status !== 'cancelled')
-    .reduce((sum, o) => sum + o.seller_payout_amount, 0)
+  const flowCounts = {
+    all: orders.length,
+    owner_razorpay: orders.filter((o) => o.payment_flow === 'owner_razorpay').length,
+    platform_upi_payout: orders.filter((o) => o.payment_flow === 'platform_upi_payout').length,
+  }
+
+  const totalEarnings = flowFiltered
+    .filter((o) => o.status !== 'cancelled')
+    .reduce((sum, o) => sum + Number(o.seller_payout_amount || 0), 0)
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
@@ -132,7 +253,7 @@ export default function MyOrdersPage() {
           <ShoppingBag size={20} className="text-warli-terra" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Orders</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
           <p className="text-sm text-gray-500">Orders placed by customers on your listings</p>
         </div>
       </div>
@@ -149,7 +270,7 @@ export default function MyOrdersPage() {
           </div>
           <h3 className="font-semibold text-gray-900 mb-2">No orders yet</h3>
           <p className="text-sm text-gray-400 max-w-xs mx-auto">
-            When customers place orders on your listings, they'll appear here.
+            When customers place orders on your listings, they&apos;ll appear here.
           </p>
         </div>
       ) : (
@@ -169,19 +290,46 @@ export default function MyOrdersPage() {
               <div className="text-xs text-gray-400">Fulfilled</div>
             </div>
             <div className="bg-white border border-gray-100 rounded-xl p-3 text-center">
-              <div className="text-xl font-bold text-warli-terra">₹{totalRevenue.toLocaleString('en-IN')}</div>
+              <div className="text-xl font-bold text-warli-terra">
+                ₹{totalEarnings.toLocaleString('en-IN')}
+              </div>
               <div className="text-xs text-gray-400">Earned</div>
             </div>
           </div>
 
-          {/* Filter tabs */}
+          {/* Flow filter */}
+          {flowCounts.owner_razorpay > 0 && flowCounts.platform_upi_payout > 0 && (
+            <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-3 text-xs">
+              {(
+                [
+                  { key: 'all' as const, label: 'All flows' },
+                  { key: 'owner_razorpay' as const, label: 'Direct payment' },
+                  { key: 'platform_upi_payout' as const, label: 'UPI payout' },
+                ]
+              ).map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setFlowFilter(tab.key)}
+                  className={`flex-1 font-semibold py-1.5 rounded-lg transition-colors ${
+                    flowFilter === tab.key
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {tab.label} ({flowCounts[tab.key]})
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Status filter tabs */}
           <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-5">
-            {(['all', 'confirmed', 'fulfilled', 'cancelled'] as const).map(tab => (
+            {(['all', 'confirmed', 'fulfilled', 'cancelled'] as const).map((tab) => (
               <button
                 key={tab}
-                onClick={() => setFilter(tab)}
+                onClick={() => setStatusFilter(tab)}
                 className={`flex-1 text-xs font-semibold py-1.5 rounded-lg capitalize transition-colors ${
-                  filter === tab
+                  statusFilter === tab
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
@@ -193,10 +341,10 @@ export default function MyOrdersPage() {
 
           {/* Orders list */}
           {filtered.length === 0 ? (
-            <p className="text-center text-sm text-gray-400 py-10">No {filter} orders.</p>
+            <p className="text-center text-sm text-gray-400 py-10">No orders in this view.</p>
           ) : (
             <div className="space-y-3">
-              {filtered.map(order => (
+              {filtered.map((order) => (
                 <OrderRow key={order.id} order={order} onStatusChange={handleStatusChange} />
               ))}
             </div>

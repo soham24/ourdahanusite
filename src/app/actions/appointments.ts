@@ -11,6 +11,10 @@ import {
   getLiveAppointmentBookingConfig,
 } from '@/lib/data/appointments'
 import {
+  sendNotification,
+  sendNotificationToAdmins,
+} from '@/lib/notifications'
+import {
   fetchRazorpayOrder,
   validateRazorpayOrder,
 } from '@/lib/payment-security'
@@ -308,32 +312,44 @@ export async function bookAppointment(
   revalidatePath('/my-business/appointments')
   revalidatePath('/admin/appointments')
 
-  // Fire-and-forget notifications: email to owner + Telegram to admin
+  // Fire-and-forget notifications: fan out to owner + buyer + admins via
+  // the unified notification engine.
   void (async () => {
     try {
       const { data: listing } = await adminClient
         .from('listings')
-        .select('name, owner_id')
+        .select('name, owner_id, subdomain')
         .eq('id', listingId)
         .maybeSingle()
 
-      if (listing?.owner_id) {
-        const { notifyAppointmentBooked } = await import('@/lib/notify-appointment')
-        await notifyAppointmentBooked({
-          listingId,
-          listingName: String(listing.name ?? 'Business'),
-          ownerUserId: listing.owner_id,
-          customerName: userName,
-          customerPhone: userPhone ?? '',
-          customerEmail: userEmail || null,
-          bookingDate,
-          slotStart,
-          slotEnd: selectedSlot.end,
-          bookingFee,
-          paymentStatus,
-          notes: notes || null,
-        })
+      const basePayload = {
+        listingId,
+        listingName: String(listing?.name ?? 'Business'),
+        subdomain: (listing?.subdomain as string | null) ?? null,
+        customerName: userName,
+        customerPhone: userPhone ?? '',
+        bookingDate,
+        slotStart,
+        slotEnd: selectedSlot.end,
+        bookingFee,
       }
+
+      await Promise.allSettled([
+        listing?.owner_id
+          ? sendNotification(listing.owner_id as string, 'appointment.booked', {
+              ...basePayload,
+              recipient: 'owner',
+            })
+          : Promise.resolve(),
+        sendNotification(user.id, 'appointment.booked', {
+          ...basePayload,
+          recipient: 'buyer',
+        }),
+        sendNotificationToAdmins('appointment.booked', {
+          ...basePayload,
+          recipient: 'admin',
+        }),
+      ])
     } catch (err) {
       console.error('[bookAppointment:notify]', err)
     }
@@ -380,6 +396,48 @@ export async function cancelAppointment(
     .eq('id', appointmentId)
 
   if (error) return { error: error.message }
+
+  // Fire-and-forget cancellation notifications to the other party
+  void (async () => {
+    try {
+      const { data: listing } = await adminClient
+        .from('listings')
+        .select('name')
+        .eq('id', appointment.listing_id)
+        .maybeSingle()
+
+      const listingName = String(listing?.name ?? 'Business')
+      const ownerId = appointment.listing?.owner_id ?? null
+      const customerId = appointment.user_id
+
+      const promises: Promise<unknown>[] = []
+      // Notify the customer unless they cancelled themselves
+      if (cancelledBy !== 'user' && customerId) {
+        promises.push(
+          sendNotification(customerId, 'appointment.cancelled', {
+            listingName,
+            bookingDate: appointment.booking_date,
+            slotStart: appointment.slot_start.slice(0, 5),
+            recipient: 'buyer',
+          }),
+        )
+      }
+      // Notify the owner unless they cancelled it
+      if (cancelledBy !== 'owner' && ownerId) {
+        promises.push(
+          sendNotification(ownerId, 'appointment.cancelled', {
+            listingName,
+            bookingDate: appointment.booking_date,
+            slotStart: appointment.slot_start.slice(0, 5),
+            recipient: 'owner',
+          }),
+        )
+      }
+      await Promise.allSettled(promises)
+    } catch (err) {
+      console.error('[cancelAppointment:notify]', err)
+    }
+  })()
 
   revalidateAppointmentsCache(appointment.listing_id)
   revalidatePath('/dashboard/appointments')

@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { sendNotificationToAdmins } from '@/lib/notifications'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -33,9 +34,12 @@ export async function submitNews(formData: FormData) {
 
   if (error) throw new Error(error.message)
 
-  void import('@/lib/notify-admin').then(m =>
-    m.notifyAdmin('news', title, author)
-  )
+  void sendNotificationToAdmins('admin.new_submission', {
+    kind: 'news',
+    title,
+    submitterName: author,
+    reviewPath: '/admin/news',
+  }).catch(err => console.error('[notify:new-news]', err))
 
   revalidatePath('/news')
   redirect('/news?submitted=1')

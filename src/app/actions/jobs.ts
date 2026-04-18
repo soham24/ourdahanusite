@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { revalidatePublicJobs } from '@/lib/cache-tags'
+import { sendNotificationToAdmins } from '@/lib/notifications'
 import {
   fetchRazorpayOrder,
   getJobSubmissionCharge,
@@ -36,6 +37,7 @@ async function notifyJobReviewers(jobTitle: string, company: string, jobId: stri
     if (emails.length === 0) return
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ourdahanu.in'
+    const reviewUrl = jobId ? `${siteUrl}/admin/jobs?focus=${encodeURIComponent(jobId)}` : `${siteUrl}/admin/jobs`
     const { Resend } = await import('resend')
     const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -50,7 +52,7 @@ async function notifyJobReviewers(jobTitle: string, company: string, jobId: stri
   <h2 style="margin:0 0 8px;color:#1a1a1a;">New Job Submission</h2>
   <p style="color:#555;margin:0 0 20px;">A new paid job posting needs review.</p>
   <p><strong>${jobTitle}</strong> at ${company}</p>
-  <a href="${siteUrl}/admin/jobs" style="background:#16a34a;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;">Review Job →</a>
+  <a href="${reviewUrl}" style="background:#16a34a;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;">Review Job →</a>
 </td></tr>
 </table></body></html>`,
     })
@@ -148,7 +150,12 @@ export async function submitPaidJob(
   }
 
   notifyJobReviewers(fields.title, fields.company, inserted?.id ?? '')
-  void import('@/lib/notify-admin').then(m => m.notifyAdmin('job', fields.title, fields.company))
+  void sendNotificationToAdmins('admin.new_submission', {
+    kind: 'job',
+    title: fields.title,
+    submitterName: fields.company,
+    reviewPath: '/admin/jobs',
+  }).catch(err => console.error('[notify:new-job-paid]', err))
 
   revalidatePublicJobs()
   revalidatePath('/jobs')
@@ -196,7 +203,12 @@ export async function submitFreeJob(
   }
 
   notifyJobReviewers(fields.title, fields.company, inserted?.id ?? '')
-  void import('@/lib/notify-admin').then(m => m.notifyAdmin('job', fields.title, fields.company))
+  void sendNotificationToAdmins('admin.new_submission', {
+    kind: 'job',
+    title: fields.title,
+    submitterName: fields.company,
+    reviewPath: '/admin/jobs',
+  }).catch(err => console.error('[notify:new-job-free]', err))
 
   revalidatePublicJobs()
   revalidatePath('/jobs')
