@@ -148,6 +148,9 @@ html {
 .initial-loader-overlay {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   z-index: 1000;
   opacity: 1;
   transition: opacity 300ms ease;
@@ -156,6 +159,12 @@ html {
 .initial-loader-overlay--hidden {
   opacity: 0;
   pointer-events: none;
+}
+
+/* While the loader overlay is mounted, lock page scroll so the scrollbar
+   disappears and the loader truly centers against the full viewport. */
+html:has(#homepage-loader-overlay:not(.initial-loader-overlay--hidden)) {
+  overflow: hidden;
 }
 
 .our-dahanu-loader-shell--fullscreen {
@@ -455,29 +464,15 @@ html {
 }
 
 .our-dahanu-loader--fullscreen .our-dahanu-loader__logo {
-  top: 10vh;
-  width: clamp(220px, 24vw, 300px);
-  height: clamp(220px, 24vw, 300px);
+  top: 38%;
+  width: min(62vmin, 44vh, 520px);
+  height: min(62vmin, 44vh, 520px);
+  transform: translate(-50%, -50%);
+  animation: our-dahanu-loader-logo-float-center 6s ease-in-out infinite;
 }
 
 .our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text {
-  top: calc(10vh + clamp(220px, 24vw, 300px) + 20px);
-}
-
-.our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text-brand {
-  font-size: clamp(1rem, 1.5vw, 1.25rem);
-}
-
-@media (max-height: 720px) {
-  .our-dahanu-loader--fullscreen .our-dahanu-loader__logo {
-    top: 7vh;
-    width: clamp(170px, 28vh, 220px);
-    height: clamp(170px, 28vh, 220px);
-  }
-
-  .our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text {
-    top: calc(7vh + clamp(170px, 28vh, 220px) + 14px);
-  }
+  display: none;
 }
 
 .our-dahanu-loader--fullscreen .our-dahanu-loader__warli {
@@ -583,6 +578,11 @@ html {
   50% { transform: translate(-50%, -6px); }
 }
 
+@keyframes our-dahanu-loader-logo-float-center {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50% { transform: translate(-50%, calc(-50% - 6px)); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .our-dahanu-loader__star,
   .our-dahanu-loader__logo,
@@ -602,16 +602,6 @@ html {
 }
 
 @media (max-width: 640px) {
-  .our-dahanu-loader--fullscreen .our-dahanu-loader__logo {
-    top: 7vh;
-    width: clamp(160px, 44vw, 220px);
-    height: clamp(160px, 44vw, 220px);
-  }
-
-  .our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text {
-    top: calc(7vh + clamp(160px, 44vw, 220px) + 16px);
-  }
-
   .our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text-brand {
     font-size: 14px;
   }
