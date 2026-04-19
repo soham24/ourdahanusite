@@ -205,8 +205,9 @@ export default function OurDahanuLoader({
                   fill="#C8881E"
                   opacity="0.85"
                   letterSpacing="1"
+                  textAnchor="middle"
                 >
-                  <textPath href="#loaderBotArc" startOffset="12%">
+                  <textPath href="#loaderBotArc" startOffset="50%">
                     आपले डहाणू
                   </textPath>
                 </text>
