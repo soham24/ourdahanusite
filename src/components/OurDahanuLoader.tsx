@@ -83,10 +83,23 @@ function birdStyle(bird: (typeof birds)[number]): CSSProperties {
   }
 }
 
-export default function OurDahanuLoader({ message }: { message?: string }) {
+export default function OurDahanuLoader({
+  message,
+  fullScreen = false,
+}: {
+  message?: string
+  fullScreen?: boolean
+}) {
+  const loaderMessage =
+    message || 'Wait, we are bringing the OurDahanu experience to you.'
+
   return (
-    <div className="flex justify-center px-4 py-12 select-none">
-      <div className="our-dahanu-loader relative w-full max-w-[380px]">
+    <div
+      className={`select-none ${fullScreen ? 'our-dahanu-loader-shell our-dahanu-loader-shell--fullscreen' : 'flex justify-center px-4 py-12'}`}
+    >
+      <div
+        className={`our-dahanu-loader relative w-full ${fullScreen ? 'our-dahanu-loader--fullscreen max-w-none' : 'max-w-[380px]'}`}
+      >
         <div className="our-dahanu-loader__scene">
           <div className="our-dahanu-loader__sky">
             {stars.map((star, index) => (
@@ -262,10 +275,8 @@ export default function OurDahanuLoader({ message }: { message?: string }) {
 
             <div className="our-dahanu-loader__text">
               <div className="our-dahanu-loader__brand">OurDahanu</div>
-              <div className="our-dahanu-loader__sub">
-                {message || 'Dahanu · Bordi · Gholvad · Palghar'}
-              </div>
-              <div className="our-dahanu-loader__dots" aria-label={message || 'Loading'}>
+              <div className="our-dahanu-loader__sub">{loaderMessage}</div>
+              <div className="our-dahanu-loader__dots" aria-label={loaderMessage}>
                 {Array.from({ length: 5 }).map((_, index) => (
                   <div key={index} className="our-dahanu-loader__dot" />
                 ))}

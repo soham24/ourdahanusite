@@ -145,8 +145,19 @@ html {
 
 /* ─── OurDahanu Loading Animation ─── */
 
+.our-dahanu-loader-shell--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+}
+
 .our-dahanu-loader {
   aspect-ratio: 19 / 26;
+}
+
+.our-dahanu-loader--fullscreen {
+  min-height: 100vh;
+  aspect-ratio: auto;
 }
 
 .our-dahanu-loader__scene {
@@ -362,6 +373,67 @@ html {
   border-radius: 28px;
 }
 
+.our-dahanu-loader--fullscreen .our-dahanu-loader__sky,
+.our-dahanu-loader--fullscreen .our-dahanu-loader__border {
+  border-radius: 0;
+}
+
+.our-dahanu-loader--fullscreen .our-dahanu-loader__ocean {
+  bottom: 18vh;
+  height: 28vh;
+}
+
+.our-dahanu-loader--fullscreen .our-dahanu-loader__water-glow {
+  bottom: calc(18vh + 2px);
+}
+
+.our-dahanu-loader--fullscreen .our-dahanu-loader__sand {
+  height: 22vh;
+}
+
+.our-dahanu-loader--fullscreen .our-dahanu-loader__tree {
+  bottom: calc(18vh - 10px);
+  left: 6vw;
+  transform: scale(1.25);
+}
+
+.our-dahanu-loader--fullscreen .our-dahanu-loader__palm {
+  right: 5vw;
+  bottom: calc(18vh - 4px);
+  transform: scale(1.2);
+}
+
+.our-dahanu-loader--fullscreen .our-dahanu-loader__moon {
+  top: 8vh;
+  right: 14vw;
+  width: 72px;
+  height: 72px;
+}
+
+.our-dahanu-loader--fullscreen .our-dahanu-loader__warli {
+  bottom: 8vh;
+  transform: translateX(-50%) scale(1.15);
+}
+
+.our-dahanu-loader--fullscreen .our-dahanu-loader__text {
+  padding: 0 24px 6vh;
+  background: linear-gradient(to top, rgba(20, 8, 0, 0.94) 0%, rgba(20, 8, 0, 0.7) 34%, transparent 100%);
+  border-radius: 0;
+}
+
+.our-dahanu-loader--fullscreen .our-dahanu-loader__brand {
+  margin-bottom: 12px;
+  font-size: clamp(2.2rem, 5vw, 4.2rem);
+}
+
+.our-dahanu-loader--fullscreen .our-dahanu-loader__sub {
+  max-width: 40rem;
+  margin: 0 auto 22px;
+  font-size: clamp(0.95rem, 1.4vw, 1.2rem);
+  line-height: 1.5;
+  letter-spacing: 0.03em;
+}
+
 @keyframes our-dahanu-loader-twinkle {
   0%, 100% { opacity: var(--loader-star-min, 0.2); transform: scale(1); }
   50% { opacity: 1; transform: scale(1.4); }
@@ -443,6 +515,36 @@ html {
   .our-dahanu-loader__brand,
   .our-dahanu-loader__dot {
     animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .our-dahanu-loader--fullscreen .our-dahanu-loader__moon {
+    top: 7vh;
+    right: 10vw;
+    width: 56px;
+    height: 56px;
+  }
+
+  .our-dahanu-loader--fullscreen .our-dahanu-loader__tree {
+    left: 0;
+    transform: scale(0.95);
+  }
+
+  .our-dahanu-loader--fullscreen .our-dahanu-loader__palm {
+    right: 0;
+    transform: scale(0.9);
+  }
+
+  .our-dahanu-loader--fullscreen .our-dahanu-loader__warli {
+    bottom: 10vh;
+    transform: translateX(-50%) scale(0.9);
+  }
+
+  .our-dahanu-loader--fullscreen .our-dahanu-loader__text {
+    padding-right: 18px;
+    padding-left: 18px;
+    padding-bottom: 5vh;
   }
 }
 
