@@ -4,29 +4,13 @@ import { useEffect, useState } from 'react'
 
 import OurDahanuLoader from '@/components/OurDahanuLoader'
 
-const LOADER_SEEN_KEY = 'ourdahanu:loader-seen'
 const LOADER_DURATION_MS = 2200
 
 export default function InitialLoaderOverlay() {
-  const [isVisible, setIsVisible] = useState(() => {
-    if (typeof window === 'undefined') {
-      return false
-    }
-
-    if (window.sessionStorage.getItem(LOADER_SEEN_KEY) === '1') {
-      return false
-    }
-
-    window.sessionStorage.setItem(LOADER_SEEN_KEY, '1')
-    return true
-  })
+  const [isVisible, setIsVisible] = useState(true)
   const [isFadingOut, setIsFadingOut] = useState(false)
 
   useEffect(() => {
-    if (!isVisible) {
-      return
-    }
-
     const fadeTimer = window.setTimeout(() => {
       setIsFadingOut(true)
     }, LOADER_DURATION_MS - 300)
@@ -39,7 +23,7 @@ export default function InitialLoaderOverlay() {
       window.clearTimeout(fadeTimer)
       window.clearTimeout(hideTimer)
     }
-  }, [isVisible])
+  }, [])
 
   if (!isVisible) {
     return null
