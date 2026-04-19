@@ -110,12 +110,115 @@ export default function OurDahanuLoader({
               />
             ))}
 
-            <div className="our-dahanu-loader__moon" aria-hidden="true">
-              <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="22" cy="22" r="20" fill="#F0C87A" opacity="0.9" />
-                <circle cx="28" cy="18" r="16" fill="#1A0600" opacity="0.75" />
-                <circle cx="22" cy="22" r="21" stroke="#F0C87A" strokeWidth="1" opacity="0.2" />
+            <div className="our-dahanu-loader__logo" aria-hidden="true">
+              <svg
+                className="our-dahanu-loader__logo-svg"
+                width="110"
+                height="110"
+                viewBox="0 0 110 110"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <defs>
+                  <linearGradient id="loaderGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#E8B84B" />
+                    <stop offset="50%" stopColor="#C8881E" />
+                    <stop offset="100%" stopColor="#A06010" />
+                  </linearGradient>
+                </defs>
+
+                <circle cx="55" cy="55" r="52" fill="rgba(200,136,30,0.06)" />
+
+                <g className="our-dahanu-loader__ring-spin">
+                  <circle
+                    cx="55"
+                    cy="55"
+                    r="50"
+                    stroke="#C8881E"
+                    strokeWidth="2.5"
+                    strokeDasharray="18 8"
+                    strokeLinecap="round"
+                    fill="none"
+                    opacity="0.7"
+                  />
+                </g>
+
+                <g className="our-dahanu-loader__ring-spin our-dahanu-loader__ring-spin--reverse">
+                  <circle
+                    cx="55"
+                    cy="55"
+                    r="44"
+                    stroke="#E8B84B"
+                    strokeWidth="1.2"
+                    strokeDasharray="4 10"
+                    strokeLinecap="round"
+                    fill="none"
+                    opacity="0.4"
+                  />
+                </g>
+
+                <circle cx="55" cy="55" r="40" fill="#1C0800" />
+                <circle cx="55" cy="55" r="40" stroke="url(#loaderGoldGrad)" strokeWidth="1.8" fill="none" />
+                <circle
+                  cx="55"
+                  cy="55"
+                  r="35"
+                  stroke="url(#loaderGoldGrad)"
+                  strokeWidth="0.8"
+                  fill="none"
+                  opacity="0.5"
+                />
+
+                <path id="loaderTopArc" d="M 18,55 A 37,37 0 0,1 92,55" fill="none" />
+                <text
+                  fontFamily="'DM Sans', sans-serif"
+                  fontSize="7"
+                  fontWeight="700"
+                  fill="#C8881E"
+                  letterSpacing="3.5"
+                >
+                  <textPath href="#loaderTopArc" startOffset="8%">
+                    OUR  DAHANU
+                  </textPath>
+                </text>
+
+                <text x="18" y="58" fontSize="7" fill="#C8881E" textAnchor="middle">★</text>
+                <text x="92" y="58" fontSize="7" fill="#C8881E" textAnchor="middle">★</text>
+
+                <text
+                  x="55"
+                  y="62"
+                  fontFamily="'Instrument Serif', Georgia, serif"
+                  fontSize="26"
+                  fontWeight="400"
+                  fill="url(#loaderGoldGrad)"
+                  textAnchor="middle"
+                  letterSpacing="-1"
+                >
+                  DN
+                </text>
+
+                <path id="loaderBotArc" d="M 22,55 A 33,33 0 0,0 88,55" fill="none" />
+                <text
+                  fontFamily="'Noto Sans Devanagari', sans-serif"
+                  fontSize="6.5"
+                  fill="#C8881E"
+                  opacity="0.85"
+                  letterSpacing="1"
+                >
+                  <textPath href="#loaderBotArc" startOffset="12%">
+                    आपले डहाणू
+                  </textPath>
+                </text>
               </svg>
+            </div>
+
+            <div className="our-dahanu-loader__logo-text" aria-hidden="true">
+              <div className="our-dahanu-loader__logo-text-brand">
+                Loading your OurDahanu
+                <br />
+                experience… hold on ✨
+              </div>
             </div>
 
             {birds.map((bird, index) => (

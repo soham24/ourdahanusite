@@ -197,13 +197,49 @@ html {
   animation: our-dahanu-loader-twinkle var(--loader-star-duration, 3s) ease-in-out infinite var(--loader-star-delay, 0s);
 }
 
-.our-dahanu-loader__moon {
+.our-dahanu-loader__logo {
   position: absolute;
-  top: 40px;
-  right: 60px;
-  width: 44px;
-  height: 44px;
+  top: 28px;
+  left: 50%;
+  width: 110px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(-50%);
   animation: our-dahanu-loader-float 6s ease-in-out infinite;
+}
+
+.our-dahanu-loader__logo-svg {
+  position: absolute;
+  inset: 0;
+}
+
+.our-dahanu-loader__ring-spin {
+  transform-origin: 55px 55px;
+  animation: our-dahanu-loader-ring-rotate 2.4s linear infinite;
+}
+
+.our-dahanu-loader__ring-spin--reverse {
+  animation: our-dahanu-loader-ring-rotate 4s linear infinite reverse;
+}
+
+.our-dahanu-loader__logo-text {
+  position: absolute;
+  top: 145px;
+  right: 0;
+  left: 0;
+  text-align: center;
+  pointer-events: none;
+}
+
+.our-dahanu-loader__logo-text-brand {
+  font-family: var(--font-instrument), Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #F0C87A;
+  animation: our-dahanu-loader-brand 3s ease-in-out infinite;
 }
 
 .our-dahanu-loader__bird {
@@ -418,11 +454,18 @@ html {
   transform: scale(1.2);
 }
 
-.our-dahanu-loader--fullscreen .our-dahanu-loader__moon {
+.our-dahanu-loader--fullscreen .our-dahanu-loader__logo {
   top: 8vh;
-  right: 14vw;
-  width: 72px;
-  height: 72px;
+  width: 140px;
+  height: 140px;
+}
+
+.our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text {
+  top: calc(8vh + 160px);
+}
+
+.our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text-brand {
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
 }
 
 .our-dahanu-loader--fullscreen .our-dahanu-loader__warli {
@@ -518,9 +561,17 @@ html {
   50% { opacity: 1; }
 }
 
+@keyframes our-dahanu-loader-ring-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .our-dahanu-loader__star,
-  .our-dahanu-loader__moon,
+  .our-dahanu-loader__logo,
+  .our-dahanu-loader__ring-spin,
+  .our-dahanu-loader__ring-spin--reverse,
+  .our-dahanu-loader__logo-text-brand,
   .our-dahanu-loader__bird,
   .our-dahanu-loader__wave,
   .our-dahanu-loader__wave-shimmer,
@@ -534,11 +585,18 @@ html {
 }
 
 @media (max-width: 640px) {
-  .our-dahanu-loader--fullscreen .our-dahanu-loader__moon {
+  .our-dahanu-loader--fullscreen .our-dahanu-loader__logo {
     top: 7vh;
-    right: 10vw;
-    width: 56px;
-    height: 56px;
+    width: 104px;
+    height: 104px;
+  }
+
+  .our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text {
+    top: calc(7vh + 120px);
+  }
+
+  .our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text-brand {
+    font-size: 14px;
   }
 
   .our-dahanu-loader--fullscreen .our-dahanu-loader__tree {
