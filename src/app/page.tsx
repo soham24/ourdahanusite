@@ -15,7 +15,7 @@ import {
   Store,
 } from 'lucide-react'
 
-import InitialLoaderOverlay from '@/components/InitialLoaderOverlay'
+import OurDahanuLoader from '@/components/OurDahanuLoader'
 import { getHomePageData, type FeaturedListing } from '@/lib/data/home'
 import HomepagePollCard, { HomepagePollCardFallback } from '@/components/HomepagePollCard'
 import { summarizeAddress } from '@/lib/listing-content'
@@ -234,7 +234,15 @@ function SectionHeader({
   )
 }
 
-export default async function HomePage() {
+export default function HomePage() {
+  return (
+    <Suspense fallback={<OurDahanuLoader fullScreen />}>
+      <HomePageContent />
+    </Suspense>
+  )
+}
+
+async function HomePageContent() {
   const {
     listings,
     recentJobs,
@@ -263,7 +271,6 @@ export default async function HomePage() {
 
   return (
     <>
-      <InitialLoaderOverlay />
       {/* ─────────────────────────────────────────────────────────────
           1. HERO — deep bark bg, editorial serif headline
       ───────────────────────────────────────────────────────────── */}
