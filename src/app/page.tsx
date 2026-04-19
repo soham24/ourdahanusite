@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
 import { Suspense } from 'react'
 import {
   ArrowRight,
@@ -19,6 +18,7 @@ import HomepageLoaderDismiss from '@/components/HomepageLoaderDismiss'
 import OurDahanuLoader from '@/components/OurDahanuLoader'
 import { getHomePageData, type FeaturedListing } from '@/lib/data/home'
 import HomepagePollCard, { HomepagePollCardFallback } from '@/components/HomepagePollCard'
+import SafeAppLink from '@/components/SafeAppLink'
 import { summarizeAddress } from '@/lib/listing-content'
 import { getCategoryPath } from '@/lib/listing-category'
 import { getListingHref } from '@/lib/listing-url'
@@ -111,7 +111,7 @@ function FeaturedSpotlight({ listing }: { listing: FeaturedListing }) {
           </p>
         </div>
 
-        <Link
+        <SafeAppLink
           href={href}
           className="group block bg-white border border-[#E8DDD2] rounded-[32px] overflow-hidden grid md:grid-cols-[380px_1fr] transition-shadow duration-200 hover:shadow-card-hover"
         >
@@ -191,7 +191,7 @@ function FeaturedSpotlight({ listing }: { listing: FeaturedListing }) {
               )}
             </div>
           </div>
-        </Link>
+        </SafeAppLink>
       </div>
     </section>
   )
@@ -223,13 +223,13 @@ function SectionHeader({
         {sub && <p className="text-sm text-[#9A7A60] mt-1">{sub}</p>}
       </div>
       {viewAllHref && (
-        <Link
+        <SafeAppLink
           href={viewAllHref}
           className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#C0582E] border border-[#E8DDD2] hover:border-[#E8C49A] hover:bg-[#F4EDE3] px-[14px] py-1.5 rounded-lg transition-all"
         >
           View all
           <ArrowRight size={13} />
-        </Link>
+        </SafeAppLink>
       )}
     </div>
   )
@@ -368,7 +368,7 @@ async function HomePageContent() {
               { label: 'Photography', href: getCategoryPath('Photography') },
               { label: 'Salons & Beauty', href: getCategoryPath('Salons & Beauty') },
             ].map(({ label, href }) => (
-              <Link
+              <SafeAppLink
                 key={label}
                 href={href}
                 prefetch={false}
@@ -376,26 +376,26 @@ async function HomePageContent() {
                 style={{ color: 'rgba(232,196,154,0.55)' }}
               >
                 {label}
-              </Link>
+              </SafeAppLink>
             ))}
           </div>
 
           {/* CTA buttons */}
           <div className="flex flex-wrap justify-center gap-3 mt-8">
-            <Link
+            <SafeAppLink
               href="/listings"
               className="inline-flex items-center gap-2 px-[26px] py-[13px] bg-[#C8881E] hover:bg-[#D49A28] text-[#2E1205] font-bold text-sm rounded-[10px] transition-all hover:-translate-y-[1px]"
             >
               <Store size={15} />
               Explore Businesses
-            </Link>
-            <Link
+            </SafeAppLink>
+            <SafeAppLink
               href="/listings/submit"
               className="inline-flex items-center gap-2 px-[26px] py-[13px] bg-white/[0.09] hover:bg-white/[0.15] border border-white/20 text-[#FBF0DC] font-semibold text-sm rounded-[10px] transition-all"
             >
               <Plus size={15} />
               List Your Business
-            </Link>
+            </SafeAppLink>
           </div>
         </div>
       </section>
@@ -418,7 +418,7 @@ async function HomePageContent() {
               { icon: '🎉', label: 'Events', href: '/listings', bg: '#FEFCE8' },
               { icon: '🆘', label: 'Emergency', href: '/emergency', bg: '#FEF2F2' },
             ].map((item) => (
-              <Link
+              <SafeAppLink
                 key={item.label}
                 href={item.href}
                 prefetch={false}
@@ -434,7 +434,7 @@ async function HomePageContent() {
                 <span className="text-[11px] font-semibold text-[#7A4520] whitespace-nowrap">
                   {item.label}
                 </span>
-              </Link>
+              </SafeAppLink>
             ))}
           </div>
         </div>
@@ -483,7 +483,7 @@ async function HomePageContent() {
             />
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               {topCategories.map((cat) => (
-                <Link
+                <SafeAppLink
                   key={cat.label}
                   href={getCategoryPath(cat.label)}
                   className="bg-white border border-[#E8DDD2] rounded-2xl px-4 py-5 text-center transition-all duration-200 hover:border-[#E8C49A] hover:-translate-y-[3px] hover:shadow-card-hover"
@@ -497,7 +497,7 @@ async function HomePageContent() {
                   <div className="text-[11px] text-[#9A7A60] mt-0.5">
                     {cat.count} {cat.count === 1 ? 'business' : 'businesses'}
                   </div>
-                </Link>
+                </SafeAppLink>
               ))}
             </div>
           </div>
@@ -521,7 +521,7 @@ async function HomePageContent() {
                 const href = getListingHref(listing.id, listing.subdomain)
                 const address = summarizeAddress(listing.address, 2)
                 return (
-                  <Link
+                  <SafeAppLink
                     key={listing.id}
                     href={href}
                     className="group bg-white border border-[#E8DDD2] rounded-3xl overflow-hidden transition-all duration-200 hover:border-[#E8C49A] hover:-translate-y-1 hover:shadow-card-hover"
@@ -582,7 +582,7 @@ async function HomePageContent() {
                         )}
                       </div>
                     </div>
-                  </Link>
+                  </SafeAppLink>
                 )
               })}
             </div>
@@ -673,13 +673,13 @@ async function HomePageContent() {
                   )}
                 </div>
 
-                <Link
+                <SafeAppLink
                   href="/listings/submit"
                   className="inline-flex items-center gap-2 px-[26px] py-[13px] bg-[#C8881E] hover:bg-[#D49A28] text-[#2E1205] font-bold text-sm rounded-[10px] transition-all hover:-translate-y-[1px]"
                 >
                   <Plus size={15} />
                   Claim Your Profile
-                </Link>
+                </SafeAppLink>
               </div>
 
               {/* Right mock card */}
@@ -737,7 +737,7 @@ async function HomePageContent() {
             <div className="flex flex-col gap-2.5">
               {recentJobs.length > 0 ? (
                 recentJobs.map((job) => (
-                  <Link
+                  <SafeAppLink
                     key={job.id}
                     href={`/jobs/${job.id}`}
                     className="group bg-white border border-[#E8DDD2] rounded-2xl p-5 flex gap-4 items-start transition-all hover:border-[#E8C49A] hover:shadow-[0_4px_16px_rgba(192,88,46,0.07)]"
@@ -772,7 +772,7 @@ async function HomePageContent() {
                         </span>
                       </div>
                     </div>
-                  </Link>
+                  </SafeAppLink>
                 ))
               ) : (
                 <div className="rounded-2xl border border-[#E8DDD2] bg-white p-10 text-center">
@@ -811,13 +811,13 @@ async function HomePageContent() {
               <div className="font-display text-[32px] text-[#F0C87A] leading-none mb-4">
                 ₹{jobCurrentPrice}
               </div>
-              <Link
+              <SafeAppLink
                 href="/jobs/submit"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#C8881E] hover:bg-[#D49A28] text-[#2E1205] font-bold text-[13px] rounded-[10px] transition-all hover:-translate-y-[1px]"
               >
                 <Plus size={13} />
                 Post a Job
-              </Link>
+              </SafeAppLink>
             </div>
           </div>
         </div>
@@ -916,20 +916,20 @@ async function HomePageContent() {
             Join hundreds of local businesses and residents already on OurDahanu.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Link
+            <SafeAppLink
               href="/listings/submit"
               className="inline-flex items-center gap-2 px-[26px] py-[13px] bg-[#C8881E] hover:bg-[#D49A28] text-[#2E1205] font-bold text-sm rounded-[10px] transition-all hover:-translate-y-[1px]"
             >
               <Store size={15} />
               List Your Business
-            </Link>
-            <Link
+            </SafeAppLink>
+            <SafeAppLink
               href="/listings"
               className="inline-flex items-center gap-2 px-[26px] py-[13px] bg-white/[0.09] hover:bg-white/[0.15] border border-white/20 text-[#FBF0DC] font-semibold text-sm rounded-[10px] transition-all"
             >
               <Search size={15} />
               Explore Dahanu
-            </Link>
+            </SafeAppLink>
           </div>
         </div>
       </section>

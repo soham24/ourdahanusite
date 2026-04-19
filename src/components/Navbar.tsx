@@ -1,8 +1,8 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import { ShieldAlert } from 'lucide-react'
 
 import NavbarAuthControls from '@/components/NavbarAuthControls'
+import SafeAppLink from '@/components/SafeAppLink'
 import NavbarFrame from '@/components/NavbarFrame'
 import { buildAbsoluteUrl } from '@/lib/site'
 
@@ -22,12 +22,12 @@ const MOBILE_NAV = [
 
 function Brand() {
   return (
-    <Link href={buildAbsoluteUrl('/')} className="flex items-center gap-2.5 flex-shrink-0">
+    <SafeAppLink href={buildAbsoluteUrl('/')} className="flex items-center gap-2.5 flex-shrink-0">
       <Image src="/logo.png" alt="OurDahanu" width={34} height={34} className="rounded-full" />
       <span className="font-bold text-[17px] text-[#2E1205] tracking-[-0.02em]">
         OurDahanu
       </span>
-    </Link>
+    </SafeAppLink>
   )
 }
 
@@ -39,24 +39,24 @@ function NavLink({
   label: string
 }) {
   return (
-    <Link
+    <SafeAppLink
       href={href}
       className="px-[14px] py-1.5 text-sm font-medium text-[#7A4520] rounded-lg hover:bg-[#F4EDE3] hover:text-[#2E1205] transition-all duration-150"
     >
       {label}
-    </Link>
+    </SafeAppLink>
   )
 }
 
 function EmergencyButton() {
   return (
-    <Link
+    <SafeAppLink
       href={buildAbsoluteUrl('/emergency')}
       className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-red-700 border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-all duration-150"
     >
       <ShieldAlert size={14} />
       Emergency
-    </Link>
+    </SafeAppLink>
   )
 }
 
@@ -75,12 +75,12 @@ export function NavbarFallback() {
 
           <div className="hidden lg:flex items-center gap-2.5">
             <EmergencyButton />
-            <Link
+            <SafeAppLink
               href={buildAbsoluteUrl('/login')}
               className="bg-[#2E1205] hover:bg-[#8A3618] text-[#FAFAF7] px-[18px] py-2 rounded-[9px] font-semibold text-sm transition-colors"
             >
               Sign In
-            </Link>
+            </SafeAppLink>
           </div>
 
           <div className="lg:hidden w-10 h-10" aria-hidden="true" />
@@ -107,23 +107,23 @@ export default function Navbar() {
         <>
           <div className="grid grid-cols-2 gap-1 mb-4">
             {MOBILE_NAV.map((link) => (
-              <Link
+              <SafeAppLink
                 key={link.href}
                 href={link.href}
                 className="block text-[#7A4520] hover:text-[#2E1205] hover:bg-[#F4EDE3] font-medium py-2.5 px-3 rounded-xl transition-colors text-sm"
               >
                 {link.label}
-              </Link>
+              </SafeAppLink>
             ))}
           </div>
           <div className="pt-3 border-t border-[#E8DDD2] flex flex-col gap-2">
-            <Link
+            <SafeAppLink
               href={buildAbsoluteUrl('/emergency')}
               className="flex items-center gap-2 text-red-700 font-bold py-2.5 px-3 bg-red-50 border border-red-200 rounded-xl text-sm"
             >
               <ShieldAlert size={16} />
               Emergency Contacts
-            </Link>
+            </SafeAppLink>
             <NavbarAuthControls mobile />
           </div>
         </>
