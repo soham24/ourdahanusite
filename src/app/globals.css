@@ -145,6 +145,19 @@ html {
 
 /* ─── OurDahanu Loading Animation ─── */
 
+.initial-loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  opacity: 1;
+  transition: opacity 300ms ease;
+}
+
+.initial-loader-overlay--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .our-dahanu-loader-shell--fullscreen {
   position: fixed;
   inset: 0;
