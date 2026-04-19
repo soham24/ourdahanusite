@@ -201,13 +201,13 @@ html {
   position: absolute;
   top: 28px;
   left: 50%;
-  width: 110px;
-  height: 110px;
+  width: 150px;
+  height: 150px;
   display: flex;
   align-items: center;
   justify-content: center;
   transform: translateX(-50%);
-  animation: our-dahanu-loader-float 6s ease-in-out infinite;
+  animation: our-dahanu-loader-logo-float 6s ease-in-out infinite;
 }
 
 .our-dahanu-loader__logo-svg {
@@ -226,7 +226,7 @@ html {
 
 .our-dahanu-loader__logo-text {
   position: absolute;
-  top: 145px;
+  top: 195px;
   right: 0;
   left: 0;
   text-align: center;
@@ -455,17 +455,29 @@ html {
 }
 
 .our-dahanu-loader--fullscreen .our-dahanu-loader__logo {
-  top: 8vh;
-  width: 140px;
-  height: 140px;
+  top: 10vh;
+  width: clamp(220px, 24vw, 300px);
+  height: clamp(220px, 24vw, 300px);
 }
 
 .our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text {
-  top: calc(8vh + 160px);
+  top: calc(10vh + clamp(220px, 24vw, 300px) + 20px);
 }
 
 .our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text-brand {
   font-size: clamp(1rem, 1.5vw, 1.25rem);
+}
+
+@media (max-height: 720px) {
+  .our-dahanu-loader--fullscreen .our-dahanu-loader__logo {
+    top: 7vh;
+    width: clamp(170px, 28vh, 220px);
+    height: clamp(170px, 28vh, 220px);
+  }
+
+  .our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text {
+    top: calc(7vh + clamp(170px, 28vh, 220px) + 14px);
+  }
 }
 
 .our-dahanu-loader--fullscreen .our-dahanu-loader__warli {
@@ -566,6 +578,11 @@ html {
   to   { transform: rotate(360deg); }
 }
 
+@keyframes our-dahanu-loader-logo-float {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, -6px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .our-dahanu-loader__star,
   .our-dahanu-loader__logo,
@@ -587,12 +604,12 @@ html {
 @media (max-width: 640px) {
   .our-dahanu-loader--fullscreen .our-dahanu-loader__logo {
     top: 7vh;
-    width: 104px;
-    height: 104px;
+    width: clamp(160px, 44vw, 220px);
+    height: clamp(160px, 44vw, 220px);
   }
 
   .our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text {
-    top: calc(7vh + 120px);
+    top: calc(7vh + clamp(160px, 44vw, 220px) + 16px);
   }
 
   .our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text-brand {
