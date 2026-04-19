@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Warli terracotta palette */
+  /* ─── Legacy Warli / Chikoo tokens — kept for backward compat with /admin, /my-business, /listings pages ─── */
   --color-warli-terra: #C4663A;
   --color-warli-deep: #8B3A1A;
   --color-warli-clay: #D4784A;
@@ -9,7 +9,6 @@
   --color-warli-sand: #E8C99A;
   --color-warli-light: #F5E6CA;
 
-  /* Chikoo (sapodilla) palette */
   --color-chikoo-bark: #3D1A08;
   --color-chikoo-brown: #7A4A25;
   --color-chikoo-mid: #A0622E;
@@ -17,33 +16,56 @@
   --color-chikoo-gold: #D4952A;
   --color-chikoo-amber: #E8A832;
 
-  /* Font */
-  --font-family-sans: var(--font-jakarta), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* ─── New design system tokens (homepage revamp 2026) ─── */
+  --color-terra: #C0582E;
+  --color-terra-deep: #8A3618;
+  --color-gold: #C8881E;
+  --color-gold-light: #F0C87A;
+  --color-bark: #2E1205;
+  --color-brown: #7A4520;
+  --color-cream: #FBF0DC;
+  --color-sand: #E8C49A;
+  --color-ivory: #FAFAF7;
+  --color-muted: #F4EDE3;
+  --color-border: #E8DDD2;
+  --color-text-muted: #9A7A60;
+
+  /* Fonts — DM Sans body, Instrument Serif display */
+  --font-family-sans: var(--font-dm), var(--font-jakarta), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-serif: var(--font-instrument), Georgia, 'Times New Roman', serif;
 }
 
 :root {
-  --background: #FDFAF6;
-  --foreground: #2D1208;
+  --background: #FAFAF7;
+  --foreground: #1C0D05;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-jakarta), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-dm), var(--font-jakarta), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-/* Warli geometric pattern overlay */
+/* ─── Warli geometric pattern (on-dark) — used for hero + CTA section overlays ─── */
 .warli-pattern {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='40' cy='40' r='11' stroke='%23FBF0DC' stroke-width='1.5' fill='none' opacity='0.18'/%3E%3Cline x1='40' y1='22' x2='40' y2='29' stroke='%23FBF0DC' stroke-width='1.5' opacity='0.18'/%3E%3Cline x1='40' y1='51' x2='40' y2='58' stroke='%23FBF0DC' stroke-width='1.5' opacity='0.18'/%3E%3Cline x1='22' y1='40' x2='29' y2='40' stroke='%23FBF0DC' stroke-width='1.5' opacity='0.18'/%3E%3Cline x1='51' y1='40' x2='58' y2='40' stroke='%23FBF0DC' stroke-width='1.5' opacity='0.18'/%3E%3Cpolygon points='0%2C0 14%2C0 7%2C11' fill='%23FBF0DC' opacity='0.12'/%3E%3Cpolygon points='80%2C0 66%2C0 73%2C11' fill='%23FBF0DC' opacity='0.12'/%3E%3Cpolygon points='0%2C80 14%2C80 7%2C69' fill='%23FBF0DC' opacity='0.12'/%3E%3Cpolygon points='80%2C80 66%2C80 73%2C69' fill='%23FBF0DC' opacity='0.12'/%3E%3Ccircle cx='0' cy='0' r='2.5' fill='%23FBF0DC' opacity='0.22'/%3E%3Ccircle cx='80' cy='0' r='2.5' fill='%23FBF0DC' opacity='0.22'/%3E%3Ccircle cx='0' cy='80' r='2.5' fill='%23FBF0DC' opacity='0.22'/%3E%3Ccircle cx='80' cy='80' r='2.5' fill='%23FBF0DC' opacity='0.22'/%3E%3C/svg%3E");
   background-repeat: repeat;
 }
 
-/* Warli decorative divider — traditional motif strip */
+/* ─── Warli pattern (on-light) — terracotta ink variant for light-section accents ─── */
+.warli-bg {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='8' stroke='%23C0582E' stroke-width='1' fill='none' opacity='0.12'/%3E%3Cline x1='30' y1='16' x2='30' y2='22' stroke='%23C0582E' stroke-width='1' opacity='0.1'/%3E%3Cline x1='30' y1='38' x2='30' y2='44' stroke='%23C0582E' stroke-width='1' opacity='0.1'/%3E%3Cline x1='16' y1='30' x2='22' y2='30' stroke='%23C0582E' stroke-width='1' opacity='0.1'/%3E%3Cline x1='38' y1='30' x2='44' y2='30' stroke='%23C0582E' stroke-width='1' opacity='0.1'/%3E%3Ccircle cx='0' cy='0' r='2' fill='%23C0582E' opacity='0.1'/%3E%3Ccircle cx='60' cy='0' r='2' fill='%23C0582E' opacity='0.1'/%3E%3Ccircle cx='0' cy='60' r='2' fill='%23C0582E' opacity='0.1'/%3E%3Ccircle cx='60' cy='60' r='2' fill='%23C0582E' opacity='0.1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* ─── Warli decorative divider — traditional motif strip (legacy) ─── */
 .warli-divider {
   position: relative;
   height: 24px;
@@ -54,7 +76,12 @@ html {
   background-position: center;
 }
 
-/* Listing card hover lift */
+/* Display serif helper — use with `font-serif` in Tailwind or this class directly */
+.font-display {
+  font-family: var(--font-instrument), Georgia, 'Times New Roman', serif;
+}
+
+/* Listing card hover lift (legacy) */
 .listing-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -80,6 +107,15 @@ html {
   animation: ping 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
+/* Pulsing green dot for the hero "live" badge */
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(74,222,128,0.25); }
+  50% { box-shadow: 0 0 0 6px rgba(74,222,128,0.10); }
+}
+.animate-pulse-green {
+  animation: pulse-green 2s ease-in-out infinite;
+}
+
 /* Horizontal snap scroll for card rows */
 .snap-x {
   scroll-snap-type: x mandatory;
@@ -88,12 +124,23 @@ html {
   scroll-snap-align: start;
 }
 
-/* Warm card shadow utility */
+/* Warm card shadow utility (legacy) */
 .shadow-warm {
   box-shadow: 0 4px 16px rgba(196, 102, 58, 0.10), 0 1px 4px rgba(61, 26, 8, 0.06);
 }
 .shadow-warm-lg {
   box-shadow: 0 8px 32px rgba(196, 102, 58, 0.14), 0 2px 8px rgba(61, 26, 8, 0.08);
+}
+
+/* New revamp shadows */
+.shadow-card-hover {
+  box-shadow: 0 16px 40px rgba(192, 88, 46, 0.10);
+}
+.shadow-cta {
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.40);
+}
+.shadow-search {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 4px 16px rgba(192, 88, 46, 0.18);
 }
 
 /* ─── OurDahanu Loading Animation ─── */

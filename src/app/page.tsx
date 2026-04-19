@@ -5,7 +5,8 @@ import { Suspense } from 'react'
 import {
   ArrowRight,
   Briefcase,
-  CheckCircle,
+  Check,
+  CheckCircle2,
   Clock,
   MapPin,
   Plus,
@@ -85,132 +86,151 @@ const CATEGORY_EMOJIS: Record<string, string> = {
   Other: '🏪',
 }
 
-const CATEGORY_COLORS = [
-  { bg: '#FEF3E8', border: '#FDDCBA', text: '#92400E', hover: '#FDE8CC' },
-  { bg: '#F0FDF4', border: '#BBF7D0', text: '#166534', hover: '#DCFCE7' },
-  { bg: '#FFF7ED', border: '#FED7AA', text: '#9A3412', hover: '#FFEDD5' },
-  { bg: '#EFF6FF', border: '#BFDBFE', text: '#1E40AF', hover: '#DBEAFE' },
-  { bg: '#FDF2F8', border: '#FBCFE8', text: '#9D174D', hover: '#FCE7F3' },
-  { bg: '#F5F3FF', border: '#DDD6FE', text: '#5B21B6', hover: '#EDE9FE' },
-]
-
-function FeaturedSpotlight({ listing }: { listing: FeaturedListing }) {
-  const href = getListingHref(listing.id, listing.subdomain)
-  const address = summarizeAddress(listing.address, 2)
-
-  return (
-    <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-      {/* Section label */}
-      <div className="flex items-center gap-3 mb-4">
-        <span className="text-[11px] font-bold uppercase tracking-widest text-chikoo-gold">⭐ Featured Spotlight</span>
-        <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, rgba(212,149,42,0.4), transparent)' }} />
-      </div>
-
-      <Link href={href} className="group block">
-        <div
-          className="relative overflow-hidden rounded-[2rem] transition-all duration-300 group-hover:shadow-warm-lg"
-          style={{ background: 'linear-gradient(135deg, #FBF0DC 0%, #F0E4C4 50%, #E8D5A8 100%)' }}
-        >
-          {/* Warli pattern watermark */}
-          <div className="absolute inset-0 warli-pattern opacity-[0.07] pointer-events-none" />
-
-          <div className="relative grid md:grid-cols-[420px_1fr]">
-            {/* Image */}
-            <div className="relative h-60 md:h-auto min-h-[280px] overflow-hidden rounded-t-[2rem] md:rounded-t-none md:rounded-l-[2rem]">
-              {listing.image_url ? (
-                <Image
-                  src={listing.image_url}
-                  alt={listing.name}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                  priority
-                />
-              ) : (
-                <div className="h-full flex items-center justify-center text-8xl opacity-20"
-                  style={{ background: 'linear-gradient(135deg, #E8C99A, #D4952A22)' }}>
-                  🏪
-                </div>
-              )}
-              {/* Edge fade into content on desktop */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#F0E4C4] hidden md:block" />
-              {/* Gold ribbon */}
-              <div className="absolute top-4 left-4">
-                <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold text-chikoo-bark shadow-md"
-                  style={{ background: 'linear-gradient(135deg, #D4952A, #E8A832)' }}>
-                  ⭐ Featured
-                </span>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-7 md:p-10 flex flex-col justify-center">
-              {/* Category badge */}
-              <span className="inline-flex items-center w-fit rounded-full bg-warli-terra/10 border border-warli-terra/20 px-2.5 py-0.5 text-[11px] font-semibold text-warli-terra mb-3">
-                {CATEGORY_EMOJIS[listing.category] ?? '🏪'} {listing.category}
-              </span>
-
-              {/* Name */}
-              <h2 className="text-2xl md:text-3xl font-bold text-chikoo-bark leading-tight group-hover:text-warli-terra transition-colors">
-                {listing.name}
-              </h2>
-
-              {/* Tagline */}
-              {listing.tagline && (
-                <p className="mt-2 text-sm text-chikoo-brown/75 leading-relaxed max-w-md line-clamp-2">
-                  {listing.tagline}
-                </p>
-              )}
-
-              {/* Rating + address row */}
-              <div className="flex flex-wrap items-center gap-4 mt-4 text-sm">
-                {listing.rating && listing.rating > 0 ? (
-                  <div className="flex items-center gap-1.5">
-                    <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                    <span className="font-bold text-chikoo-bark">{listing.rating.toFixed(1)}</span>
-                    <span className="text-xs text-chikoo-brown/55">({listing.review_count ?? 0} reviews)</span>
-                  </div>
-                ) : (
-                  <span className="text-xs bg-warli-light text-warli-terra font-medium px-2.5 py-1 rounded-full">New on OurDahanu</span>
-                )}
-                {listing.verified && (
-                  <span className="inline-flex items-center gap-1 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full font-medium">
-                    <CheckCircle size={11} /> Verified
-                  </span>
-                )}
-                {address && (
-                  <span className="flex items-center gap-1 text-xs text-chikoo-brown/60">
-                    <MapPin size={11} className="text-warli-terra" />
-                    {address}
-                  </span>
-                )}
-              </div>
-
-              {/* Visit CTA */}
-              <div className="mt-7 flex flex-wrap gap-3 items-center">
-                <span
-                  className="inline-flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-bold text-white transition-all group-hover:scale-[1.03]"
-                  style={{ background: 'linear-gradient(135deg, #C4663A, #8B3A1A)', boxShadow: '0 4px 16px rgba(196,102,58,0.35)' }}
-                >
-                  Visit Page <ArrowRight size={14} />
-                </span>
-                {listing.subdomain && (
-                  <span className="text-xs text-chikoo-brown/50 font-mono">
-                    {listing.subdomain}.ourdahanu.in
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </Link>
-    </section>
-  )
-}
-
 function formatStat(value: number, fallback: string): string {
   if (!value) return fallback
   if (value >= 1000) return `${Math.round(value / 100) / 10}k+`
   return `${value}+`
+}
+
+// ────────────────────────────────────────────────────────────────────
+// Featured spotlight — restyled per revamp spec
+// ────────────────────────────────────────────────────────────────────
+function FeaturedSpotlight({ listing }: { listing: FeaturedListing }) {
+  const href = getListingHref(listing.id, listing.subdomain)
+  const address = summarizeAddress(listing.address, 2)
+  const categoryEmoji = CATEGORY_EMOJIS[listing.category] ?? '🏪'
+
+  return (
+    <section className="py-12">
+      <div className="max-w-[1160px] mx-auto px-6">
+        <div className="mb-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#C0582E]">
+            ⭐ Featured Spotlight
+          </p>
+        </div>
+
+        <Link
+          href={href}
+          className="group block bg-white border border-[#E8DDD2] rounded-[32px] overflow-hidden grid md:grid-cols-[380px_1fr] transition-shadow duration-200 hover:shadow-card-hover"
+        >
+          {/* Image side */}
+          <div
+            className="relative min-h-[280px] md:min-h-[320px] flex items-center justify-center overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #E8C49A, #D4926A)' }}
+          >
+            {listing.image_url ? (
+              <Image
+                src={listing.image_url}
+                alt={listing.name}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                priority
+              />
+            ) : (
+              <span className="text-[80px] text-white/30" aria-hidden>
+                🏪
+              </span>
+            )}
+            <span className="absolute top-4 left-4 inline-flex items-center gap-1 bg-[#C8881E] text-[#2E1205] text-[11px] font-bold px-3 py-[5px] rounded-full">
+              ⭐ Featured
+            </span>
+          </div>
+
+          {/* Content side */}
+          <div className="p-8 md:p-10 flex flex-col justify-center">
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#C0582E] bg-[rgba(192,88,46,0.08)] border border-[rgba(192,88,46,0.15)] rounded-full px-[10px] py-1 w-fit mb-3.5">
+              {categoryEmoji} {listing.category}
+            </span>
+
+            <h2 className="font-display text-[28px] md:text-[32px] leading-[1.15] text-[#2E1205] mb-2.5">
+              {listing.name}
+            </h2>
+
+            {listing.tagline && (
+              <p className="text-sm text-[#9A7A60] leading-[1.6] mb-5 max-w-[360px]">
+                {listing.tagline}
+              </p>
+            )}
+
+            <div className="flex items-center gap-4 flex-wrap mb-7">
+              {listing.rating && listing.rating > 0 ? (
+                <div className="flex items-center gap-1.5 text-[13px] text-[#9A7A60]">
+                  <Star size={14} className="fill-amber-400 text-amber-400" />
+                  <span className="font-bold text-[#2E1205]">{listing.rating.toFixed(1)}</span>
+                  <span>({listing.review_count ?? 0} reviews)</span>
+                </div>
+              ) : (
+                <span className="text-[11px] bg-[#F4EDE3] text-[#C0582E] font-semibold px-2.5 py-1 rounded-full">
+                  New on OurDahanu
+                </span>
+              )}
+              {listing.verified && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-[3px] rounded-full">
+                  <CheckCircle2 size={11} /> Verified
+                </span>
+              )}
+              {address && (
+                <span className="flex items-center gap-1 text-[13px] text-[#9A7A60]">
+                  <MapPin size={11} />
+                  {address}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="inline-flex items-center gap-2 bg-[#C0582E] group-hover:bg-[#8A3618] text-white font-semibold text-sm px-6 py-3 rounded-[10px] transition-all group-hover:-translate-y-[1px]">
+                Visit Page
+                <ArrowRight size={14} />
+              </span>
+              {listing.subdomain && (
+                <span className="text-xs text-[#9A7A60] font-mono">
+                  {listing.subdomain}.ourdahanu.in
+                </span>
+              )}
+            </div>
+          </div>
+        </Link>
+      </div>
+    </section>
+  )
+}
+
+// ────────────────────────────────────────────────────────────────────
+// Section header — shared across content sections
+// ────────────────────────────────────────────────────────────────────
+function SectionHeader({
+  label,
+  title,
+  sub,
+  viewAllHref,
+}: {
+  label: string
+  title: string
+  sub?: string
+  viewAllHref?: string
+}) {
+  return (
+    <div className="flex items-end justify-between gap-4 mb-8 flex-wrap">
+      <div>
+        <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#C0582E] mb-1.5">
+          {label}
+        </p>
+        <h2 className="font-display text-[30px] md:text-[34px] leading-[1.15] text-[#2E1205] tracking-[-0.01em]">
+          {title}
+        </h2>
+        {sub && <p className="text-sm text-[#9A7A60] mt-1">{sub}</p>}
+      </div>
+      {viewAllHref && (
+        <Link
+          href={viewAllHref}
+          className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#C0582E] border border-[#E8DDD2] hover:border-[#E8C49A] hover:bg-[#F4EDE3] px-[14px] py-1.5 rounded-lg transition-all"
+        >
+          View all
+          <ArrowRight size={13} />
+        </Link>
+      )}
+    </div>
+  )
 }
 
 export default async function HomePage() {
@@ -241,93 +261,121 @@ export default async function HomePage() {
   const jobBasePrice = pricing.job_base_price
 
   return (
-    <div className="min-h-screen bg-[#FDFAF6]">
-
-      {/* ─────────────────────────────────────────────────────────────────
-          1. HERO — full-width, centered, deep earthy dark
-      ───────────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden" style={{
-        background: 'linear-gradient(145deg, #1C0A02 0%, #3D1A08 45%, #5C2910 75%, #2C0F03 100%)',
-        minHeight: '520px',
-      }}>
+    <>
+      {/* ─────────────────────────────────────────────────────────────
+          1. HERO — deep bark bg, editorial serif headline
+      ───────────────────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-[#2E1205] pt-16 pb-[72px] sm:pt-20">
         {/* Warli pattern overlay */}
-        <div className="absolute inset-0 warli-pattern opacity-[0.045] pointer-events-none" />
+        <div className="absolute inset-0 warli-pattern opacity-[0.04] pointer-events-none" />
 
         {/* Warm glow orbs */}
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(196,102,58,0.18) 0%, transparent 65%)', transform: 'translate(-50%, -30%)' }} />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(212,149,42,0.14) 0%, transparent 65%)', transform: 'translate(30%, 30%)' }} />
+        <div
+          className="absolute w-[600px] h-[600px] rounded-full pointer-events-none"
+          style={{
+            top: '-120px',
+            left: '-80px',
+            background: 'radial-gradient(circle, rgba(192,88,46,0.22) 0%, transparent 65%)',
+          }}
+        />
+        <div
+          className="absolute w-[400px] h-[400px] rounded-full pointer-events-none"
+          style={{
+            bottom: '-60px',
+            right: '-40px',
+            background: 'radial-gradient(circle, rgba(200,136,30,0.14) 0%, transparent 65%)',
+          }}
+        />
 
-        <div className="relative mx-auto max-w-5xl px-4 py-16 sm:py-20 lg:py-28 text-center">
-
+        <div className="relative max-w-[760px] mx-auto px-6 text-center">
           {/* Live badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs font-semibold text-warli-sand mb-6 backdrop-blur-sm">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+          <div
+            className="inline-flex items-center gap-2 border border-white/[0.12] bg-white/[0.07] backdrop-blur-sm rounded-full pl-2.5 pr-3.5 py-1.5 text-xs font-semibold tracking-[0.02em] mb-7"
+            style={{ color: 'rgba(251,240,220,0.7)' }}
+          >
+            <span className="relative flex h-[7px] w-[7px]">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-40 animate-pulse-green" />
+              <span className="relative inline-flex h-[7px] w-[7px] rounded-full bg-green-400" />
             </span>
-            <MapPin size={11} className="text-warli-sand/70" />
+            <MapPin size={11} className="opacity-70" />
             Dahanu · Bordi · Gholvad · Palghar
           </div>
 
-          {/* Main headline */}
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-warli-cream leading-[1.1] tracking-tight">
-            Everything Dahanu.<br />
-            <span style={{ color: '#D4952A' }}>One Place.</span>
+          {/* H1 */}
+          <h1
+            className="font-display text-[#FBF0DC] mb-[18px]"
+            style={{
+              fontSize: 'clamp(44px, 7vw, 74px)',
+              lineHeight: 1.05,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            Everything Dahanu.
+            <br />
+            <em className="italic text-[#F0C87A]">One Place.</em>
           </h1>
 
-          <p className="mt-5 text-warli-sand/75 text-base sm:text-lg max-w-lg mx-auto leading-relaxed">
+          <p
+            className="text-base max-w-[420px] mx-auto leading-[1.65] mb-9"
+            style={{ color: 'rgba(232,196,154,0.65)' }}
+          >
             Businesses, jobs, food, services — your whole local community, right here.
           </p>
 
-          {/* Big search bar */}
-          <form method="get" action="/search" className="relative mt-8 max-w-2xl mx-auto">
-            <div className="flex items-center bg-white rounded-2xl overflow-hidden border border-white/10"
-              style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.4), 0 4px 16px rgba(196,102,58,0.2)' }}>
-              <Search size={18} className="ml-4 text-gray-400 flex-shrink-0" />
+          {/* Search bar */}
+          <form action="/search" method="get" className="mb-5">
+            <div className="flex items-center bg-white rounded-[14px] overflow-hidden shadow-search">
+              <span className="pl-[14px] pr-2 text-[#AAA] flex items-center flex-shrink-0">
+                <Search size={18} />
+              </span>
               <input
                 type="text"
                 name="q"
                 placeholder="Search businesses, services, jobs in Dahanu…"
-                className="flex-1 px-4 py-4 text-sm text-gray-800 placeholder-gray-400 focus:outline-none bg-transparent"
+                className="flex-1 border-none outline-none text-[15px] text-[#1C0D05] placeholder-[#BAA590] py-4 pr-3 bg-transparent"
               />
               <button
                 type="submit"
-                className="m-1.5 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.03] active:scale-[0.98]"
-                style={{ background: 'linear-gradient(135deg, #C4663A, #8B3A1A)' }}
+                className="m-[7px] px-[22px] py-2.5 bg-[#C0582E] hover:bg-[#8A3618] text-white font-semibold text-sm rounded-[9px] transition-all flex-shrink-0"
               >
                 Search
               </button>
             </div>
           </form>
 
-          {/* Popular searches */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+          {/* Hero tags */}
+          <div className="flex flex-wrap justify-center gap-2">
             {[
-              { label: '🍱 Homemade Food', href: getCategoryPath('Homemade Food') },
-              { label: '🔧 Repair', href: getCategoryPath('Repair Services') },
-              { label: '💊 Healthcare', href: getCategoryPath('Healthcare & Clinics') },
-              { label: '📸 Photography', href: getCategoryPath('Photography') },
-              { label: '💇 Salons', href: getCategoryPath('Salons & Beauty') },
+              { label: 'Homemade Food', href: getCategoryPath('Homemade Food') },
+              { label: 'Repair Services', href: getCategoryPath('Repair Services') },
+              { label: 'Healthcare', href: getCategoryPath('Healthcare & Clinics') },
+              { label: 'Photography', href: getCategoryPath('Photography') },
+              { label: 'Salons & Beauty', href: getCategoryPath('Salons & Beauty') },
             ].map(({ label, href }) => (
-              <Link key={label} href={href}
-                className="text-xs text-warli-sand/65 bg-white/10 rounded-full px-3 py-1.5 hover:bg-white/20 hover:text-warli-sand transition-all">
+              <Link
+                key={label}
+                href={href}
+                className="text-xs font-medium border border-white/10 bg-white/[0.07] rounded-full px-3 py-[5px] transition-all hover:bg-white/[0.13]"
+                style={{ color: 'rgba(232,196,154,0.55)' }}
+              >
                 {label}
               </Link>
             ))}
           </div>
 
           {/* CTA buttons */}
-          <div className="flex flex-wrap justify-center gap-3 mt-7">
-            <Link href="/listings"
-              className="inline-flex items-center gap-2 rounded-2xl bg-chikoo-gold px-6 py-3 text-sm font-bold text-chikoo-bark transition-all hover:bg-chikoo-amber hover:scale-[1.03]"
-              style={{ boxShadow: '0 4px 16px rgba(212,149,42,0.4)' }}>
+          <div className="flex flex-wrap justify-center gap-3 mt-8">
+            <Link
+              href="/listings"
+              className="inline-flex items-center gap-2 px-[26px] py-[13px] bg-[#C8881E] hover:bg-[#D49A28] text-[#2E1205] font-bold text-sm rounded-[10px] transition-all hover:-translate-y-[1px]"
+            >
               <Store size={15} />
               Explore Businesses
             </Link>
-            <Link href="/listings/submit"
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-6 py-3 text-sm font-semibold text-warli-cream hover:bg-white/20 transition-all backdrop-blur-sm">
+            <Link
+              href="/listings/submit"
+              className="inline-flex items-center gap-2 px-[26px] py-[13px] bg-white/[0.09] hover:bg-white/[0.15] border border-white/20 text-[#FBF0DC] font-semibold text-sm rounded-[10px] transition-all"
+            >
               <Plus size={15} />
               List Your Business
             </Link>
@@ -335,173 +383,184 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────────
-          2. QUICK ACTIONS BAR — Zomato / Swiggy style
-      ───────────────────────────────────────────────────────────────── */}
-      <section className="bg-white border-b border-warli-sand/25 sticky-quick-bar">
-        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-0.5">
+      {/* ─────────────────────────────────────────────────────────────
+          2. QUICK NAV STRIP — sticky under navbar
+      ───────────────────────────────────────────────────────────── */}
+      <section className="sticky top-[60px] z-40 bg-white border-b border-[#E8DDD2]">
+        <div className="max-w-[1160px] mx-auto">
+          <div className="flex gap-1 overflow-x-auto scrollbar-hide px-6 py-2.5">
             {[
-              { icon: '🏪', label: 'Businesses', href: '/listings',                              bg: '#FEF3E8', text: '#92400E' },
-              { icon: '💼', label: 'Jobs',        href: '/jobs',                                 bg: '#F0FDF4', text: '#166534' },
-              { icon: '🍱', label: 'Food',        href: getCategoryPath('Homemade Food'),        bg: '#FFF7ED', text: '#9A3412' },
-              { icon: '🔧', label: 'Services',    href: getCategoryPath('Repair Services'),      bg: '#EFF6FF', text: '#1E40AF' },
-              { icon: '🏥', label: 'Healthcare',  href: getCategoryPath('Healthcare & Clinics'), bg: '#FDF2F8', text: '#9D174D' },
-              { icon: '📚', label: 'Education',   href: getCategoryPath('Education & Coaching'), bg: '#F5F3FF', text: '#5B21B6' },
-              { icon: '💇', label: 'Salons',      href: getCategoryPath('Salons & Beauty'),      bg: '#FFF0F0', text: '#9B1C1C' },
-              { icon: '📸', label: 'Photography', href: getCategoryPath('Photography'),          bg: '#F0F9FF', text: '#075985' },
-            ].map(item => (
-              <Link key={item.label} href={item.href}
-                className="flex-shrink-0 flex flex-col items-center gap-1.5 rounded-2xl px-4 py-3 text-center transition-all hover:scale-[1.06] hover:-translate-y-0.5 active:scale-100"
-                style={{ background: item.bg, minWidth: '72px' }}>
-                <span className="text-xl leading-none">{item.icon}</span>
-                <span className="text-[11px] font-semibold" style={{ color: item.text }}>{item.label}</span>
+              { icon: '🏪', label: 'Businesses', href: '/listings', bg: '#FEF3E8' },
+              { icon: '💼', label: 'Jobs', href: '/jobs', bg: '#F0FDF4' },
+              { icon: '🍱', label: 'Food', href: getCategoryPath('Homemade Food'), bg: '#FFF7ED' },
+              { icon: '🔧', label: 'Services', href: getCategoryPath('Repair Services'), bg: '#EFF6FF' },
+              { icon: '🏥', label: 'Healthcare', href: getCategoryPath('Healthcare & Clinics'), bg: '#FDF2F8' },
+              { icon: '📚', label: 'Education', href: getCategoryPath('Education & Coaching'), bg: '#F5F3FF' },
+              { icon: '💇', label: 'Salons', href: getCategoryPath('Salons & Beauty'), bg: '#FFF0F0' },
+              { icon: '📸', label: 'Photography', href: getCategoryPath('Photography'), bg: '#F0F9FF' },
+              { icon: '🎉', label: 'Events', href: '/listings', bg: '#FEFCE8' },
+              { icon: '🆘', label: 'Emergency', href: '/emergency', bg: '#FEF2F2' },
+            ].map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="flex flex-col items-center gap-1 px-4 py-2 rounded-[10px] min-w-[70px] flex-shrink-0 hover:bg-[#F4EDE3] transition-colors"
+              >
+                <span
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-base"
+                  style={{ background: item.bg }}
+                  aria-hidden
+                >
+                  {item.icon}
+                </span>
+                <span className="text-[11px] font-semibold text-[#7A4520] whitespace-nowrap">
+                  {item.label}
+                </span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────────
-          3. TRUST STRIP — social proof numbers
-      ───────────────────────────────────────────────────────────────── */}
-      <section style={{ background: 'linear-gradient(135deg, #1C0A02 0%, #3D1A08 100%)' }}>
-        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-3 gap-3 sm:gap-6">
-            {[
-              { val: formatStat(totalListings, '30+'), label: 'Local Businesses', icon: '🏪' },
-              { val: `${topCategoryLabels.length || 8}+`,  label: 'Categories',       icon: '📂' },
-              { val: '1,000+',                             label: 'Dahanukars',       icon: '🤝' },
-            ].map(s => (
-              <div key={s.label} className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 text-center backdrop-blur-sm">
-                <div className="text-xl sm:text-2xl mb-1">{s.icon}</div>
-                <div className="text-2xl sm:text-3xl font-bold" style={{ color: '#D4952A' }}>{s.val}</div>
-                <div className="text-[11px] sm:text-sm mt-1 text-warli-sand/60">{s.label}</div>
+      {/* ─────────────────────────────────────────────────────────────
+          3. STATS BAR
+      ───────────────────────────────────────────────────────────── */}
+      <section className="bg-[#F4EDE3] border-b border-[#E8DDD2]">
+        <div className="max-w-[1160px] mx-auto px-6 py-4 flex items-center justify-center gap-10 flex-wrap">
+          {[
+            { val: formatStat(totalListings, '30+'), label: 'Local Businesses' },
+            { val: `${topCategoryLabels.length || 8}+`, label: 'Categories' },
+            { val: '1,000+', label: 'Dahanukars' },
+            { val: 'Free', label: 'to browse' },
+          ].map((s, i) => (
+            <div key={s.label} className="flex items-center gap-6">
+              {i > 0 && <div className="hidden sm:block w-px h-8 bg-[#E8DDD2]" aria-hidden />}
+              <div className="flex items-center gap-2.5">
+                <span className="font-display text-[26px] text-[#C0582E] leading-none">{s.val}</span>
+                <span className="text-xs text-[#9A7A60] font-medium max-w-[80px] leading-[1.3]">
+                  {s.label}
+                </span>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────────
-          3.5 FEATURED SPOTLIGHT — admin-pinned listing
-      ───────────────────────────────────────────────────────────────── */}
+      {/* ─────────────────────────────────────────────────────────────
+          4. FEATURED SPOTLIGHT
+      ───────────────────────────────────────────────────────────── */}
       {featuredListing && <FeaturedSpotlight listing={featuredListing} />}
 
-      {/* ─────────────────────────────────────────────────────────────────
-          4. CATEGORY GRID — color-coded, inviting
-      ───────────────────────────────────────────────────────────────── */}
+      {/* ─────────────────────────────────────────────────────────────
+          5. CATEGORY GRID — white cards on muted bg
+      ───────────────────────────────────────────────────────────── */}
       {topCategories.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-chikoo-bark">Browse by Category</h2>
-              <p className="text-sm text-chikoo-brown mt-1">The most searched categories in Dahanu</p>
-            </div>
-            <Link href="/listings"
-              className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-warli-terra hover:text-warli-deep transition-colors">
-              View all <ArrowRight size={14} />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {topCategories.map((cat, i) => {
-              const c = CATEGORY_COLORS[i % CATEGORY_COLORS.length]
-              return (
-                <Link key={cat.label} href={getCategoryPath(cat.label)}
-                  className="group rounded-2xl px-4 py-4 text-left transition-all hover:-translate-y-1 hover:shadow-md border"
-                  style={{ background: c.bg, borderColor: c.border }}>
-                  <div className="text-2xl">{cat.emoji}</div>
-                  <div className="mt-3 text-sm font-semibold leading-tight" style={{ color: c.text }}>
+        <section className="bg-[#F4EDE3] py-14">
+          <div className="max-w-[1160px] mx-auto px-6">
+            <SectionHeader
+              label="Browse"
+              title="Popular Categories"
+              sub="The most searched services in Dahanu"
+              viewAllHref="/listings"
+            />
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {topCategories.map((cat) => (
+                <Link
+                  key={cat.label}
+                  href={getCategoryPath(cat.label)}
+                  className="bg-white border border-[#E8DDD2] rounded-2xl px-4 py-5 text-center transition-all duration-200 hover:border-[#E8C49A] hover:-translate-y-[3px] hover:shadow-card-hover"
+                >
+                  <div className="text-[26px] mb-2.5" aria-hidden>
+                    {cat.emoji}
+                  </div>
+                  <div className="text-xs font-semibold text-[#2E1205] leading-[1.3]">
                     {cat.label}
                   </div>
-                  <div className="mt-0.5 text-xs" style={{ color: c.text, opacity: 0.6 }}>
+                  <div className="text-[11px] text-[#9A7A60] mt-0.5">
                     {cat.count} {cat.count === 1 ? 'business' : 'businesses'}
                   </div>
                 </Link>
-              )
-            })}
-          </div>
-          <div className="mt-4 sm:hidden">
-            <Link href="/listings"
-              className="inline-flex items-center gap-1 text-sm font-semibold text-warli-terra hover:text-warli-deep transition-colors">
-              View all categories <ArrowRight size={14} />
-            </Link>
+              ))}
+            </div>
           </div>
         </section>
       )}
 
-      {/* ─────────────────────────────────────────────────────────────────
-          5. FEATURED BUSINESSES — premium cards on warm bg
-      ───────────────────────────────────────────────────────────────── */}
+      {/* ─────────────────────────────────────────────────────────────
+          6. POPULAR BUSINESSES — white bg
+      ───────────────────────────────────────────────────────────── */}
       {listings.length > 0 && (
-        <section style={{ background: '#F9F4ED' }} className="py-12">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-chikoo-bark">Popular Around Dahanu</h2>
-                <p className="text-sm text-chikoo-brown mt-1">Trusted and highly-reviewed local businesses</p>
-              </div>
-              <Link href="/listings"
-                className="inline-flex items-center gap-1 text-sm font-semibold text-warli-terra hover:text-warli-deep transition-colors">
-                View all <ArrowRight size={14} />
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="py-16">
+          <div className="max-w-[1160px] mx-auto px-6">
+            <SectionHeader
+              label="Popular"
+              title="Around Dahanu"
+              sub="Trusted and highly-reviewed local businesses"
+              viewAllHref="/listings"
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
               {listings.map((listing) => {
                 const href = getListingHref(listing.id, listing.subdomain)
                 const address = summarizeAddress(listing.address, 2)
                 return (
-                  <Link key={listing.id} href={href}
-                    className="listing-card group overflow-hidden rounded-[1.75rem] border border-warli-sand/40 bg-white">
-                    <div className="relative h-44 bg-gradient-to-br from-warli-light to-warli-sand/40 overflow-hidden">
+                  <Link
+                    key={listing.id}
+                    href={href}
+                    className="group bg-white border border-[#E8DDD2] rounded-3xl overflow-hidden transition-all duration-200 hover:border-[#E8C49A] hover:-translate-y-1 hover:shadow-card-hover"
+                  >
+                    <div
+                      className="relative h-[180px] overflow-hidden"
+                      style={{ background: 'linear-gradient(135deg, #F4EDE3, #E8C49A)' }}
+                    >
                       {listing.image_url ? (
                         <Image
                           src={listing.image_url}
                           alt={listing.name}
                           fill
-                          className="object-cover transition-transform duration-500 group-hover:scale-[1.07]"
+                          className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
                         />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-5xl opacity-25">🏪</div>
-                      )}
-                      {/* Bottom gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                      <div className="absolute bottom-3 left-3">
-                        <span className="rounded-full bg-black/50 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
-                          {listing.category}
-                        </span>
-                      </div>
-                      {listing.verified && (
-                        <div className="absolute top-3 right-3 rounded-full bg-blue-600 px-2.5 py-1 text-[10px] font-bold text-white flex items-center gap-1">
-                          <CheckCircle size={9} />
-                          Verified
+                        <div className="flex h-full items-center justify-center text-[52px] text-[#C0582E]/20">
+                          🏪
                         </div>
                       )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+                      <span className="absolute bottom-3 left-3 bg-black/55 backdrop-blur-sm text-white text-[11px] font-semibold px-2.5 py-1 rounded-full">
+                        {listing.category}
+                      </span>
+                      {listing.verified && (
+                        <span className="absolute top-3 right-3 bg-blue-700 text-white text-[10px] font-bold px-2.5 py-[3px] rounded-full flex items-center gap-1">
+                          <CheckCircle2 size={9} />
+                          Verified
+                        </span>
+                      )}
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-bold text-chikoo-bark text-base leading-snug group-hover:text-warli-terra transition-colors">
+                    <div className="p-[18px]">
+                      <h3 className="font-bold text-[16px] text-[#2E1205] leading-[1.25] mb-1 group-hover:text-[#C0582E] transition-colors">
                         {listing.name}
                       </h3>
                       {listing.tagline && (
-                        <p className="mt-1 line-clamp-1 text-xs text-chikoo-brown/65">{listing.tagline}</p>
+                        <p className="text-xs text-[#9A7A60] truncate mb-3">{listing.tagline}</p>
                       )}
-                      <div className="mt-3 flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1">
-                          {listing.rating && listing.rating > 0 ? (
-                            <>
-                              <Star size={12} className="fill-yellow-400 text-yellow-400" />
-                              <span className="font-semibold text-chikoo-bark">{listing.rating.toFixed(1)}</span>
-                              <span className="text-chikoo-brown/50">({listing.review_count ?? 0})</span>
-                            </>
-                          ) : (
-                            <span className="text-[11px] text-chikoo-brown/50 bg-warli-light px-2 py-0.5 rounded-full">New</span>
-                          )}
-                        </div>
-                        {address && (
-                          <div className="flex items-center gap-1 text-chikoo-brown/55">
-                            <MapPin size={10} className="text-warli-terra" />
-                            <span className="truncate max-w-[110px]">{address}</span>
+                      <div className="flex items-center justify-between text-xs">
+                        {listing.rating && listing.rating > 0 ? (
+                          <div className="flex items-center gap-1">
+                            <Star size={12} className="fill-amber-400 text-amber-400" />
+                            <span className="font-bold text-[13px] text-[#2E1205]">
+                              {listing.rating.toFixed(1)}
+                            </span>
+                            <span className="text-[#9A7A60]">({listing.review_count ?? 0})</span>
                           </div>
+                        ) : (
+                          <span className="text-[11px] text-[#9A7A60] bg-[#F4EDE3] px-2 py-0.5 rounded-full">
+                            New
+                          </span>
+                        )}
+                        {address && (
+                          <span className="flex items-center gap-1 text-[#9A7A60]">
+                            <MapPin size={10} />
+                            <span className="truncate max-w-[110px]">{address}</span>
+                          </span>
                         )}
                       </div>
                     </div>
@@ -513,80 +572,124 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* ─────────────────────────────────────────────────────────────────
-          6. BUSINESS OWNER CTA — strong, with mock preview
-      ───────────────────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
-        <div
-          className="rounded-[2.5rem] overflow-hidden"
-          style={{ background: 'linear-gradient(145deg, #2C0F03 0%, #5C2910 55%, #C4663A 100%)' }}>
-          <div className="p-8 md:p-12 grid gap-8 md:grid-cols-2 items-center">
-            {/* Left: copy */}
-            <div>
-              <div className="text-[11px] font-bold uppercase tracking-widest text-chikoo-gold mb-4">
-                For Business Owners
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-warli-cream leading-tight">
-                Get found by<br />
-                <span style={{ color: '#D4952A' }}>30,000 locals.</span>
-              </h2>
-              <p className="mt-4 text-warli-sand/75 text-sm leading-relaxed max-w-sm">
-                Your own page at{' '}
-                <span className="font-mono text-xs bg-white/15 px-1.5 py-0.5 rounded">
-                  yourname.ourdahanu.in
-                </span>
-                {' '}— searchable on Google, with WhatsApp, photos, and reviews.
-              </p>
-              <ul className="mt-5 space-y-2.5 text-sm text-warli-sand/75">
-                {[
-                  'Appear in Google searches instantly',
-                  'One-tap WhatsApp from your page',
-                  'Customer reviews build trust fast',
-                ].map((f) => (
-                  <li key={f} className="flex items-center gap-2">
-                    <CheckCircle size={14} className="text-chikoo-gold flex-shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-7 flex flex-wrap gap-3 items-center">
+      {/* ─────────────────────────────────────────────────────────────
+          7. BUSINESS OWNER CTA — dark with mock card
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-12">
+        <div className="max-w-[1160px] mx-auto px-6">
+          <div className="relative bg-[#2E1205] rounded-[32px] overflow-hidden">
+            <div className="absolute inset-0 warli-pattern opacity-[0.04] pointer-events-none" />
+
+            <div className="relative grid grid-cols-1 md:grid-cols-[1fr_320px] gap-12 p-10 md:p-14 items-center">
+              {/* Left copy */}
+              <div>
+                <p
+                  className="text-[11px] font-bold uppercase tracking-[0.12em] mb-4"
+                  style={{ color: 'rgba(240,200,122,0.7)' }}
+                >
+                  For Business Owners
+                </p>
+                <h2
+                  className="font-display text-[#FBF0DC] mb-[18px]"
+                  style={{
+                    fontSize: 'clamp(32px, 4.5vw, 40px)',
+                    lineHeight: 1.1,
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  Get found by
+                  <br />
+                  <em className="italic text-[#F0C87A]">30,000 locals.</em>
+                </h2>
+
+                <p
+                  className="text-sm leading-[1.7] mb-6 max-w-[380px]"
+                  style={{ color: 'rgba(232,196,154,0.6)' }}
+                >
+                  Your own page at{' '}
+                  <code className="font-mono text-xs bg-white/10 px-1.5 py-0.5 rounded">
+                    yourname.ourdahanu.in
+                  </code>{' '}
+                  — searchable on Google, with WhatsApp, photos, and reviews.
+                </p>
+
+                <ul className="flex flex-col gap-2.5 mb-8">
+                  {[
+                    'Appear in Google searches instantly',
+                    'One-tap WhatsApp from your page',
+                    'Customer reviews build trust fast',
+                  ].map((f) => (
+                    <li
+                      key={f}
+                      className="flex items-center gap-2.5 text-[13px]"
+                      style={{ color: 'rgba(251,240,220,0.7)' }}
+                    >
+                      <span
+                        className="w-[18px] h-[18px] rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{
+                          background: 'rgba(200,136,30,0.25)',
+                          border: '1px solid rgba(200,136,30,0.4)',
+                        }}
+                      >
+                        <Check size={10} className="text-[#F0C87A]" strokeWidth={2.5} />
+                      </span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="flex items-baseline gap-2.5 mb-5">
+                  <span className="font-display text-[42px] text-[#F0C87A] leading-none">
+                    ₹{currentPrice}
+                  </span>
+                  <span className="text-[13px]" style={{ color: 'rgba(232,196,154,0.5)' }}>
+                    / year
+                  </span>
+                  {basePrice > currentPrice && (
+                    <span
+                      className="text-base line-through"
+                      style={{ color: 'rgba(232,196,154,0.35)' }}
+                    >
+                      ₹{basePrice}
+                    </span>
+                  )}
+                </div>
+
                 <Link
                   href="/listings/submit"
-                  className="inline-flex items-center gap-2 rounded-2xl bg-chikoo-gold px-6 py-3 text-sm font-bold text-chikoo-bark transition-all hover:bg-chikoo-amber hover:scale-[1.03]"
-                  style={{ boxShadow: '0 4px 16px rgba(212,149,42,0.35)' }}>
+                  className="inline-flex items-center gap-2 px-[26px] py-[13px] bg-[#C8881E] hover:bg-[#D49A28] text-[#2E1205] font-bold text-sm rounded-[10px] transition-all hover:-translate-y-[1px]"
+                >
                   <Plus size={15} />
-                  Claim Your Profile — ₹{currentPrice}/yr
+                  Claim Your Profile
                 </Link>
-                {basePrice > currentPrice && (
-                  <span className="text-xs text-warli-sand/50 line-through">₹{basePrice}</span>
-                )}
               </div>
-            </div>
 
-            {/* Right: mock listing card */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/15">
-              <p className="text-[11px] font-semibold text-warli-sand/50 mb-3">Your page preview →</p>
-              <div className="bg-white rounded-2xl overflow-hidden shadow-2xl">
-                <div className="h-24 flex items-center justify-center text-4xl"
-                  style={{ background: 'linear-gradient(135deg, #C4663A, #3D1A08)' }}>
+              {/* Right mock card */}
+              <div className="hidden md:block bg-white rounded-3xl overflow-hidden shadow-cta">
+                <div
+                  className="h-[100px] flex items-center justify-center text-4xl"
+                  style={{ background: 'linear-gradient(135deg, #C0582E, #2E1205)' }}
+                  aria-hidden
+                >
                   🏪
                 </div>
                 <div className="p-4">
-                  <div className="font-bold text-chikoo-bark text-sm">Your Business Name</div>
-                  <div className="text-[11px] text-warli-terra mt-0.5 font-mono">yourname.ourdahanu.in</div>
+                  <div className="font-bold text-sm text-[#2E1205]">Your Business Name</div>
+                  <div className="font-mono text-[11px] text-[#C0582E] mt-0.5">
+                    yourname.ourdahanu.in
+                  </div>
                   <div className="flex items-center gap-0.5 mt-2">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={10} className="fill-yellow-400 text-yellow-400" />
+                      <Star key={i} size={11} className="fill-amber-400 text-amber-400" />
                     ))}
-                    <span className="text-[10px] text-chikoo-brown/55 ml-1">5.0 (12 reviews)</span>
+                    <span className="text-[11px] text-[#9A7A60] ml-1">5.0 (12)</span>
                   </div>
                   <div className="flex gap-2 mt-3">
-                    <div className="flex-1 text-center py-1.5 rounded-lg text-[10px] font-bold text-white"
-                      style={{ background: '#25D366' }}>
+                    <div className="flex-1 text-center py-2 rounded-lg text-[11px] font-bold text-white bg-[#25D366]">
                       💬 WhatsApp
                     </div>
-                    <div className="flex-1 text-center py-1.5 rounded-lg text-[10px] font-bold text-white bg-warli-terra">
-                      📞 Call Now
+                    <div className="flex-1 text-center py-2 rounded-lg text-[11px] font-bold text-white bg-[#C0582E]">
+                      📞 Call
                     </div>
                   </div>
                 </div>
@@ -596,176 +699,222 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────────
-          7. JOBS SECTION
-      ───────────────────────────────────────────────────────────────── */}
-      <div className="warli-divider" />
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-chikoo-bark">Jobs in Dahanu</h2>
-            <p className="text-sm text-chikoo-brown mt-1">
-              Local opportunities for local people.{' '}
-              {totalJobs > 0 && (
-                <span className="font-semibold text-warli-terra">{totalJobs} open {totalJobs === 1 ? 'role' : 'roles'}</span>
-              )}
-            </p>
-          </div>
-          <Link href="/jobs"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-warli-terra hover:text-warli-deep transition-colors">
-            View all <ArrowRight size={14} />
-          </Link>
-        </div>
+      {/* ─────────────────────────────────────────────────────────────
+          8. JOBS SECTION — muted bg with sidebar CTA
+      ───────────────────────────────────────────────────────────── */}
+      <section className="bg-[#F4EDE3] py-16">
+        <div className="max-w-[1160px] mx-auto px-6">
+          <SectionHeader
+            label="Opportunities"
+            title="Jobs in Dahanu"
+            sub={
+              totalJobs > 0
+                ? `${totalJobs} open ${totalJobs === 1 ? 'role' : 'roles'} for local people`
+                : 'Local opportunities for local people'
+            }
+            viewAllHref="/jobs"
+          />
 
-        <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
-          <div className="grid gap-3">
-            {recentJobs.length > 0 ? (
-              recentJobs.map((job) => (
-                <Link key={job.id} href={`/jobs/${job.id}`}
-                  className="flex items-start gap-4 rounded-2xl border border-warli-sand/50 bg-white p-5 transition-all hover:border-warli-terra hover:shadow-warm">
-                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-warli-light">
-                    <Briefcase size={18} className="text-warli-terra" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-chikoo-brown/70 mb-1.5">
-                      <span>{job.category}</span>
-                      <span className="rounded-full bg-warli-light px-2 py-0.5 text-warli-terra font-medium">
-                        {job.type}
-                      </span>
+          <div className="grid gap-6 lg:grid-cols-[1fr_260px] items-start">
+            <div className="flex flex-col gap-2.5">
+              {recentJobs.length > 0 ? (
+                recentJobs.map((job) => (
+                  <Link
+                    key={job.id}
+                    href={`/jobs/${job.id}`}
+                    className="group bg-white border border-[#E8DDD2] rounded-2xl p-5 flex gap-4 items-start transition-all hover:border-[#E8C49A] hover:shadow-[0_4px_16px_rgba(192,88,46,0.07)]"
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-[#F4EDE3] flex items-center justify-center flex-shrink-0">
+                      <Briefcase size={20} className="text-[#C0582E]" />
                     </div>
-                    <h3 className="font-bold text-chikoo-bark text-sm">{job.title}</h3>
-                    <p className="text-xs text-chikoo-brown/65 mt-0.5">{job.company}</p>
-                    <div className="flex flex-wrap gap-3 mt-2 text-xs text-chikoo-brown/60">
-                      {job.location && (
-                        <span className="flex items-center gap-1">
-                          <MapPin size={10} className="text-warli-terra" />
-                          {job.location}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="text-[11px] font-semibold text-[#C0582E] bg-[rgba(192,88,46,0.07)] rounded-full px-2 py-0.5">
+                          {job.category}
                         </span>
-                      )}
-                      {job.salary && (
-                        <span className="font-semibold text-warli-terra">₹ {job.salary}</span>
-                      )}
-                      <span className="flex items-center gap-1">
-                        <Clock size={10} className="text-warli-terra" />
-                        {job.type}
-                      </span>
+                        <span className="text-[11px] text-[#9A7A60]">{job.type}</span>
+                      </div>
+                      <h3 className="font-bold text-[15px] text-[#2E1205] group-hover:text-[#C0582E] transition-colors">
+                        {job.title}
+                      </h3>
+                      <p className="text-xs text-[#9A7A60] mt-0.5">{job.company}</p>
+                      <div className="flex items-center gap-3 flex-wrap mt-2 text-xs text-[#9A7A60]">
+                        {job.location && (
+                          <span className="flex items-center gap-1">
+                            <MapPin size={10} />
+                            {job.location}
+                          </span>
+                        )}
+                        {job.salary && (
+                          <span className="font-semibold text-[#C0582E]">₹ {job.salary}</span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <Clock size={10} />
+                          {job.type}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <div className="rounded-2xl border border-warli-sand/60 bg-white p-10 text-center">
-                <p className="text-sm text-chikoo-brown">No open jobs yet. Employers can post the first one today.</p>
-              </div>
-            )}
-          </div>
-
-          {/* Post a job CTA card */}
-          <div className="rounded-2xl p-6 text-warli-cream"
-            style={{ background: 'linear-gradient(145deg, #C4663A 0%, #3D1A08 100%)' }}>
-            <p className="text-xs font-bold uppercase tracking-widest text-warli-sand/60">Hiring locally?</p>
-            <h3 className="mt-2 text-xl font-bold">Post a job in minutes</h3>
-            <p className="mt-2 text-xs text-warli-sand/75 leading-relaxed">
-              Reach job seekers around Dahanu without needing your own hiring page.
-            </p>
-            <div className="mt-5">
-              {jobBasePrice > jobCurrentPrice && (
-                <div className="text-xs text-warli-sand/40 line-through">₹{jobBasePrice} / posting</div>
+                  </Link>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-[#E8DDD2] bg-white p-10 text-center">
+                  <p className="text-sm text-[#9A7A60]">
+                    No open jobs yet. Employers can post the first one today.
+                  </p>
+                </div>
               )}
-              <div className="text-3xl font-bold text-chikoo-gold">₹{jobCurrentPrice}</div>
             </div>
-            <Link href="/jobs/submit"
-              className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-chikoo-gold px-5 py-2.5 text-xs font-bold text-chikoo-bark hover:bg-chikoo-amber transition-colors">
-              <Plus size={13} />
-              Post a Job
-            </Link>
+
+            {/* Post a job sidebar */}
+            <div className="bg-[#2E1205] rounded-3xl p-7 sticky top-[120px] text-[#FBF0DC]">
+              <p
+                className="text-[11px] font-bold uppercase tracking-[0.1em] mb-2.5"
+                style={{ color: 'rgba(232,196,154,0.5)' }}
+              >
+                Hiring locally?
+              </p>
+              <h3 className="font-display text-[22px] text-[#FBF0DC] leading-[1.2] mb-2.5">
+                Post a job in minutes
+              </h3>
+              <p
+                className="text-[13px] leading-[1.6] mb-5"
+                style={{ color: 'rgba(232,196,154,0.5)' }}
+              >
+                Reach job seekers around Dahanu without needing your own hiring page.
+              </p>
+              {jobBasePrice > jobCurrentPrice && (
+                <div
+                  className="text-xs line-through mb-1"
+                  style={{ color: 'rgba(232,196,154,0.4)' }}
+                >
+                  ₹{jobBasePrice} / posting
+                </div>
+              )}
+              <div className="font-display text-[32px] text-[#F0C87A] leading-none mb-4">
+                ₹{jobCurrentPrice}
+              </div>
+              <Link
+                href="/jobs/submit"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#C8881E] hover:bg-[#D49A28] text-[#2E1205] font-bold text-[13px] rounded-[10px] transition-all hover:-translate-y-[1px]"
+              >
+                <Plus size={13} />
+                Post a Job
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────────
-          7.5 COMMUNITY POLL — active poll on homepage
-      ───────────────────────────────────────────────────────────────── */}
+      {/* ─────────────────────────────────────────────────────────────
+          8.5 COMMUNITY POLL
+      ───────────────────────────────────────────────────────────── */}
       {activePoll && (
-        <>
-          <div className="warli-divider" />
-          <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-chikoo-bark">Community Poll</h2>
-                <p className="text-sm text-chikoo-brown mt-1">Have your say — vote and see what Dahanu thinks</p>
-              </div>
-              <Link href="/polls"
-                className="inline-flex items-center gap-1 text-sm font-semibold text-warli-terra hover:text-warli-deep transition-colors">
-                All polls <ArrowRight size={14} />
-              </Link>
-            </div>
+        <section className="py-16">
+          <div className="max-w-[1160px] mx-auto px-6">
+            <SectionHeader
+              label="Community"
+              title="Community Poll"
+              sub="Have your say — vote and see what Dahanu thinks"
+              viewAllHref="/polls"
+            />
             <div className="max-w-xl">
               <Suspense fallback={<HomepagePollCardFallback />}>
                 <HomepagePollCard poll={activePoll} />
               </Suspense>
             </div>
-          </section>
-        </>
+          </div>
+        </section>
       )}
 
-      {/* ─────────────────────────────────────────────────────────────────
-          8. ABOUT DAHANU — local identity & pride
-      ───────────────────────────────────────────────────────────────── */}
-      <div className="warli-divider" />
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="rounded-[2rem] border border-warli-sand/50 bg-white p-8 md:p-10">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-warli-terra">About Dahanu</p>
-          <h2 className="mt-2 text-3xl font-bold text-chikoo-bark">A coastal town with strong local identity</h2>
-          <p className="mt-3 text-sm text-chikoo-brown leading-relaxed max-w-2xl">
-            Dahanu is known for its chikoo orchards, beaches, Warli art, and a deep sense of community.
-            OurDahanu is built to help that community discover, support, and recommend local businesses.
-          </p>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+      {/* ─────────────────────────────────────────────────────────────
+          9. ABOUT DAHANU
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-16">
+        <div className="max-w-[1160px] mx-auto px-6">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#C0582E] mb-1.5">
+              Our Town
+            </p>
+            <h2 className="font-display text-[30px] md:text-[34px] leading-[1.15] text-[#2E1205] tracking-[-0.01em]">
+              A coastal town with strong local identity
+            </h2>
+            <p className="text-sm text-[#9A7A60] mt-2 max-w-[600px] leading-[1.7]">
+              Dahanu is known for its chikoo orchards, beaches, Warli art, and a deep sense of
+              community. OurDahanu is built to help that community discover, support, and recommend
+              local businesses.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
             {[
-              { title: '🌳 Chikoo Capital', desc: "Dahanu's sapodilla orchards are part of everyday life and the local economy." },
-              { title: '🎨 Warli Heritage', desc: "The region's visual culture gives our platform a distinctive local character." },
-              { title: '🤝 Built for Locals', desc: "Designed to help residents find trusted services and support their neighbours." },
+              {
+                title: '🌳 Chikoo Capital',
+                desc: "Dahanu's sapodilla orchards are part of everyday life and the local economy — celebrated nationally for their quality.",
+              },
+              {
+                title: '🎨 Warli Heritage',
+                desc: "The region's tribal visual culture — geometric Warli art — gives our platform a distinctive and authentic local character.",
+              },
+              {
+                title: '🤝 Built for Locals',
+                desc: 'Designed to help residents find trusted services and support their neighbours. Community first, always.',
+              },
             ].map((c) => (
-              <div key={c.title} className="rounded-2xl bg-warli-light p-5">
-                <div className="font-bold text-warli-terra">{c.title}</div>
-                <p className="mt-2 text-sm text-chikoo-brown leading-relaxed">{c.desc}</p>
+              <div
+                key={c.title}
+                className="bg-white border border-[#E8DDD2] rounded-2xl p-6"
+              >
+                <div className="font-bold text-[#2E1205] flex items-center gap-2 mb-2">
+                  {c.title}
+                </div>
+                <p className="text-[13px] text-[#9A7A60] leading-[1.65]">{c.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────────
-          9. BOTTOM CTA BANNER — dark, strong close
-      ───────────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #1C0A02 0%, #3D1A08 60%, #5C2910 100%)' }}>
+      {/* ─────────────────────────────────────────────────────────────
+          10. BOTTOM CTA BANNER
+      ───────────────────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-[#2E1205] py-20 text-center">
         <div className="absolute inset-0 warli-pattern opacity-[0.04] pointer-events-none" />
-        <div className="relative mx-auto max-w-5xl px-4 py-16 sm:py-20 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-warli-cream leading-tight">
-            Dahanu is yours.<br />
-            <span style={{ color: '#D4952A' }}>Make it yours online too.</span>
+        <div className="relative max-w-[600px] mx-auto px-6">
+          <h2
+            className="font-display text-[#FBF0DC] mb-4"
+            style={{
+              fontSize: 'clamp(32px, 5vw, 50px)',
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            Dahanu is yours.
+            <br />
+            <em className="italic text-[#F0C87A]">Make it yours online too.</em>
           </h2>
-          <p className="mt-4 text-warli-sand/65 text-sm sm:text-base max-w-md mx-auto">
+          <p
+            className="text-[15px] mb-9"
+            style={{ color: 'rgba(232,196,154,0.5)' }}
+          >
             Join hundreds of local businesses and residents already on OurDahanu.
           </p>
-          <div className="flex flex-wrap justify-center gap-3 mt-8">
-            <Link href="/listings/submit"
-              className="inline-flex items-center gap-2 rounded-2xl bg-chikoo-gold px-7 py-3.5 text-sm font-bold text-chikoo-bark transition-all hover:bg-chikoo-amber hover:scale-[1.03]"
-              style={{ boxShadow: '0 4px 20px rgba(212,149,42,0.4)' }}>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link
+              href="/listings/submit"
+              className="inline-flex items-center gap-2 px-[26px] py-[13px] bg-[#C8881E] hover:bg-[#D49A28] text-[#2E1205] font-bold text-sm rounded-[10px] transition-all hover:-translate-y-[1px]"
+            >
               <Store size={15} />
               List Your Business
             </Link>
-            <Link href="/listings"
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-7 py-3.5 text-sm font-semibold text-warli-cream hover:bg-white/20 transition-all backdrop-blur-sm">
+            <Link
+              href="/listings"
+              className="inline-flex items-center gap-2 px-[26px] py-[13px] bg-white/[0.09] hover:bg-white/[0.15] border border-white/20 text-[#FBF0DC] font-semibold text-sm rounded-[10px] transition-all"
+            >
               <Search size={15} />
               Explore Dahanu
             </Link>
           </div>
         </div>
       </section>
-
-    </div>
+    </>
   )
 }

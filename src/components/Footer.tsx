@@ -1,31 +1,37 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { ShieldAlert } from 'lucide-react'
 
 import FooterAccountLinks from '@/components/FooterAccountLinks'
 import { buildAbsoluteUrl } from '@/lib/site'
 
+const EXPLORE_LINKS = [
+  { href: '/listings', label: 'Business Listings' },
+  { href: '/listings/submit', label: 'List Your Business' },
+  { href: '/jobs', label: 'Jobs in Dahanu' },
+  { href: '/emergency', label: 'Emergency & Safety' },
+  { href: '/search', label: 'Search' },
+  { href: '/about', label: 'About Dahanu' },
+]
+
 export default function Footer() {
   return (
-    <footer className="bg-chikoo-bark text-warli-cream mt-16">
-      <div className="warli-divider opacity-60" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="bg-[#180A02] text-[rgba(251,240,220,0.55)] mt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-8">
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-12 mb-10">
 
           {/* Brand */}
-          <div className="md:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-warli-terra rounded-full flex items-center justify-center warli-pattern">
-                <span className="text-warli-cream font-bold text-sm">OD</span>
-              </div>
-              <span className="font-bold text-xl text-warli-cream">OurDahanu</span>
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Image src="/logo.png" alt="OurDahanu" width={28} height={28} className="rounded-full" />
+              <span className="font-bold text-[18px] text-[#FBF0DC] tracking-[-0.01em]">OurDahanu</span>
             </div>
-            <p className="text-warli-sand/75 text-sm leading-relaxed max-w-xs mb-5">
-              Dahanu's own community platform — find local businesses, services and connect with 30,000+ people of Dahanu, Bordi, Gholvad and Palghar.
+            <p className="text-[13px] leading-[1.7] mb-5 max-w-[280px]">
+              Dahanu&apos;s own community platform — find local businesses, services, and connect with 30,000+ people of Dahanu, Bordi, Gholvad and Palghar.
             </p>
             <Link
               href={buildAbsoluteUrl('/emergency')}
-              className="inline-flex items-center gap-2 bg-red-700 hover:bg-red-600 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors"
+              className="inline-flex items-center gap-1.5 bg-red-900 hover:bg-red-800 text-red-100 text-[13px] font-semibold px-4 py-2 rounded-lg transition-colors"
             >
               <ShieldAlert size={14} />
               Emergency Contacts
@@ -34,28 +40,36 @@ export default function Footer() {
 
           {/* Explore */}
           <div>
-            <h3 className="font-semibold text-warli-sand mb-3 text-sm">Explore</h3>
-            <ul className="space-y-2 text-sm text-warli-sand/65">
-              <li><Link href={buildAbsoluteUrl('/listings')} className="hover:text-warli-cream transition-colors">Business Listings</Link></li>
-              <li><Link href={buildAbsoluteUrl('/listings/submit')} className="hover:text-warli-cream transition-colors">List Your Business</Link></li>
-              <li><Link href={buildAbsoluteUrl('/jobs')} className="hover:text-warli-cream transition-colors">Jobs in Dahanu</Link></li>
-              <li><Link href={buildAbsoluteUrl('/emergency')} className="hover:text-warli-cream transition-colors">Emergency &amp; Safety</Link></li>
-              <li><Link href={buildAbsoluteUrl('/search')} className="hover:text-warli-cream transition-colors">Search</Link></li>
-              <li><Link href={buildAbsoluteUrl('/about')} className="hover:text-warli-cream transition-colors">About Dahanu</Link></li>
+            <h4 className="text-xs font-bold uppercase tracking-[0.08em] text-[rgba(251,240,220,0.4)] mb-4">
+              Explore
+            </h4>
+            <ul className="flex flex-col gap-2.5">
+              {EXPLORE_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={buildAbsoluteUrl(link.href)}
+                    className="text-sm text-[rgba(251,240,220,0.5)] hover:text-[#FBF0DC] transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Account */}
           <div>
-            <h3 className="font-semibold text-warli-sand mb-3 text-sm">Account</h3>
+            <h4 className="text-xs font-bold uppercase tracking-[0.08em] text-[rgba(251,240,220,0.4)] mb-4">
+              Account
+            </h4>
             <FooterAccountLinks />
           </div>
 
         </div>
 
-        <div className="border-t border-chikoo-brown/60 mt-10 pt-6 flex flex-col md:flex-row items-center justify-between text-xs text-warli-sand/40 gap-2">
-          <p>© 2026 OurDahanu. All rights reserved.</p>
-          <p>Made with ❤️ for the Dahanu community</p>
+        <div className="border-t border-white/[0.06] pt-6 flex flex-col md:flex-row items-center justify-between text-xs gap-2">
+          <p className="text-[rgba(251,240,220,0.45)]">© 2026 OurDahanu. All rights reserved.</p>
+          <p className="text-[rgba(251,240,220,0.45)]">Made with ❤️ for the Dahanu community</p>
         </div>
       </div>
     </footer>

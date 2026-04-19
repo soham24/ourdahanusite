@@ -22,9 +22,11 @@ const MOBILE_NAV = [
 
 function Brand() {
   return (
-    <Link href={buildAbsoluteUrl('/')} className="flex items-center gap-2 flex-shrink-0">
-      <Image src="/logo.png" alt="OurDahanu" width={36} height={36} className="rounded-full" />
-      <span className="font-bold text-xl text-chikoo-bark">OurDahanu</span>
+    <Link href={buildAbsoluteUrl('/')} className="flex items-center gap-2.5 flex-shrink-0">
+      <Image src="/logo.png" alt="OurDahanu" width={34} height={34} className="rounded-full" />
+      <span className="font-bold text-[17px] text-[#2E1205] tracking-[-0.02em]">
+        OurDahanu
+      </span>
     </Link>
   )
 }
@@ -39,37 +41,43 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="px-3 py-2 text-sm text-chikoo-brown hover:text-warli-terra font-medium transition-colors rounded-lg hover:bg-warli-light"
+      className="px-[14px] py-1.5 text-sm font-medium text-[#7A4520] rounded-lg hover:bg-[#F4EDE3] hover:text-[#2E1205] transition-all duration-150"
     >
       {label}
     </Link>
   )
 }
 
+function EmergencyButton() {
+  return (
+    <Link
+      href={buildAbsoluteUrl('/emergency')}
+      className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-red-700 border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-all duration-150"
+    >
+      <ShieldAlert size={14} />
+      Emergency
+    </Link>
+  )
+}
+
 export function NavbarFallback() {
   return (
-    <nav className="fixed top-8 left-0 right-0 z-50 bg-warli-cream/96 backdrop-blur-sm border-b border-warli-sand/60">
+    <nav className="sticky top-0 z-50 bg-[#FAFAF7]/96 backdrop-blur-md border-b border-[#E8DDD2]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14">
+        <div className="flex items-center justify-between gap-6 h-[60px]">
           <Brand />
 
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-0.5 flex-1 justify-center">
             {NAV_LINKS.map((link) => (
               <NavLink key={link.href} {...link} />
             ))}
           </div>
 
-          <div className="hidden lg:flex items-center gap-3">
-            <Link
-              href={buildAbsoluteUrl('/emergency')}
-              className="flex items-center gap-1.5 text-red-700 hover:text-red-800 text-sm font-semibold border border-red-200 hover:border-red-400 px-3 py-1.5 rounded-lg transition-colors"
-            >
-              <ShieldAlert size={14} />
-              Emergency
-            </Link>
+          <div className="hidden lg:flex items-center gap-2.5">
+            <EmergencyButton />
             <Link
               href={buildAbsoluteUrl('/login')}
-              className="bg-warli-terra hover:bg-warli-deep text-warli-cream px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+              className="bg-[#2E1205] hover:bg-[#8A3618] text-[#FAFAF7] px-[18px] py-2 rounded-[9px] font-semibold text-sm transition-colors"
             >
               Sign In
             </Link>
@@ -91,13 +99,7 @@ export default function Navbar() {
       ))}
       desktopActions={(
         <>
-          <Link
-            href={buildAbsoluteUrl('/emergency')}
-            className="flex items-center gap-1.5 text-red-700 hover:text-red-800 text-sm font-semibold border border-red-200 hover:border-red-400 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            <ShieldAlert size={14} />
-            Emergency
-          </Link>
+          <EmergencyButton />
           <NavbarAuthControls />
         </>
       )}
@@ -108,16 +110,16 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="block text-chikoo-brown hover:text-warli-terra hover:bg-warli-light font-medium py-2.5 px-3 rounded-xl transition-colors text-sm"
+                className="block text-[#7A4520] hover:text-[#2E1205] hover:bg-[#F4EDE3] font-medium py-2.5 px-3 rounded-xl transition-colors text-sm"
               >
                 {link.label}
               </Link>
             ))}
           </div>
-          <div className="pt-3 border-t border-warli-sand flex flex-col gap-2">
+          <div className="pt-3 border-t border-[#E8DDD2] flex flex-col gap-2">
             <Link
               href={buildAbsoluteUrl('/emergency')}
-              className="flex items-center gap-2 text-red-700 font-bold py-2.5 px-3 bg-red-50 rounded-xl text-sm"
+              className="flex items-center gap-2 text-red-700 font-bold py-2.5 px-3 bg-red-50 border border-red-200 rounded-xl text-sm"
             >
               <ShieldAlert size={16} />
               Emergency Contacts
