@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Suspense } from 'react'
-import { Plus_Jakarta_Sans } from 'next/font/google'
+import { DM_Sans, Instrument_Serif, Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import Navbar, { NavbarFallback } from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -14,6 +14,24 @@ import { Analytics } from '@vercel/analytics/next'
 const METADATA_BASE_URL = 'https://ourdahanu.in'
 const LOGO_URL = 'https://ourdahanu.in/logo.png'
 
+// Primary body font — DM Sans (revamped design system)
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm',
+  display: 'swap',
+  weight: ['300', '400', '500', '600', '700'],
+})
+
+// Display serif for hero + section headlines
+const instrumentSerif = Instrument_Serif({
+  weight: ['400'],
+  style: ['normal', 'italic'],
+  subsets: ['latin'],
+  variable: '--font-instrument',
+  display: 'swap',
+})
+
+// Kept for backward compat — some older pages still reference var(--font-jakarta) via the legacy --font-family-sans fallback
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-jakarta',
@@ -84,7 +102,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#16a34a',
+  themeColor: '#2E1205',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -111,7 +129,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   ]
 
   return (
-    <html lang="en" className={jakarta.variable}>
+    <html
+      lang="en"
+      className={`${dmSans.variable} ${instrumentSerif.variable} ${jakarta.variable}`}
+    >
       <body>
         <StructuredData data={siteSchema} />
         <Suspense fallback={<EmergencyRibbonFallback />}>
@@ -120,8 +141,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Suspense fallback={<NavbarFallback />}>
           <Navbar />
         </Suspense>
-        {/* pt-[5.5rem] = fixed ribbon (32px) + fixed navbar (56px) */}
-        <main className="pt-[5.5rem] pb-16 lg:pb-0 min-h-screen">
+        {/* Navbar is sticky (not fixed), so <main> no longer needs top padding */}
+        <main className="pb-16 lg:pb-0 min-h-screen">
           {children}
         </main>
         <Footer />
