@@ -170,6 +170,8 @@ html {
 
 .our-dahanu-loader--fullscreen {
   min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   aspect-ratio: auto;
 }
 
