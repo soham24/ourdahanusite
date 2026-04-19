@@ -1,4 +1,3 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 const RESERVED = new Set([
@@ -24,11 +23,11 @@ export async function proxy(request: NextRequest) {
   const host = request.headers.get('host') || ''
   const subdomain = getSubdomain(host)
 
-  // Set cookie domain to root domain so cookies work across all subdomains
-  const isProduction = host.endsWith('ourdahanu.in')
-  const cookieDomain = isProduction ? '.ourdahanu.in' : undefined
-
   const pathname = request.nextUrl.pathname
+
+  if (!subdomain) {
+    return NextResponse.next()
+  }
 
   // On subdomain, rewrite:
   //   / and '' → /listings/[subdomain]  (the listing page)
@@ -47,53 +46,21 @@ export async function proxy(request: NextRequest) {
     })
   }
 
-  const shouldRewrite = subdomain && (pathname === '/' || pathname === '')
+  const shouldRewrite = pathname === '/' || pathname === ''
 
-  let supabaseResponse = shouldRewrite
+  const response = shouldRewrite
     ? NextResponse.rewrite(
         Object.assign(request.nextUrl.clone(), { pathname: `/listings/${subdomain}` }),
       )
     : NextResponse.next({ request })
 
-  if (subdomain) {
-    supabaseResponse.headers.set('x-subdomain', subdomain)
-    // Also pass subdomain as a URL param for non-rewrite paths so the listing page knows context
-    if (!shouldRewrite) {
-      supabaseResponse.headers.set('x-original-host', host)
-    }
+  response.headers.set('x-subdomain', subdomain)
+  // Also pass subdomain as a URL param for non-rewrite paths so the listing page knows context
+  if (!shouldRewrite) {
+    response.headers.set('x-original-host', host)
   }
 
-  // Always refresh the session so auth state is available on ALL pages (including subdomains)
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          // For subdomain rewrites, update the existing rewrite response
-          // For normal requests, create a new response carrying updated request cookies
-          if (!subdomain) {
-            supabaseResponse = NextResponse.next({ request })
-          }
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, {
-              ...options,
-              // Share cookies across all subdomains in production
-              ...(cookieDomain ? { domain: cookieDomain } : {}),
-            })
-          )
-        },
-      },
-    }
-  )
-
-  await supabase.auth.getUser()
-
-  return supabaseResponse
+  return response
 }
 
 export const config = {
