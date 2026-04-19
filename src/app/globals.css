@@ -145,6 +145,307 @@ html {
 
 /* ─── OurDahanu Loading Animation ─── */
 
+.our-dahanu-loader {
+  aspect-ratio: 19 / 26;
+}
+
+.our-dahanu-loader__scene {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.our-dahanu-loader__sky {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #0D0400 0%, #2A0D02 40%, #3D1808 65%, #C8681E 82%, #E8A855 90%, #F0C87A 100%);
+  box-shadow: 0 28px 70px rgba(26, 8, 0, 0.28);
+}
+
+.our-dahanu-loader__star {
+  position: absolute;
+  border-radius: 999px;
+  background: white;
+  animation: our-dahanu-loader-twinkle var(--loader-star-duration, 3s) ease-in-out infinite var(--loader-star-delay, 0s);
+}
+
+.our-dahanu-loader__moon {
+  position: absolute;
+  top: 40px;
+  right: 60px;
+  width: 44px;
+  height: 44px;
+  animation: our-dahanu-loader-float 6s ease-in-out infinite;
+}
+
+.our-dahanu-loader__bird {
+  position: absolute;
+  opacity: 0.55;
+  animation: our-dahanu-loader-bird var(--loader-bird-duration, 8s) linear infinite var(--loader-bird-delay, 0s);
+}
+
+.our-dahanu-loader__ocean {
+  position: absolute;
+  right: 0;
+  bottom: 110px;
+  left: 0;
+  height: 180px;
+  overflow: hidden;
+}
+
+.our-dahanu-loader__wave {
+  position: absolute;
+  left: -50%;
+  width: 200%;
+  border-radius: 999px;
+}
+
+.our-dahanu-loader__wave--front {
+  bottom: 0;
+  height: 80px;
+  background: rgba(12, 60, 90, 0.85);
+  animation: our-dahanu-loader-wave-a 4s ease-in-out infinite;
+}
+
+.our-dahanu-loader__wave--mid {
+  bottom: 20px;
+  height: 70px;
+  background: rgba(20, 80, 115, 0.6);
+  animation: our-dahanu-loader-wave-b 5s ease-in-out infinite;
+}
+
+.our-dahanu-loader__wave--back {
+  bottom: 36px;
+  height: 60px;
+  background: rgba(30, 100, 140, 0.4);
+  animation: our-dahanu-loader-wave-a 6s ease-in-out infinite reverse;
+}
+
+.our-dahanu-loader__wave-shimmer {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(240, 200, 122, 0.5) 30%, rgba(240, 200, 122, 0.8) 50%, rgba(240, 200, 122, 0.5) 70%, transparent 100%);
+  animation: our-dahanu-loader-shimmer 4s ease-in-out infinite;
+}
+
+.our-dahanu-loader__wave-shimmer--one {
+  bottom: 78px;
+}
+
+.our-dahanu-loader__wave-shimmer--two {
+  bottom: 56px;
+  opacity: 0.6;
+  animation-delay: 1.3s;
+}
+
+.our-dahanu-loader__water-glow {
+  position: absolute;
+  bottom: 112px;
+  left: 50%;
+  width: 80px;
+  height: 40px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, rgba(240, 200, 122, 0.3) 0%, transparent 70%);
+  animation: our-dahanu-loader-glow 4s ease-in-out infinite;
+}
+
+.our-dahanu-loader__sand {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 130px;
+}
+
+.our-dahanu-loader__tree {
+  position: absolute;
+  bottom: 100px;
+  left: 42px;
+  transform-origin: bottom center;
+  animation: our-dahanu-loader-tree 5s ease-in-out infinite;
+}
+
+.our-dahanu-loader__palm {
+  position: absolute;
+  right: 28px;
+  bottom: 105px;
+  transform-origin: bottom center;
+  animation: our-dahanu-loader-palm 7s ease-in-out infinite;
+}
+
+.our-dahanu-loader__warli {
+  position: absolute;
+  bottom: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.our-dahanu-loader__text {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 20px 28px 28px;
+  text-align: center;
+  background: linear-gradient(to top, rgba(20, 8, 0, 0.9) 60%, transparent 100%);
+  border-radius: 0 0 28px 28px;
+}
+
+.our-dahanu-loader__brand {
+  margin-bottom: 4px;
+  font-family: var(--font-instrument), Georgia, 'Times New Roman', serif;
+  font-size: 26px;
+  letter-spacing: -0.01em;
+  color: #F0C87A;
+  animation: our-dahanu-loader-brand 3s ease-in-out infinite;
+}
+
+.our-dahanu-loader__sub {
+  margin-bottom: 18px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: rgba(232, 196, 154, 0.6);
+}
+
+.our-dahanu-loader__dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.our-dahanu-loader__dot {
+  position: relative;
+  width: 12px;
+  height: 14px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: #6B3A1E;
+  animation: our-dahanu-loader-dot 1.6s ease-in-out infinite;
+}
+
+.our-dahanu-loader__dot::after {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 3px;
+  height: 3px;
+  content: "";
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.our-dahanu-loader__dot:nth-child(2) {
+  animation-delay: 0.22s;
+}
+
+.our-dahanu-loader__dot:nth-child(3) {
+  animation-delay: 0.44s;
+}
+
+.our-dahanu-loader__dot:nth-child(4) {
+  animation-delay: 0.66s;
+}
+
+.our-dahanu-loader__dot:nth-child(5) {
+  animation-delay: 0.88s;
+}
+
+.our-dahanu-loader__border {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid rgba(240, 200, 122, 0.15);
+  border-radius: 28px;
+}
+
+@keyframes our-dahanu-loader-twinkle {
+  0%, 100% { opacity: var(--loader-star-min, 0.2); transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.4); }
+}
+
+@keyframes our-dahanu-loader-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes our-dahanu-loader-wave-a {
+  0%, 100% { transform: translateX(0) scaleY(1); }
+  33% { transform: translateX(-4%) scaleY(1.08); }
+  66% { transform: translateX(4%) scaleY(0.95); }
+}
+
+@keyframes our-dahanu-loader-wave-b {
+  0%, 100% { transform: translateX(0) scaleY(1); }
+  40% { transform: translateX(5%) scaleY(1.1); }
+  70% { transform: translateX(-3%) scaleY(0.92); }
+}
+
+@keyframes our-dahanu-loader-shimmer {
+  0%, 100% { transform: translateX(-8%) scaleX(0.9); opacity: 0.6; }
+  50% { transform: translateX(8%) scaleX(1.1); opacity: 1; }
+}
+
+@keyframes our-dahanu-loader-dot {
+  0%, 100% {
+    background: #6B3A1E;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    background: #C8881E;
+    box-shadow: 0 6px 14px rgba(200, 136, 30, 0.45);
+    transform: translateY(-6px) scale(1.15);
+  }
+}
+
+@keyframes our-dahanu-loader-bird {
+  0% { transform: translateX(-60px) translateY(0); opacity: 0; }
+  10% { opacity: 0.55; }
+  50% { transform: translateX(200px) translateY(-15px); }
+  90% { opacity: 0.55; }
+  100% { transform: translateX(440px) translateY(5px); opacity: 0; }
+}
+
+@keyframes our-dahanu-loader-tree {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(1.5deg); }
+  75% { transform: rotate(-1.2deg); }
+}
+
+@keyframes our-dahanu-loader-palm {
+  0%, 100% { transform: rotate(0deg); }
+  30% { transform: rotate(-2deg); }
+  70% { transform: rotate(1.5deg); }
+}
+
+@keyframes our-dahanu-loader-glow {
+  0%, 100% { opacity: 0.5; transform: translateX(-50%) scaleX(1); }
+  50% { opacity: 1; transform: translateX(-50%) scaleX(1.3); }
+}
+
+@keyframes our-dahanu-loader-brand {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .our-dahanu-loader__star,
+  .our-dahanu-loader__moon,
+  .our-dahanu-loader__bird,
+  .our-dahanu-loader__wave,
+  .our-dahanu-loader__wave-shimmer,
+  .our-dahanu-loader__water-glow,
+  .our-dahanu-loader__tree,
+  .our-dahanu-loader__palm,
+  .our-dahanu-loader__brand,
+  .our-dahanu-loader__dot {
+    animation: none;
+  }
+}
+
 /* Warli circle — slow spin */
 @keyframes warli-spin {
   to { transform: rotate(360deg); }
