@@ -15,6 +15,7 @@ import {
   Store,
 } from 'lucide-react'
 
+import HomepageLoaderDismiss from '@/components/HomepageLoaderDismiss'
 import OurDahanuLoader from '@/components/OurDahanuLoader'
 import { getHomePageData, type FeaturedListing } from '@/lib/data/home'
 import HomepagePollCard, { HomepagePollCardFallback } from '@/components/HomepagePollCard'
@@ -236,9 +237,15 @@ function SectionHeader({
 
 export default function HomePage() {
   return (
-    <Suspense fallback={<OurDahanuLoader fullScreen />}>
+    <>
+      <div id="homepage-loader-overlay" className="initial-loader-overlay" aria-hidden="true">
+        <OurDahanuLoader fullScreen />
+      </div>
+      <HomepageLoaderDismiss />
+      <Suspense fallback={null}>
       <HomePageContent />
-    </Suspense>
+      </Suspense>
+    </>
   )
 }
 
