@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { Suspense } from 'react'
 import { permanentRedirect } from 'next/navigation'
 
 import ListingsDirectoryContent from './ListingsDirectoryContent'
@@ -37,34 +36,13 @@ export const metadata: Metadata = {
   },
 }
 
-export const unstable_instant = {
-  prefetch: 'runtime',
-  samples: [
-    { searchParams: { category: null } },
-    { searchParams: { category: 'Restaurants' } },
-  ],
-}
+export const unstable_instant = false
 
 interface ListingsPageProps {
   searchParams: Promise<{ category?: string; q?: string }>
 }
 
-function ListingsPageFallback() {
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="h-10 w-64 rounded-xl bg-gray-100" />
-      <div className="mt-3 h-5 w-80 rounded-lg bg-gray-100" />
-      <div className="mt-8 h-14 rounded-xl bg-gray-100" />
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="h-64 rounded-2xl bg-gray-100" />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-async function ListingsPageContent({ searchParams }: ListingsPageProps) {
+export default async function ListingsPage({ searchParams }: ListingsPageProps) {
   const { category: rawCategory } = await searchParams
 
   if (rawCategory && rawCategory !== 'All') {
@@ -83,13 +61,5 @@ async function ListingsPageContent({ searchParams }: ListingsPageProps) {
       basePrice={directory.basePrice}
       canonicalUrl={buildAbsoluteUrl('/listings')}
     />
-  )
-}
-
-export default function ListingsPage({ searchParams }: ListingsPageProps) {
-  return (
-    <Suspense fallback={<ListingsPageFallback />}>
-      <ListingsPageContent searchParams={searchParams} />
-    </Suspense>
   )
 }

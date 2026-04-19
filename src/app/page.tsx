@@ -371,6 +371,7 @@ async function HomePageContent() {
               <Link
                 key={label}
                 href={href}
+                prefetch={false}
                 className="text-xs font-medium border border-white/10 bg-white/[0.07] rounded-full px-3 py-[5px] transition-all hover:bg-white/[0.13]"
                 style={{ color: 'rgba(232,196,154,0.55)' }}
               >
@@ -420,6 +421,7 @@ async function HomePageContent() {
               <Link
                 key={item.label}
                 href={item.href}
+                prefetch={false}
                 className="flex flex-col items-center gap-1 px-4 py-2 rounded-[10px] min-w-[70px] flex-shrink-0 hover:bg-[#F4EDE3] transition-colors"
               >
                 <span
