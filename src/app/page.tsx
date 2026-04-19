@@ -15,6 +15,7 @@ import {
   Store,
 } from 'lucide-react'
 
+import InitialLoaderOverlay from '@/components/InitialLoaderOverlay'
 import { getHomePageData, type FeaturedListing } from '@/lib/data/home'
 import HomepagePollCard, { HomepagePollCardFallback } from '@/components/HomepagePollCard'
 import { summarizeAddress } from '@/lib/listing-content'
@@ -262,6 +263,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <InitialLoaderOverlay />
       {/* ─────────────────────────────────────────────────────────────
           1. HERO — deep bark bg, editorial serif headline
       ───────────────────────────────────────────────────────────── */}

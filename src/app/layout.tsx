@@ -8,7 +8,6 @@ import BottomTabBar from '@/components/BottomTabBar'
 import EmergencyRibbon, { EmergencyRibbonFallback } from '@/components/EmergencyRibbon'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import StructuredData from '@/components/StructuredData'
-import InitialLoaderOverlay from '@/components/InitialLoaderOverlay'
 import { buildAbsoluteUrl, SITE_URL } from '@/lib/site'
 import { Analytics } from '@vercel/analytics/next'
 
@@ -135,7 +134,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${dmSans.variable} ${instrumentSerif.variable} ${jakarta.variable}`}
     >
       <body>
-        <InitialLoaderOverlay />
         <StructuredData data={siteSchema} />
         <Suspense fallback={<EmergencyRibbonFallback />}>
           <EmergencyRibbon />
