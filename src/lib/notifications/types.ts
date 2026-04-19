@@ -22,6 +22,7 @@ export const NOTIFICATION_TYPES = [
   'listing.expiring',
   // Reviews
   'review.new',
+  'review.reply_posted',
   // Admin
   'admin.new_submission',
 ] as const
@@ -108,6 +109,19 @@ interface ReviewNewPayload {
   recipient: 'owner' | 'admin'
 }
 
+interface ReviewReplyPostedPayload {
+  reviewId: string
+  listingId: string
+  listingName: string
+  subdomain?: string | null
+  ownerName: string | null
+  reviewerName: string | null
+  rating: number
+  reviewComment?: string | null
+  replyText: string
+  recipient: 'reviewer' | 'admin'
+}
+
 interface AdminSubmissionPayload {
   kind: 'listing' | 'classified' | 'event' | 'news' | 'forum' | 'job'
   title: string
@@ -126,6 +140,7 @@ export interface NotificationPayloadMap {
   'listing.rejected': ListingRejectedPayload
   'listing.expiring': ListingExpiringPayload
   'review.new': ReviewNewPayload
+  'review.reply_posted': ReviewReplyPostedPayload
   'admin.new_submission': AdminSubmissionPayload
 }
 

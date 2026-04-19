@@ -7,7 +7,7 @@ import { permanentRedirect } from 'next/navigation'
 import { Suspense } from 'react'
 import {
   MapPin, Phone, Star, ArrowLeft, Globe, CheckCircle,
-  MessageSquare, ExternalLink, Clock, AtSign,
+  MessageSquare, MessageCircle, ExternalLink, Clock, AtSign,
   Share2, Edit2, IndianRupee, Navigation, Award,
   Truck, CreditCard, Sparkles, MessageCircleQuestion,
   CalendarDays, Zap, Video, ThumbsUp, Heart, Info,
@@ -28,6 +28,7 @@ import ServicesSection from './ServicesSection'
 import AppointmentBooking from './AppointmentBooking'
 import ProductCard from '@/components/ProductCard'
 import BuyButton from '@/components/BuyButton'
+import OwnerReplyForm from '@/components/OwnerReplyForm'
 import { getCachedListingDetail, type ListingProductPublic } from '@/lib/data/listing-detail'
 import { normalizeAppointmentSettings } from '@/lib/listing-content'
 import type { ServiceImageAspect } from '@/lib/service-image'
@@ -1014,8 +1015,17 @@ async function ListingDetailContent({
                   {reviews.map(review => {
                     const reviewerName: string = (review.reviewer_name as string) || 'Anonymous'
                     const initial = reviewerName.slice(0, 1).toUpperCase()
+                    const reviewId = review.id as string
+                    const ownerReply = (review.owner_reply as string | null) || null
+                    const ownerRepliedAt = (review.owner_replied_at as string | null) || null
+                    const ownerDisplayName =
+                      (listing.name as string | undefined) || 'Owner'
                     return (
-                      <div key={review.id as string} className="border-b border-gray-50 pb-5 last:border-0 last:pb-0">
+                      <div
+                        key={reviewId}
+                        id={`review-${reviewId}`}
+                        className="border-b border-gray-50 pb-5 last:border-0 last:pb-0 scroll-mt-24"
+                      >
                         <div className="flex items-start justify-between gap-2 mb-1">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-warli-light text-warli-terra rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
@@ -1030,6 +1040,31 @@ async function ListingDetailContent({
                         </div>
                         {review.comment && (
                           <p className="text-sm text-gray-600 mt-2 ml-10">{String(review.comment)}</p>
+                        )}
+
+                        {ownerReply && (
+                          <div className="mt-3 ml-10 rounded-xl border-l-4 border-warli-terra bg-warli-light/30 px-3 py-2.5">
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <p className="text-[11px] font-semibold uppercase tracking-wide text-warli-terra flex items-center gap-1">
+                                <MessageCircle size={12} />
+                                Reply from {ownerDisplayName}
+                              </p>
+                              {ownerRepliedAt && (
+                                <span className="text-[11px] text-gray-400">
+                                  {formatDate(ownerRepliedAt)}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                              {ownerReply}
+                            </p>
+                          </div>
+                        )}
+
+                        {!ownerReply && isOwner && (
+                          <div className="ml-10">
+                            <OwnerReplyForm reviewId={reviewId} compact />
+                          </div>
                         )}
                       </div>
                     )

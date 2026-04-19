@@ -444,6 +444,95 @@ function renderReviewNew(p: NotificationPayload<'review.new'>): RenderedNotifica
   }
 }
 
+function renderReviewReplyPosted(
+  p: NotificationPayload<'review.reply_posted'>,
+): RenderedNotification {
+  const owner = (p.ownerName || 'The business owner').trim() || 'The business owner'
+  const listingUrl = getListingUrl(p.listingId, p.subdomain)
+  const stars = '⭐'.repeat(Math.max(1, Math.min(5, Math.round(p.rating))))
+  const replySnippet = p.replyText.slice(0, 140)
+  const reviewerLabel = (p.reviewerName || 'a customer').trim() || 'a customer'
+  const reviewSnippet = p.reviewComment ? p.reviewComment.slice(0, 100) : null
+
+  if (p.recipient === 'reviewer') {
+    return {
+      title: `${p.listingName} replied to your review`,
+      body: `${owner}: "${replySnippet}"`,
+      link: `/listings/${p.subdomain || p.listingId}#review-${p.reviewId}`,
+      icon: 'MessageCircle',
+      metadata: { listingId: p.listingId, reviewId: p.reviewId },
+      email: {
+        subject: `${p.listingName} replied to your review`,
+        html: renderEmailLayout({
+          eyebrow: 'Review Reply',
+          headline: `${escapeHtml(p.listingName)} replied to your review`,
+          introHtml: `Hi, <strong>${escapeHtml(owner)}</strong> replied to the review you left on <strong>${escapeHtml(p.listingName)}</strong>.`,
+          detailRows: [
+            buildDetailRow(
+              'Your rating',
+              `${p.rating}/5 ${escapeHtml(stars)}`,
+              false,
+            ),
+            reviewSnippet
+              ? buildDetailRow('Your review', escapeHtml(reviewSnippet))
+              : '',
+            buildDetailRow(
+              "Owner's reply",
+              `<span style="white-space:pre-wrap;">${escapeHtml(p.replyText)}</span>`,
+            ),
+          ]
+            .filter(Boolean)
+            .join(''),
+          ctaUrl: listingUrl,
+          ctaText: 'View on OurDahanu',
+          footerNote: 'You can continue the conversation by leaving another review later.',
+        }),
+      },
+      telegram: {
+        text: [
+          '💬 <b>Reply to your review</b>',
+          '',
+          `<b>Listing:</b> ${escapeHtml(p.listingName)}`,
+          `<b>Owner:</b> ${escapeHtml(owner)}`,
+          `<b>Reply:</b> ${escapeHtml(replySnippet)}`,
+          '',
+          `<a href="${listingUrl}">Open listing</a>`,
+        ].join('\n'),
+      },
+    }
+  }
+
+  // admin
+  return {
+    title: `Review reply on ${p.listingName}`,
+    body: `${owner} replied to ${reviewerLabel}'s ${p.rating}/5 review: "${replySnippet}"`,
+    link: `/admin/reviews`,
+    icon: 'MessageCircle',
+    metadata: { listingId: p.listingId, reviewId: p.reviewId },
+    email: {
+      subject: `[Admin] Review reply on ${p.listingName}`,
+      html: renderEmailLayout({
+        eyebrow: 'Admin · Review Reply',
+        headline: `An owner replied to a review`,
+        introHtml: `<strong>${escapeHtml(owner)}</strong> replied to a ${p.rating}/5 review on <strong>${escapeHtml(p.listingName)}</strong>.`,
+        detailRows: [
+          buildDetailRow('Reviewer', escapeHtml(reviewerLabel), false),
+          buildDetailRow('Rating', `${p.rating}/5 ${escapeHtml(stars)}`),
+          reviewSnippet ? buildDetailRow('Review', escapeHtml(reviewSnippet)) : '',
+          buildDetailRow(
+            'Reply',
+            `<span style="white-space:pre-wrap;">${escapeHtml(p.replyText)}</span>`,
+          ),
+        ]
+          .filter(Boolean)
+          .join(''),
+        ctaUrl: listingUrl,
+        ctaText: 'Open listing',
+      }),
+    },
+  }
+}
+
 function renderAdminSubmission(
   p: NotificationPayload<'admin.new_submission'>,
 ): RenderedNotification {
@@ -515,6 +604,10 @@ export function renderNotification<T extends NotificationType>(
       return renderListingExpiring(payload as NotificationPayload<'listing.expiring'>)
     case 'review.new':
       return renderReviewNew(payload as NotificationPayload<'review.new'>)
+    case 'review.reply_posted':
+      return renderReviewReplyPosted(
+        payload as NotificationPayload<'review.reply_posted'>,
+      )
     case 'admin.new_submission':
       return renderAdminSubmission(payload as NotificationPayload<'admin.new_submission'>)
     default: {

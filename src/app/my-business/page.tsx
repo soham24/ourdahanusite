@@ -5,6 +5,7 @@ import {
   Store,
   Star,
   MessageSquare,
+  MessageCircle,
   Eye,
   Plus,
   ArrowUpRight,
@@ -20,6 +21,7 @@ import {
   CreditCard,
 } from 'lucide-react'
 import { getListingHref } from '@/lib/listing-url'
+import OwnerReplyForm from '@/components/OwnerReplyForm'
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'approved') {
@@ -140,14 +142,16 @@ export default async function MyBusinessPage({
   const { renewed } = await searchParams
 
   type Review = {
-    id:             string
-    listing_id:     string
-    user_id:        string
-    rating:         number
-    comment:        string | null
-    created_at:     string
-    reviewer_name?: string | null
-    listings?:      { name: string } | null
+    id:                string
+    listing_id:        string
+    user_id:           string
+    rating:            number
+    comment:           string | null
+    created_at:        string
+    owner_reply:       string | null
+    owner_replied_at:  string | null
+    reviewer_name?:    string | null
+    listings?:         { name: string } | null
   }
 
   let listings: Listing[] = []
@@ -177,7 +181,7 @@ export default async function MyBusinessPage({
       const ids = listings.map(l => l.id)
       const { data: reviewsData } = await supabase
         .from('reviews')
-        .select('id, listing_id, user_id, rating, comment, created_at, listings(name)')
+        .select('id, listing_id, user_id, rating, comment, created_at, owner_reply, owner_replied_at, listings(name)')
         .in('listing_id', ids)
         .order('created_at', { ascending: false })
         .limit(10)
@@ -528,6 +532,29 @@ export default async function MyBusinessPage({
                     year: 'numeric', month: 'short', day: 'numeric',
                   })}
                 </p>
+
+                {review.owner_reply ? (
+                  <div className="mt-3 rounded-xl border-l-4 border-warli-terra bg-warli-light/30 px-3 py-2.5">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-warli-terra flex items-center gap-1">
+                        <MessageCircle size={12} />
+                        Your reply
+                      </p>
+                      {review.owner_replied_at && (
+                        <span className="text-[11px] text-gray-400">
+                          {new Date(review.owner_replied_at).toLocaleDateString('en-IN', {
+                            year: 'numeric', month: 'short', day: 'numeric',
+                          })}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                      {review.owner_reply}
+                    </p>
+                  </div>
+                ) : (
+                  <OwnerReplyForm reviewId={review.id} compact />
+                )}
               </div>
             ))}
           </div>

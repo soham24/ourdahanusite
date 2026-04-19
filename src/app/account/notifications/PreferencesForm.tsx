@@ -43,6 +43,7 @@ const TYPE_LABELS: Record<NotificationType, { label: string; hint: string }> = {
   'listing.rejected': { label: 'Listing rejected', hint: 'When a submission needs edits' },
   'listing.expiring': { label: 'Listing expiring', hint: 'Renewal reminders' },
   'review.new': { label: 'New reviews', hint: 'When someone reviews your listing' },
+  'review.reply_posted': { label: 'Review replies', hint: 'When an owner replies to your review (or, for admins, any reply)' },
   'admin.new_submission': { label: 'New admin submissions', hint: 'Admins only — new pending items' },
 }
 

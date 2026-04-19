@@ -479,6 +479,147 @@ export async function submitReview(formData: FormData) {
   }
 }
 
+/**
+ * Listing owner posts a single reply to a review.
+ *   - Auth: must be signed in.
+ *   - Authorization: must own the listing the review is attached to.
+ *   - Invariant: a review may receive at most one owner reply (enforced by
+ *     the existing-reply guard + RLS policy in add_review_replies.sql).
+ *   - Notifies the reviewer + all admins via the unified notification engine.
+ */
+export async function replyToReview(
+  reviewId: string,
+  formData: FormData,
+): Promise<{ error?: string; ok?: true }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'Please sign in first.' }
+
+  const raw = (formData.get('reply') as string | null) ?? ''
+  const replyText = normalizeMultilineText(raw, 1000)
+  if (!replyText || replyText.trim().length < 2) {
+    return { error: 'Please write a reply (at least 2 characters).' }
+  }
+
+  if (!reviewId || typeof reviewId !== 'string') {
+    return { error: 'Invalid review.' }
+  }
+
+  // Use admin client to bypass RLS on listings lookups and the reviews
+  // UPDATE, mirroring the pattern used in submitReview.
+  const adminClient = createAdminClient()
+  const dbClient = adminClient ?? supabase
+
+  // 1. Load the review with its listing + owner + reviewer so we can
+  //    verify ownership and compose notification payloads.
+  const { data: reviewRow, error: reviewErr } = await dbClient
+    .from('reviews')
+    .select(
+      'id, listing_id, user_id, rating, comment, owner_reply, listings(id, name, subdomain, owner_id)',
+    )
+    .eq('id', reviewId)
+    .maybeSingle()
+
+  if (reviewErr) {
+    console.error('[replyToReview:fetch]', reviewErr)
+    return { error: 'Could not load the review.' }
+  }
+  if (!reviewRow) return { error: 'Review not found.' }
+
+  // Supabase typing returns `listings` as an array when using the nested
+  // selector from the relationship side; normalise here.
+  const listingRel = reviewRow.listings as unknown
+  const listing = Array.isArray(listingRel)
+    ? (listingRel[0] as {
+        id: string
+        name: string
+        subdomain: string | null
+        owner_id: string | null
+      } | undefined)
+    : (listingRel as
+        | { id: string; name: string; subdomain: string | null; owner_id: string | null }
+        | null)
+
+  if (!listing) return { error: 'Listing not found for this review.' }
+  if (listing.owner_id !== user.id) {
+    return { error: 'Only the listing owner can reply to this review.' }
+  }
+  if (reviewRow.owner_reply) {
+    return { error: 'You have already replied to this review.' }
+  }
+
+  // 2. Persist the reply.
+  const repliedAt = new Date().toISOString()
+  const { error: updateErr } = await dbClient
+    .from('reviews')
+    .update({ owner_reply: replyText, owner_replied_at: repliedAt })
+    .eq('id', reviewId)
+    .is('owner_reply', null)
+
+  if (updateErr) {
+    console.error('[replyToReview:update]', updateErr)
+    return { error: 'Could not save your reply.' }
+  }
+
+  // 3. Revalidate cached views.
+  revalidatePublicListingContent(listing.id)
+  revalidatePath('/listings/' + listing.id)
+  if (listing.subdomain) revalidatePath('/listings/' + listing.subdomain)
+  revalidatePath('/my-business')
+
+  // 4. Fire notifications (fire-and-forget; never break the UX).
+  const ownerName =
+    (user.user_metadata?.full_name as string | undefined)?.trim() ||
+    (listing.name as string | undefined)?.trim() ||
+    null
+
+  let reviewerName: string | null = null
+  if (reviewRow.user_id) {
+    const { data: reviewerProfile } = await dbClient
+      .from('profiles')
+      .select('full_name')
+      .eq('id', reviewRow.user_id)
+      .maybeSingle()
+    reviewerName =
+      (reviewerProfile?.full_name as string | null | undefined) ?? null
+  }
+
+  const payloadBase = {
+    reviewId,
+    listingId: listing.id,
+    listingName: listing.name,
+    subdomain: listing.subdomain ?? null,
+    ownerName,
+    reviewerName,
+    rating: reviewRow.rating as number,
+    reviewComment: (reviewRow.comment as string | null) || null,
+    replyText,
+  }
+
+  void (async () => {
+    try {
+      await Promise.allSettled([
+        reviewRow.user_id
+          ? sendNotification(reviewRow.user_id as string, 'review.reply_posted', {
+              ...payloadBase,
+              recipient: 'reviewer',
+            })
+          : Promise.resolve(),
+        sendNotificationToAdmins('review.reply_posted', {
+          ...payloadBase,
+          recipient: 'admin',
+        }),
+      ])
+    } catch (err) {
+      console.error('[replyToReview:notify]', err)
+    }
+  })()
+
+  return { ok: true }
+}
+
 export async function renewListing(
   listingId: string,
   formData: FormData,
