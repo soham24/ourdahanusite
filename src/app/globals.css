@@ -541,9 +541,9 @@ html:has(#homepage-loader-overlay:not(.initial-loader-overlay--hidden)) {
 }
 
 .our-dahanu-loader--fullscreen .our-dahanu-loader__logo {
-  top: 6%;
-  width: min(480px, 58vh, 72vw);
-  height: min(480px, 58vh, 72vw);
+  top: 4%;
+  width: min(420px, 48vh, 72vw);
+  height: min(420px, 48vh, 72vw);
 }
 
 .our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text {
