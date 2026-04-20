@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Suspense } from 'react'
-import { DM_Sans, Instrument_Serif, Plus_Jakarta_Sans } from 'next/font/google'
+import { DM_Sans, Instrument_Serif, Noto_Sans_Devanagari, Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import Navbar, { NavbarFallback } from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -37,6 +37,16 @@ const jakarta = Plus_Jakarta_Sans({
   variable: '--font-jakarta',
   display: 'swap',
   weight: ['400', '500', '600', '700', '800'],
+})
+
+// Devanagari support for the loader logo ("आपले डहाणू"). Loaded so the
+// curved text renders consistently on devices that don't ship a
+// compatible system Devanagari font (e.g. iOS mobile Safari).
+const notoDevanagari = Noto_Sans_Devanagari({
+  subsets: ['devanagari'],
+  variable: '--font-devanagari',
+  display: 'swap',
+  weight: ['400', '500', '600'],
 })
 
 export const metadata: Metadata = {
@@ -131,7 +141,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${dmSans.variable} ${instrumentSerif.variable} ${jakarta.variable}`}
+      className={`${dmSans.variable} ${instrumentSerif.variable} ${jakarta.variable} ${notoDevanagari.variable}`}
     >
       <body>
         <StructuredData data={siteSchema} />

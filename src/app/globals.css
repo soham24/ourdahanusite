@@ -286,6 +286,14 @@ html:has(#homepage-loader-overlay:not(.initial-loader-overlay--hidden)) {
   animation: our-dahanu-loader-arc-bottom-reveal 0.8s 2.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Use the loaded Noto Sans Devanagari webfont so the curved Marathi
+   text renders consistently across devices (iOS Safari in particular
+   falls back to a font with different glyph metrics that breaks the
+   curve layout). */
+.our-dahanu-loader__logo-arc-bottom text {
+  font-family: var(--font-devanagari), 'Noto Sans Devanagari', 'Mangal', sans-serif;
+}
+
 .our-dahanu-loader__logo-arc-star {
   opacity: 0;
   animation: our-dahanu-loader-arc-star-reveal 0.6s 2.5s ease-out both;
