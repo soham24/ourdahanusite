@@ -127,7 +127,13 @@ export default function OurDahanuLoader({
                   </linearGradient>
                 </defs>
 
-                <circle cx="55" cy="55" r="52" fill="rgba(200,136,30,0.06)" />
+                <circle
+                  className="our-dahanu-loader__logo-glow"
+                  cx="55"
+                  cy="55"
+                  r="52"
+                  fill="rgba(200,136,30,0.06)"
+                />
 
                 <g className="our-dahanu-loader__ring-spin">
                   <circle
@@ -139,7 +145,6 @@ export default function OurDahanuLoader({
                     strokeDasharray="18 8"
                     strokeLinecap="round"
                     fill="none"
-                    opacity="0.7"
                   />
                 </g>
 
@@ -153,39 +158,74 @@ export default function OurDahanuLoader({
                     strokeDasharray="4 10"
                     strokeLinecap="round"
                     fill="none"
-                    opacity="0.4"
                   />
                 </g>
 
-                <circle cx="55" cy="55" r="40" fill="#1C0800" />
-                <circle cx="55" cy="55" r="40" stroke="url(#loaderGoldGrad)" strokeWidth="1.8" fill="none" />
                 <circle
+                  className="our-dahanu-loader__logo-center"
+                  cx="55"
+                  cy="55"
+                  r="40"
+                  fill="#1C0800"
+                />
+                <circle
+                  className="our-dahanu-loader__logo-border-outer"
+                  cx="55"
+                  cy="55"
+                  r="40"
+                  stroke="url(#loaderGoldGrad)"
+                  strokeWidth="1.8"
+                  fill="none"
+                />
+                <circle
+                  className="our-dahanu-loader__logo-border-inner"
                   cx="55"
                   cy="55"
                   r="35"
                   stroke="url(#loaderGoldGrad)"
                   strokeWidth="0.8"
                   fill="none"
-                  opacity="0.5"
                 />
 
-                <path id="loaderTopArc" d="M 18,55 A 37,37 0 0,1 92,55" fill="none" />
+                <g className="our-dahanu-loader__logo-arc-top">
+                  <path id="loaderTopArc" d="M 25,58 A 28,28 0 0,1 85,58" fill="none" />
+                  <text
+                    fontFamily="'DM Sans', sans-serif"
+                    fontSize="6"
+                    fontWeight="700"
+                    fill="#C8881E"
+                    letterSpacing="2.5"
+                    textAnchor="middle"
+                  >
+                    <textPath href="#loaderTopArc" startOffset="50%">
+                      OUR DAHANU
+                    </textPath>
+                  </text>
+                </g>
+
                 <text
-                  fontFamily="'DM Sans', sans-serif"
+                  className="our-dahanu-loader__logo-arc-star"
+                  x="18"
+                  y="58"
                   fontSize="7"
-                  fontWeight="700"
                   fill="#C8881E"
-                  letterSpacing="3.5"
+                  textAnchor="middle"
                 >
-                  <textPath href="#loaderTopArc" startOffset="8%">
-                    OUR  DAHANU
-                  </textPath>
+                  ★
+                </text>
+                <text
+                  className="our-dahanu-loader__logo-arc-star"
+                  x="92"
+                  y="58"
+                  fontSize="7"
+                  fill="#C8881E"
+                  textAnchor="middle"
+                >
+                  ★
                 </text>
 
-                <text x="18" y="58" fontSize="7" fill="#C8881E" textAnchor="middle">★</text>
-                <text x="92" y="58" fontSize="7" fill="#C8881E" textAnchor="middle">★</text>
-
                 <text
+                  className="our-dahanu-loader__logo-mono"
                   x="55"
                   y="62"
                   fontFamily="'Instrument Serif', Georgia, serif"
@@ -198,19 +238,20 @@ export default function OurDahanuLoader({
                   DN
                 </text>
 
-                <path id="loaderBotArc" d="M 22,55 A 33,33 0 0,0 88,55" fill="none" />
-                <text
-                  fontFamily="'Noto Sans Devanagari', sans-serif"
-                  fontSize="6.5"
-                  fill="#C8881E"
-                  opacity="0.85"
-                  letterSpacing="1"
-                  textAnchor="middle"
-                >
-                  <textPath href="#loaderBotArc" startOffset="50%">
-                    आपले डहाणू
-                  </textPath>
-                </text>
+                <g className="our-dahanu-loader__logo-arc-bottom">
+                  <path id="loaderBotArc" d="M 22,55 A 33,33 0 0,0 88,55" fill="none" />
+                  <text
+                    fontFamily="'Noto Sans Devanagari', sans-serif"
+                    fontSize="6.5"
+                    fill="#C8881E"
+                    letterSpacing="1"
+                    textAnchor="middle"
+                  >
+                    <textPath href="#loaderBotArc" startOffset="50%">
+                      आपले डहाणू
+                    </textPath>
+                  </text>
+                </g>
               </svg>
             </div>
 

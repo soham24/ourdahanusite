@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 
-const MIN_LOADER_DURATION_MS = 1200
+const MIN_LOADER_DURATION_MS = 2800
 const FADE_DURATION_MS = 300
 
 export default function HomepageLoaderDismiss() {
