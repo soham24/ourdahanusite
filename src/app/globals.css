@@ -225,6 +225,8 @@ html:has(#homepage-loader-overlay:not(.initial-loader-overlay--hidden)) {
 .our-dahanu-loader__logo-svg {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .our-dahanu-loader__logo-glow {
@@ -531,9 +533,9 @@ html:has(#homepage-loader-overlay:not(.initial-loader-overlay--hidden)) {
 }
 
 .our-dahanu-loader--fullscreen .our-dahanu-loader__logo {
-  top: 7.5%;
-  width: min(280px, 45vh, 50vw);
-  height: min(280px, 45vh, 50vw);
+  top: 6%;
+  width: min(480px, 58vh, 72vw);
+  height: min(480px, 58vh, 72vw);
 }
 
 .our-dahanu-loader--fullscreen .our-dahanu-loader__logo-text {
