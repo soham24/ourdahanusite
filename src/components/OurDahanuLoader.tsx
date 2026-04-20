@@ -241,7 +241,6 @@ export default function OurDahanuLoader({
                 <g className="our-dahanu-loader__logo-arc-bottom">
                   <path id="loaderBotArc" d="M 22,55 A 33,33 0 0,0 88,55" fill="none" />
                   <text
-                    fontFamily="'Noto Sans Devanagari', sans-serif"
                     fontSize="6.5"
                     fill="#C8881E"
                     letterSpacing="1"

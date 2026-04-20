@@ -287,11 +287,26 @@ html:has(#homepage-loader-overlay:not(.initial-loader-overlay--hidden)) {
 }
 
 /* Use the loaded Noto Sans Devanagari webfont so the curved Marathi
-   text renders consistently across devices (iOS Safari in particular
-   falls back to a font with different glyph metrics that breaks the
-   curve layout). */
+   text renders consistently across devices. iOS Safari ships only
+   "Devanagari Sangam MN" / "Kohinoor Devanagari" which have different
+   glyph metrics, so the curve positioning breaks. We rely on the
+   next/font variable; the inline fontFamily attribute on the SVG
+   <text> is intentionally omitted so CSS wins without ambiguity.
+
+   The text is display:none until <html> picks up `loader-fonts-ready`
+   (set from HomepageLoaderDismiss via document.fonts.load). We use
+   display:none rather than visibility:hidden because Safari will NOT
+   re-lay-out textPath when a webfont swaps in after layout has
+   already been computed with a fallback font. display:none skips
+   layout entirely, so when it's toggled back on the browser
+   re-measures everything with the correct font. */
 .our-dahanu-loader__logo-arc-bottom text {
-  font-family: var(--font-devanagari), 'Noto Sans Devanagari', 'Mangal', sans-serif;
+  font-family: var(--font-devanagari), 'Noto Sans Devanagari', sans-serif !important;
+  display: none;
+}
+
+html.loader-fonts-ready .our-dahanu-loader__logo-arc-bottom text {
+  display: inline;
 }
 
 .our-dahanu-loader__logo-arc-star {
