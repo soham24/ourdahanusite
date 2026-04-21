@@ -8,7 +8,10 @@ export const LISTING_CATEGORIES = [
   'Contractors & Construction', 'Cleaning Services', 'Tailoring', 'Farms & Organic',
   'Dairy & Milk', 'Bakers & Sweets', 'Home-based Sellers', 'Financial Services',
   'Content Creators', 'Video Editors', 'Graphic Designers', 'Social Media & Marketing',
-  'Freelancers & Digital', 'Other',
+  'Freelancers & Digital',
+  'Fashion & Clothing', 'Skincare & Cosmetics', 'Interior Design',
+  'Internet & Telecom', 'NGOs & Social Causes',
+  'Other',
 ] as const
 
 export const LISTING_CATEGORY_EMOJIS: Record<string, string> = {
@@ -47,6 +50,11 @@ export const LISTING_CATEGORY_EMOJIS: Record<string, string> = {
   'Graphic Designers': '🖌️',
   'Social Media & Marketing': '📣',
   'Freelancers & Digital': '💻',
+  'Fashion & Clothing': '👗',
+  'Skincare & Cosmetics': '🧴',
+  'Interior Design': '🛋️',
+  'Internet & Telecom': '📡',
+  'NGOs & Social Causes': '🌍',
   Other: '🏪',
 }
 
