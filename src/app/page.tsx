@@ -20,7 +20,7 @@ import { getHomePageData, type FeaturedListing } from '@/lib/data/home'
 import HomepagePollCard, { HomepagePollCardFallback } from '@/components/HomepagePollCard'
 import SafeAppLink from '@/components/SafeAppLink'
 import { summarizeAddress } from '@/lib/listing-content'
-import { getCategoryPath } from '@/lib/listing-category'
+import { getCategoryPath, LISTING_CATEGORY_EMOJIS } from '@/lib/listing-category'
 import { getListingHref } from '@/lib/listing-url'
 
 export const metadata: Metadata = {
@@ -49,45 +49,6 @@ export const metadata: Metadata = {
 
 export const unstable_instant = false
 
-const CATEGORY_EMOJIS: Record<string, string> = {
-  Restaurants: '🍽️',
-  'Homemade Food': '🍱',
-  'Hotels & Stay': '🏨',
-  'Hotels & Stays': '🏨',
-  'Grocery & Shops': '🛒',
-  Grocery: '🛒',
-  'Healthcare & Clinics': '🏥',
-  'Medical Store': '💊',
-  Hardware: '🔩',
-  'Education & Coaching': '📚',
-  Tutors: '📚',
-  'Transport & Taxi': '🚕',
-  Transport: '🚕',
-  'Salons & Beauty': '💇',
-  'Massage & Wellness': '💆',
-  'Warli Art': '🎨',
-  'Warli Arts & Crafts': '🎨',
-  'Arts & Crafts': '🖼️',
-  Photography: '📸',
-  'Event Services': '🎉',
-  'Repair Services': '🔧',
-  'Electricians & Plumbing': '⚡',
-  'Contractors & Construction': '🏗️',
-  'Cleaning Services': '🧹',
-  Tailoring: '🧵',
-  'Farms & Organic': '🌱',
-  'Dairy & Milk': '🥛',
-  'Bakers & Sweets': '🍰',
-  'Home-based Sellers': '🏡',
-  'Financial Services': '💰',
-  'Content Creators': '📱',
-  'Video Editors': '🎬',
-  'Graphic Designers': '🖌️',
-  'Social Media & Marketing': '📣',
-  'Freelancers & Digital': '💻',
-  Other: '🏪',
-}
-
 function formatStat(value: number, fallback: string): string {
   if (!value) return fallback
   if (value >= 1000) return `${Math.round(value / 100) / 10}k+`
@@ -100,7 +61,7 @@ function formatStat(value: number, fallback: string): string {
 function FeaturedSpotlight({ listing }: { listing: FeaturedListing }) {
   const href = getListingHref(listing.id, listing.subdomain)
   const address = summarizeAddress(listing.address, 2)
-  const categoryEmoji = CATEGORY_EMOJIS[listing.category] ?? '🏪'
+  const categoryEmoji = LISTING_CATEGORY_EMOJIS[listing.category] ?? '🏪'
 
   return (
     <section className="py-12">
@@ -268,7 +229,7 @@ async function HomePageContent() {
     .slice(0, 6)
     .map((label) => ({
       label,
-      emoji: CATEGORY_EMOJIS[label] || '🏪',
+      emoji: LISTING_CATEGORY_EMOJIS[label] || '🏪',
       count: categoryCounts[label] || 0,
     }))
 

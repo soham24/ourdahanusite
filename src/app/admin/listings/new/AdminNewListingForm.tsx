@@ -5,18 +5,7 @@ import { useRouter } from 'next/navigation'
 import { adminCreateListing, adminSearchUsers } from '@/app/actions/admin-listings'
 import { Search, Loader2, CheckCircle, UserCheck, X } from 'lucide-react'
 import { normalizeOptionalUrl } from '@/lib/url'
-
-const CATEGORIES = [
-  'Restaurants', 'Homemade Food', 'Hotels & Stay', 'Grocery & Shops',
-  'Healthcare & Clinics', 'Medical Store', 'Hardware', 'Education & Coaching',
-  'Transport & Taxi', 'Salons & Beauty', 'Massage & Wellness', 'Warli Art',
-  'Warli Arts & Crafts', 'Arts & Crafts', 'Photography', 'Event Services',
-  'Repair Services', 'Electricians & Plumbing', 'Contractors & Construction',
-  'Cleaning Services', 'Tailoring', 'Farms & Organic', 'Dairy & Milk',
-  'Bakers & Sweets', 'Home-based Sellers', 'Financial Services',
-  'Content Creators', 'Video Editors', 'Graphic Designers',
-  'Social Media & Marketing', 'Freelancers & Digital', 'Other',
-]
+import { LISTING_CATEGORIES } from '@/lib/listing-category'
 
 interface User { id: string; email: string; name: string }
 
@@ -85,7 +74,7 @@ export default function AdminNewListingForm() {
             <select name="category" required defaultValue=""
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-400 text-sm bg-white">
               <option value="" disabled>Select category…</option>
-              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {LISTING_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
 
