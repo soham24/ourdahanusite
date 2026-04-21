@@ -76,11 +76,8 @@ export async function getHomePageData() {
     const [
       { data: listingData },
       { data: newListingData },
-      { data: categoryRows },
       { data: jobData },
-      listingCountResult,
-      jobCountResult,
-      { data: settingRow },
+      { data: statsData },
       activePollData,
     ] = await Promise.all([
       supabase
@@ -102,30 +99,18 @@ export async function getHomePageData() {
         .order('created_at', { ascending: false })
         .limit(12),
       supabase
-        .from('listings')
-        .select('category')
-        .eq('approved', true),
-      supabase
         .from('jobs')
         .select('id, title, company, location, type, salary, category, status, created_at')
         .eq('approved', true)
         .in('status', ['open', 'hiring'])
         .order('created_at', { ascending: false })
         .limit(3),
-      supabase
-        .from('listings')
-        .select('id', { count: 'exact', head: true })
-        .eq('approved', true),
-      supabase
-        .from('jobs')
-        .select('id', { count: 'exact', head: true })
-        .eq('approved', true)
-        .in('status', ['open', 'hiring']),
-      supabase
-        .from('site_settings')
-        .select('value')
-        .eq('key', 'featured_listing_subdomain')
-        .maybeSingle(),
+      // Single RPC that replaces four separate queries: the full-scan
+      // `select category where approved` (now a server-side GROUP BY), the
+      // two `count: 'exact'` probes, and the `site_settings -> listings`
+      // featured-listing lookup that used to run serially after the setting
+      // row came back. See supabase/add_get_homepage_stats_rpc.sql.
+      supabase.rpc('get_homepage_stats'),
       getActivePoll(),
     ])
 
@@ -135,33 +120,30 @@ export async function getHomePageData() {
       .filter((l) => !popularIds.has(l.id))
       .slice(0, 6)
     recentJobs = (jobData ?? []) as HomeJob[]
-    totalListings = listingCountResult.count ?? 0
-    totalJobs = jobCountResult.count ?? 0
-
-    const featuredSubdomain = (settingRow as { value: string } | null)?.value ?? null
-    if (featuredSubdomain) {
-      const { data: featuredData } = await supabase
-        .from('listings')
-        .select('id, name, category, address, rating, review_count, image_url, tagline, subdomain, verified, phone')
-        .eq('subdomain', featuredSubdomain)
-        .eq('approved', true)
-        .maybeSingle()
-      featuredListing = (featuredData as FeaturedListing | null) ?? null
-    }
-
     activePoll = activePollData
 
-    const listingCategories = (categoryRows ?? []) as Array<{ category: string | null }>
+    const stats = (statsData ?? {}) as {
+      category_counts?: Record<string, number> | null
+      total_listings?: number | null
+      total_jobs?: number | null
+      featured_listing?: FeaturedListing | null
+    }
 
-    if (listingCategories.length) {
-      for (const row of listingCategories) {
-        if (!row.category) continue
-        categoryCounts[row.category] = (categoryCounts[row.category] || 0) + 1
+    totalListings = stats.total_listings ?? 0
+    totalJobs = stats.total_jobs ?? 0
+    featuredListing = stats.featured_listing ?? null
+
+    if (stats.category_counts) {
+      for (const [category, count] of Object.entries(stats.category_counts)) {
+        if (!category) continue
+        categoryCounts[category] = count
       }
 
-      topCategoryLabels = sortCategoriesForDiscovery(Object.entries(categoryCounts))
-        .slice(0, 10)
-        .map(([category]) => category)
+      if (Object.keys(categoryCounts).length) {
+        topCategoryLabels = sortCategoriesForDiscovery(Object.entries(categoryCounts))
+          .slice(0, 10)
+          .map(([category]) => category)
+      }
     }
   } catch {
     // Use empty-state fallbacks below if public reads fail.
