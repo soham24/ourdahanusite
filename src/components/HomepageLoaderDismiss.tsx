@@ -2,7 +2,11 @@
 
 import { useEffect } from 'react'
 
-const MIN_LOADER_DURATION_MS = 2800
+// The loader exists to cover the first-paint flash while the streamed
+// homepage HTML is still arriving. Once `window.load` fires, the content is
+// in the DOM and the overlay can fade away — no artificial floor needed.
+// (The 300ms fade itself still gives the transition a smooth feel.)
+const MIN_LOADER_DURATION_MS = 0
 const FADE_DURATION_MS = 300
 
 export default function HomepageLoaderDismiss() {
