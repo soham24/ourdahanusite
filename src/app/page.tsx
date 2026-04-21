@@ -86,6 +86,7 @@ function FeaturedSpotlight({ listing }: { listing: FeaturedListing }) {
                 src={listing.image_url}
                 alt={listing.name}
                 fill
+                sizes="(min-width: 768px) 380px, 100vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                 priority
               />
@@ -497,6 +498,7 @@ async function HomePageContent() {
                           src={listing.image_url}
                           alt={listing.name}
                           fill
+                          sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
                           className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
                         />
                       ) : (
@@ -586,6 +588,7 @@ async function HomePageContent() {
                           src={listing.image_url}
                           alt={listing.name}
                           fill
+                          sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
                           className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
                         />
                       ) : (
