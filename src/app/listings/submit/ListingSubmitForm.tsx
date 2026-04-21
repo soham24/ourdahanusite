@@ -13,17 +13,7 @@ import SubdomainInput from '@/components/SubdomainInput'
 import PhoneInput from '@/components/PhoneInput'
 import LocationPicker from '@/components/LocationPicker'
 import { normalizeOptionalUrl } from '@/lib/url'
-
-const CATEGORIES = [
-  'Restaurants', 'Homemade Food', 'Hotels & Stay', 'Grocery & Shops',
-  'Healthcare & Clinics', 'Medical Store', 'Hardware', 'Education & Coaching',
-  'Transport & Taxi', 'Salons & Beauty', 'Massage & Wellness', 'Warli Art', 'Warli Arts & Crafts', 'Arts & Crafts',
-  'Photography', 'Event Services', 'Repair Services', 'Electricians & Plumbing',
-  'Contractors & Construction', 'Cleaning Services', 'Tailoring', 'Farms & Organic',
-  'Dairy & Milk', 'Bakers & Sweets', 'Home-based Sellers', 'Financial Services',
-  'Content Creators', 'Video Editors', 'Graphic Designers', 'Social Media & Marketing',
-  'Freelancers & Digital', 'Other',
-]
+import { LISTING_CATEGORIES } from '@/lib/listing-category'
 
 const PLAN_FEATURES = [
   'Your own profile page on OurDahanu',
@@ -327,7 +317,7 @@ export default function ListingSubmitForm({
             <select id="category" name="category" required defaultValue=""
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm bg-white">
               <option value="" disabled>Select a category</option>
-              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {LISTING_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
 

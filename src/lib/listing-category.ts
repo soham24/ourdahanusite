@@ -1,5 +1,55 @@
 import { buildAbsoluteUrl } from '@/lib/site'
 
+export const LISTING_CATEGORIES = [
+  'Restaurants', 'Homemade Food', 'Hotels & Stay', 'Grocery & Shops',
+  'Healthcare & Clinics', 'Medical Store', 'Hardware', 'Education & Coaching',
+  'Transport & Taxi', 'Salons & Beauty', 'Massage & Wellness', 'Warli Art', 'Warli Arts & Crafts', 'Arts & Crafts',
+  'Photography', 'Event Services', 'Repair Services', 'Electricians & Plumbing',
+  'Contractors & Construction', 'Cleaning Services', 'Tailoring', 'Farms & Organic',
+  'Dairy & Milk', 'Bakers & Sweets', 'Home-based Sellers', 'Financial Services',
+  'Content Creators', 'Video Editors', 'Graphic Designers', 'Social Media & Marketing',
+  'Freelancers & Digital', 'Other',
+] as const
+
+export const LISTING_CATEGORY_EMOJIS: Record<string, string> = {
+  Restaurants: '🍽️',
+  'Homemade Food': '🍱',
+  'Hotels & Stay': '🏨',
+  'Hotels & Stays': '🏨',
+  'Grocery & Shops': '🛒',
+  Grocery: '🛒',
+  'Healthcare & Clinics': '🏥',
+  'Medical Store': '💊',
+  Hardware: '🔩',
+  'Education & Coaching': '📚',
+  Tutors: '📚',
+  'Transport & Taxi': '🚕',
+  Transport: '🚕',
+  'Salons & Beauty': '💇',
+  'Massage & Wellness': '💆',
+  'Warli Art': '🎨',
+  'Warli Arts & Crafts': '🎨',
+  'Arts & Crafts': '🖼️',
+  Photography: '📸',
+  'Event Services': '🎉',
+  'Repair Services': '🔧',
+  'Electricians & Plumbing': '⚡',
+  'Contractors & Construction': '🏗️',
+  'Cleaning Services': '🧹',
+  Tailoring: '🧵',
+  'Farms & Organic': '🌱',
+  'Dairy & Milk': '🥛',
+  'Bakers & Sweets': '🍰',
+  'Home-based Sellers': '🏡',
+  'Financial Services': '💰',
+  'Content Creators': '📱',
+  'Video Editors': '🎬',
+  'Graphic Designers': '🖌️',
+  'Social Media & Marketing': '📣',
+  'Freelancers & Digital': '💻',
+  Other: '🏪',
+}
+
 const DISCOVERY_CATEGORY_PENALTIES: Record<string, number> = {
   other: 1000,
 }
