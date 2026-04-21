@@ -62,6 +62,7 @@ export async function getHomePageData() {
   const pricing = await getCachedPricingConfig()
 
   let listings: HomeListing[] = []
+  let newListings: HomeListing[] = []
   let topCategoryLabels: string[] = []
   let recentJobs: HomeJob[] = []
   let totalListings = 0
@@ -74,6 +75,7 @@ export async function getHomePageData() {
     const supabase = createPublicClient()
     const [
       { data: listingData },
+      { data: newListingData },
       { data: categoryRows },
       { data: jobData },
       listingCountResult,
@@ -89,6 +91,16 @@ export async function getHomePageData() {
         .order('review_count', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(6),
+      // Newest-first query, fetched separately so it doesn't get biased by
+      // verified/review_count ordering. We overfetch to 12 so we have room
+      // to dedupe against the "popular" listings above and still land a
+      // full row on screen.
+      supabase
+        .from('listings')
+        .select('id, name, category, address, rating, review_count, image_url, tagline, subdomain, verified')
+        .eq('approved', true)
+        .order('created_at', { ascending: false })
+        .limit(12),
       supabase
         .from('listings')
         .select('category')
@@ -118,6 +130,10 @@ export async function getHomePageData() {
     ])
 
     listings = (listingData ?? []) as HomeListing[]
+    const popularIds = new Set(listings.map((l) => l.id))
+    newListings = ((newListingData ?? []) as HomeListing[])
+      .filter((l) => !popularIds.has(l.id))
+      .slice(0, 6)
     recentJobs = (jobData ?? []) as HomeJob[]
     totalListings = listingCountResult.count ?? 0
     totalJobs = jobCountResult.count ?? 0
@@ -166,6 +182,7 @@ export async function getHomePageData() {
 
   return {
     listings,
+    newListings,
     topCategoryLabels,
     categoryCounts,
     recentJobs,
