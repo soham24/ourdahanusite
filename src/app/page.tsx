@@ -14,7 +14,6 @@ import {
   Store,
 } from 'lucide-react'
 
-import HomepageLoaderDismiss from '@/components/HomepageLoaderDismiss'
 import OurDahanuLoader from '@/components/OurDahanuLoader'
 import { getHomePageData, type FeaturedListing } from '@/lib/data/home'
 import HomepagePollCard, { HomepagePollCardFallback } from '@/components/HomepagePollCard'
@@ -198,16 +197,16 @@ function SectionHeader({
 }
 
 export default function HomePage() {
+  // Render the loader inline (non-fullscreen) as the Suspense fallback so
+  // that when the homepage data is still resolving, the user sees a
+  // branded loader *inside* the page layout (under the navbar, above the
+  // footer) instead of a separate fullscreen page that hangs around for
+  // the full window.load cycle. Fast cache hits skip the fallback
+  // entirely; only cold paths see it.
   return (
-    <>
-      <div id="homepage-loader-overlay" className="initial-loader-overlay" aria-hidden="true">
-        <OurDahanuLoader fullScreen />
-      </div>
-      <HomepageLoaderDismiss />
-      <Suspense fallback={null}>
+    <Suspense fallback={<OurDahanuLoader />}>
       <HomePageContent />
-      </Suspense>
-    </>
+    </Suspense>
   )
 }
 

@@ -145,28 +145,6 @@ html {
 
 /* ─── OurDahanu Loading Animation ─── */
 
-.initial-loader-overlay {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
-  z-index: 1000;
-  opacity: 1;
-  transition: opacity 300ms ease;
-}
-
-.initial-loader-overlay--hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* While the loader overlay is mounted, lock page scroll so the scrollbar
-   disappears and the loader truly centers against the full viewport. */
-html:has(#homepage-loader-overlay:not(.initial-loader-overlay--hidden)) {
-  overflow: hidden;
-}
-
 .our-dahanu-loader-shell--fullscreen {
   position: fixed;
   inset: 0;
@@ -294,7 +272,7 @@ html:has(#homepage-loader-overlay:not(.initial-loader-overlay--hidden)) {
    <text> is intentionally omitted so CSS wins without ambiguity.
 
    The text is display:none until <html> picks up `loader-fonts-ready`
-   (set from HomepageLoaderDismiss via document.fonts.load). We use
+   (set from LoaderFontsReady via document.fonts.load). We use
    display:none rather than visibility:hidden because Safari will NOT
    re-lay-out textPath when a webfont swaps in after layout has
    already been computed with a fallback font. display:none skips

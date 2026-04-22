@@ -6,6 +6,7 @@ import Navbar, { NavbarFallback } from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import BottomTabBar from '@/components/BottomTabBar'
 import EmergencyRibbon, { EmergencyRibbonFallback } from '@/components/EmergencyRibbon'
+import LoaderFontsReady from '@/components/LoaderFontsReady'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import StructuredData from '@/components/StructuredData'
 import { buildAbsoluteUrl, SITE_URL } from '@/lib/site'
@@ -145,6 +146,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body>
         <StructuredData data={siteSchema} />
+        <LoaderFontsReady />
         <Suspense fallback={<EmergencyRibbonFallback />}>
           <EmergencyRibbon />
         </Suspense>
