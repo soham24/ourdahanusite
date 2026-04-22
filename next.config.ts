@@ -15,7 +15,15 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    unoptimized: true,
+    // Allow Next's built-in Image Optimization API to fetch from Supabase
+    // Storage public buckets. `**.supabase.co` matches any project hostname.
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
   },
 };
 
