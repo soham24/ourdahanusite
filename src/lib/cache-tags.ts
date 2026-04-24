@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { revalidateTag } from 'next/cache'
+import { updateTag } from 'next/cache'
 
 export const CACHE_TAGS = {
   home: 'home',
@@ -16,14 +16,26 @@ export const CACHE_TAGS = {
   listing: (listingId: string) => `listing:${listingId}`,
 } as const
 
+// All helpers below use `updateTag`, not `revalidateTag(..., 'max')`.
+//
+// In Next.js 16 Cache Components, `revalidateTag(tag, 'max')` is a
+// stale-while-revalidate signal — the existing cache keeps serving until a
+// background refresh completes. For admin/owner mutations the caller
+// expects to see the change on the very next read ("read-your-own-writes"),
+// which is exactly what `updateTag` provides. `updateTag` MUST be called
+// from within a Server Action — every caller of these helpers is one.
+
 export function revalidatePublicListingCollections() {
-  revalidateTag(CACHE_TAGS.home, 'max')
-  revalidateTag(CACHE_TAGS.listings, 'max')
-  revalidateTag(CACHE_TAGS.listingCategories, 'max')
+  updateTag(CACHE_TAGS.home)
+  updateTag(CACHE_TAGS.listings)
+  updateTag(CACHE_TAGS.listingCategories)
 }
 
 export function revalidatePublicListingDetail(listingId: string) {
-  revalidateTag(CACHE_TAGS.listing(listingId), 'max')
+  updateTag(CACHE_TAGS.listing(listingId))
+  // Also invalidate the collections tag so any cached list/search
+  // snippets that include this listing's summary refresh immediately.
+  updateTag(CACHE_TAGS.listings)
 }
 
 export function revalidatePublicListingContent(listingId: string) {
@@ -32,34 +44,34 @@ export function revalidatePublicListingContent(listingId: string) {
 }
 
 export function revalidatePublicJobs() {
-  revalidateTag(CACHE_TAGS.home, 'max')
-  revalidateTag(CACHE_TAGS.jobs, 'max')
+  updateTag(CACHE_TAGS.home)
+  updateTag(CACHE_TAGS.jobs)
 }
 
 export function revalidatePricingCache() {
-  revalidateTag(CACHE_TAGS.home, 'max')
-  revalidateTag(CACHE_TAGS.pricing, 'max')
+  updateTag(CACHE_TAGS.home)
+  updateTag(CACHE_TAGS.pricing)
 }
 
 export function revalidateCouponCache() {
-  revalidateTag(CACHE_TAGS.coupons, 'max')
+  updateTag(CACHE_TAGS.coupons)
 }
 
 export function revalidateEmergencyCache() {
-  revalidateTag(CACHE_TAGS.emergency, 'max')
+  updateTag(CACHE_TAGS.emergency)
 }
 
 export function revalidateSettingsCache() {
-  revalidateTag(CACHE_TAGS.settings, 'max')
-  revalidateTag(CACHE_TAGS.home, 'max')
+  updateTag(CACHE_TAGS.settings)
+  updateTag(CACHE_TAGS.home)
 }
 
 export function revalidatePollsCache() {
-  revalidateTag(CACHE_TAGS.polls, 'max')
-  revalidateTag(CACHE_TAGS.home, 'max')
+  updateTag(CACHE_TAGS.polls)
+  updateTag(CACHE_TAGS.home)
 }
 
 export function revalidateAppointmentsCache(listingId: string) {
-  revalidateTag(CACHE_TAGS.appointments, 'max')
+  updateTag(CACHE_TAGS.appointments)
   revalidatePublicListingDetail(listingId)
 }
