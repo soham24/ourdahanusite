@@ -177,7 +177,7 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
         </label>
         <input type="text" name="title" required
           placeholder="e.g. Farm Supervisor, Staff Nurse, Shop Assistant"
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
       </div>
 
       {/* Company */}
@@ -187,7 +187,7 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
         </label>
         <input type="text" name="company" required
           placeholder="e.g. Dahanu Farms, XYZ Hospital"
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
       </div>
 
       {/* Category + Type */}
@@ -197,7 +197,7 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
             Category <span className="text-red-500">*</span>
           </label>
           <select name="category" required defaultValue=""
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm bg-white">
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white">
             <option value="" disabled>Select category</option>
             {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -205,7 +205,7 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">Job Type</label>
           <select name="type" defaultValue="Full-time"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm bg-white">
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white">
             {JOB_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
@@ -217,7 +217,7 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">Location</label>
           <input type="text" name="location"
             placeholder="e.g. Dahanu, Bordi"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
         </div>
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">
@@ -225,14 +225,14 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
           </label>
           <input type="text" name="salary"
             placeholder="e.g. ₹15,000/mo"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
         </div>
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">
             No. of Positions <span className="text-red-500">*</span>
           </label>
           <input type="number" name="positions" min="1" max="99" defaultValue="1" required
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
         </div>
       </div>
 
@@ -243,7 +243,7 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
         </label>
         <textarea name="description" required rows={5}
           placeholder="Describe the role, responsibilities, and what you're looking for..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm resize-none" />
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none" />
       </div>
 
       {/* Requirements */}
@@ -253,7 +253,7 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
         </label>
         <textarea name="requirements" rows={3}
           placeholder="Qualifications, experience, skills needed..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm resize-none" />
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none" />
       </div>
 
       {/* Contact */}
@@ -263,7 +263,7 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
         {/* Email */}
         <input type="email" name="contact_email"
           placeholder="Contact email (optional)"
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
 
         {/* Phone with +91 */}
         <PhoneInput name="contact_phone" placeholder="98765 43210" />
@@ -283,8 +283,8 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
                 onClick={() => setContactType(opt.value)}
                 className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-colors ${
                   contactType === opt.value
-                    ? 'bg-warli-terra text-warli-cream border-warli-terra'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-warli-terra'
+                    ? 'bg-brand text-bg border-brand'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-brand'
                 }`}
               >
                 {opt.icon}{opt.label}
@@ -318,7 +318,7 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
               onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError('') }}
               onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), applyCoupon())}
               placeholder="Enter coupon code"
-              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm font-mono uppercase"
+              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm font-mono uppercase"
             />
             <button type="button" onClick={applyCoupon}
               className="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-4 py-2.5 rounded-xl text-sm transition-colors">
@@ -330,14 +330,14 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
       </div>
 
       {/* Pricing Summary */}
-      <div className="bg-warli-light border border-warli-sand rounded-xl p-4">
+      <div className="bg-surface-soft border border-border rounded-xl p-4">
         <div className="flex items-center justify-between mb-1">
-          <span className="font-semibold text-chikoo-bark text-sm">Job Posting Fee</span>
+          <span className="font-semibold text-ink text-sm">Job Posting Fee</span>
           <div className="text-right">
             {discount > 0 && (
               <span className="text-xs text-gray-400 line-through block">₹{currentPrice}</span>
             )}
-            <span className="text-xl font-bold text-warli-terra">
+            <span className="text-xl font-bold text-brand">
               {finalPrice === 0 ? 'FREE' : `₹${finalPrice}`}
             </span>
           </div>
@@ -345,8 +345,8 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
         {discount > 0 && (
           <p className="text-xs text-green-600 font-medium mb-1">You save ₹{discount}!</p>
         )}
-        <div className="flex items-center gap-1.5 text-xs text-chikoo-brown mt-1">
-          <ShieldCheck size={13} className="text-warli-terra flex-shrink-0" />
+        <div className="flex items-center gap-1.5 text-xs text-ink-2 mt-1">
+          <ShieldCheck size={13} className="text-brand flex-shrink-0" />
           {finalPrice === 0
             ? 'Free with coupon · listing goes live after review'
             : 'Secure payment via Razorpay · UPI, Cards, Net Banking accepted'}
@@ -359,7 +359,7 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
       {/* Actions */}
       <div className="flex gap-3 pt-1">
         <button type="submit" disabled={busy}
-          className="flex-1 flex items-center justify-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold py-3 rounded-xl transition-colors disabled:opacity-60">
+          className="flex-1 flex items-center justify-center gap-2 bg-brand hover:bg-brand-strong text-bg font-semibold py-3 rounded-xl transition-colors disabled:opacity-60">
           {busy
             ? <><Loader2 size={16} className="animate-spin" /> {btnLabel}</>
             : <><CreditCard size={16} /> {btnLabel}</>

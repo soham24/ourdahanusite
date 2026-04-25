@@ -100,10 +100,10 @@ export default async function AdminOverviewPage() {
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <MessageCircle size={18} className="text-warli-terra" />
+            <MessageCircle size={18} className="text-brand" />
             Recent Forum Threads
           </h2>
-          <Link href="/admin/forum" className="text-sm text-warli-terra hover:text-warli-deep font-medium">
+          <Link href="/admin/forum" className="text-sm text-brand hover:text-brand-strong font-medium">
             Manage all &rarr;
           </Link>
         </div>

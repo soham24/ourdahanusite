@@ -44,7 +44,7 @@ export default function LocationPicker({ defaultMapUrl }: LocationPickerProps) {
           value={url}
           onChange={e => setUrl(e.target.value)}
           placeholder="Paste Google Maps link (place, share link, etc.)…"
-          className="w-full px-3 py-2.5 text-sm border border-warli-sand rounded-xl bg-white focus:outline-none focus:border-warli-terra focus:ring-1 focus:ring-warli-terra/30 placeholder-gray-400"
+          className="w-full px-3 py-2.5 text-sm border border-border rounded-xl bg-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30 placeholder-gray-400"
           autoComplete="off"
         />
       )}
@@ -57,3 +57,4 @@ export default function LocationPicker({ defaultMapUrl }: LocationPickerProps) {
     </div>
   )
 }
+

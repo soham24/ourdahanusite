@@ -22,7 +22,7 @@ function formatDate(d: string) {
 function FlowBadge({ flow }: { flow: Order['payment_flow'] }) {
   if (flow === 'owner_razorpay') {
     return (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-warli-light text-warli-deep">
+      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-soft text-brand-strong">
         <CreditCard size={10} />
         Direct payment
       </span>
@@ -108,7 +108,7 @@ function OrderRow({
   }
 
   return (
-    <div className="border border-gray-100 rounded-2xl p-4 space-y-3 hover:border-warli-sand transition-colors">
+    <div className="border border-gray-100 rounded-2xl p-4 space-y-3 hover:border-border transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -120,7 +120,7 @@ function OrderRow({
           <p className="text-xs text-gray-400">{formatDate(order.created_at)}</p>
         </div>
         <div className="text-right flex-shrink-0">
-          <p className="font-bold text-warli-terra">
+          <p className="font-bold text-brand">
             ₹{Number(order.amount_total).toLocaleString('en-IN')}
           </p>
           <p className="text-xs text-gray-400">
@@ -140,7 +140,7 @@ function OrderRow({
         </div>
         <div>
           <span className="text-gray-400">Phone: </span>
-          <a href={`tel:${order.buyer_phone}`} className="text-warli-terra hover:underline">
+          <a href={`tel:${order.buyer_phone}`} className="text-brand hover:underline">
             {order.buyer_phone}
           </a>
         </div>
@@ -249,8 +249,8 @@ export default function MyOrdersPage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 bg-warli-light rounded-xl flex items-center justify-center">
-          <ShoppingBag size={20} className="text-warli-terra" />
+        <div className="w-10 h-10 bg-surface-soft rounded-xl flex items-center justify-center">
+          <ShoppingBag size={20} className="text-brand" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
@@ -265,8 +265,8 @@ export default function MyOrdersPage() {
         </div>
       ) : orders.length === 0 ? (
         <div className="text-center py-20 bg-white border border-gray-100 rounded-2xl">
-          <div className="w-16 h-16 bg-warli-light rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Package size={28} className="text-warli-terra" />
+          <div className="w-16 h-16 bg-surface-soft rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Package size={28} className="text-brand" />
           </div>
           <h3 className="font-semibold text-gray-900 mb-2">No orders yet</h3>
           <p className="text-sm text-gray-400 max-w-xs mx-auto">
@@ -290,7 +290,7 @@ export default function MyOrdersPage() {
               <div className="text-xs text-gray-400">Fulfilled</div>
             </div>
             <div className="bg-white border border-gray-100 rounded-xl p-3 text-center">
-              <div className="text-xl font-bold text-warli-terra">
+              <div className="text-xl font-bold text-brand">
                 ₹{totalEarnings.toLocaleString('en-IN')}
               </div>
               <div className="text-xs text-gray-400">Earned</div>

@@ -69,7 +69,7 @@ export default async function AdminFeaturedPage({
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Sparkles size={22} className="text-chikoo-gold" />
+          <Sparkles size={22} className="text-gold" />
           Featured Spotlight
         </h1>
         <p className="text-gray-500 text-sm mt-1">
@@ -86,7 +86,7 @@ export default async function AdminFeaturedPage({
         {currentListing ? (
           <div className="flex items-start gap-4">
             {/* Thumbnail */}
-            <div className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-warli-light">
+            <div className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-surface-soft">
               {currentListing.image_url ? (
                 <Image
                   src={currentListing.image_url}
@@ -115,10 +115,10 @@ export default async function AdminFeaturedPage({
                 )}
               </div>
               <p className="text-xs text-gray-500 mt-0.5">{currentListing.category}</p>
-              <p className="text-xs font-mono text-warli-terra mt-1">{currentSubdomain}.ourdahanu.in</p>
+              <p className="text-xs font-mono text-brand mt-1">{currentSubdomain}.ourdahanu.in</p>
               {currentListing.address && (
                 <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
-                  <MapPin size={10} className="text-warli-terra" />
+                  <MapPin size={10} className="text-brand" />
                   {currentListing.address}
                 </p>
               )}
@@ -134,7 +134,7 @@ export default async function AdminFeaturedPage({
               href={`https://${currentSubdomain}.ourdahanu.in`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-shrink-0 text-xs font-semibold text-warli-terra hover:text-warli-deep border border-warli-terra/30 rounded-xl px-3 py-2 hover:bg-warli-light transition-colors"
+              className="flex-shrink-0 text-xs font-semibold text-brand hover:text-brand-strong border border-brand/30 rounded-xl px-3 py-2 hover:bg-surface-soft transition-colors"
             >
               View →
             </a>
@@ -143,7 +143,7 @@ export default async function AdminFeaturedPage({
           <div className="text-sm text-gray-400 bg-gray-50 rounded-xl p-6 text-center">
             No listing is currently featured.{' '}
             {currentSubdomain && (
-              <span>Subdomain <span className="font-mono text-warli-terra">{currentSubdomain}</span> not found or not approved.</span>
+              <span>Subdomain <span className="font-mono text-brand">{currentSubdomain}</span> not found or not approved.</span>
             )}
           </div>
         )}
@@ -157,7 +157,7 @@ export default async function AdminFeaturedPage({
           const sub = fd.get('subdomain') as string
           await setFeaturedListing(sub)
         }} className="flex gap-3">
-          <div className="flex-1 flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-warli-terra transition-colors">
+          <div className="flex-1 flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-brand transition-colors">
             <span className="px-3 text-xs text-gray-400 font-mono whitespace-nowrap bg-gray-50 border-r border-gray-200 py-3">subdomain</span>
             <input
               type="text"
@@ -171,7 +171,7 @@ export default async function AdminFeaturedPage({
           </div>
           <button
             type="submit"
-            className="px-5 py-3 rounded-xl text-sm font-bold text-white bg-warli-terra hover:bg-warli-deep transition-colors whitespace-nowrap"
+            className="px-5 py-3 rounded-xl text-sm font-bold text-white bg-brand hover:bg-brand-strong transition-colors whitespace-nowrap"
           >
             Set as Featured
           </button>
@@ -190,7 +190,7 @@ export default async function AdminFeaturedPage({
             name="q"
             defaultValue={q ?? ''}
             placeholder="Search by business name…"
-            className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-warli-terra transition-colors"
+            className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand transition-colors"
           />
           <button
             type="submit"
@@ -210,11 +210,11 @@ export default async function AdminFeaturedPage({
               <div key={listing.id}
                 className={`flex items-center gap-4 p-4 rounded-2xl border transition-colors ${
                   listing.subdomain === currentSubdomain
-                    ? 'border-chikoo-gold bg-amber-50'
+                    ? 'border-gold bg-amber-50'
                     : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
                 }`}>
                 {/* Thumbnail */}
-                <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-warli-light">
+                <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-surface-soft">
                   {listing.image_url ? (
                     <Image
                       src={listing.image_url}
@@ -238,13 +238,13 @@ export default async function AdminFeaturedPage({
                       <span className="text-[10px] text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full font-medium">Not approved</span>
                     )}
                     {listing.subdomain === currentSubdomain && (
-                      <span className="text-[10px] font-bold text-chikoo-gold bg-amber-100 px-2 py-0.5 rounded-full">⭐ Current</span>
+                      <span className="text-[10px] font-bold text-gold bg-amber-100 px-2 py-0.5 rounded-full">⭐ Current</span>
                     )}
                   </div>
                   <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
                     <span>{listing.category}</span>
                     {listing.subdomain && (
-                      <span className="font-mono text-warli-terra/70">{listing.subdomain}.ourdahanu.in</span>
+                      <span className="font-mono text-brand/70">{listing.subdomain}.ourdahanu.in</span>
                     )}
                     {(listing.rating ?? 0) > 0 && (
                       <span className="flex items-center gap-0.5">
@@ -263,14 +263,14 @@ export default async function AdminFeaturedPage({
                   }}>
                     <button
                       type="submit"
-                      className="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold bg-chikoo-gold hover:bg-chikoo-amber transition-colors"
+                      className="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold bg-gold hover:bg-gold-light transition-colors"
                       style={{ color: '#3D1A08' }}
                     >
                       ⭐ Feature
                     </button>
                   </form>
                 ) : (
-                  <span className="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-chikoo-gold border border-chikoo-gold/40 bg-amber-50">
+                  <span className="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-gold border border-gold/40 bg-amber-50">
                     Featured
                   </span>
                 )}

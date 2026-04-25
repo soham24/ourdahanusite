@@ -158,7 +158,7 @@ export default function PreferencesForm({ initial }: PreferencesFormProps) {
           type="button"
           onClick={handleSaveChannels}
           disabled={savingChannels}
-          className="inline-flex items-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-60"
+          className="inline-flex items-center gap-2 bg-brand hover:bg-brand-strong text-bg px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-60"
         >
           {savingChannels ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           Save channels
@@ -190,7 +190,7 @@ export default function PreferencesForm({ initial }: PreferencesFormProps) {
                     checked={!muted}
                     disabled={busy}
                     onChange={(e) => toggleMute(type, !e.target.checked)}
-                    className="rounded border-gray-300 text-warli-terra focus:ring-warli-terra"
+                    className="rounded border-gray-300 text-brand focus:ring-brand"
                   />
                   {muted ? 'Muted' : 'On'}
                 </label>
@@ -224,13 +224,13 @@ function ChannelToggle({
         disabled
           ? 'border-gray-100 bg-gray-50 cursor-not-allowed'
           : checked
-            ? 'border-warli-terra/40 bg-warli-light/50'
-            : 'border-gray-100 bg-white hover:border-warli-sand'
+            ? 'border-brand/40 bg-surface-soft/50'
+            : 'border-gray-100 bg-white hover:border-border'
       }`}
     >
       <div
         className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-          checked ? 'bg-warli-terra text-warli-cream' : 'bg-gray-100 text-gray-500'
+          checked ? 'bg-brand text-bg' : 'bg-gray-100 text-gray-500'
         }`}
       >
         {icon}
@@ -243,7 +243,7 @@ function ChannelToggle({
             checked={checked}
             disabled={disabled}
             onChange={(e) => onChange(e.target.checked)}
-            className="rounded border-gray-300 text-warli-terra focus:ring-warli-terra"
+            className="rounded border-gray-300 text-brand focus:ring-brand"
           />
         </div>
         <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>

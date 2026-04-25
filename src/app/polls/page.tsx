@@ -46,15 +46,15 @@ export default async function PollsPage() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <Link href="/" className="text-gray-400 hover:text-warli-terra transition-colors">
+          <Link href="/" className="text-gray-400 hover:text-brand transition-colors">
             <ArrowLeft size={18} />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-chikoo-bark flex items-center gap-2">
-              <BarChart3 size={22} className="text-warli-terra" />
+            <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
+              <BarChart3 size={22} className="text-brand" />
               Community Polls
             </h1>
-            <p className="text-sm text-chikoo-brown mt-0.5">
+            <p className="text-sm text-ink-2 mt-0.5">
               Vote and see what Dahanu thinks
             </p>
           </div>
@@ -70,7 +70,7 @@ export default async function PollsPage() {
             {/* Active polls */}
             {activePolls.length > 0 && (
               <div className="space-y-4">
-                <h2 className="text-xs font-bold uppercase tracking-wide text-warli-terra">
+                <h2 className="text-xs font-bold uppercase tracking-wide text-brand">
                   Active Polls
                 </h2>
                 {activePolls.map(poll => (
@@ -108,3 +108,4 @@ export default async function PollsPage() {
     </div>
   )
 }
+

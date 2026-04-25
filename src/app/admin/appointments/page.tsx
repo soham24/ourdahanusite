@@ -159,7 +159,7 @@ export default async function AdminAppointmentsPage() {
 
   return (
     <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[30px] border border-[#ecd8c5] bg-gradient-to-br from-[#34160a] via-[#4b2210] to-[#8a4b26] px-6 py-7 text-warli-cream shadow-[0_24px_60px_rgba(61,26,8,0.22)] lg:px-8">
+      <section className="relative overflow-hidden rounded-[30px] border border-[#ecd8c5] bg-gradient-to-br from-[#34160a] via-[#4b2210] to-[#8a4b26] px-6 py-7 text-bg shadow-[0_24px_60px_rgba(61,26,8,0.22)] lg:px-8">
         <div className="absolute -right-16 top-0 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute left-0 top-16 h-40 w-40 rounded-full bg-[#d28b5f]/30 blur-3xl" />
 
@@ -194,7 +194,7 @@ export default async function AdminAppointmentsPage() {
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff3e7] text-warli-terra">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff3e7] text-brand">
               <Store size={20} />
             </span>
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Enabled</span>
@@ -240,7 +240,7 @@ export default async function AdminAppointmentsPage() {
       <section className="grid gap-6 xl:grid-cols-[1.05fr_1.4fr]">
         <div className="rounded-[28px] border border-[#eee2d7] bg-white p-6 shadow-sm">
           <div className="flex items-center gap-2">
-            <Clock3 size={18} className="text-warli-terra" />
+            <Clock3 size={18} className="text-brand" />
             <h2 className="text-lg font-bold text-[#2d160b]">Upcoming Appointments</h2>
           </div>
           <p className="mt-2 text-sm text-[#7c6253]">
@@ -279,7 +279,7 @@ export default async function AdminAppointmentsPage() {
 
         <div className="rounded-[28px] border border-[#eee2d7] bg-white p-6 shadow-sm">
           <div className="flex items-center gap-2">
-            <Settings size={18} className="text-warli-terra" />
+            <Settings size={18} className="text-brand" />
             <h2 className="text-lg font-bold text-[#2d160b]">Per-Listing Controls</h2>
           </div>
           <p className="mt-2 text-sm text-[#7c6253]">
@@ -313,7 +313,7 @@ export default async function AdminAppointmentsPage() {
                           >
                             {listing.isEnabled ? 'Live' : 'Disabled'}
                           </span>
-                          <span className="inline-flex items-center rounded-full bg-[#f7eee5] px-3 py-1 text-xs font-semibold text-warli-terra">
+                          <span className="inline-flex items-center rounded-full bg-[#f7eee5] px-3 py-1 text-xs font-semibold text-brand">
                             {formatFee(listing.fee)}
                           </span>
                         </div>
@@ -328,7 +328,7 @@ export default async function AdminAppointmentsPage() {
                             type="checkbox"
                             name="appointments_enabled"
                             defaultChecked={listing.isEnabled}
-                            className="rounded border-gray-300 text-warli-terra focus:ring-warli-terra"
+                            className="rounded border-gray-300 text-brand focus:ring-brand"
                           />
                           Enable appointments
                         </label>
@@ -343,13 +343,13 @@ export default async function AdminAppointmentsPage() {
                             step="0.01"
                             min="0"
                             defaultValue={listing.fee}
-                            className="w-full rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-warli-terra focus:outline-none"
+                            className="w-full rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand focus:outline-none"
                           />
                         </div>
 
                         <button
                           type="submit"
-                          className="inline-flex items-center justify-center rounded-xl bg-warli-terra px-4 py-2.5 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep"
+                          className="inline-flex items-center justify-center rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong"
                         >
                           Save
                         </button>

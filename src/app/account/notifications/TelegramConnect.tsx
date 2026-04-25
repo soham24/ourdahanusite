@@ -170,7 +170,7 @@ export default function TelegramConnect({
       </button>
 
       {link && (
-        <div className="rounded-xl border border-warli-sand/60 bg-warli-light/40 p-4 space-y-3">
+        <div className="rounded-xl border border-border/60 bg-surface-soft/40 p-4 space-y-3">
           <p className="text-sm text-gray-700">
             Link valid {formatExpiry(link.expiresAt)}. If Telegram did not open automatically, use
             the link below.
@@ -180,7 +180,7 @@ export default function TelegramConnect({
               href={link.deeplink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 bg-white border border-warli-sand text-chikoo-brown hover:border-warli-terra hover:text-warli-terra px-3 py-2 rounded-lg text-sm font-semibold"
+              className="inline-flex items-center justify-center gap-2 bg-white border border-border text-ink-2 hover:border-brand hover:text-brand px-3 py-2 rounded-lg text-sm font-semibold"
             >
               <ExternalLink size={14} />
               Open t.me/{link.botUsername}
@@ -188,7 +188,7 @@ export default function TelegramConnect({
             <button
               type="button"
               onClick={handleCopy}
-              className="inline-flex items-center justify-center gap-2 bg-white border border-warli-sand text-chikoo-brown hover:border-warli-terra hover:text-warli-terra px-3 py-2 rounded-lg text-sm font-semibold"
+              className="inline-flex items-center justify-center gap-2 bg-white border border-border text-ink-2 hover:border-brand hover:text-brand px-3 py-2 rounded-lg text-sm font-semibold"
             >
               <Copy size={14} />
               {copied ? 'Copied!' : 'Copy link'}
@@ -211,3 +211,4 @@ export default function TelegramConnect({
     </div>
   )
 }
+

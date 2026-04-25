@@ -10,7 +10,7 @@ export default function JobsLoading() {
       </div>
 
       {/* Job list skeleton */}
-      <div className="rounded-xl border border-warli-sand/30 bg-white/60 divide-y divide-warli-sand/20">
+      <div className="rounded-xl border border-border/30 bg-white/60 divide-y divide-border/20">
         {Array.from({ length: 5 }).map((_, i) => (
           <SkeletonRow key={i} />
         ))}

@@ -40,7 +40,7 @@ export default function AboutPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Hero */}
-      <div className="bg-gradient-to-br from-chikoo-bark to-warli-terra rounded-3xl p-8 md:p-12 text-white mb-12">
+      <div className="bg-gradient-to-br from-ink to-brand rounded-3xl p-8 md:p-12 text-white mb-12">
         <div className="max-w-3xl">
           <h1 className="text-3xl md:text-5xl font-bold mb-4">About Dahanu</h1>
           <p className="text-green-100 text-lg leading-relaxed">
@@ -72,9 +72,9 @@ export default function AboutPage() {
           { label: 'Govt Services', anchor: '#govt', icon: '🏛️' },
         ].map(item => (
           <a key={item.label} href={item.anchor}
-            className="bg-white border border-gray-100 hover:border-warli-sand rounded-xl p-4 text-center hover:shadow-md transition-all group">
+            className="bg-white border border-gray-100 hover:border-border rounded-xl p-4 text-center hover:shadow-md transition-all group">
             <div className="text-3xl mb-2">{item.icon}</div>
-            <div className="font-semibold text-gray-700 group-hover:text-warli-terra text-sm">{item.label}</div>
+            <div className="font-semibold text-gray-700 group-hover:text-brand text-sm">{item.label}</div>
           </a>
         ))}
       </div>
@@ -85,7 +85,7 @@ export default function AboutPage() {
         <p className="text-gray-500 mb-6">Explore the natural beauty, beaches, and cultural heritage of Dahanu</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {touristPlaces.map(place => (
-            <div key={place.name} className="bg-white border border-gray-100 hover:border-warli-sand hover:shadow-md rounded-2xl p-5 transition-all">
+            <div key={place.name} className="bg-white border border-gray-100 hover:border-border hover:shadow-md rounded-2xl p-5 transition-all">
               <div className="text-4xl mb-3">{place.icon}</div>
               <h3 className="font-bold text-gray-900 mb-2">{place.name}</h3>
               <p className="text-sm text-gray-500">{place.desc}</p>
@@ -116,7 +116,7 @@ export default function AboutPage() {
           </div>
           <div className="bg-green-50 border border-green-100 rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-3">
-              <MapPin size={20} className="text-warli-terra" />
+              <MapPin size={20} className="text-brand" />
               <h3 className="font-bold text-gray-900">By Road</h3>
             </div>
             <p className="text-sm text-gray-600">NH 48 (Mumbai-Ahmedabad highway) passes through Dahanu. Drive from Mumbai is about 2-2.5 hours (120km).</p>
@@ -169,14 +169,14 @@ export default function AboutPage() {
         <p className="text-gray-500 mb-6">Find the right office for your government documents and services</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {govtServices.map(service => (
-            <div key={service.name} className="bg-white border border-gray-100 hover:border-warli-sand hover:shadow-md rounded-2xl p-5 transition-all">
+            <div key={service.name} className="bg-white border border-gray-100 hover:border-border hover:shadow-md rounded-2xl p-5 transition-all">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h3 className="font-bold text-gray-900">{service.name}</h3>
                   <p className="text-sm text-gray-500 mt-1">{service.service}</p>
                 </div>
                 <a href={`tel:${service.contact}`}
-                  className="flex items-center gap-1 text-warli-terra text-sm font-medium whitespace-nowrap hover:text-warli-deep">
+                  className="flex items-center gap-1 text-brand text-sm font-medium whitespace-nowrap hover:text-brand-strong">
                   <Phone size={13} />
                   {service.contact}
                 </a>

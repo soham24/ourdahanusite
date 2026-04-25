@@ -30,8 +30,8 @@ export default async function NotificationsPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-8">
       <header className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-warli-light rounded-xl flex items-center justify-center">
-          <Bell size={20} className="text-warli-terra" />
+        <div className="w-10 h-10 bg-surface-soft rounded-xl flex items-center justify-center">
+          <Bell size={20} className="text-brand" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
@@ -67,7 +67,7 @@ export default async function NotificationsPage() {
       </section>
 
       <p className="text-xs text-gray-400 text-center">
-        Need help? <Link href="/contact" className="text-warli-terra hover:underline">Contact support</Link>
+        Need help? <Link href="/contact" className="text-brand hover:underline">Contact support</Link>
       </p>
     </div>
   )

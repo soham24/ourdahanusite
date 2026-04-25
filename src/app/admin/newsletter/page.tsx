@@ -30,7 +30,7 @@ export default function AdminNewsletterPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-8">
-        <div className="flex items-center gap-2 text-warli-terra text-sm font-medium mb-1">
+        <div className="flex items-center gap-2 text-brand text-sm font-medium mb-1">
           <Mail size={16} />
           Newsletter
         </div>
@@ -41,7 +41,7 @@ export default function AdminNewsletterPage() {
       {/* Subscriber count card */}
       <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-8 flex items-center gap-4">
         <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
-          <Users size={22} className="text-warli-terra" />
+          <Users size={22} className="text-brand" />
         </div>
         <div>
           <div className="text-2xl font-bold text-gray-900">
@@ -85,7 +85,7 @@ export default function AdminNewsletterPage() {
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="e.g. Dahanu Chikoo Festival is here! 🍂"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
           />
         </div>
 
@@ -102,7 +102,7 @@ export default function AdminNewsletterPage() {
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder={`Hello neighbours!\n\nWrite your newsletter here. Keep it friendly and relevant to the Dahanu community.\n\n- Local news\n- Upcoming events\n- Seasonal highlights\n\nThanks,\nThe OurDahanu Team 🌴`}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm resize-none font-mono"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none font-mono"
           />
         </div>
 
@@ -122,7 +122,7 @@ export default function AdminNewsletterPage() {
         <button
           type="submit"
           disabled={pending || !subject || !body}
-          className="w-full bg-warli-terra hover:bg-warli-deep disabled:opacity-50 disabled:cursor-not-allowed text-warli-cream font-semibold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2"
+          className="w-full bg-brand hover:bg-brand-strong disabled:opacity-50 disabled:cursor-not-allowed text-bg font-semibold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2"
         >
           {pending ? (
             <>

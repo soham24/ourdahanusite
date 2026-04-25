@@ -143,8 +143,8 @@ async function JobDetailContent({ params }: { params: Promise<{ id: string }> })
         {/* Header */}
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-xl bg-warli-light flex items-center justify-center flex-shrink-0">
-              <Briefcase size={26} className="text-warli-terra" />
+            <div className="w-14 h-14 rounded-xl bg-surface-soft flex items-center justify-center flex-shrink-0">
+              <Briefcase size={26} className="text-brand" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap gap-1.5 mb-2">
@@ -166,7 +166,7 @@ async function JobDetailContent({ params }: { params: Promise<{ id: string }> })
           {/* Meta row */}
           <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-500">
             {job.location && <span className="flex items-center gap-1.5"><MapPin size={14} />{job.location}</span>}
-            {job.salary   && <span className="font-semibold text-warli-terra">₹ {job.salary}</span>}
+            {job.salary   && <span className="font-semibold text-brand">₹ {job.salary}</span>}
             {job.positions > 1 && <span className="flex items-center gap-1.5"><Users size={14} />{job.positions} positions</span>}
             <span className="flex items-center gap-1.5"><Clock size={14} />Posted {formatDate(job.created_at)}</span>
           </div>
@@ -188,12 +188,12 @@ async function JobDetailContent({ params }: { params: Promise<{ id: string }> })
 
           {/* How to apply */}
           {(job.contact_email || job.contact_phone) && (
-            <div className="bg-warli-light border border-warli-sand rounded-xl p-5">
+            <div className="bg-surface-soft border border-border rounded-xl p-5">
               <h2 className="font-bold text-gray-800 mb-3">How to Apply</h2>
               <div className="space-y-2">
                 {job.contact_email && (
                   <a href={`mailto:${job.contact_email}`}
-                    className="flex items-center gap-2 text-sm text-warli-terra hover:underline font-medium">
+                    className="flex items-center gap-2 text-sm text-brand hover:underline font-medium">
                     <Mail size={15} />{job.contact_email}
                   </a>
                 )}

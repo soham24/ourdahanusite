@@ -93,7 +93,7 @@ export default function QASection({ listingId, subdomain, questions: initial, is
                 }
               >
                 <div className="flex min-w-0 flex-1 items-start gap-2">
-                  <MessageCircleQuestion size={16} className="mt-0.5 flex-shrink-0 text-warli-terra" />
+                  <MessageCircleQuestion size={16} className="mt-0.5 flex-shrink-0 text-brand" />
                   <div>
                     <p className="text-sm font-medium text-gray-800">{question.question}</p>
                     <p className="mt-0.5 text-xs text-gray-400">{formatDate(question.created_at)}</p>
@@ -109,8 +109,8 @@ export default function QASection({ listingId, subdomain, questions: initial, is
               {expanded[question.id] ? (
                 <div className="space-y-3 px-4 pb-4">
                   {question.answer ? (
-                    <div className="ml-6 rounded-xl border border-warli-sand bg-warli-light p-3">
-                      <p className="mb-1 text-xs font-bold text-warli-terra">Owner&apos;s reply</p>
+                    <div className="ml-6 rounded-xl border border-border bg-surface-soft p-3">
+                      <p className="mb-1 text-xs font-bold text-brand">Owner&apos;s reply</p>
                       <p className="text-sm text-gray-700">{question.answer}</p>
                     </div>
                   ) : isOwner ? (
@@ -122,12 +122,12 @@ export default function QASection({ listingId, subdomain, questions: initial, is
                           setAnswerTexts((current) => ({ ...current, [question.id]: event.target.value }))
                         }
                         placeholder="Type your answer..."
-                        className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-warli-terra focus:outline-none"
+                        className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
                       />
                       <button
                         onClick={() => handleAnswer(question.id)}
                         disabled={isPending || !answerTexts[question.id]?.trim()}
-                        className="rounded-xl bg-warli-terra px-3 py-2 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep disabled:opacity-50"
+                        className="rounded-xl bg-brand px-3 py-2 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong disabled:opacity-50"
                       >
                         <Send size={14} />
                       </button>
@@ -151,24 +151,24 @@ export default function QASection({ listingId, subdomain, questions: initial, is
             onKeyDown={(event) => event.key === 'Enter' && handleAsk()}
             placeholder="Ask a question about this business..."
             disabled={isPending}
-            className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-warli-terra focus:outline-none disabled:bg-gray-50 disabled:text-gray-400"
+            className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none disabled:bg-gray-50 disabled:text-gray-400"
           />
           <button
             onClick={handleAsk}
             disabled={isPending || !questionText.trim()}
-            className="rounded-xl bg-warli-terra px-4 py-2.5 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep disabled:opacity-50"
+            className="rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong disabled:opacity-50"
           >
             Ask
           </button>
         </div>
       ) : (
-        <div className="rounded-2xl border border-warli-sand/60 bg-warli-light/60 px-4 py-5 text-center">
+        <div className="rounded-2xl border border-border/60 bg-surface-soft/60 px-4 py-5 text-center">
           <p className="mb-3 text-sm text-gray-600">
             Sign in to ask the business owner a question.
           </p>
           <Link
             href={buildAbsoluteUrl(`/login?next=${encodeURIComponent(`/listings/${listingId}`)}`)}
-            className="inline-flex items-center gap-2 rounded-xl bg-warli-terra px-4 py-2.5 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong"
           >
             Sign In to Ask
           </Link>

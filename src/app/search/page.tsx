@@ -34,11 +34,11 @@ function SearchBar({ query }: { query: string }) {
         defaultValue={query}
         placeholder="Search events, businesses, news, jobs in Dahanu..."
         autoFocus
-        className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:border-warli-terra bg-white text-base shadow-sm"
+        className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:border-brand bg-white text-base shadow-sm"
       />
       <button
         type="submit"
-        className="absolute right-3 top-1/2 -translate-y-1/2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-5 py-2 rounded-xl transition-colors text-sm"
+        className="absolute right-3 top-1/2 -translate-y-1/2 bg-brand hover:bg-brand-strong text-bg font-semibold px-5 py-2 rounded-xl transition-colors text-sm"
       >
         Search
       </button>
@@ -123,7 +123,7 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
               <Link
                 key={suggestion}
                 href={`/search?q=${encodeURIComponent(suggestion)}`}
-                className="px-4 py-2 bg-gray-100 hover:bg-warli-light hover:text-warli-terra text-gray-600 rounded-full text-sm transition-colors"
+                className="px-4 py-2 bg-gray-100 hover:bg-surface-soft hover:text-brand text-gray-600 rounded-full text-sm transition-colors"
               >
                 {suggestion}
               </Link>
@@ -166,10 +166,10 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
                         listing.id as string,
                         (listing.subdomain as string | null) || null,
                       )}
-                      className="flex items-start justify-between gap-4 bg-white border border-gray-100 hover:border-warli-sand hover:shadow-sm rounded-2xl px-5 py-4 transition-all group"
+                      className="flex items-start justify-between gap-4 bg-white border border-gray-100 hover:border-border hover:shadow-sm rounded-2xl px-5 py-4 transition-all group"
                     >
                       <div>
-                        <h3 className="font-semibold text-gray-900 group-hover:text-warli-terra transition-colors text-sm">{listing.name as string}</h3>
+                        <h3 className="font-semibold text-gray-900 group-hover:text-brand transition-colors text-sm">{listing.name as string}</h3>
                         <p className="text-xs text-gray-400 mt-0.5">
                           {listing.category as string}
                           {listing.address ? ` · ${listing.address as string}` : ''}

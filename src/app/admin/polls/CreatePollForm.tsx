@@ -66,7 +66,7 @@ export default function CreatePollForm() {
           required
           defaultValue={state.fields?.title ?? ''}
           placeholder="What should be the next community event?"
-          className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-warli-terra focus:ring-1 focus:ring-warli-terra/30 outline-none transition"
+          className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-brand focus:ring-1 focus:ring-brand/30 outline-none transition"
         />
       </div>
 
@@ -81,7 +81,7 @@ export default function CreatePollForm() {
           rows={5}
           defaultValue={state.fields?.options ?? ''}
           placeholder={"Beach cleanup drive\nFood festival\nTree plantation\nCricket tournament"}
-          className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-warli-terra focus:ring-1 focus:ring-warli-terra/30 outline-none transition resize-none"
+          className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-brand focus:ring-1 focus:ring-brand/30 outline-none transition resize-none"
         />
         <p className="text-xs text-gray-400 mt-1">2-10 options. One per line.</p>
       </div>
@@ -98,7 +98,7 @@ export default function CreatePollForm() {
           required
           defaultValue={state.fields?.ends_at ?? ''}
           onInput={() => syncEndsAtUtcValue(endsAtRef.current, endsAtUtcRef.current)}
-          className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-warli-terra focus:ring-1 focus:ring-warli-terra/30 outline-none transition"
+          className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-brand focus:ring-1 focus:ring-brand/30 outline-none transition"
         />
         <input ref={endsAtUtcRef} type="hidden" name="ends_at_utc" />
       </div>
@@ -106,7 +106,7 @@ export default function CreatePollForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full flex items-center justify-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-bold px-5 py-3 rounded-xl transition-colors text-sm disabled:opacity-60"
+        className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-strong text-bg font-bold px-5 py-3 rounded-xl transition-colors text-sm disabled:opacity-60"
       >
         <Plus size={16} /> {isPending ? 'Creating…' : 'Create Poll'}
       </button>

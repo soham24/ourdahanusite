@@ -60,12 +60,12 @@ export default async function AdminPollsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-8">
-        <Link href="/admin" className="text-sm text-gray-500 hover:text-warli-terra transition-colors">
+        <Link href="/admin" className="text-sm text-gray-500 hover:text-brand transition-colors">
           <ArrowLeft size={15} />
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <BarChart3 size={22} className="text-warli-terra" />
+            <BarChart3 size={22} className="text-brand" />
             Community Polls
           </h1>
           <p className="text-gray-500 text-sm mt-0.5">
@@ -111,7 +111,7 @@ export default async function AdminPollsPage() {
                       </span>
                       <Link
                         href={`/polls/${poll.id}`}
-                        className="font-medium text-warli-terra hover:underline"
+                        className="font-medium text-brand hover:underline"
                       >
                         Standalone page
                       </Link>

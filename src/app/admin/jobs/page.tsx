@@ -129,7 +129,7 @@ export default async function AdminJobsPage({
                   <p className="text-sm text-gray-500 mt-0.5">{job.company}</p>
                   <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-400">
                     {job.location && <span className="flex items-center gap-1"><MapPin size={11} />{job.location}</span>}
-                    {job.salary   && <span className="font-medium text-warli-terra">₹ {job.salary}</span>}
+                    {job.salary   && <span className="font-medium text-brand">₹ {job.salary}</span>}
                     {job.positions > 1 && <span className="flex items-center gap-1"><Users size={11} />{job.positions} positions</span>}
                     <span className="flex items-center gap-1"><Clock size={11} />{formatDate(job.created_at)}</span>
                   </div>
@@ -146,7 +146,7 @@ export default async function AdminJobsPage({
                         <input type="hidden" name="table" value="jobs" />
                         <input type="hidden" name="id" value={job.id} />
                         <button type="submit"
-                          className="inline-flex items-center gap-1 bg-warli-terra hover:bg-warli-deep text-warli-cream text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
+                          className="inline-flex items-center gap-1 bg-brand hover:bg-brand-strong text-bg text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
                           <CheckCircle size={13} /> Approve
                         </button>
                       </form>

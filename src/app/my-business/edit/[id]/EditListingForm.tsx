@@ -325,7 +325,7 @@ export default function EditListingForm({ listing }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <Link href="/my-business" className="text-gray-400 hover:text-warli-terra transition-colors">
+          <Link href="/my-business" className="text-gray-400 hover:text-brand transition-colors">
             <ArrowLeft size={20} />
           </Link>
           <div>
@@ -338,7 +338,7 @@ export default function EditListingForm({ listing }: Props) {
             href={getListingHref(listing.id as string, subdomain)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold bg-warli-light border border-warli-sand text-warli-terra px-3 py-1.5 rounded-full hover:bg-warli-sand transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold bg-surface-soft border border-border text-brand px-3 py-1.5 rounded-full hover:bg-border transition-colors"
           >
             <Globe size={12} />
             {subdomain}.ourdahanu.in ↗
@@ -363,7 +363,7 @@ export default function EditListingForm({ listing }: Props) {
             onClick={() => setActiveTab(tab.id)}
             className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-all ${
               activeTab === tab.id
-                ? 'bg-white text-warli-terra shadow-sm'
+                ? 'bg-white text-brand shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -382,7 +382,7 @@ export default function EditListingForm({ listing }: Props) {
                 Business Name <span className="text-red-500">*</span>
               </label>
               <input type="text" name="name" required defaultValue={String(listing.name || '')}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
             </div>
 
             <div>
@@ -392,14 +392,14 @@ export default function EditListingForm({ listing }: Props) {
               <input type="text" name="tagline" defaultValue={String(listing.tagline || '')}
                 placeholder="e.g. Dahanu's freshest homemade food, delivered daily"
                 maxLength={100}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Category <span className="text-red-500">*</span></label>
               <select name="category" required defaultValue={String(listing.category || '')}
                 onChange={e => setCategory(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm bg-white">
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white">
                 {LISTING_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
@@ -408,17 +408,17 @@ export default function EditListingForm({ listing }: Props) {
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">About / Description</label>
               <textarea name="description" rows={5} defaultValue={String(listing.description || '')}
                 placeholder="Tell customers about your business, what makes you special, your story..."
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm resize-none" />
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none" />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <span className="flex items-center gap-1.5"><Tag size={14} className="text-warli-terra" /> Keywords / Tags</span>
+                <span className="flex items-center gap-1.5"><Tag size={14} className="text-brand" /> Keywords / Tags</span>
                 <span className="text-xs text-gray-400 font-normal ml-6">Help customers find you (e.g. vegan, delivery, 24h)</span>
               </label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {tags.map(t => (
-                  <span key={t} className="inline-flex items-center gap-1 bg-warli-light border border-warli-sand text-warli-terra text-xs px-2.5 py-1 rounded-full">
+                  <span key={t} className="inline-flex items-center gap-1 bg-surface-soft border border-border text-brand text-xs px-2.5 py-1 rounded-full">
                     {t}
                     <button type="button" onClick={() => removeTag(t)} className="hover:text-red-500 ml-0.5">×</button>
                   </span>
@@ -431,10 +431,10 @@ export default function EditListingForm({ listing }: Props) {
                   onChange={e => setTagInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())}
                   placeholder="Add a tag..."
-                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm"
+                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
                 />
                 <button type="button" onClick={addTag}
-                  className="px-4 py-2.5 bg-warli-light border border-warli-sand text-warli-terra text-sm font-semibold rounded-xl hover:bg-warli-sand transition-colors">
+                  className="px-4 py-2.5 bg-surface-soft border border-border text-brand text-sm font-semibold rounded-xl hover:bg-border transition-colors">
                   Add
                 </button>
               </div>
@@ -443,7 +443,7 @@ export default function EditListingForm({ listing }: Props) {
                   <span className="text-xs text-gray-400 mr-1">Suggestions:</span>
                   {SUGGESTED_TAGS[category].filter(s => !tags.includes(s)).map(s => (
                     <button key={s} type="button" onClick={() => setTags(tgs => [...tgs, s])}
-                      className="text-xs bg-gray-50 border border-gray-200 text-gray-500 hover:bg-warli-light hover:border-warli-sand hover:text-warli-terra px-2 py-0.5 rounded-full transition-colors">
+                      className="text-xs bg-gray-50 border border-gray-200 text-gray-500 hover:bg-surface-soft hover:border-border hover:text-brand px-2 py-0.5 rounded-full transition-colors">
                       + {s}
                     </button>
                   ))}
@@ -453,11 +453,11 @@ export default function EditListingForm({ listing }: Props) {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                <span className="flex items-center gap-1.5"><Clock size={14} className="text-warli-terra" /> Opening Hours</span>
+                <span className="flex items-center gap-1.5"><Clock size={14} className="text-brand" /> Opening Hours</span>
               </label>
               <textarea name="hours" rows={3} defaultValue={String(listing.hours || '')}
                 placeholder={'Mon–Sat: 9am – 8pm\nSun: 10am – 6pm\nHolidays: Closed'}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm resize-none font-mono text-xs" />
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none font-mono text-xs" />
               <p className="text-xs text-gray-400 mt-1">Format: Day: Open – Close. One line per day/group.</p>
             </div>
         </div>
@@ -471,7 +471,7 @@ export default function EditListingForm({ listing }: Props) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  <span className="flex items-center gap-1.5"><Phone size={13} className="text-warli-terra" /> Phone / Call</span>
+                  <span className="flex items-center gap-1.5"><Phone size={13} className="text-brand" /> Phone / Call</span>
                 </label>
                 <PhoneInput name="phone" defaultValue={String(listing.phone || '')} />
               </div>
@@ -488,11 +488,11 @@ export default function EditListingForm({ listing }: Props) {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                <span className="flex items-center gap-1.5"><MapPin size={13} className="text-warli-terra" /> Address</span>
+                <span className="flex items-center gap-1.5"><MapPin size={13} className="text-brand" /> Address</span>
               </label>
               <input type="text" name="address" defaultValue={String(listing.address || '')}
                 placeholder="e.g. Main Market, Dahanu Road, Palghar - 401602"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm mb-3" />
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm mb-3" />
               <LocationPicker
                 defaultMapUrl={listing.map_url ? String(listing.map_url) : null}
               />
@@ -500,12 +500,12 @@ export default function EditListingForm({ listing }: Props) {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                <span className="flex items-center gap-1.5"><Globe size={13} className="text-warli-terra" /> Website</span>
+                <span className="flex items-center gap-1.5"><Globe size={13} className="text-brand" /> Website</span>
               </label>
               <input type="url" name="website" defaultValue={String(listing.website || '')}
                 onBlur={e => { e.target.value = normalizeOptionalUrl(e.target.value) }}
                 placeholder="https://yourbusiness.com"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -513,7 +513,7 @@ export default function EditListingForm({ listing }: Props) {
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                   <span className="flex items-center gap-1.5"><AtSign size={13} className="text-pink-500" /> Instagram</span>
                 </label>
-                <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-warli-terra">
+                <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-brand">
                   <span className="px-3 text-gray-400 text-sm border-r border-gray-200 bg-gray-50 py-3">@</span>
                   <input type="text" name="instagram" defaultValue={String(listing.instagram || '')}
                     placeholder="yourbusiness"
@@ -527,7 +527,7 @@ export default function EditListingForm({ listing }: Props) {
                 </label>
                 <input type="url" name="facebook" defaultValue={String(listing.facebook || '')}
                   placeholder="https://facebook.com/yourbusiness"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
               </div>
             </div>
 
@@ -535,7 +535,7 @@ export default function EditListingForm({ listing }: Props) {
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">UPI ID</label>
               <input type="text" name="upi_id" defaultValue={String(listing.upi_id || '')}
                 placeholder="yourname@upi"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
               <p className="text-xs text-gray-400 mt-1">Shown as a payment option on your profile page</p>
             </div>
         </div>
@@ -557,8 +557,8 @@ export default function EditListingForm({ listing }: Props) {
                       onClick={() => setAppointmentSettings((current) => ({ ...current, slot_duration: duration }))}
                       className={`flex-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
                         appointmentSettings.slot_duration === duration
-                          ? 'border-warli-terra bg-warli-light text-warli-terra'
-                          : 'border-gray-200 text-gray-600 hover:border-warli-sand'
+                          ? 'border-brand bg-surface-soft text-brand'
+                          : 'border-gray-200 text-gray-600 hover:border-border'
                       }`}
                     >
                       {duration} min
@@ -580,7 +580,7 @@ export default function EditListingForm({ listing }: Props) {
                       capacity: Math.max(1, Math.min(20, Number.parseInt(event.target.value || '1', 10) || 1)),
                     }))
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
                 />
               </div>
             </div>
@@ -596,7 +596,7 @@ export default function EditListingForm({ listing }: Props) {
                       buffer_minutes: Number.parseInt(event.target.value, 10) || 0,
                     }))
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm bg-white"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white"
                 >
                   {[0, 5, 10, 15].map((minutes) => (
                     <option key={minutes} value={minutes}>
@@ -619,7 +619,7 @@ export default function EditListingForm({ listing }: Props) {
                       advance_days: Math.max(1, Math.min(90, Number.parseInt(event.target.value || '30', 10) || 30)),
                     }))
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
                 />
               </div>
             </div>
@@ -657,14 +657,14 @@ export default function EditListingForm({ listing }: Props) {
                           value={dayWindow?.start ?? '09:00'}
                           onChange={(event) => updateAppointmentDay(key, 'start', event.target.value)}
                           disabled={!isOpen}
-                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm disabled:bg-gray-50 disabled:text-gray-400"
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm disabled:bg-gray-50 disabled:text-gray-400"
                         />
                         <input
                           type="time"
                           value={dayWindow?.end ?? '18:00'}
                           onChange={(event) => updateAppointmentDay(key, 'end', event.target.value)}
                           disabled={!isOpen}
-                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm disabled:bg-gray-50 disabled:text-gray-400"
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm disabled:bg-gray-50 disabled:text-gray-400"
                         />
                       </div>
                     </div>
@@ -682,7 +682,7 @@ export default function EditListingForm({ listing }: Props) {
                 <p className="text-xs text-gray-400 mt-1">Up to {MAX_SERVICE_ITEMS} items per listing.</p>
               </div>
               <button type="button" onClick={addService} disabled={services.length >= MAX_SERVICE_ITEMS}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-warli-terra border border-warli-terra px-3 py-1.5 rounded-xl hover:bg-warli-light transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent">
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand border border-brand px-3 py-1.5 rounded-xl hover:bg-surface-soft transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent">
                 <Plus size={14} /> {services.length >= MAX_SERVICE_ITEMS ? 'Limit Reached' : 'Add Item'}
               </button>
             </div>
@@ -692,7 +692,7 @@ export default function EditListingForm({ listing }: Props) {
                 <Briefcase size={28} className="text-gray-300 mx-auto mb-2" />
                 <p className="text-sm text-gray-400">No services or products added yet</p>
                 <button type="button" onClick={addService}
-                  className="mt-3 text-sm text-warli-terra font-semibold hover:underline">+ Add your first item</button>
+                  className="mt-3 text-sm text-brand font-semibold hover:underline">+ Add your first item</button>
               </div>
             ) : (
               <div className="space-y-4">
@@ -706,7 +706,7 @@ export default function EditListingForm({ listing }: Props) {
                           onClick={() => updateService(i, 'type', 'service')}
                           className={`text-xs font-semibold px-3 py-1 rounded-md transition-all ${
                             (svc.type ?? 'service') === 'service'
-                              ? 'bg-white text-warli-terra shadow-sm'
+                              ? 'bg-white text-brand shadow-sm'
                               : 'text-gray-400 hover:text-gray-600'
                           }`}
                         >
@@ -743,19 +743,19 @@ export default function EditListingForm({ listing }: Props) {
                             <input type="text" value={svc.name}
                               onChange={e => updateService(i, 'name', e.target.value)}
                               placeholder={svc.type === 'product' ? 'Product name (e.g. Organic Chikoo)' : 'Service name (e.g. Home Delivery)'}
-                              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm bg-white" />
+                              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white" />
                           </div>
                           <div>
                             <input type="text" value={svc.price}
                               onChange={e => updateService(i, 'price', e.target.value)}
                               placeholder="Price (e.g. ₹200)"
-                              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm bg-white" />
+                              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white" />
                           </div>
                         </div>
                         <textarea value={svc.desc} rows={2}
                           onChange={e => updateService(i, 'desc', e.target.value)}
                           placeholder={svc.type === 'product' ? 'Short description (e.g. Fresh from the farm, 1kg pack)' : 'Short description of this service...'}
-                          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm resize-none bg-white" />
+                          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none bg-white" />
                       </div>
                     </div>
                   </div>
@@ -779,7 +779,7 @@ export default function EditListingForm({ listing }: Props) {
                   <img
                     src={newProfileUrl || String(listing.image_url)}
                     alt="Profile"
-                    className="w-20 h-20 rounded-2xl object-cover border-2 border-warli-sand flex-shrink-0"
+                    className="w-20 h-20 rounded-2xl object-cover border-2 border-border flex-shrink-0"
                   />
                 )}
                 <div className="flex-1">
@@ -813,13 +813,13 @@ export default function EditListingForm({ listing }: Props) {
             </div>
 
             {listing.subdomain && (
-              <div className="bg-warli-light border border-warli-sand rounded-xl p-4">
-                <p className="text-xs text-chikoo-brown font-medium mb-1">Your personal link</p>
+              <div className="bg-surface-soft border border-border rounded-xl p-4">
+                <p className="text-xs text-ink-2 font-medium mb-1">Your personal link</p>
                 <a
                   href={`https://${listing.subdomain}.ourdahanu.in`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-warli-terra font-bold text-sm hover:underline"
+                  className="text-brand font-bold text-sm hover:underline"
                 >
                   {listing.subdomain}.ourdahanu.in ↗
                 </a>
@@ -834,7 +834,7 @@ export default function EditListingForm({ listing }: Props) {
           <div>
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h3 className="font-semibold text-gray-800 flex items-center gap-1.5"><ImageIcon size={15} className="text-warli-terra" /> Photo Gallery</h3>
+                <h3 className="font-semibold text-gray-800 flex items-center gap-1.5"><ImageIcon size={15} className="text-brand" /> Photo Gallery</h3>
                 <p className="text-xs text-gray-400 mt-0.5">Add up to 10 photos of your business, products, or work</p>
               </div>
               <span className="text-xs text-gray-400">{photos.length}/10</span>
@@ -861,11 +861,11 @@ export default function EditListingForm({ listing }: Props) {
           {/* Video */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
-              <Video size={14} className="text-warli-terra" /> YouTube Video
+              <Video size={14} className="text-brand" /> YouTube Video
             </label>
             <input type="url" name="video_url" defaultValue={String(listing.video_url || '')}
               placeholder="https://youtube.com/watch?v=..."
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
             <p className="text-xs text-gray-400 mt-1">Paste a YouTube video link — shown as an embedded video on your profile</p>
           </div>
 
@@ -905,27 +905,27 @@ export default function EditListingForm({ listing }: Props) {
           {/* Pinned Announcement */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
-              <Megaphone size={14} className="text-warli-terra" /> Pinned Announcement
+              <Megaphone size={14} className="text-brand" /> Pinned Announcement
             </label>
             <textarea name="pinned_announcement" rows={2} defaultValue={String(listing.pinned_announcement || '')}
               placeholder="e.g. We are shifting to a new location next week! Stay tuned."
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm resize-none" />
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none" />
             <p className="text-xs text-gray-400 mt-1">Shown as a highlighted notice at the top of your profile</p>
           </div>
 
           {/* Offer Banner */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
-              <Gift size={14} className="text-warli-terra" /> Current Offer / Deal
+              <Gift size={14} className="text-brand" /> Current Offer / Deal
             </label>
             <input type="text" name="offer_text" defaultValue={String(listing.offer_text || '')}
               placeholder="e.g. 20% off on all services this month!"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm mb-2" />
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm mb-2" />
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Offer expires on (optional)</label>
               <input type="date" name="offer_expires_at"
                 defaultValue={listing.offer_expires_at ? String(listing.offer_expires_at).slice(0, 10) : ''}
-                className="px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+                className="px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
             </div>
           </div>
 
@@ -935,16 +935,16 @@ export default function EditListingForm({ listing }: Props) {
             <input type="number" name="established_year" defaultValue={listing.established_year || ''}
               placeholder="e.g. 2015"
               min="1900" max={new Date().getFullYear()}
-              className="w-40 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+              className="w-40 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
           </div>
 
           {/* Response Time */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              <span className="flex items-center gap-1.5"><Clock size={14} className="text-warli-terra" /> Response Time</span>
+              <span className="flex items-center gap-1.5"><Clock size={14} className="text-brand" /> Response Time</span>
             </label>
             <select name="response_time" defaultValue={String(listing.response_time || '')}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm bg-white">
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white">
               <option value="">Not specified</option>
               {RESPONSE_TIME_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
@@ -953,7 +953,7 @@ export default function EditListingForm({ listing }: Props) {
           {/* Payment Methods */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-              <CreditCard size={14} className="text-warli-terra" /> Payment Methods Accepted
+              <CreditCard size={14} className="text-brand" /> Payment Methods Accepted
             </label>
             <div className="flex flex-wrap gap-2">
               {PAYMENT_OPTIONS.map(opt => (
@@ -961,8 +961,8 @@ export default function EditListingForm({ listing }: Props) {
                   onClick={() => setPaymentMethods(ms => ms.includes(opt) ? ms.filter(m => m !== opt) : [...ms, opt])}
                   className={`text-sm px-3 py-1.5 rounded-xl border font-medium transition-all ${
                     paymentMethods.includes(opt)
-                      ? 'bg-warli-terra text-warli-cream border-warli-terra'
-                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-warli-sand'
+                      ? 'bg-brand text-bg border-brand'
+                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-border'
                   }`}>
                   {opt}
                 </button>
@@ -975,12 +975,12 @@ export default function EditListingForm({ listing }: Props) {
             <div className="flex items-center justify-between mb-2">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                  <Sparkles size={14} className="text-warli-terra" /> Highlights / Key Stats
+                  <Sparkles size={14} className="text-brand" /> Highlights / Key Stats
                 </label>
                 <p className="text-xs text-gray-400">e.g. "500+ Happy Customers", "10 Years Experience"</p>
               </div>
               <button type="button" onClick={() => setHighlights(h => [...h, { label: '', value: '' }])}
-                className="text-sm text-warli-terra border border-warli-terra px-3 py-1.5 rounded-xl hover:bg-warli-light transition-colors flex items-center gap-1">
+                className="text-sm text-brand border border-brand px-3 py-1.5 rounded-xl hover:bg-surface-soft transition-colors flex items-center gap-1">
                 <Plus size={13} /> Add
               </button>
             </div>
@@ -990,11 +990,11 @@ export default function EditListingForm({ listing }: Props) {
                   <input type="text" value={h.label}
                     onChange={e => setHighlights(hs => hs.map((x, idx) => idx === i ? { ...x, label: e.target.value } : x))}
                     placeholder="Label (e.g. Happy Customers)"
-                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-warli-terra" />
+                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand" />
                   <input type="text" value={h.value}
                     onChange={e => setHighlights(hs => hs.map((x, idx) => idx === i ? { ...x, value: e.target.value } : x))}
                     placeholder="Value (e.g. 500+)"
-                    className="w-28 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-warli-terra" />
+                    className="w-28 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand" />
                   <button type="button" onClick={() => setHighlights(hs => hs.filter((_, idx) => idx !== i))}
                     className="text-gray-300 hover:text-red-500 transition-colors px-1">
                     <Trash2 size={15} />
@@ -1009,7 +1009,7 @@ export default function EditListingForm({ listing }: Props) {
             <div className="flex items-center justify-between mb-2">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                  <Award size={14} className="text-warli-terra" /> Certifications & Awards
+                  <Award size={14} className="text-brand" /> Certifications & Awards
                 </label>
                 <p className="text-xs text-gray-400">e.g. FSSAI Licensed, ISO Certified, Best of Dahanu 2023</p>
               </div>
@@ -1026,10 +1026,10 @@ export default function EditListingForm({ listing }: Props) {
               <input type="text" value={certInput} onChange={e => setCertInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (certInput.trim()) { setCertifications(cs => [...cs, certInput.trim()]); setCertInput('') } } }}
                 placeholder="Add certification or award..."
-                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-warli-terra" />
+                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand" />
               <button type="button"
                 onClick={() => { if (certInput.trim()) { setCertifications(cs => [...cs, certInput.trim()]); setCertInput('') } }}
-                className="px-4 py-2.5 bg-warli-light border border-warli-sand text-warli-terra text-sm font-semibold rounded-xl hover:bg-warli-sand transition-colors">
+                className="px-4 py-2.5 bg-surface-soft border border-border text-brand text-sm font-semibold rounded-xl hover:bg-border transition-colors">
                 Add
               </button>
             </div>
@@ -1038,16 +1038,16 @@ export default function EditListingForm({ listing }: Props) {
           {/* Delivery / Service Area */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-              <Truck size={14} className="text-warli-terra" /> Delivery / Service Area
+              <Truck size={14} className="text-brand" /> Delivery / Service Area
             </label>
             <input type="text" value={deliveryInfo.areas}
               onChange={e => setDeliveryInfo(d => ({ ...d, areas: e.target.value }))}
               placeholder="e.g. Dahanu, Palghar, Boisar (within 20km)"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm mb-2" />
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm mb-2" />
             <input type="text" value={deliveryInfo.note}
               onChange={e => setDeliveryInfo(d => ({ ...d, note: e.target.value }))}
               placeholder="Additional note (e.g. Free delivery above ₹500)"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
           </div>
         </div>
 
@@ -1060,7 +1060,7 @@ export default function EditListingForm({ listing }: Props) {
           <div className="flex items-center gap-3">
             {error && <p className="text-red-600 text-sm">{error}</p>}
             <button type="submit" disabled={saving}
-              className="inline-flex items-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-6 py-3 rounded-xl transition-colors disabled:opacity-60">
+              className="inline-flex items-center gap-2 bg-brand hover:bg-brand-strong text-bg font-semibold px-6 py-3 rounded-xl transition-colors disabled:opacity-60">
               {saving
                 ? <><Loader2 size={16} className="animate-spin" /> Saving…</>
                 : <><Save size={16} /> Save Changes</>

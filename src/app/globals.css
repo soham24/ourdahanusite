@@ -1,34 +1,35 @@
 @import "tailwindcss";
 
 @theme {
-  /* ─── Legacy Warli / Chikoo tokens — kept for backward compat with /admin, /my-business, /listings pages ─── */
-  --color-warli-terra: #C4663A;
-  --color-warli-deep: #8B3A1A;
-  --color-warli-clay: #D4784A;
-  --color-warli-cream: #FBF0DC;
-  --color-warli-sand: #E8C99A;
-  --color-warli-light: #F5E6CA;
-
-  --color-chikoo-bark: #3D1A08;
-  --color-chikoo-brown: #7A4A25;
-  --color-chikoo-mid: #A0622E;
-  --color-chikoo-leaf: #4A7040;
-  --color-chikoo-gold: #D4952A;
-  --color-chikoo-amber: #E8A832;
-
-  /* ─── New design system tokens (homepage revamp 2026) ─── */
-  --color-terra: #C0582E;
-  --color-terra-deep: #8A3618;
+  /* ─── Unified Design System Tokens (Coastal Revamp 2026) ─── */
+  
+  /* Core Brand Colors */
+  --color-brand: #C0582E;
+  --color-brand-strong: #8A3618;
   --color-gold: #C8881E;
   --color-gold-light: #F0C87A;
+  
+  /* Neutral / UI Colors */
+  --color-ink: #1C0D05;
+  --color-ink-2: #4F3424;
+  --color-muted: #7B6658;
+  --color-border: #E8DDD2;
+  --color-bg: #FAFAF7;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #F6F1EA;
+  
+  /* Functional Colors */
+  --color-success: #138A4B;
+  --color-danger: #B42318;
+
+  /* Specific Palette (used for gradients/accents) */
+  --color-terra: #C0582E;
+  --color-terra-deep: #8A3618;
   --color-bark: #2E1205;
   --color-brown: #7A4520;
   --color-cream: #FBF0DC;
   --color-sand: #E8C49A;
   --color-ivory: #FAFAF7;
-  --color-muted: #F4EDE3;
-  --color-border: #E8DDD2;
-  --color-text-muted: #9A7A60;
 
   /* Fonts — DM Sans body, Instrument Serif display */
   --font-family-sans: var(--font-dm), var(--font-jakarta), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -36,20 +37,22 @@
 }
 
 :root {
-  --background: #FAFAF7;
-  --foreground: #1C0D05;
-  --od-bg: #FAFAF7;
-  --od-surface: #FFFFFF;
-  --od-surface-soft: #F6F1EA;
-  --od-ink: #1C0D05;
-  --od-ink-2: #4F3424;
-  --od-muted: #7B6658;
-  --od-border: #E8DDD2;
-  --od-brand: #C0582E;
-  --od-brand-strong: #8A3618;
-  --od-gold: #C8881E;
-  --od-success: #138A4B;
-  --od-danger: #B42318;
+  --background: var(--color-bg);
+  --foreground: var(--color-ink);
+  
+  --od-bg: var(--color-bg);
+  --od-surface: var(--color-surface);
+  --od-surface-soft: var(--color-surface-soft);
+  --od-ink: var(--color-ink);
+  --od-ink-2: var(--color-ink-2);
+  --od-muted: var(--color-muted);
+  --od-border: var(--color-border);
+  --od-brand: var(--color-brand);
+  --od-brand-strong: var(--color-brand-strong);
+  --od-gold: var(--color-gold);
+  --od-success: var(--color-success);
+  --od-danger: var(--color-danger);
+  
   --od-radius: 18px;
   --od-radius-sm: 12px;
   --od-shadow-sm: 0 1px 2px rgba(46, 18, 5, 0.04), 0 1px 8px rgba(46, 18, 5, 0.04);
@@ -59,7 +62,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-dm), var(--font-jakarta), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-family-sans);
   -webkit-font-smoothing: antialiased;
   font-size: 15px;
   line-height: 1.6;
@@ -210,16 +213,7 @@ html {
 
 /* Display serif helper — use with `font-serif` in Tailwind or this class directly */
 .font-display {
-  font-family: var(--font-instrument), Georgia, 'Times New Roman', serif;
-}
-
-/* Listing card hover lift (legacy) */
-.listing-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-.listing-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(196, 102, 58, 0.12), 0 2px 8px rgba(61, 26, 8, 0.06);
+  font-family: var(--font-family-serif);
 }
 
 /* Hide scrollbar but allow scroll */
@@ -254,14 +248,6 @@ html {
 }
 .snap-start {
   scroll-snap-align: start;
-}
-
-/* Warm card shadow utility (legacy) */
-.shadow-warm {
-  box-shadow: 0 4px 16px rgba(196, 102, 58, 0.10), 0 1px 4px rgba(61, 26, 8, 0.06);
-}
-.shadow-warm-lg {
-  box-shadow: 0 8px 32px rgba(196, 102, 58, 0.14), 0 2px 8px rgba(61, 26, 8, 0.08);
 }
 
 /* New revamp shadows */
@@ -396,20 +382,6 @@ html {
   animation: our-dahanu-loader-arc-bottom-reveal 0.8s 2.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Use the loaded Noto Sans Devanagari webfont so the curved Marathi
-   text renders consistently across devices. iOS Safari ships only
-   "Devanagari Sangam MN" / "Kohinoor Devanagari" which have different
-   glyph metrics, so the curve positioning breaks. We rely on the
-   next/font variable; the inline fontFamily attribute on the SVG
-   <text> is intentionally omitted so CSS wins without ambiguity.
-
-   The text is display:none until <html> picks up `loader-fonts-ready`
-   (set from LoaderFontsReady via document.fonts.load). We use
-   display:none rather than visibility:hidden because Safari will NOT
-   re-lay-out textPath when a webfont swaps in after layout has
-   already been computed with a fallback font. display:none skips
-   layout entirely, so when it's toggled back on the browser
-   re-measures everything with the correct font. */
 .our-dahanu-loader__logo-arc-bottom text {
   font-family: var(--font-devanagari), 'Noto Sans Devanagari', sans-serif !important;
   display: none;
@@ -434,7 +406,7 @@ html.loader-fonts-ready .our-dahanu-loader__logo-arc-bottom text {
 }
 
 .our-dahanu-loader__logo-text-brand {
-  font-family: var(--font-instrument), Georgia, 'Times New Roman', serif;
+  font-family: var(--font-family-serif);
   font-style: italic;
   font-size: 15px;
   line-height: 1.5;
@@ -559,7 +531,7 @@ html.loader-fonts-ready .our-dahanu-loader__logo-arc-bottom text {
 
 .our-dahanu-loader__brand {
   margin-bottom: 4px;
-  font-family: var(--font-instrument), Georgia, 'Times New Roman', serif;
+  font-family: var(--font-family-serif);
   font-size: 26px;
   letter-spacing: -0.01em;
   color: #F0C87A;

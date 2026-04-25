@@ -259,7 +259,7 @@ export default async function MyBusinessPage({
         </div>
         <div className="od-card p-5 text-center">
           <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center mx-auto mb-2">
-            <MessageSquare size={18} className="text-warli-terra" />
+            <MessageSquare size={18} className="text-brand" />
           </div>
           <div className="text-2xl font-bold text-gray-900">{totalReviews}</div>
           <div className="text-xs text-gray-500 mt-0.5">Total Reviews</div>
@@ -278,7 +278,7 @@ export default async function MyBusinessPage({
       {/* Listings */}
       <div className="od-card mb-6 p-6">
         <h2 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
-          <Store size={18} className="text-warli-terra" />
+          <Store size={18} className="text-brand" />
           Your Listings
         </h2>
 
@@ -307,7 +307,7 @@ export default async function MyBusinessPage({
         {listings.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Store size={28} className="text-warli-terra" />
+              <Store size={28} className="text-brand" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No listings yet</h3>
             <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">
@@ -315,7 +315,7 @@ export default async function MyBusinessPage({
             </p>
             <Link
               href="/listings/submit"
-              className="inline-flex items-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-6 py-3 rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 bg-brand hover:bg-brand-strong text-bg font-semibold px-6 py-3 rounded-xl transition-colors"
             >
               <Plus size={16} />
               Add Your Business
@@ -414,8 +414,8 @@ export default async function MyBusinessPage({
       {/* Orders shortcut */}
       <div className="od-card mb-4 flex items-center justify-between gap-4 p-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-warli-light rounded-xl flex items-center justify-center">
-            <ShoppingBag size={18} className="text-warli-terra" />
+          <div className="w-10 h-10 bg-surface-soft rounded-xl flex items-center justify-center">
+            <ShoppingBag size={18} className="text-brand" />
           </div>
           <div>
             <p className="font-semibold text-gray-900 text-sm">Customer Orders</p>
@@ -424,7 +424,7 @@ export default async function MyBusinessPage({
         </div>
         <Link
           href="/my-business/orders"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-warli-terra hover:text-warli-deep border border-warli-sand hover:border-warli-terra px-3 py-2 rounded-xl transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-strong border border-border hover:border-brand px-3 py-2 rounded-xl transition-colors"
         >
           <ArrowUpRight size={14} />
           View Orders
@@ -433,8 +433,8 @@ export default async function MyBusinessPage({
 
       <div className="od-card mb-4 flex items-center justify-between gap-4 p-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-warli-light rounded-xl flex items-center justify-center">
-            <Calendar size={18} className="text-warli-terra" />
+          <div className="w-10 h-10 bg-surface-soft rounded-xl flex items-center justify-center">
+            <Calendar size={18} className="text-brand" />
           </div>
           <div>
             <p className="font-semibold text-gray-900 text-sm">Appointments</p>
@@ -443,7 +443,7 @@ export default async function MyBusinessPage({
         </div>
         <Link
           href="/my-business/appointments"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-warli-terra hover:text-warli-deep border border-warli-sand hover:border-warli-terra px-3 py-2 rounded-xl transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-strong border border-border hover:border-brand px-3 py-2 rounded-xl transition-colors"
         >
           <ArrowUpRight size={14} />
           View Appointments
@@ -452,8 +452,8 @@ export default async function MyBusinessPage({
 
       <div className="od-card mb-4 flex items-center justify-between gap-4 p-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-warli-light rounded-xl flex items-center justify-center">
-            <Package size={18} className="text-warli-terra" />
+          <div className="w-10 h-10 bg-surface-soft rounded-xl flex items-center justify-center">
+            <Package size={18} className="text-brand" />
           </div>
           <div>
             <p className="font-semibold text-gray-900 text-sm">Products &amp; Services</p>
@@ -462,7 +462,7 @@ export default async function MyBusinessPage({
         </div>
         <Link
           href="/my-business/products"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-warli-terra hover:text-warli-deep border border-warli-sand hover:border-warli-terra px-3 py-2 rounded-xl transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-strong border border-border hover:border-brand px-3 py-2 rounded-xl transition-colors"
         >
           <ArrowUpRight size={14} />
           Manage Catalog
@@ -471,8 +471,8 @@ export default async function MyBusinessPage({
 
       <div className="od-card mb-6 flex items-center justify-between gap-4 p-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-warli-light rounded-xl flex items-center justify-center">
-            <CreditCard size={18} className="text-warli-terra" />
+          <div className="w-10 h-10 bg-surface-soft rounded-xl flex items-center justify-center">
+            <CreditCard size={18} className="text-brand" />
           </div>
           <div>
             <p className="font-semibold text-gray-900 text-sm">Accept Payments</p>
@@ -481,7 +481,7 @@ export default async function MyBusinessPage({
         </div>
         <Link
           href="/my-business/payments"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-warli-terra hover:text-warli-deep border border-warli-sand hover:border-warli-terra px-3 py-2 rounded-xl transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-strong border border-border hover:border-brand px-3 py-2 rounded-xl transition-colors"
         >
           <ArrowUpRight size={14} />
           Payment Setup
@@ -491,7 +491,7 @@ export default async function MyBusinessPage({
       {/* Recent Reviews */}
       <div className="od-card mb-6 p-6">
         <h2 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
-          <MessageSquare size={18} className="text-warli-terra" />
+          <MessageSquare size={18} className="text-brand" />
           Recent Reviews
         </h2>
 
@@ -536,9 +536,9 @@ export default async function MyBusinessPage({
                 </p>
 
                 {review.owner_reply ? (
-                  <div className="mt-3 rounded-xl border-l-4 border-warli-terra bg-warli-light/30 px-3 py-2.5">
+                  <div className="mt-3 rounded-xl border-l-4 border-brand bg-surface-soft/30 px-3 py-2.5">
                     <div className="flex items-center justify-between gap-2 mb-1">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-warli-terra flex items-center gap-1">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-brand flex items-center gap-1">
                         <MessageCircle size={12} />
                         Your reply
                       </p>

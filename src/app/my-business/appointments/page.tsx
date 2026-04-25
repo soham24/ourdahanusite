@@ -176,7 +176,7 @@ function AppointmentRow({
 
         <div className="min-w-[150px] rounded-2xl bg-[#fff7ef] px-4 py-3 text-left lg:text-right">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Booking Fee</p>
-          <p className="mt-1 text-lg font-bold text-warli-terra">{formatFee(appointment.booking_fee)}</p>
+          <p className="mt-1 text-lg font-bold text-brand">{formatFee(appointment.booking_fee)}</p>
         </div>
       </div>
 
@@ -311,7 +311,7 @@ export default function MyBusinessAppointmentsPage() {
 
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#ead8c8] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-warli-terra">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#ead8c8] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-brand">
               <Store size={13} />
               Owner Inbox
             </span>
@@ -342,7 +342,7 @@ export default function MyBusinessAppointmentsPage() {
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff3e7] text-warli-terra">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff3e7] text-brand">
               <Calendar size={20} />
             </span>
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Today</span>

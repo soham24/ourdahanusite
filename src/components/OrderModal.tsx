@@ -156,7 +156,7 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <ShoppingCart size={18} className="text-warli-terra" />
+            <ShoppingCart size={18} className="text-brand" />
             <span className="font-semibold text-gray-900 text-sm">
               {service.type === 'product' ? 'Order Product' : 'Book Service'}
             </span>
@@ -195,9 +195,9 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
         ) : (
           <div className="px-5 py-5 space-y-4 max-h-[80vh] overflow-y-auto">
             {/* Service summary */}
-            <div className="bg-warli-light border border-warli-sand rounded-xl p-4">
-              <p className="font-semibold text-chikoo-bark text-sm">{service.name}</p>
-              <p className="text-warli-terra font-bold text-lg mt-0.5">₹{service.price.toLocaleString('en-IN')}</p>
+            <div className="bg-surface-soft border border-border rounded-xl p-4">
+              <p className="font-semibold text-ink text-sm">{service.name}</p>
+              <p className="text-brand font-bold text-lg mt-0.5">₹{service.price.toLocaleString('en-IN')}</p>
               <p className="text-xs text-gray-400 mt-0.5">from {listing.name}</p>
             </div>
 
@@ -216,7 +216,7 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
                   type="button"
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
                   disabled={quantity <= 1}
-                  className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-warli-terra hover:text-warli-terra transition-colors disabled:opacity-40"
+                  className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-brand hover:text-brand transition-colors disabled:opacity-40"
                 >
                   <Minus size={14} />
                 </button>
@@ -224,7 +224,7 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
                 <button
                   type="button"
                   onClick={() => setQuantity(q => Math.min(99, q + 1))}
-                  className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-warli-terra hover:text-warli-terra transition-colors"
+                  className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-brand hover:text-brand transition-colors"
                 >
                   <Plus size={14} />
                 </button>
@@ -242,7 +242,7 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
                 value={buyerName}
                 onChange={e => setBuyerName(e.target.value)}
                 placeholder="Full name"
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-warli-terra"
+                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand"
               />
             </div>
 
@@ -256,7 +256,7 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
                 value={buyerPhone}
                 onChange={e => setBuyerPhone(e.target.value)}
                 placeholder="10-digit mobile number"
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-warli-terra"
+                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand"
               />
             </div>
 
@@ -271,7 +271,7 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
                 value={deliveryAddress}
                 onChange={e => setDeliveryAddress(e.target.value)}
                 placeholder="Street, Village, Pincode"
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-warli-terra"
+                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand"
               />
             </div>
 
@@ -286,14 +286,14 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
                 onChange={e => setNotes(e.target.value)}
                 placeholder="Any specific requirements, preferred time, etc."
                 rows={2}
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-warli-terra resize-none"
+                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand resize-none"
               />
             </div>
 
             {/* Order total */}
             <div className="bg-gray-50 rounded-xl px-4 py-3 flex justify-between items-center">
               <span className="text-sm font-semibold text-gray-700">Total</span>
-              <span className="text-lg font-bold text-chikoo-bark">₹{total.toLocaleString('en-IN')}</span>
+              <span className="text-lg font-bold text-ink">₹{total.toLocaleString('en-IN')}</span>
             </div>
 
             {/* Pay button */}
@@ -301,7 +301,7 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
               type="button"
               onClick={handlePay}
               disabled={busy}
-              className="w-full flex items-center justify-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold py-3 rounded-xl transition-colors disabled:opacity-60 text-sm"
+              className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-strong text-bg font-semibold py-3 rounded-xl transition-colors disabled:opacity-60 text-sm"
             >
               {busy
                 ? <><Loader2 size={15} className="animate-spin" />{
@@ -314,7 +314,7 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
             </button>
 
             <p className="text-xs text-gray-400 text-center flex items-center justify-center gap-1">
-              <ShieldCheck size={11} className="text-warli-terra" />
+              <ShieldCheck size={11} className="text-brand" />
               Secure payment via Razorpay · UPI, Cards, Net Banking
             </p>
           </div>
@@ -323,3 +323,4 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
     </div>
   )
 }
+

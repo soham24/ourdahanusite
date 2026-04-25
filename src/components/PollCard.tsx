@@ -105,8 +105,8 @@ export default function PollCard({
       {/* Header */}
       <div className="px-6 pt-5 pb-3 flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-warli-light flex items-center justify-center shrink-0">
-            <BarChart3 size={16} className="text-warli-terra" />
+          <div className="w-8 h-8 rounded-lg bg-surface-soft flex items-center justify-center shrink-0">
+            <BarChart3 size={16} className="text-brand" />
           </div>
           <h3 className="text-base font-bold text-gray-900 leading-snug">{poll.title}</h3>
         </div>
@@ -138,17 +138,17 @@ export default function PollCard({
               disabled={isPending || hasEnded}
               className={`relative w-full text-left rounded-xl border transition-all overflow-hidden ${
                 isSelected
-                  ? 'border-warli-terra bg-warli-light/50 ring-1 ring-warli-terra/30'
+                  ? 'border-brand bg-surface-soft/50 ring-1 ring-brand/30'
                   : hasEnded
                     ? 'border-gray-100 bg-gray-50 cursor-default'
-                    : 'border-gray-200 hover:border-warli-sand hover:bg-warli-light/30 cursor-pointer'
+                    : 'border-gray-200 hover:border-border hover:bg-surface-soft/30 cursor-pointer'
               } ${isPending ? 'opacity-70' : ''}`}
             >
               {/* Progress bar background */}
               {showResults && (
                 <div
                   className={`absolute inset-y-0 left-0 transition-all duration-500 ease-out rounded-xl ${
-                    isWinning ? 'bg-warli-terra/15' : 'bg-gray-100/80'
+                    isWinning ? 'bg-brand/15' : 'bg-gray-100/80'
                   }`}
                   style={{ width: `${pct}%` }}
                 />
@@ -160,7 +160,7 @@ export default function PollCard({
                   <div
                     className={`w-4.5 h-4.5 rounded-full border-2 shrink-0 flex items-center justify-center ${
                       isSelected
-                        ? 'border-warli-terra bg-warli-terra'
+                        ? 'border-brand bg-brand'
                         : 'border-gray-300'
                     }`}
                     style={{ width: 18, height: 18 }}
@@ -180,7 +180,7 @@ export default function PollCard({
                 {showResults && (
                   <span
                     className={`text-xs font-bold shrink-0 ml-2 ${
-                      isWinning ? 'text-warli-terra' : 'text-gray-400'
+                      isWinning ? 'text-brand' : 'text-gray-400'
                     }`}
                   >
                     {pct}%
@@ -199,7 +199,7 @@ export default function PollCard({
             {totalVotes} vote{totalVotes !== 1 ? 's' : ''}
           </span>
           {pollHref && (
-            <Link href={pollHref} className="text-xs text-warli-terra hover:underline">
+            <Link href={pollHref} className="text-xs text-brand hover:underline">
               Standalone page
             </Link>
           )}
@@ -207,7 +207,7 @@ export default function PollCard({
         {!isLoggedIn && !hasEnded && (
           <a
             href={`/login?next=${encodeURIComponent(loginNextPath)}`}
-            className="text-xs text-warli-terra hover:underline"
+            className="text-xs text-brand hover:underline"
           >
             Sign in to vote
           </a>
@@ -227,3 +227,4 @@ export default function PollCard({
     </div>
   )
 }
+

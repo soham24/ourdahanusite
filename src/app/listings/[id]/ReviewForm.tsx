@@ -11,7 +11,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="flex items-center gap-2 bg-warli-terra hover:bg-warli-deep disabled:opacity-70 disabled:cursor-not-allowed text-warli-cream font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm"
+      className="flex items-center gap-2 bg-brand hover:bg-brand-strong disabled:opacity-70 disabled:cursor-not-allowed text-bg font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm"
     >
       {pending ? (
         <>
@@ -53,8 +53,8 @@ export default function ReviewForm({
       <input type="hidden" name="listing_id" value={listingId} />
 
       {userName && (
-        <div className="flex items-center gap-2 text-sm text-gray-500 bg-warli-light/60 px-3 py-2 rounded-xl border border-warli-sand/50">
-          <div className="w-6 h-6 bg-warli-terra text-warli-cream rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+        <div className="flex items-center gap-2 text-sm text-gray-500 bg-surface-soft/60 px-3 py-2 rounded-xl border border-border/50">
+          <div className="w-6 h-6 bg-brand text-bg rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
             {userName.slice(0, 1).toUpperCase()}
           </div>
           <span>Reviewing as <span className="font-semibold text-gray-700">{userName}</span></span>
@@ -68,7 +68,7 @@ export default function ReviewForm({
         <select
           name="rating"
           required
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm bg-white"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white"
         >
           <option value="">Select rating</option>
           <option value="5">⭐⭐⭐⭐⭐ — Excellent</option>
@@ -86,7 +86,7 @@ export default function ReviewForm({
           rows={3}
           maxLength={500}
           placeholder="Share what was good, what stood out, or what others should know..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm resize-none"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none"
         />
         <p className="mt-1 text-xs text-gray-400">Optional. Keep it genuine and useful for other locals.</p>
       </div>

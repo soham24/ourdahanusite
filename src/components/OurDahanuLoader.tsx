@@ -453,7 +453,7 @@ export function OurDahanuLoaderCompact({ message }: { message?: string }) {
 
 export function SkeletonCard() {
   return (
-    <div className="rounded-xl border border-warli-sand/40 bg-white/60 overflow-hidden">
+    <div className="rounded-xl border border-border/40 bg-white/60 overflow-hidden">
       <div className="h-40 skeleton-shimmer" />
       <div className="p-4 space-y-3">
         <div className="h-5 w-3/4 rounded skeleton-shimmer" />
@@ -479,3 +479,4 @@ export function SkeletonRow() {
     </div>
   )
 }
+

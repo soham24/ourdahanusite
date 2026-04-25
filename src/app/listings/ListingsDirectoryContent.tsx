@@ -7,6 +7,10 @@ import type { DirectoryListing } from './directory-data'
 import { PLAN_FEATURES } from './directory-data'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
 import { SITE_URL } from '@/lib/site'
+import SectionHeader from '@/components/ui/SectionHeader'
+import Card from '@/components/ui/Card'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
 
 interface Props {
   activeCategory: string | null
@@ -91,23 +95,19 @@ export default function ListingsDirectoryContent({
       <div className="od-shell">
       <StructuredData data={[breadcrumbSchema, itemListSchema]} />
 
-      <div className="mb-8 grid gap-5 md:grid-cols-[1fr_auto] md:items-end">
-        <div>
-          <p className="od-eyebrow mb-2">Local directory</p>
-          <h1 className="od-section-title text-3xl md:text-5xl">
-            {activeCategory ? `${activeCategory} in Dahanu` : 'Business Listings in Dahanu'}
-          </h1>
-          <p className="od-muted mt-3 max-w-2xl text-base leading-7">
-            {activeCategory
-              ? `${listings.length} business${listings.length !== 1 ? 'es' : ''} currently visible in ${activeCategory}. Search, sort, and compare before you contact them.`
-              : 'Search, sort, and compare trusted businesses and services across Dahanu, Bordi, Gholvad, and nearby areas.'}
-          </p>
-        </div>
+      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-5">
+        <SectionHeader
+          label="Local directory"
+          title={activeCategory ? `${activeCategory} in Dahanu` : 'Business Listings in Dahanu'}
+          sub={activeCategory
+            ? `${listings.length} business${listings.length !== 1 ? 'es' : ''} currently visible in ${activeCategory}. Search, sort, and compare before you contact them.`
+            : 'Search, sort, and compare trusted businesses and services across Dahanu, Bordi, Gholvad, and nearby areas.'}
+        />
 
-        <div className="od-card px-4 py-3 text-sm text-[var(--od-ink-2)]">
-          <span className="font-bold text-[var(--od-ink)]">{Object.keys(categoryCounts).length || sortedCategories.length - 1}</span>{' '}
+        <Card padding="sm" className="mb-8 md:mb-10 inline-flex self-start md:self-auto text-sm text-[var(--od-ink-2)]">
+          <span className="font-bold text-[var(--od-ink)] mr-1.5">{Object.keys(categoryCounts).length || sortedCategories.length - 1}</span>{' '}
           categories live
-        </div>
+        </Card>
       </div>
 
       <ListingsDirectoryResults
@@ -118,40 +118,42 @@ export default function ListingsDirectoryContent({
       />
 
       <div id="add" className="border-t border-[var(--od-border)] py-12">
-        <div className="text-center mb-8">
-          <h2 className="od-section-title text-2xl md:text-3xl">Get Your Profile on OurDahanu</h2>
-          <p className="od-muted mt-2">Whether you sell, serve, or create, you belong here.</p>
+        <div className="text-center mb-10">
+          <h2 className="font-display text-[28px] md:text-[36px] text-[var(--od-ink)] leading-tight">Get Your Profile on OurDahanu</h2>
+          <p className="text-[var(--od-muted)] mt-2">Whether you sell, serve, or create, you belong here.</p>
         </div>
 
-        <div className="od-card mx-auto max-w-md p-8 text-center">
-          <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-[rgba(192,88,46,0.1)] px-3 py-1 text-xs font-bold text-[var(--od-brand)]">
+        <Card className="mx-auto max-w-md text-center" padding="lg">
+          <Badge variant="brand" className="mb-4">
             Launch Offer
-          </div>
+          </Badge>
           <div className="flex items-baseline justify-center gap-2 mb-1">
-            <span className="text-5xl font-bold text-gray-900">₹{currentPrice}</span>
-            <span className="text-gray-400">/ year</span>
+            <span className="text-5xl font-bold text-[var(--od-ink)]">₹{currentPrice}</span>
+            <span className="text-[var(--od-muted)]">/ year</span>
           </div>
-          <div className="text-sm text-gray-400 line-through mb-5">₹{basePrice} / year</div>
-          <ul className="space-y-2.5 mb-7 text-left">
+          <div className="text-sm text-[var(--od-muted)] line-through mb-5">₹{basePrice} / year</div>
+          <ul className="space-y-3 mb-8 text-left">
             {PLAN_FEATURES.map((feature) => (
-              <li key={feature} className="flex items-center gap-2 text-sm text-gray-700">
-                <CheckCircle size={14} className="text-green-500 flex-shrink-0" />
+              <li key={feature} className="flex items-center gap-2.5 text-sm text-[var(--od-ink-2)]">
+                <CheckCircle size={15} className="text-green-500 flex-shrink-0" />
                 {feature}
               </li>
             ))}
           </ul>
-          <Link
+          <Button
             href="/listings/submit"
-            className="od-button-primary flex px-6 py-3.5 text-base"
+            variant="primary"
+            size="lg"
+            className="w-full"
           >
             Claim Your Profile
-          </Link>
+          </Button>
           {activeCategory ? (
-            <p className="od-muted mt-3 text-xs">
+            <p className="text-[var(--od-muted)] mt-4 text-xs">
               Want to rank for {activeCategory.toLowerCase()} in Dahanu? Claim this page with your business listing.
             </p>
           ) : null}
-        </div>
+        </Card>
       </div>
       </div>
     </div>

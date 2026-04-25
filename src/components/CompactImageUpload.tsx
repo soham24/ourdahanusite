@@ -160,13 +160,13 @@ export default function CompactImageUpload({
               tone === 'dark'
                 ? `rounded-lg border px-2 py-2 text-left transition-colors ${
                     active
-                      ? 'border-warli-sand bg-warli-terra/25 text-warli-cream'
+                      ? 'border-border bg-brand/25 text-bg'
                       : 'border-gray-700 bg-gray-900 text-gray-300 hover:border-gray-500 hover:text-white'
                   }`
                 : `rounded-lg border px-2 py-2 text-left transition-colors ${
                     active
-                      ? 'border-warli-sand bg-warli-light text-warli-terra'
-                      : 'border-gray-200 bg-white text-gray-500 hover:border-warli-sand hover:text-gray-700'
+                      ? 'border-border bg-surface-soft text-brand'
+                      : 'border-gray-200 bg-white text-gray-500 hover:border-border hover:text-gray-700'
                   }`
             }
           >
@@ -213,7 +213,7 @@ export default function CompactImageUpload({
                 step={0.05}
                 value={zoom}
                 onChange={(event) => setZoom(Number(event.target.value))}
-                className="flex-1 accent-warli-terra"
+                className="flex-1 accent-brand"
               />
               <ZoomIn size={14} className="shrink-0 text-gray-400" />
             </div>
@@ -227,7 +227,7 @@ export default function CompactImageUpload({
                 step={1}
                 value={rotation}
                 onChange={(event) => setRotation(Number(event.target.value))}
-                className="flex-1 accent-warli-terra"
+                className="flex-1 accent-brand"
               />
               <span className="w-10 text-right text-xs text-gray-400">{rotation}°</span>
             </div>
@@ -247,7 +247,7 @@ export default function CompactImageUpload({
                 <button
                   type="button"
                   onClick={handleConfirm}
-                  className="flex items-center gap-1.5 rounded-xl bg-warli-terra px-4 py-1.5 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep"
+                  className="flex items-center gap-1.5 rounded-xl bg-brand px-4 py-1.5 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong"
                 >
                   <Check size={14} /> Apply Crop
                 </button>
@@ -296,11 +296,11 @@ export default function CompactImageUpload({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="flex flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 transition-colors hover:border-warli-sand hover:bg-warli-light disabled:opacity-50"
+          className="flex flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 transition-colors hover:border-border hover:bg-surface-soft disabled:opacity-50"
           style={previewStyle}
         >
           {uploading ? (
-            <Loader2 size={16} className="animate-spin text-warli-terra" />
+            <Loader2 size={16} className="animate-spin text-brand" />
           ) : (
             <Camera size={16} className="text-gray-400" />
           )}
@@ -327,3 +327,4 @@ export default function CompactImageUpload({
     </div>
   )
 }
+

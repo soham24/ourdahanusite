@@ -13,7 +13,7 @@ export default function ForumPage() {
         <p className="text-gray-500 text-base leading-relaxed mb-8">
           A place for Dahanu residents to discuss, help each other, and stay connected. Coming soon!
         </p>
-        <Link href="/" className="inline-flex items-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-6 py-3 rounded-xl transition-colors">
+        <Link href="/" className="inline-flex items-center gap-2 bg-brand hover:bg-brand-strong text-bg font-semibold px-6 py-3 rounded-xl transition-colors">
           Back to Home
         </Link>
       </div>

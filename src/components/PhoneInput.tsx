@@ -27,7 +27,7 @@ export default function PhoneInput({ name, defaultValue, required, placeholder }
 
   return (
     <div>
-      <div className={`flex items-center border rounded-xl overflow-hidden focus-within:border-warli-terra transition-colors ${invalid ? 'border-red-300' : 'border-gray-200'}`}>
+      <div className={`flex items-center border rounded-xl overflow-hidden focus-within:border-brand transition-colors ${invalid ? 'border-red-300' : 'border-gray-200'}`}>
         <span className="px-3 text-sm font-semibold text-gray-500 bg-gray-50 border-r border-gray-200 py-3 select-none flex-shrink-0">
           +91
         </span>
@@ -54,3 +54,4 @@ export default function PhoneInput({ name, defaultValue, required, placeholder }
     </div>
   )
 }
+

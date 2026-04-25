@@ -149,25 +149,25 @@ export default function NotificationBell({ userId }: { userId: string }) {
         type="button"
         onClick={handleToggleOpen}
         aria-label={unread > 0 ? `${unread} unread notifications` : 'Notifications'}
-        className="relative flex items-center justify-center w-9 h-9 rounded-lg text-chikoo-brown hover:text-warli-terra hover:bg-warli-light transition-colors"
+        className="relative flex items-center justify-center w-9 h-9 rounded-lg text-ink-2 hover:text-brand hover:bg-surface-soft transition-colors"
       >
         <Bell size={18} />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-warli-terra text-warli-cream text-[10px] font-bold flex items-center justify-center px-1 leading-none">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-brand text-bg text-[10px] font-bold flex items-center justify-center px-1 leading-none">
             {unread > 99 ? '99+' : unread}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-[340px] sm:w-[380px] bg-white rounded-2xl shadow-xl border border-warli-sand/60 overflow-hidden z-[60]">
+        <div className="absolute right-0 mt-2 w-[340px] sm:w-[380px] bg-white rounded-2xl shadow-xl border border-border/60 overflow-hidden z-[60]">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <p className="text-sm font-bold text-chikoo-bark">Notifications</p>
+            <p className="text-sm font-bold text-ink">Notifications</p>
             {unread > 0 && (
               <button
                 type="button"
                 onClick={handleMarkAllRead}
-                className="inline-flex items-center gap-1 text-xs text-warli-terra hover:text-warli-deep font-semibold"
+                className="inline-flex items-center gap-1 text-xs text-brand hover:text-brand-strong font-semibold"
               >
                 <CheckCheck size={12} />
                 Mark all read
@@ -180,8 +180,8 @@ export default function NotificationBell({ userId }: { userId: string }) {
               <p className="text-xs text-gray-400 text-center py-10">Loading…</p>
             ) : items.length === 0 ? (
               <div className="text-center py-10 px-6">
-                <div className="w-12 h-12 bg-warli-light rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <Bell size={22} className="text-warli-terra" />
+                <div className="w-12 h-12 bg-surface-soft rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <Bell size={22} className="text-brand" />
                 </div>
                 <p className="text-sm font-semibold text-gray-700">All caught up</p>
                 <p className="text-xs text-gray-400 mt-1">
@@ -200,14 +200,14 @@ export default function NotificationBell({ userId }: { userId: string }) {
                         onClick={() => void handleRowClick(row)}
                         className={`flex gap-3 px-4 py-3 transition-colors ${
                           unreadRow
-                            ? 'bg-warli-light/40 hover:bg-warli-light/70'
+                            ? 'bg-surface-soft/40 hover:bg-surface-soft/70'
                             : 'hover:bg-gray-50'
                         }`}
                       >
                         <div
                           className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                             unreadRow
-                              ? 'bg-warli-terra text-warli-cream'
+                              ? 'bg-brand text-bg'
                               : 'bg-gray-100 text-gray-500'
                           }`}
                         >
@@ -227,7 +227,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
                             {unreadRow && (
                               <span
                                 aria-hidden
-                                className="mt-1.5 w-2 h-2 bg-warli-terra rounded-full flex-shrink-0"
+                                className="mt-1.5 w-2 h-2 bg-brand rounded-full flex-shrink-0"
                               />
                             )}
                           </div>
@@ -247,7 +247,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
           <Link
             href="/account/notifications"
             onClick={() => setOpen(false)}
-            className="block text-center text-xs font-semibold text-warli-terra hover:bg-warli-light/50 py-3 border-t border-gray-100"
+            className="block text-center text-xs font-semibold text-brand hover:bg-surface-soft/50 py-3 border-t border-gray-100"
           >
             See all notifications
           </Link>
@@ -256,3 +256,4 @@ export default function NotificationBell({ userId }: { userId: string }) {
     </div>
   )
 }
+

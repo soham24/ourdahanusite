@@ -15,7 +15,7 @@ export default function ClassifiedsPage() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-6 py-3 rounded-xl transition-colors"
+          className="inline-flex items-center gap-2 bg-brand hover:bg-brand-strong text-bg font-semibold px-6 py-3 rounded-xl transition-colors"
         >
           Back to Home
         </Link>

@@ -28,7 +28,7 @@ export default function BeforeAfterToggle({ before, after }: Props) {
             type="button"
             onClick={() => setShowing('after')}
             className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all ${
-              showing === 'after' ? 'bg-white text-warli-terra shadow-sm' : 'text-gray-400 hover:text-gray-600'
+              showing === 'after' ? 'bg-white text-brand shadow-sm' : 'text-gray-400 hover:text-gray-600'
             }`}
           >
             After

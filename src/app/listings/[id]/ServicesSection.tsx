@@ -84,7 +84,7 @@ export default function ServicesSection({
             : null
 
           return (
-            <div key={serviceIndex} className="overflow-hidden rounded-xl border border-warli-sand/50 bg-warli-light/40">
+            <div key={serviceIndex} className="overflow-hidden rounded-xl border border-border/50 bg-surface-soft/40">
               {service.image && (
                 <div className={`bg-gray-100 ${imageAspect.value === 'portrait' ? 'p-3' : ''}`}>
                   <div
@@ -114,7 +114,7 @@ export default function ServicesSection({
                       className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
                         service.type === 'product'
                           ? 'bg-blue-100 text-blue-600'
-                          : 'border border-warli-sand bg-warli-light text-warli-terra'
+                          : 'border border-border bg-surface-soft text-brand'
                       }`}
                     >
                       {service.type === 'product' ? '📦 Product' : '🛠 Service'}
@@ -128,7 +128,7 @@ export default function ServicesSection({
                       <button
                         type="button"
                         onClick={() => setActiveService({ index: serviceIndex, service })}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-warli-terra px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-warli-deep"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-strong"
                       >
                         <ShoppingCart size={12} />
                         {service.type === 'product' ? 'Order Now' : 'Book Now'}
@@ -152,7 +152,7 @@ export default function ServicesSection({
                 </div>
 
                 {service.price && (
-                  <span className="flex-shrink-0 rounded-lg border border-warli-sand bg-white px-2.5 py-1 text-sm font-bold text-warli-terra">
+                  <span className="flex-shrink-0 rounded-lg border border-border bg-white px-2.5 py-1 text-sm font-bold text-brand">
                     {service.price}
                   </span>
                 )}
@@ -163,7 +163,7 @@ export default function ServicesSection({
       </div>
 
       {totalPages > 1 && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warli-sand/50 bg-warli-light/30 px-3 py-2.5">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 bg-surface-soft/30 px-3 py-2.5">
           <p className="text-xs font-medium text-gray-500">
             Showing {startIndex + 1}-{visibleEnd} of {services.length}
           </p>
@@ -173,7 +173,7 @@ export default function ServicesSection({
               type="button"
               onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
               disabled={currentPage === 1}
-              className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-warli-sand hover:text-warli-terra disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-border hover:text-brand disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronLeft size={12} />
               <span className="hidden sm:inline">Previous</span>
@@ -189,8 +189,8 @@ export default function ServicesSection({
                   onClick={() => setCurrentPage(page)}
                   className={`h-8 min-w-8 rounded-lg px-2 text-xs font-semibold transition-colors ${
                     page === currentPage
-                      ? 'bg-warli-terra text-warli-cream'
-                      : 'border border-gray-200 bg-white text-gray-600 hover:border-warli-sand hover:text-warli-terra'
+                      ? 'bg-brand text-bg'
+                      : 'border border-gray-200 bg-white text-gray-600 hover:border-border hover:text-brand'
                   }`}
                 >
                   {page}
@@ -202,7 +202,7 @@ export default function ServicesSection({
               type="button"
               onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
               disabled={currentPage === totalPages}
-              className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-warli-sand hover:text-warli-terra disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-border hover:text-brand disabled:cursor-not-allowed disabled:opacity-40"
             >
               <span className="hidden sm:inline">Next</span>
               <ChevronRight size={12} />

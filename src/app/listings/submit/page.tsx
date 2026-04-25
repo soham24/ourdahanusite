@@ -40,20 +40,20 @@ export default async function SubmitListingPage({
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
 
         {/* Hero card */}
-        <div className="bg-gradient-to-br from-warli-terra to-chikoo-bark rounded-3xl p-8 text-warli-cream text-center mb-8 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-brand to-ink rounded-3xl p-8 text-bg text-center mb-8 relative overflow-hidden">
           <div className="absolute inset-0 opacity-5 text-8xl flex flex-wrap gap-6 p-6 pointer-events-none select-none">
             🎉🌴🏪🌟🎊🏡
           </div>
           <div className="relative">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-chikoo-gold/20 border-2 border-chikoo-gold mb-5">
-              <CheckCircle size={32} className="text-chikoo-gold" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold/20 border-2 border-gold mb-5">
+              <CheckCircle size={32} className="text-gold" />
             </div>
             <h1 className="text-2xl md:text-3xl font-bold mb-3 leading-snug">
               Welcome to the family, {firstName}! 🎉
             </h1>
-            <p className="text-warli-sand text-base leading-relaxed max-w-lg mx-auto">
-              Dear <strong className="text-warli-cream">{firstName}</strong>, you are now part of the big <strong className="text-chikoo-gold">OurDahanu</strong> online family.
-              Together, we will give <strong className="text-warli-cream">{bizName}</strong> the visibility it truly deserves — reaching thousands of people right here in Dahanu and beyond.
+            <p className="text-border text-base leading-relaxed max-w-lg mx-auto">
+              Dear <strong className="text-bg">{firstName}</strong>, you are now part of the big <strong className="text-gold">OurDahanu</strong> online family.
+              Together, we will give <strong className="text-bg">{bizName}</strong> the visibility it truly deserves — reaching thousands of people right here in Dahanu and beyond.
             </p>
           </div>
         </div>
@@ -78,13 +78,13 @@ export default async function SubmitListingPage({
           </p>
           <div className="space-y-4">
             {[
-              { icon: <Package size={18} className="text-warli-terra" />, title: 'Products & Services', desc: 'List everything you offer — with names, descriptions and prices.' },
-              { icon: <ImageIcon size={18} className="text-warli-terra" />, title: 'Cover Photo & Logo', desc: 'A great photo makes customers trust you instantly.' },
-              { icon: <Star size={18} className="text-warli-terra" />, title: 'Your Tagline / Motto', desc: 'Tell people what makes you special in one line.' },
-              { icon: <Edit3 size={18} className="text-warli-terra" />, title: 'WhatsApp, Instagram & More', desc: 'Add your contact links so customers can reach you easily.' },
+              { icon: <Package size={18} className="text-brand" />, title: 'Products & Services', desc: 'List everything you offer — with names, descriptions and prices.' },
+              { icon: <ImageIcon size={18} className="text-brand" />, title: 'Cover Photo & Logo', desc: 'A great photo makes customers trust you instantly.' },
+              { icon: <Star size={18} className="text-brand" />, title: 'Your Tagline / Motto', desc: 'Tell people what makes you special in one line.' },
+              { icon: <Edit3 size={18} className="text-brand" />, title: 'WhatsApp, Instagram & More', desc: 'Add your contact links so customers can reach you easily.' },
             ].map(item => (
               <div key={item.title} className="flex gap-3 items-start">
-                <div className="w-8 h-8 rounded-lg bg-warli-light flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-8 h-8 rounded-lg bg-surface-soft flex items-center justify-center flex-shrink-0 mt-0.5">
                   {item.icon}
                 </div>
                 <div>
@@ -106,7 +106,7 @@ export default async function SubmitListingPage({
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-3">
           <Link href="/my-business"
-            className="flex-1 flex items-center justify-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-bold px-6 py-3.5 rounded-xl transition-colors text-sm">
+            className="flex-1 flex items-center justify-center gap-2 bg-brand hover:bg-brand-strong text-bg font-bold px-6 py-3.5 rounded-xl transition-colors text-sm">
             Go to My Business <ArrowRight size={15} />
           </Link>
           <Link href="/listings"

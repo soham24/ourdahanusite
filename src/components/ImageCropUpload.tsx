@@ -169,7 +169,7 @@ export default function ImageCropUpload({
                 type="range" min={1} max={3} step={0.05}
                 value={zoom}
                 onChange={e => setZoom(Number(e.target.value))}
-                className="flex-1 accent-warli-terra"
+                className="flex-1 accent-brand"
               />
               <ZoomIn size={14} className="text-gray-400 flex-shrink-0" />
             </div>
@@ -181,7 +181,7 @@ export default function ImageCropUpload({
                 type="range" min={-180} max={180} step={1}
                 value={rotation}
                 onChange={e => setRotation(Number(e.target.value))}
-                className="flex-1 accent-warli-terra"
+                className="flex-1 accent-brand"
               />
               <span className="text-xs text-gray-400 w-10 text-right">{rotation}°</span>
             </div>
@@ -195,7 +195,7 @@ export default function ImageCropUpload({
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-500">{size}×{size}px</span>
                 <button type="button" onClick={handleConfirmCrop}
-                  className="flex items-center gap-1.5 bg-warli-terra hover:bg-warli-deep text-warli-cream text-sm font-semibold px-4 py-1.5 rounded-xl transition-colors">
+                  className="flex items-center gap-1.5 bg-brand hover:bg-brand-strong text-bg text-sm font-semibold px-4 py-1.5 rounded-xl transition-colors">
                   <Check size={14} /> Apply Crop
                 </button>
               </div>
@@ -242,14 +242,14 @@ export default function ImageCropUpload({
 
       <div
         onClick={() => inputRef.current?.click()}
-        className="border-2 border-dashed border-gray-300 hover:border-warli-terra rounded-2xl p-10 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors bg-gray-50 hover:bg-warli-light"
+        className="border-2 border-dashed border-gray-300 hover:border-brand rounded-2xl p-10 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors bg-gray-50 hover:bg-surface-soft"
       >
-        <div className="w-14 h-14 bg-warli-light rounded-2xl flex items-center justify-center">
-          <Camera size={24} className="text-warli-terra" />
+        <div className="w-14 h-14 bg-surface-soft rounded-2xl flex items-center justify-center">
+          <Camera size={24} className="text-brand" />
         </div>
         <div className="text-center">
           <p className="text-sm font-semibold text-gray-700 flex items-center justify-center gap-1.5">
-            <Upload size={14} className="text-warli-terra" />
+            <Upload size={14} className="text-brand" />
             Click to upload & crop
           </p>
           <p className="text-xs text-gray-400 mt-1">You can crop and adjust after selecting · Output: {size}×{size}px</p>
@@ -261,3 +261,4 @@ export default function ImageCropUpload({
     </div>
   )
 }
+

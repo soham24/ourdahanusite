@@ -86,7 +86,7 @@ async function JobsPageContent({
         </div>
         <Link
           href="/jobs/submit"
-          className="inline-flex items-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-5 py-3 rounded-xl transition-colors text-sm"
+          className="inline-flex items-center gap-2 bg-brand hover:bg-brand-strong text-bg font-semibold px-5 py-3 rounded-xl transition-colors text-sm"
         >
           <Plus size={16} /> Post a Job
         </Link>
@@ -97,7 +97,7 @@ async function JobsPageContent({
           <Link
             href="/jobs"
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              !activeCategory ? 'bg-warli-terra text-warli-cream' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              !activeCategory ? 'bg-brand text-bg' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
             All
@@ -107,7 +107,7 @@ async function JobsPageContent({
               key={category}
               href={`/jobs?category=${encodeURIComponent(category)}${activeType ? `&type=${encodeURIComponent(activeType)}` : ''}`}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                activeCategory === category ? 'bg-warli-terra text-warli-cream' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                activeCategory === category ? 'bg-brand text-bg' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               {category}
@@ -123,7 +123,7 @@ async function JobsPageContent({
           <p className="text-gray-500 mb-6">Be the first to post a job opportunity in Dahanu!</p>
           <Link
             href="/jobs/submit"
-            className="inline-flex items-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-5 py-3 rounded-xl transition-colors"
+            className="inline-flex items-center gap-2 bg-brand hover:bg-brand-strong text-bg font-semibold px-5 py-3 rounded-xl transition-colors"
           >
             <Plus size={16} /> Post a Job
           </Link>
@@ -136,11 +136,11 @@ async function JobsPageContent({
               <Link
                 key={job.id}
                 href={`/jobs/${job.id}`}
-                className="block bg-white border border-gray-100 rounded-2xl p-5 hover:border-warli-sand hover:shadow-sm transition-all"
+                className="block bg-white border border-gray-100 rounded-2xl p-5 hover:border-border hover:shadow-sm transition-all"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-warli-light flex items-center justify-center flex-shrink-0">
-                    <Briefcase size={22} className="text-warli-terra" />
+                  <div className="w-12 h-12 rounded-xl bg-surface-soft flex items-center justify-center flex-shrink-0">
+                    <Briefcase size={22} className="text-brand" />
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -164,7 +164,7 @@ async function JobsPageContent({
                           {job.location}
                         </span>
                       ) : null}
-                      {job.salary ? <span className="font-medium text-warli-terra">₹ {job.salary}</span> : null}
+                      {job.salary ? <span className="font-medium text-brand">₹ {job.salary}</span> : null}
                       {job.positions && job.positions > 1 ? (
                         <span className="flex items-center gap-1">
                           <Users size={11} />
@@ -187,12 +187,12 @@ async function JobsPageContent({
       )}
 
       {jobs.length > 0 ? (
-        <div className="mt-12 bg-gradient-to-br from-warli-light to-warli-sand/30 border border-warli-sand rounded-2xl p-8 text-center">
+        <div className="mt-12 bg-gradient-to-br from-surface-soft to-border/30 border border-border rounded-2xl p-8 text-center">
           <h2 className="text-xl font-bold text-gray-900 mb-2">Hiring in Dahanu?</h2>
           <p className="text-gray-500 text-sm mb-5">Post your job and reach thousands of local candidates.</p>
           <Link
             href="/jobs/submit"
-            className="inline-flex items-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-6 py-3 rounded-xl transition-colors"
+            className="inline-flex items-center gap-2 bg-brand hover:bg-brand-strong text-bg font-semibold px-6 py-3 rounded-xl transition-colors"
           >
             <Plus size={16} /> Post a Job
           </Link>

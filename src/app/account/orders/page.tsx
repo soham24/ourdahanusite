@@ -58,8 +58,8 @@ export default async function MyAccountOrdersPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 bg-warli-light rounded-xl flex items-center justify-center">
-          <ShoppingBag size={20} className="text-warli-terra" />
+        <div className="w-10 h-10 bg-surface-soft rounded-xl flex items-center justify-center">
+          <ShoppingBag size={20} className="text-brand" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">My Orders</h1>
@@ -69,8 +69,8 @@ export default async function MyAccountOrdersPage() {
 
       {orders.length === 0 ? (
         <div className="text-center py-20 bg-white border border-gray-100 rounded-2xl">
-          <div className="w-16 h-16 bg-warli-light rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Package size={28} className="text-warli-terra" />
+          <div className="w-16 h-16 bg-surface-soft rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Package size={28} className="text-brand" />
           </div>
           <h3 className="font-semibold text-gray-900 mb-2">No orders yet</h3>
           <p className="text-sm text-gray-400 max-w-xs mx-auto mb-6">
@@ -78,7 +78,7 @@ export default async function MyAccountOrdersPage() {
           </p>
           <Link
             href={buildAbsoluteUrl('/listings')}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-warli-terra text-warli-cream rounded-xl font-semibold text-sm hover:bg-warli-deep transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-brand text-bg rounded-xl font-semibold text-sm hover:bg-brand-strong transition-colors"
           >
             Browse Listings
           </Link>
@@ -91,7 +91,7 @@ export default async function MyAccountOrdersPage() {
               <div className="text-xs text-gray-400">Orders placed</div>
             </div>
             <div className="bg-white border border-gray-100 rounded-xl p-3 text-center">
-              <div className="text-xl font-bold text-warli-terra">
+              <div className="text-xl font-bold text-brand">
                 ₹{totalSpend.toLocaleString('en-IN')}
               </div>
               <div className="text-xs text-gray-400">Total spent</div>
@@ -106,7 +106,7 @@ export default async function MyAccountOrdersPage() {
                 <Link
                   key={order.id}
                   href={`/account/orders/${order.id}`}
-                  className="block bg-white border border-gray-100 rounded-2xl p-4 hover:border-warli-sand transition-colors"
+                  className="block bg-white border border-gray-100 rounded-2xl p-4 hover:border-border transition-colors"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -118,7 +118,7 @@ export default async function MyAccountOrdersPage() {
                       </div>
                       <p className="text-xs text-gray-500">
                         from{' '}
-                        <span className="font-medium text-chikoo-brown">{listingName}</span>
+                        <span className="font-medium text-ink-2">{listingName}</span>
                         {subdomain ? (
                           <span className="text-gray-400"> · {subdomain}.ourdahanu.in</span>
                         ) : null}
@@ -128,7 +128,7 @@ export default async function MyAccountOrdersPage() {
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="font-bold text-warli-terra">
+                      <p className="font-bold text-brand">
                         ₹{Number(order.amount_total).toLocaleString('en-IN')}
                       </p>
                       <p className="text-xs text-gray-400">
@@ -146,3 +146,4 @@ export default async function MyAccountOrdersPage() {
     </div>
   )
 }
+

@@ -97,7 +97,7 @@ export default async function MyOrderDetailPage({ params }: PageProps) {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <Link
         href="/account/orders"
-        className="inline-flex items-center gap-1.5 text-sm text-chikoo-brown hover:text-warli-terra"
+        className="inline-flex items-center gap-1.5 text-sm text-ink-2 hover:text-brand"
       >
         <ArrowLeft size={14} />
         All orders
@@ -115,20 +115,20 @@ export default async function MyOrderDetailPage({ params }: PageProps) {
               Placed on {formatDateTime(order.created_at)}
             </p>
           </div>
-          <Package size={28} className="text-warli-terra" />
+          <Package size={28} className="text-brand" />
         </div>
 
         <StatusRow status={order.status} />
 
-        <div className="bg-warli-light/40 border border-warli-sand/60 rounded-xl p-4 space-y-1.5">
+        <div className="bg-surface-soft/40 border border-border/60 rounded-xl p-4 space-y-1.5">
           <p className="text-xs text-gray-500">Purchased from</p>
-          <p className="font-semibold text-chikoo-brown">{listingName}</p>
+          <p className="font-semibold text-ink-2">{listingName}</p>
           {subdomain ? (
             <a
               href={`https://${subdomain}.ourdahanu.in`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-warli-terra hover:underline"
+              className="inline-flex items-center gap-1 text-xs text-brand hover:underline"
             >
               Visit {subdomain}.ourdahanu.in
               <ExternalLink size={11} />
@@ -140,7 +140,7 @@ export default async function MyOrderDetailPage({ params }: PageProps) {
       {/* Payment summary */}
       <section className="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6 space-y-4">
         <div className="flex items-center gap-2">
-          <Receipt size={18} className="text-warli-terra" />
+          <Receipt size={18} className="text-brand" />
           <h2 className="font-semibold text-gray-900">Payment summary</h2>
         </div>
         <dl className="text-sm space-y-1.5">
@@ -158,7 +158,7 @@ export default async function MyOrderDetailPage({ params }: PageProps) {
           </div>
           <div className="flex justify-between border-t border-gray-100 pt-2 mt-2">
             <dt className="font-semibold text-gray-900">Total paid</dt>
-            <dd className="font-bold text-warli-terra text-base">
+            <dd className="font-bold text-brand text-base">
               ₹{Number(order.amount_total).toLocaleString('en-IN')}
             </dd>
           </div>
@@ -229,7 +229,7 @@ export default async function MyOrderDetailPage({ params }: PageProps) {
             {phone ? (
               <a
                 href={`tel:${phone}`}
-                className="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-200 text-chikoo-brown hover:border-warli-sand rounded-xl text-sm font-semibold transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-200 text-ink-2 hover:border-border rounded-xl text-sm font-semibold transition-colors"
               >
                 <Phone size={14} />
                 Call

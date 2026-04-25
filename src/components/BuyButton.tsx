@@ -188,7 +188,7 @@ export default function BuyButton({
     return (
       <a
         href={loginHref}
-        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-warli-terra px-4 py-2 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep"
+        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong"
       >
         <ShoppingCart size={14} />
         Sign in to buy
@@ -218,7 +218,7 @@ export default function BuyButton({
           setError('')
           setQuantity(1)
         }}
-        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-warli-terra px-4 py-2 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep"
+        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong"
       >
         <ShoppingCart size={14} />
         {isService ? 'Book now' : 'Buy now'}
@@ -233,7 +233,7 @@ export default function BuyButton({
           <div className="w-full overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:max-w-md sm:rounded-2xl">
             <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
               <div className="flex items-center gap-2">
-                <ShoppingCart size={18} className="text-warli-terra" />
+                <ShoppingCart size={18} className="text-brand" />
                 <span className="text-sm font-semibold text-gray-900">
                   {isService ? 'Book service' : 'Buy product'}
                 </span>
@@ -258,7 +258,7 @@ export default function BuyButton({
                 </h3>
                 <p className="max-w-xs text-sm text-gray-500">
                   Your payment went directly to {product.listingName}. Check{' '}
-                  <a href="/account/orders" className="font-semibold text-warli-terra underline">
+                  <a href="/account/orders" className="font-semibold text-brand underline">
                     your orders
                   </a>{' '}
                   anytime.
@@ -272,9 +272,9 @@ export default function BuyButton({
               </div>
             ) : (
               <div className="max-h-[80vh] space-y-4 overflow-y-auto px-5 py-5">
-                <div className="rounded-xl border border-warli-sand bg-warli-light p-4">
-                  <p className="text-sm font-semibold text-chikoo-bark">{product.name}</p>
-                  <p className="mt-0.5 text-lg font-bold text-warli-terra">
+                <div className="rounded-xl border border-border bg-surface-soft p-4">
+                  <p className="text-sm font-semibold text-ink">{product.name}</p>
+                  <p className="mt-0.5 text-lg font-bold text-brand">
                     ₹{(product.pricePaise / 100).toLocaleString('en-IN')}
                   </p>
                   <p className="mt-0.5 text-xs text-gray-400">from {product.listingName}</p>
@@ -300,7 +300,7 @@ export default function BuyButton({
                       type="button"
                       onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                       disabled={quantity <= 1 || busy}
-                      className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-600 transition-colors hover:border-warli-terra hover:text-warli-terra disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-600 transition-colors hover:border-brand hover:text-brand disabled:opacity-40"
                     >
                       <Minus size={14} />
                     </button>
@@ -311,7 +311,7 @@ export default function BuyButton({
                       type="button"
                       onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
                       disabled={quantity >= maxQuantity || busy}
-                      className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-600 transition-colors hover:border-warli-terra hover:text-warli-terra disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-600 transition-colors hover:border-brand hover:text-brand disabled:opacity-40"
                     >
                       <Plus size={14} />
                     </button>
@@ -336,7 +336,7 @@ export default function BuyButton({
                     onChange={(e) => setBuyerName(e.target.value)}
                     disabled={busy}
                     placeholder="Full name"
-                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-warli-terra focus:outline-none disabled:bg-gray-50"
+                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none disabled:bg-gray-50"
                   />
                 </div>
 
@@ -350,7 +350,7 @@ export default function BuyButton({
                     onChange={(e) => setBuyerPhone(e.target.value)}
                     disabled={busy}
                     placeholder="10-digit mobile number"
-                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-warli-terra focus:outline-none disabled:bg-gray-50"
+                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none disabled:bg-gray-50"
                   />
                 </div>
 
@@ -365,7 +365,7 @@ export default function BuyButton({
                       onChange={(e) => setDeliveryAddress(e.target.value)}
                       disabled={busy}
                       placeholder="Street, Village, Pincode"
-                      className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-warli-terra focus:outline-none disabled:bg-gray-50"
+                      className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none disabled:bg-gray-50"
                     />
                   </div>
                 )}
@@ -380,13 +380,13 @@ export default function BuyButton({
                     disabled={busy}
                     rows={2}
                     placeholder="Preferred time, size, colour, etc."
-                    className="w-full resize-none rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-warli-terra focus:outline-none disabled:bg-gray-50"
+                    className="w-full resize-none rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none disabled:bg-gray-50"
                   />
                 </div>
 
                 <div className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3">
                   <span className="text-sm font-semibold text-gray-700">Total</span>
-                  <span className="text-lg font-bold text-chikoo-bark">
+                  <span className="text-lg font-bold text-ink">
                     ₹{(totalPaise / 100).toLocaleString('en-IN')}
                   </span>
                 </div>
@@ -395,7 +395,7 @@ export default function BuyButton({
                   type="button"
                   onClick={handleBuy}
                   disabled={busy}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-warli-terra py-3 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep disabled:opacity-60"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong disabled:opacity-60"
                 >
                   {busy ? (
                     <>
@@ -413,7 +413,7 @@ export default function BuyButton({
                 </button>
 
                 <p className="flex items-center justify-center gap-1 text-center text-xs text-gray-400">
-                  <ShieldCheck size={11} className="text-warli-terra" />
+                  <ShieldCheck size={11} className="text-brand" />
                   Payment goes directly to {product.listingName} via Razorpay
                 </p>
               </div>
@@ -424,3 +424,4 @@ export default function BuyButton({
     </>
   )
 }
+

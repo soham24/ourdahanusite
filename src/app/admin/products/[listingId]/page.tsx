@@ -105,7 +105,7 @@ export default async function AdminListingProductsPage({
       <div>
         <Link
           href="/admin/products"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-warli-terra transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand transition-colors"
         >
           <ArrowLeft size={14} />
           All listings
@@ -115,7 +115,7 @@ export default async function AdminListingProductsPage({
       <header className="rounded-[30px] border border-[#ecd8c5] bg-gradient-to-br from-[#fff7ef] via-white to-[#f4ede4] px-6 py-7 shadow-sm sm:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3">
-            <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-warli-terra/10 text-warli-terra">
+            <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand">
               <Package size={24} />
             </span>
             <div className="min-w-0">
@@ -135,7 +135,7 @@ export default async function AdminListingProductsPage({
             href={publicHref}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex flex-shrink-0 items-center gap-2 rounded-xl border border-[#dfcdbd] bg-white px-3 py-2 text-sm font-semibold text-[#6f584a] transition-colors hover:border-warli-terra hover:text-warli-terra"
+            className="inline-flex flex-shrink-0 items-center gap-2 rounded-xl border border-[#dfcdbd] bg-white px-3 py-2 text-sm font-semibold text-[#6f584a] transition-colors hover:border-brand hover:text-brand"
           >
             <ExternalLink size={14} />
             View public page

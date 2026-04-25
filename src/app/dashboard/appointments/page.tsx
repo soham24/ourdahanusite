@@ -127,7 +127,7 @@ function AppointmentCard({
 
         <div className="min-w-[150px] rounded-2xl bg-[#fff7ef] px-4 py-3 text-left lg:text-right">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Fee</p>
-          <p className="mt-1 text-lg font-bold text-warli-terra">{formatFee(appointment.booking_fee)}</p>
+          <p className="mt-1 text-lg font-bold text-brand">{formatFee(appointment.booking_fee)}</p>
         </div>
       </div>
 
@@ -218,7 +218,7 @@ export default function DashboardAppointmentsPage() {
 
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#ead8c8] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-warli-terra">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#ead8c8] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-brand">
               <Calendar size={13} />
               Your Appointment Desk
             </span>

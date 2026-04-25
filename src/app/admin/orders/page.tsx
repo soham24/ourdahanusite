@@ -21,7 +21,7 @@ function formatDate(d: string) {
 function FlowBadge({ flow }: { flow: Order['payment_flow'] }) {
   if (flow === 'owner_razorpay') {
     return (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-warli-light text-warli-deep">
+      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-soft text-brand-strong">
         <CreditCard size={10} />
         Direct
       </span>
@@ -187,7 +187,7 @@ export default function AdminOrdersPage() {
     <div>
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
-        <ShoppingBag size={22} className="text-warli-terra" />
+        <ShoppingBag size={22} className="text-brand" />
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
           <p className="text-sm text-gray-500">All marketplace orders with payment flow + payout status</p>
@@ -208,7 +208,7 @@ export default function AdminOrdersPage() {
               <div className="text-xs text-gray-400">Total Orders</div>
             </div>
             <div className="bg-white border border-gray-100 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-warli-terra">
+              <div className="text-2xl font-bold text-brand">
                 ₹{totalRevenue.toLocaleString('en-IN')}
               </div>
               <div className="text-xs text-gray-400">

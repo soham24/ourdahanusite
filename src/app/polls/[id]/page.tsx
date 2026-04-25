@@ -86,15 +86,15 @@ export default async function PollDetailPage({
     <div className="min-h-screen bg-[#FDFAF6]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center gap-3 mb-3">
-          <Link href="/polls" className="text-gray-400 hover:text-warli-terra transition-colors">
+          <Link href="/polls" className="text-gray-400 hover:text-brand transition-colors">
             <ArrowLeft size={18} />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-chikoo-bark flex items-center gap-2">
-              <BarChart3 size={22} className="text-warli-terra" />
+            <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
+              <BarChart3 size={22} className="text-brand" />
               Community Poll
             </h1>
-            <p className="text-sm text-chikoo-brown mt-0.5">
+            <p className="text-sm text-ink-2 mt-0.5">
               Share this page directly with anyone in Dahanu.
             </p>
           </div>
@@ -102,7 +102,7 @@ export default async function PollDetailPage({
 
         <p className="mb-6 break-all text-xs text-gray-400">
           Standalone URL:{' '}
-          <a href={pollUrl} className="text-warli-terra hover:underline">
+          <a href={pollUrl} className="text-brand hover:underline">
             {pollUrl}
           </a>
         </p>

@@ -70,7 +70,7 @@ export default async function MyBusinessPaymentsPage() {
       <div>
         <Link
           href="/my-business"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-warli-terra transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand transition-colors"
         >
           <ArrowLeft size={14} />
           Back to My Business
@@ -79,7 +79,7 @@ export default async function MyBusinessPaymentsPage() {
 
       <header className="rounded-[30px] border border-[#ecd8c5] bg-gradient-to-br from-[#fff7ef] via-white to-[#f4ede4] px-6 py-7 shadow-sm sm:px-8">
         <div className="flex items-start gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-warli-terra/10 text-warli-terra">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/10 text-brand">
             <CreditCard size={24} />
           </span>
           <div>

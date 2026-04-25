@@ -48,11 +48,11 @@ export default function OwnerReplyForm({
   if (success) {
     return (
       <div
-        className={`mt-3 rounded-xl border border-warli-terra/20 bg-warli-light/40 px-3 py-2 text-sm text-gray-800 ${
+        className={`mt-3 rounded-xl border border-brand/20 bg-surface-soft/40 px-3 py-2 text-sm text-gray-800 ${
           compact ? '' : 'sm:px-4 sm:py-3'
         }`}
       >
-        <div className="flex items-center gap-1.5 text-warli-terra font-semibold text-xs mb-1">
+        <div className="flex items-center gap-1.5 text-brand font-semibold text-xs mb-1">
           <MessageCircle size={14} />
           <span>Your reply was posted</span>
         </div>
@@ -81,7 +81,7 @@ export default function OwnerReplyForm({
         }}
         placeholder="Write a thoughtful reply — this will be public on your listing."
         disabled={isPending}
-        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-warli-terra focus:outline-none focus:ring-2 focus:ring-warli-terra/20 disabled:opacity-60"
+        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:opacity-60"
       />
       <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] text-gray-500">
@@ -90,7 +90,7 @@ export default function OwnerReplyForm({
         <button
           type="submit"
           disabled={isPending || text.trim().length < 2}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-warli-terra px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-warli-terra/90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending ? (
             <>
@@ -113,3 +113,4 @@ export default function OwnerReplyForm({
     </form>
   )
 }
+

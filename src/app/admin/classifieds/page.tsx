@@ -30,7 +30,7 @@ export default async function AdminClassifiedsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-8">
-        <Link href="/admin" className="text-sm text-gray-500 hover:text-warli-terra transition-colors">
+        <Link href="/admin" className="text-sm text-gray-500 hover:text-brand transition-colors">
           <ArrowLeft size={15} />
         </Link>
         <div>
@@ -57,7 +57,7 @@ export default async function AdminClassifiedsPage() {
                   {ad.urgent ? <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-semibold">Urgent</span> : null}
                   <span className="text-xs text-gray-400">{timeAgo(String(ad.created_at))}</span>
                 </div>
-                <Link href={`/classifieds/${String(ad.id)}`} className="font-semibold text-gray-900 hover:text-warli-terra text-sm transition-colors">
+                <Link href={`/classifieds/${String(ad.id)}`} className="font-semibold text-gray-900 hover:text-brand text-sm transition-colors">
                   {String(ad.title)}
                 </Link>
                 <p className="text-xs text-gray-400 mt-0.5">

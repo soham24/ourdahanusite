@@ -8,7 +8,7 @@ export default function ForumLoading() {
         <div className="h-4 w-64 rounded skeleton-shimmer" />
       </div>
 
-      <div className="rounded-xl border border-warli-sand/30 bg-white/60 divide-y divide-warli-sand/20">
+      <div className="rounded-xl border border-border/30 bg-white/60 divide-y divide-border/20">
         {Array.from({ length: 6 }).map((_, i) => (
           <SkeletonRow key={i} />
         ))}

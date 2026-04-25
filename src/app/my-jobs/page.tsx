@@ -55,7 +55,7 @@ export default async function MyJobsPage() {
           <p className="text-gray-500 text-sm mt-1">{jobs.length} posting{jobs.length !== 1 ? 's' : ''}</p>
         </div>
         <Link href="/jobs/submit"
-          className="inline-flex items-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm">
+          className="inline-flex items-center gap-2 bg-brand hover:bg-brand-strong text-bg font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm">
           <Plus size={15} /> Post New Job
         </Link>
       </div>
@@ -66,7 +66,7 @@ export default async function MyJobsPage() {
           <h2 className="text-lg font-bold text-gray-900 mb-2">No jobs posted yet</h2>
           <p className="text-gray-500 text-sm mb-5">Post your first job and reach local candidates.</p>
           <Link href="/jobs/submit"
-            className="inline-flex items-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-5 py-3 rounded-xl transition-colors text-sm">
+            className="inline-flex items-center gap-2 bg-brand hover:bg-brand-strong text-bg font-semibold px-5 py-3 rounded-xl transition-colors text-sm">
             <Plus size={15} /> Post a Job
           </Link>
         </div>
@@ -75,8 +75,8 @@ export default async function MyJobsPage() {
           {jobs.map(job => (
             <div key={job.id} className={`bg-white border rounded-2xl p-5 ${job.status === 'closed' ? 'opacity-60 border-gray-100' : 'border-gray-200'}`}>
               <div className="flex items-start gap-3 mb-3">
-                <div className="w-11 h-11 rounded-xl bg-warli-light flex items-center justify-center flex-shrink-0">
-                  <Briefcase size={20} className="text-warli-terra" />
+                <div className="w-11 h-11 rounded-xl bg-surface-soft flex items-center justify-center flex-shrink-0">
+                  <Briefcase size={20} className="text-brand" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap gap-1.5 mb-1">
@@ -86,7 +86,7 @@ export default async function MyJobsPage() {
                       {job.type}
                     </span>
                   </div>
-                  <Link href={`/jobs/${job.id}`} className="font-bold text-gray-900 hover:text-warli-terra transition-colors">
+                  <Link href={`/jobs/${job.id}`} className="font-bold text-gray-900 hover:text-brand transition-colors">
                     {job.title}
                   </Link>
                   <p className="text-sm text-gray-500 mt-0.5">{job.company}</p>

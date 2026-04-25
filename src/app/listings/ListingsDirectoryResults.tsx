@@ -7,6 +7,9 @@ import { ArrowUpDown, Plus, Search } from 'lucide-react'
 import CategoryFilter from './CategoryFilter'
 import ListingCard from './ListingCard'
 import type { DirectoryListing } from './directory-data'
+import Input from '@/components/ui/Input'
+import Card from '@/components/ui/Card'
+import Button from '@/components/ui/Button'
 
 type SortKey = 'recommended' | 'top-rated' | 'most-reviewed' | 'newest' | 'a-z'
 
@@ -85,26 +88,28 @@ export default function ListingsDirectoryResults({
 
   return (
     <>
-      <div className="od-card mb-6 flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
-        <div className="relative flex-1">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--od-muted)]" />
-          <input
+      <Card padding="sm" className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex-1">
+          <Input
             type="text"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search by business, category, service, or area..."
-            className="od-input w-full py-3.5 pl-11 pr-4 text-base"
+            icon={<Search size={18} />}
+            className="w-full h-11"
           />
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <label className="flex items-center gap-2 text-sm font-semibold text-[var(--od-ink-2)]">
-            <ArrowUpDown size={15} className="text-[var(--od-brand)]" />
-            Sort
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--od-ink-2)]">
+              <ArrowUpDown size={14} className="text-[var(--od-brand)]" />
+              Sort
+            </span>
             <select
               value={sortKey}
               onChange={(event) => setSortKey(event.target.value as SortKey)}
-              className="od-input px-3 py-2 text-sm"
+              className="h-11 rounded-xl border border-[var(--od-border)] bg-white px-3 py-2 text-sm text-[var(--od-ink)] outline-none transition-all focus:border-[var(--od-brand)] focus:ring-4 focus:ring-[rgba(192,88,46,0.11)]"
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -112,17 +117,18 @@ export default function ListingsDirectoryResults({
                 </option>
               ))}
             </select>
-          </label>
+          </div>
 
-          <Link
+          <Button
             href="/listings/submit"
-            className="od-button-primary px-4 py-3 text-sm"
+            variant="primary"
+            size="md"
+            icon={<Plus size={16} />}
           >
-            <Plus size={16} />
-            Add Your Business
-          </Link>
+            Add Business
+          </Button>
         </div>
-      </div>
+      </Card>
 
       <CategoryFilter
         sortedCategories={sortedCategories}
@@ -153,22 +159,24 @@ export default function ListingsDirectoryResults({
           ))}
         </div>
       ) : (
-        <div className="od-card mb-16 p-12 text-center">
-          <div className="text-5xl mb-3">🏪</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
+        <Card padding="lg" className="mb-16 text-center">
+          <div className="text-5xl mb-4">🏪</div>
+          <h2 className="text-xl font-bold text-[var(--od-ink)] mb-2">
             No matching listings found
           </h2>
-          <p className="text-sm text-gray-500 max-w-md mx-auto">
+          <p className="text-sm text-[var(--od-muted)] max-w-md mx-auto">
             Try a different business name, category, or area. You can also add the first listing for this search.
           </p>
-          <Link
+          <Button
             href="/listings/submit"
-            className="od-button-primary mt-5 px-5 py-3 text-sm"
+            variant="primary"
+            size="md"
+            icon={<Plus size={15} />}
+            className="mt-6"
           >
-            <Plus size={15} />
             Add Your Business
-          </Link>
-        </div>
+          </Button>
+        </Card>
       )}
     </>
   )

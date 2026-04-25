@@ -49,7 +49,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="max-w-xl mx-auto px-4 py-20 flex items-center justify-center">
-        <Loader2 className="animate-spin text-warli-terra" size={32} />
+        <Loader2 className="animate-spin text-brand" size={32} />
       </div>
     )
   }
@@ -66,21 +66,21 @@ export default function ProfilePage() {
     <div className="max-w-xl mx-auto px-4 sm:px-6 py-10">
       <Link
         href="/dashboard"
-        className="inline-flex items-center gap-1.5 text-sm text-chikoo-brown hover:text-warli-terra mb-6 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-ink-2 hover:text-brand mb-6 transition-colors"
       >
         <ArrowLeft size={15} />
         Back to Dashboard
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-chikoo-bark">My Profile</h1>
-        <p className="text-chikoo-brown mt-1">Update your photo, name, and bio</p>
+        <h1 className="text-3xl font-bold text-ink">My Profile</h1>
+        <p className="text-ink-2 mt-1">Update your photo, name, and bio</p>
       </div>
 
       {state?.success && (
         <div className="bg-chikoo-leaf/10 border border-chikoo-leaf/30 rounded-2xl p-4 mb-6 flex items-center gap-3">
           <CheckCircle size={18} className="text-chikoo-leaf flex-shrink-0" />
-          <p className="text-sm font-medium text-chikoo-bark">Profile saved successfully!</p>
+          <p className="text-sm font-medium text-ink">Profile saved successfully!</p>
         </div>
       )}
 
@@ -95,8 +95,8 @@ export default function ProfilePage() {
         <input type="hidden" name="avatar_url" value={avatarUrl} />
 
         {/* Avatar */}
-        <div className="bg-warli-cream border border-warli-sand rounded-2xl p-6">
-          <h2 className="text-sm font-semibold text-chikoo-bark mb-4 flex items-center gap-2">
+        <div className="bg-bg border border-border rounded-2xl p-6">
+          <h2 className="text-sm font-semibold text-ink mb-4 flex items-center gap-2">
             <Camera size={15} />
             Profile Photo
           </h2>
@@ -106,13 +106,13 @@ export default function ProfilePage() {
               alt="Avatar"
               width={80}
               height={80}
-              className="w-20 h-20 rounded-2xl object-cover border-2 border-warli-sand flex-shrink-0"
+              className="w-20 h-20 rounded-2xl object-cover border-2 border-border flex-shrink-0"
             />
             <div>
-              <p className="text-sm font-medium text-chikoo-bark">
+              <p className="text-sm font-medium text-ink">
                 {profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0]}
               </p>
-              <p className="text-xs text-chikoo-brown/70 mt-0.5">{user.email}</p>
+              <p className="text-xs text-ink-2/70 mt-0.5">{user.email}</p>
               {avatarUrl && (
                 <button
                   type="button"
@@ -132,11 +132,11 @@ export default function ProfilePage() {
         </div>
 
         {/* Basic Info */}
-        <div className="bg-warli-cream border border-warli-sand rounded-2xl p-6 space-y-5">
-          <h2 className="text-sm font-semibold text-chikoo-bark">Basic Information</h2>
+        <div className="bg-bg border border-border rounded-2xl p-6 space-y-5">
+          <h2 className="text-sm font-semibold text-ink">Basic Information</h2>
 
           <div>
-            <label htmlFor="full_name" className="block text-sm font-medium text-chikoo-brown mb-1.5">
+            <label htmlFor="full_name" className="block text-sm font-medium text-ink-2 mb-1.5">
               Full Name
             </label>
             <input
@@ -145,14 +145,14 @@ export default function ProfilePage() {
               name="full_name"
               defaultValue={profile?.full_name || user.user_metadata?.full_name || ''}
               placeholder="Your full name"
-              className="w-full px-4 py-3 border border-warli-sand rounded-xl focus:outline-none focus:border-warli-terra bg-white text-sm text-chikoo-bark"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-brand bg-white text-sm text-ink"
             />
           </div>
 
           <div>
-            <label htmlFor="bio" className="block text-sm font-medium text-chikoo-brown mb-1.5">
+            <label htmlFor="bio" className="block text-sm font-medium text-ink-2 mb-1.5">
               Bio
-              <span className="text-chikoo-brown/50 font-normal ml-1">— a short note about yourself</span>
+              <span className="text-ink-2/50 font-normal ml-1">— a short note about yourself</span>
             </label>
             <textarea
               id="bio"
@@ -160,13 +160,13 @@ export default function ProfilePage() {
               rows={3}
               defaultValue={profile?.bio || ''}
               placeholder="e.g. Dahanu local, chikoo farmer, loves the beach…"
-              className="w-full px-4 py-3 border border-warli-sand rounded-xl focus:outline-none focus:border-warli-terra bg-white text-sm text-chikoo-bark resize-none"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-brand bg-white text-sm text-ink resize-none"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-chikoo-brown mb-1.5">
+              <label htmlFor="phone" className="block text-sm font-medium text-ink-2 mb-1.5">
                 Phone
               </label>
               <input
@@ -175,11 +175,11 @@ export default function ProfilePage() {
                 name="phone"
                 defaultValue={profile?.phone || ''}
                 placeholder="+91 98765 43210"
-                className="w-full px-4 py-3 border border-warli-sand rounded-xl focus:outline-none focus:border-warli-terra bg-white text-sm text-chikoo-bark"
+                className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-brand bg-white text-sm text-ink"
               />
             </div>
             <div>
-              <label htmlFor="address" className="block text-sm font-medium text-chikoo-brown mb-1.5">
+              <label htmlFor="address" className="block text-sm font-medium text-ink-2 mb-1.5">
                 Location
               </label>
               <input
@@ -188,21 +188,21 @@ export default function ProfilePage() {
                 name="address"
                 defaultValue={profile?.address || ''}
                 placeholder="Dahanu, Palghar"
-                className="w-full px-4 py-3 border border-warli-sand rounded-xl focus:outline-none focus:border-warli-terra bg-white text-sm text-chikoo-bark"
+                className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-brand bg-white text-sm text-ink"
               />
             </div>
           </div>
         </div>
 
         {/* Account info (read-only) */}
-        <div className="bg-warli-sand/30 border border-warli-sand rounded-2xl p-5 text-sm">
+        <div className="bg-border/30 border border-border rounded-2xl p-5 text-sm">
           <div className="flex justify-between py-1.5">
-            <span className="text-chikoo-brown/70">Email</span>
-            <span className="text-chikoo-bark font-medium">{user.email}</span>
+            <span className="text-ink-2/70">Email</span>
+            <span className="text-ink font-medium">{user.email}</span>
           </div>
           <div className="flex justify-between py-1.5">
-            <span className="text-chikoo-brown/70">Member since</span>
-            <span className="text-chikoo-bark font-medium">
+            <span className="text-ink-2/70">Member since</span>
+            <span className="text-ink font-medium">
               {new Date(user.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'long' })}
             </span>
           </div>
@@ -211,7 +211,7 @@ export default function ProfilePage() {
         <button
           type="submit"
           disabled={pending}
-          className="w-full bg-warli-terra hover:bg-warli-deep disabled:opacity-60 text-warli-cream font-semibold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2"
+          className="w-full bg-brand hover:bg-brand-strong disabled:opacity-60 text-bg font-semibold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2"
         >
           {pending ? (
             <>

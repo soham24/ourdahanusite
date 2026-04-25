@@ -107,7 +107,7 @@ export default async function AdminProductsIndex() {
 
   return (
     <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[30px] border border-[#ecd8c5] bg-gradient-to-br from-[#34160a] via-[#4b2210] to-[#8a4b26] px-6 py-7 text-warli-cream shadow-[0_24px_60px_rgba(61,26,8,0.22)] lg:px-8">
+      <section className="relative overflow-hidden rounded-[30px] border border-[#ecd8c5] bg-gradient-to-br from-[#34160a] via-[#4b2210] to-[#8a4b26] px-6 py-7 text-bg shadow-[0_24px_60px_rgba(61,26,8,0.22)] lg:px-8">
         <div className="absolute -right-16 top-0 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute left-0 top-16 h-40 w-40 rounded-full bg-[#d28b5f]/30 blur-3xl" />
 
@@ -143,7 +143,7 @@ export default async function AdminProductsIndex() {
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff3e7] text-warli-terra">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff3e7] text-brand">
               <Store size={20} />
             </span>
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Listings</span>
@@ -188,7 +188,7 @@ export default async function AdminProductsIndex() {
 
       <section className="rounded-[28px] border border-[#eee2d7] bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
-          <Package size={18} className="text-warli-terra" />
+          <Package size={18} className="text-brand" />
           <h2 className="text-lg font-bold text-[#2d160b]">All Listings</h2>
         </div>
         <p className="mt-2 text-sm text-[#7c6253]">
@@ -207,7 +207,7 @@ export default async function AdminProductsIndex() {
               <Link
                 key={row.id}
                 href={`/admin/products/${row.id}`}
-                className="group block rounded-[24px] border border-[#efe2d6] bg-[#fffdfb] p-5 transition-all hover:border-warli-sand hover:shadow-md"
+                className="group block rounded-[24px] border border-[#efe2d6] bg-[#fffdfb] p-5 transition-all hover:border-border hover:shadow-md"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
@@ -274,7 +274,7 @@ export default async function AdminProductsIndex() {
                     </div>
                     <ArrowRight
                       size={18}
-                      className="flex-shrink-0 text-gray-300 transition-colors group-hover:text-warli-terra"
+                      className="flex-shrink-0 text-gray-300 transition-colors group-hover:text-brand"
                     />
                   </div>
                 </div>

@@ -91,7 +91,7 @@ export default function NotificationsInbox({
             type="button"
             onClick={handleMarkAll}
             disabled={isPending}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-warli-terra hover:text-warli-deep disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:text-brand-strong disabled:opacity-50"
           >
             <CheckCheck size={14} />
             Mark all read
@@ -101,8 +101,8 @@ export default function NotificationsInbox({
 
       {items.length === 0 ? (
         <div className="text-center py-14">
-          <div className="w-14 h-14 bg-warli-light rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Bell size={24} className="text-warli-terra" />
+          <div className="w-14 h-14 bg-surface-soft rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Bell size={24} className="text-brand" />
           </div>
           <p className="font-semibold text-gray-700">No notifications yet</p>
           <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto">
@@ -121,14 +121,14 @@ export default function NotificationsInbox({
                   onClick={() => handleClick(row)}
                   className={`flex gap-3 px-5 py-4 transition-colors ${
                     unread
-                      ? 'bg-warli-light/40 hover:bg-warli-light/70'
+                      ? 'bg-surface-soft/40 hover:bg-surface-soft/70'
                       : 'hover:bg-gray-50'
                   }`}
                 >
                   <div
                     className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${
                       unread
-                        ? 'bg-warli-terra text-warli-cream'
+                        ? 'bg-brand text-bg'
                         : 'bg-gray-100 text-gray-500'
                     }`}
                   >
@@ -146,7 +146,7 @@ export default function NotificationsInbox({
                       {unread && (
                         <span
                           aria-hidden
-                          className="mt-1.5 w-2 h-2 bg-warli-terra rounded-full flex-shrink-0"
+                          className="mt-1.5 w-2 h-2 bg-brand rounded-full flex-shrink-0"
                         />
                       )}
                     </div>
@@ -166,3 +166,4 @@ export default function NotificationsInbox({
     </div>
   )
 }
+

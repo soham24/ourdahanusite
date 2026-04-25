@@ -32,8 +32,8 @@ function LoginContent() {
         <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 md:p-10">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-warli-terra rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-warli-cream font-bold text-2xl">OD</span>
+            <div className="w-16 h-16 bg-brand rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <span className="text-bg font-bold text-2xl">OD</span>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Welcome to OurDahanu</h1>
             <p className="text-gray-500 mt-2">Sign in to access your community</p>
@@ -48,7 +48,7 @@ function LoginContent() {
           {/* Google Sign In */}
           <button
             onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-200 hover:border-warli-terra hover:bg-warli-light text-gray-800 font-semibold px-6 py-4 rounded-xl transition-all text-base"
+            className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-200 hover:border-brand hover:bg-surface-soft text-gray-800 font-semibold px-6 py-4 rounded-xl transition-all text-base"
           >
             <svg width="22" height="22" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -61,9 +61,9 @@ function LoginContent() {
 
           <div className="mt-6 text-center text-sm text-gray-400">
             By signing in, you agree to our{' '}
-            <a href="#" className="text-warli-terra hover:underline">Terms of Service</a>
+            <a href="#" className="text-brand hover:underline">Terms of Service</a>
             {' '}and{' '}
-            <a href="#" className="text-warli-terra hover:underline">Privacy Policy</a>
+            <a href="#" className="text-brand hover:underline">Privacy Policy</a>
           </div>
 
           {/* Features */}

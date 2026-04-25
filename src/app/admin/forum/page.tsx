@@ -29,7 +29,7 @@ export default async function AdminForumPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-8">
-        <Link href="/admin" className="text-sm text-gray-500 hover:text-warli-terra transition-colors">
+        <Link href="/admin" className="text-sm text-gray-500 hover:text-brand transition-colors">
           <ArrowLeft size={15} />
         </Link>
         <div>
@@ -55,7 +55,7 @@ export default async function AdminForumPage() {
                   <span className="text-xs font-semibold bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">{thread.category as string}</span>
                   <span className="text-xs text-gray-400">{timeAgo(thread.created_at as string)}</span>
                 </div>
-                <Link href={`/forum/${thread.id as string}`} className="font-semibold text-gray-900 hover:text-warli-terra text-sm transition-colors">
+                <Link href={`/forum/${thread.id as string}`} className="font-semibold text-gray-900 hover:text-brand text-sm transition-colors">
                   {thread.title as string}
                 </Link>
                 <p className="text-xs text-gray-400 mt-0.5">

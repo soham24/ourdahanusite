@@ -25,12 +25,12 @@ export default async function AdminNewsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-8">
-        <Link href="/admin" className="text-sm text-gray-500 hover:text-warli-terra transition-colors">
+        <Link href="/admin" className="text-sm text-gray-500 hover:text-brand transition-colors">
           <ArrowLeft size={15} />
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Newspaper size={22} className="text-warli-terra" />
+            <Newspaper size={22} className="text-brand" />
             Pending News Articles
           </h1>
           <p className="text-gray-500 text-sm mt-0.5">{articles.length} article{articles.length !== 1 ? 's' : ''} awaiting review</p>
@@ -66,7 +66,7 @@ export default async function AdminNewsPage() {
                   <form action={approveContent}>
                     <input type="hidden" name="table" value="news_articles" />
                     <input type="hidden" name="id" value={article.id as string} />
-                    <button type="submit" className="inline-flex items-center gap-1.5 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-4 py-2 rounded-xl transition-colors text-sm">
+                    <button type="submit" className="inline-flex items-center gap-1.5 bg-brand hover:bg-brand-strong text-bg font-semibold px-4 py-2 rounded-xl transition-colors text-sm">
                       <CheckCircle size={14} /> Publish
                     </button>
                   </form>

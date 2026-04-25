@@ -55,7 +55,7 @@ export default function SubdomainInput() {
   const borderColor =
     status === 'available' ? 'border-green-400 focus-within:border-green-500' :
     status === 'taken' || status === 'invalid' || status === 'reserved' ? 'border-red-400 focus-within:border-red-500' :
-    'border-gray-200 focus-within:border-warli-terra'
+    'border-gray-200 focus-within:border-brand'
 
   const info = statusUI[status]
 
@@ -91,7 +91,7 @@ export default function SubdomainInput() {
           type="button"
           onClick={() => value && validate(value) && check(value)}
           disabled={!value || status === 'checking'}
-          className="px-3 py-3 bg-warli-terra text-warli-cream text-xs font-semibold hover:bg-warli-deep transition-colors disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
+          className="px-3 py-3 bg-brand text-bg text-xs font-semibold hover:bg-brand-strong transition-colors disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
         >
           Check
         </button>
@@ -110,3 +110,4 @@ export default function SubdomainInput() {
     </div>
   )
 }
+

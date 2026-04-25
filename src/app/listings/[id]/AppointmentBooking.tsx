@@ -151,7 +151,7 @@ export default function AppointmentBooking({
     {
       label: 'Fee',
       value: formatFee(bookingFee),
-      tone: 'text-warli-terra',
+      tone: 'text-brand',
     },
     {
       label: 'Slot Length',
@@ -367,7 +367,7 @@ export default function AppointmentBooking({
       <div className="relative space-y-6 p-6 lg:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#e9c9a7] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-warli-terra">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#e9c9a7] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-brand">
               <Sparkles size={13} />
               Appointment Booking
             </span>
@@ -383,7 +383,7 @@ export default function AppointmentBooking({
               {['Choose date', 'Pick slot', bookingFee > 0 ? 'Pay & confirm' : 'Confirm instantly'].map((step, index) => (
                 <div
                   key={step}
-                  className="inline-flex items-center gap-2 rounded-full bg-[#3D1A08] px-3 py-1.5 text-xs font-semibold text-warli-cream"
+                  className="inline-flex items-center gap-2 rounded-full bg-[#3D1A08] px-3 py-1.5 text-xs font-semibold text-bg"
                 >
                   <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-[11px]">
                     {index + 1}
@@ -455,7 +455,7 @@ export default function AppointmentBooking({
               <div className="grid gap-5 xl:grid-cols-[minmax(240px,280px)_minmax(0,1fr)]">
                 <div className="rounded-2xl border border-[#efe2d6] bg-[#fffaf5] p-4">
                   <div className="flex items-center gap-2 text-sm font-semibold text-[#7d5a47]">
-                    <Calendar size={15} className="text-warli-terra" />
+                    <Calendar size={15} className="text-brand" />
                     Step 1
                   </div>
                   <h3 className="mt-2 text-lg font-bold text-[#2d160b]">Choose a date</h3>
@@ -469,7 +469,7 @@ export default function AppointmentBooking({
                     max={maxDate}
                     value={selectedDate}
                     onChange={(event) => setSelectedDate(event.target.value)}
-                    className="mt-4 w-full rounded-2xl border border-[#decbbb] bg-white px-4 py-3 text-sm text-gray-800 focus:border-warli-terra focus:outline-none"
+                    className="mt-4 w-full rounded-2xl border border-[#decbbb] bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand focus:outline-none"
                   />
 
                   <div className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-[#6b5547]">
@@ -482,7 +482,7 @@ export default function AppointmentBooking({
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <div className="flex items-center gap-2 text-sm font-semibold text-[#7d5a47]">
-                        <Clock3 size={15} className="text-warli-terra" />
+                        <Clock3 size={15} className="text-brand" />
                         Step 2
                       </div>
                       <h3 className="mt-1 text-lg font-bold text-[#2d160b]">Pick a live time slot</h3>
@@ -534,15 +534,15 @@ export default function AppointmentBooking({
                                       !slot.available
                                         ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 line-through'
                                         : isSelected
-                                        ? 'border-warli-terra bg-warli-terra text-white shadow-md'
-                                        : 'border-[#e4d3c4] bg-white text-[#2d160b] hover:border-warli-terra hover:bg-[#fff5ec]'
+                                        ? 'border-brand bg-brand text-white shadow-md'
+                                        : 'border-[#e4d3c4] bg-white text-[#2d160b] hover:border-brand hover:bg-[#fff5ec]'
                                     }`}
                                     title={`${formatSlotLabel(slot)}${slot.available ? ` — ${slot.remaining} left` : ' — Full'}`}
                                   >
                                     {formatTimeLabel(slot.start)}
                                     {slot.available && slot.remaining <= (appointmentSettings.capacity > 1 ? Math.ceil(appointmentSettings.capacity / 2) : 0) && (
                                       <span className={`absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${
-                                        isSelected ? 'bg-white text-warli-terra' : 'bg-orange-100 text-orange-600'
+                                        isSelected ? 'bg-white text-brand' : 'bg-orange-100 text-orange-600'
                                       }`}>
                                         {slot.remaining}
                                       </span>
@@ -555,8 +555,8 @@ export default function AppointmentBooking({
                         )
                       })}
                       {selectedSlot && (
-                        <div className="rounded-xl border border-warli-terra/20 bg-[#fff5ec] px-3 py-2 text-sm text-[#5a3825]">
-                          <span className="font-semibold text-warli-terra">Selected:</span>{' '}
+                        <div className="rounded-xl border border-brand/20 bg-[#fff5ec] px-3 py-2 text-sm text-[#5a3825]">
+                          <span className="font-semibold text-brand">Selected:</span>{' '}
                           {formatSlotLabel(selectedSlot)} — {selectedSlot.remaining} spot{selectedSlot.remaining === 1 ? '' : 's'} left
                         </div>
                       )}
@@ -576,7 +576,7 @@ export default function AppointmentBooking({
                     </div>
                     <Link
                       href={`/login?next=${encodeURIComponent(pathname || `/listings/${listingId}`)}`}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-warli-terra px-5 py-3 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong"
                     >
                       Sign In to Book
                       <ArrowRight size={15} />
@@ -605,7 +605,7 @@ export default function AppointmentBooking({
                           className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-gray-800 focus:outline-none ${
                             fieldErrors.name
                               ? 'border-red-400 focus:border-red-500'
-                              : 'border-[#decbbb] focus:border-warli-terra'
+                              : 'border-[#decbbb] focus:border-brand'
                           }`}
                         />
                         {fieldErrors.name && (
@@ -626,7 +626,7 @@ export default function AppointmentBooking({
                           className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-gray-800 focus:outline-none ${
                             fieldErrors.phone
                               ? 'border-red-400 focus:border-red-500'
-                              : 'border-[#decbbb] focus:border-warli-terra'
+                              : 'border-[#decbbb] focus:border-brand'
                           }`}
                         />
                         {fieldErrors.phone && (
@@ -647,7 +647,7 @@ export default function AppointmentBooking({
                       onChange={(event) => setNotes(event.target.value)}
                       rows={6}
                       placeholder="Optional notes or questions"
-                      className="mt-4 w-full resize-none rounded-xl border border-[#decbbb] bg-[#fffdfb] px-4 py-3 text-sm text-gray-800 focus:border-warli-terra focus:outline-none"
+                      className="mt-4 w-full resize-none rounded-xl border border-[#decbbb] bg-[#fffdfb] px-4 py-3 text-sm text-gray-800 focus:border-brand focus:outline-none"
                     />
 
                     <div className="mt-4 rounded-xl bg-[#f8efe7] px-4 py-3 text-sm text-[#6a5447]">
@@ -659,7 +659,7 @@ export default function AppointmentBooking({
               )}
             </div>
 
-            <aside className="rounded-[28px] bg-[#3D1A08] p-5 text-warli-cream shadow-[0_24px_60px_rgba(61,26,8,0.24)] lg:p-6">
+            <aside className="rounded-[28px] bg-[#3D1A08] p-5 text-bg shadow-[0_24px_60px_rgba(61,26,8,0.24)] lg:p-6">
               <div className="flex items-center gap-2 text-sm font-semibold text-[#f4d8c0]">
                 <ShieldCheck size={15} />
                 Booking Summary
@@ -721,7 +721,7 @@ export default function AppointmentBooking({
                   type="button"
                   onClick={() => void handleConfirm()}
                   disabled={!selectedSlot || status === 'processing' || status === 'loading-slots'}
-                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-warli-cream px-5 py-3.5 text-sm font-semibold text-[#3D1A08] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-bg px-5 py-3.5 text-sm font-semibold text-[#3D1A08] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {status === 'processing' ? (
                     <>
@@ -738,7 +738,7 @@ export default function AppointmentBooking({
               ) : (
                 <Link
                   href={`/login?next=${encodeURIComponent(pathname || `/listings/${listingId}`)}`}
-                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-warli-cream px-5 py-3.5 text-sm font-semibold text-[#3D1A08] transition-colors hover:bg-white"
+                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-bg px-5 py-3.5 text-sm font-semibold text-[#3D1A08] transition-colors hover:bg-white"
                 >
                   Sign In to Continue
                   <ArrowRight size={15} />

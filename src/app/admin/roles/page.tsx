@@ -317,7 +317,7 @@ export default async function RolesPage({
           name="q"
           defaultValue={searchQuery}
           placeholder="Search by name or email..."
-          className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-warli-terra"
+          className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand"
         />
       </form>
 
@@ -332,8 +332,8 @@ export default async function RolesPage({
             <div className="text-center py-12 text-gray-400 text-sm">No users found</div>
           ) : members.map((member) => (
             <div key={member.id} className="px-6 py-4 flex items-center gap-4">
-              <div className="w-9 h-9 rounded-full bg-warli-light flex items-center justify-center shrink-0">
-                <span className="text-sm font-bold text-warli-terra">
+              <div className="w-9 h-9 rounded-full bg-surface-soft flex items-center justify-center shrink-0">
+                <span className="text-sm font-bold text-brand">
                   {(member.full_name || member.email || 'U')[0].toUpperCase()}
                 </span>
               </div>
@@ -370,7 +370,7 @@ export default async function RolesPage({
                 <select
                   name="role"
                   defaultValue={member.role || 'user'}
-                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-warli-terra bg-white"
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand bg-white"
                 >
                   <option value="user">👤 User</option>
                   <option value="business_owner">🏪 Business Owner</option>
@@ -380,7 +380,7 @@ export default async function RolesPage({
                 </select>
                 <button
                   type="submit"
-                  className="text-xs bg-warli-terra text-white px-3 py-1.5 rounded-lg hover:bg-warli-deep transition-colors font-medium"
+                  className="text-xs bg-brand text-white px-3 py-1.5 rounded-lg hover:bg-brand-strong transition-colors font-medium"
                 >
                   Save
                 </button>
@@ -429,7 +429,7 @@ export default async function RolesPage({
                 className={`inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                   currentPage >= totalPages
                     ? 'pointer-events-none bg-gray-100 text-gray-300'
-                    : 'bg-warli-terra text-white hover:bg-warli-deep'
+                    : 'bg-brand text-white hover:bg-brand-strong'
                 }`}
               >
                 Next

@@ -194,7 +194,7 @@ export default function RenewForm({
     <div className="max-w-xl mx-auto px-4 sm:px-6 py-10">
       <Link
         href="/my-business"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-warli-terra mb-6 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand mb-6 transition-colors"
       >
         <ArrowLeft size={15} /> Back to My Business
       </Link>
@@ -209,8 +209,8 @@ export default function RenewForm({
       {/* Listing Info + Expiry Preview */}
       <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-warli-light rounded-xl flex items-center justify-center flex-shrink-0">
-            <Store size={20} className="text-warli-terra" />
+          <div className="w-10 h-10 bg-surface-soft rounded-xl flex items-center justify-center flex-shrink-0">
+            <Store size={20} className="text-brand" />
           </div>
           <div>
             <p className="font-bold text-gray-900">{listingName}</p>
@@ -264,7 +264,7 @@ export default function RenewForm({
         {/* Coupon */}
         <div className="mt-4 pt-4 border-t border-gray-100">
           <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
-            <BadgePercent size={14} className="text-warli-terra" />
+            <BadgePercent size={14} className="text-brand" />
             Have a coupon code?
           </p>
 
@@ -289,12 +289,12 @@ export default function RenewForm({
                 onChange={e => setCouponInput(e.target.value.toLowerCase())}
                 onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), applyCoupon())}
                 placeholder="Enter coupon code"
-                className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-warli-terra/30 focus:border-warli-terra"
+                className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
               />
               <button
                 type="button"
                 onClick={applyCoupon}
-                className="bg-warli-light hover:bg-warli-sand text-warli-terra font-semibold text-sm px-4 py-2 rounded-xl transition-colors"
+                className="bg-surface-soft hover:bg-border text-brand font-semibold text-sm px-4 py-2 rounded-xl transition-colors"
               >
                 Apply
               </button>
@@ -320,7 +320,7 @@ export default function RenewForm({
       <button
         onClick={handleRenew}
         disabled={busy}
-        className="w-full flex items-center justify-center gap-2 bg-warli-terra hover:bg-warli-deep disabled:opacity-60 text-warli-cream font-bold px-6 py-4 rounded-xl transition-colors text-base"
+        className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-strong disabled:opacity-60 text-bg font-bold px-6 py-4 rounded-xl transition-colors text-base"
       >
         {busy && <Loader2 size={18} className="animate-spin" />}
         {btnLabel}

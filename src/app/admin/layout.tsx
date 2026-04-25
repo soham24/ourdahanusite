@@ -63,7 +63,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-warli-terra font-bold">
+              <div className="flex items-center gap-2 text-brand font-bold">
                 <Shield size={18} />
                 <span>OurDahanu Admin</span>
               </div>
@@ -75,7 +75,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <span className="text-gray-200 hidden sm:inline">|</span>
               <span className="text-xs text-gray-400 hidden sm:inline">{user.email}</span>
             </div>
-            <Link href="/" className="text-xs text-gray-500 hover:text-warli-terra transition-colors">
+            <Link href="/" className="text-xs text-gray-500 hover:text-brand transition-colors">
               View Site &rarr;
             </Link>
           </div>
@@ -90,7 +90,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <Link
                 key={link.href}
                 href={link.href}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-warli-light hover:text-warli-terra transition-colors whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-surface-soft hover:text-brand transition-colors whitespace-nowrap"
               >
                 {link.icon}
                 {link.label}

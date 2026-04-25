@@ -48,7 +48,7 @@ export default async function MyBusinessProductsIndex() {
       <div>
         <Link
           href="/my-business"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-warli-terra transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand transition-colors"
         >
           <ArrowLeft size={14} />
           Back to My Business
@@ -57,7 +57,7 @@ export default async function MyBusinessProductsIndex() {
 
       <header className="rounded-[30px] border border-[#ecd8c5] bg-gradient-to-br from-[#fff7ef] via-white to-[#f4ede4] px-6 py-7 shadow-sm sm:px-8">
         <div className="flex items-start gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-warli-terra/10 text-warli-terra">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/10 text-brand">
             <Package size={24} />
           </span>
           <div>
@@ -78,7 +78,7 @@ export default async function MyBusinessProductsIndex() {
           </p>
           <Link
             href="/listings/submit"
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-warli-terra px-4 py-2.5 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep"
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong"
           >
             Add a listing
           </Link>
@@ -91,7 +91,7 @@ export default async function MyBusinessProductsIndex() {
           </p>
           <Link
             href="/my-business/payments"
-            className="mt-5 inline-flex items-center gap-2 rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 text-sm font-semibold text-[#2d160b] transition-colors hover:border-warli-terra hover:text-warli-terra"
+            className="mt-5 inline-flex items-center gap-2 rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 text-sm font-semibold text-[#2d160b] transition-colors hover:border-brand hover:text-brand"
           >
             <CreditCard size={14} />
             Set up payments
@@ -105,11 +105,11 @@ export default async function MyBusinessProductsIndex() {
               <Link
                 key={listing.id}
                 href={`/my-business/products/${listing.id}`}
-                className="group block rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm transition-all hover:border-warli-sand hover:shadow-md"
+                className="group block rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm transition-all hover:border-border hover:shadow-md"
               >
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff3e7] text-warli-terra">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff3e7] text-brand">
                       <Store size={20} />
                     </span>
                     <div>
@@ -125,7 +125,7 @@ export default async function MyBusinessProductsIndex() {
                   </div>
                   <ArrowRight
                     size={18}
-                    className="flex-shrink-0 text-gray-300 transition-colors group-hover:text-warli-terra"
+                    className="flex-shrink-0 text-gray-300 transition-colors group-hover:text-brand"
                   />
                 </div>
               </Link>

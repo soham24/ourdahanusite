@@ -44,7 +44,7 @@ export default function ProductCard({
           className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide backdrop-blur ${
             product.type === 'service'
               ? 'bg-blue-100/90 text-blue-700'
-              : 'bg-[#fff1e4]/95 text-warli-terra'
+              : 'bg-[#fff1e4]/95 text-brand'
           }`}
         >
           {product.type === 'service' ? <Wrench size={10} /> : <Package size={10} />}
@@ -78,3 +78,4 @@ export default function ProductCard({
     </article>
   )
 }
+

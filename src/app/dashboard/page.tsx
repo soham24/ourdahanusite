@@ -64,7 +64,7 @@ export default async function DashboardPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
       {/* Profile Card */}
-      <div className="bg-gradient-to-br from-chikoo-bark to-warli-terra rounded-3xl p-8 text-white mb-8">
+      <div className="bg-gradient-to-br from-ink to-brand rounded-3xl p-8 text-white mb-8">
         <div className="flex items-center gap-5">
           <Image src={avatar} alt={name} width={80} height={80} className="w-20 h-20 rounded-2xl border-4 border-white/30 object-cover" />
           <div className="flex-1 min-w-0">
@@ -119,20 +119,20 @@ export default async function DashboardPage() {
 
         {/* My Business — live */}
         <Link href="/my-business"
-          className="bg-white border border-gray-100 hover:border-warli-sand hover:shadow-md rounded-2xl p-4 text-center transition-all group">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-warli-light text-warli-terra">
+          className="bg-white border border-gray-100 hover:border-border hover:shadow-md rounded-2xl p-4 text-center transition-all group">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-surface-soft text-brand">
             <Store size={18} />
           </div>
-          <div className="text-2xl font-bold text-gray-900 group-hover:text-warli-terra transition-colors">🏪</div>
+          <div className="text-2xl font-bold text-gray-900 group-hover:text-brand transition-colors">🏪</div>
           <div className="text-xs text-gray-500">My Listings</div>
         </Link>
 
         <Link href="/dashboard/appointments"
-          className="bg-white border border-gray-100 hover:border-warli-sand hover:shadow-md rounded-2xl p-4 text-center transition-all group">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-warli-light text-warli-terra">
+          className="bg-white border border-gray-100 hover:border-border hover:shadow-md rounded-2xl p-4 text-center transition-all group">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-surface-soft text-brand">
             <Calendar size={18} />
           </div>
-          <div className="text-2xl font-bold text-gray-900 group-hover:text-warli-terra transition-colors">↗</div>
+          <div className="text-2xl font-bold text-gray-900 group-hover:text-brand transition-colors">↗</div>
           <div className="text-xs text-gray-500">Appointments</div>
         </Link>
 
@@ -160,28 +160,28 @@ export default async function DashboardPage() {
         </Link>
 
         <Link href="/profile"
-          className="bg-white border border-gray-100 hover:border-warli-sand hover:shadow-md rounded-2xl p-4 text-center transition-all group">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-warli-light text-warli-terra">
+          className="bg-white border border-gray-100 hover:border-border hover:shadow-md rounded-2xl p-4 text-center transition-all group">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-surface-soft text-brand">
             <UserCircle size={18} />
           </div>
-          <div className="text-xs font-semibold text-gray-700 group-hover:text-warli-terra transition-colors">Edit Profile</div>
+          <div className="text-xs font-semibold text-gray-700 group-hover:text-brand transition-colors">Edit Profile</div>
         </Link>
 
         {/* Add Listing — live */}
         <Link href="/listings/submit"
-          className="bg-white border border-gray-100 hover:border-warli-sand hover:shadow-md rounded-2xl p-4 text-center transition-all group">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-warli-light text-warli-terra">
+          className="bg-white border border-gray-100 hover:border-border hover:shadow-md rounded-2xl p-4 text-center transition-all group">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-surface-soft text-brand">
             <Store size={18} />
           </div>
-          <div className="text-xs font-semibold text-gray-700 group-hover:text-warli-terra transition-colors">Add Listing</div>
+          <div className="text-xs font-semibold text-gray-700 group-hover:text-brand transition-colors">Add Listing</div>
         </Link>
 
         <Link href="/dashboard/appointments"
-          className="bg-white border border-gray-100 hover:border-warli-sand hover:shadow-md rounded-2xl p-4 text-center transition-all group">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-warli-light text-warli-terra">
+          className="bg-white border border-gray-100 hover:border-border hover:shadow-md rounded-2xl p-4 text-center transition-all group">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-surface-soft text-brand">
             <Calendar size={18} />
           </div>
-          <div className="text-xs font-semibold text-gray-700 group-hover:text-warli-terra transition-colors">My Appointments</div>
+          <div className="text-xs font-semibold text-gray-700 group-hover:text-brand transition-colors">My Appointments</div>
         </Link>
 
         {/* Coming soon quick actions */}
@@ -246,7 +246,7 @@ export default async function DashboardPage() {
       {/* Edit Profile */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-6">
         <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <Edit2 size={18} className="text-warli-terra" />
+          <Edit2 size={18} className="text-brand" />
           Edit Profile
         </h2>
         <form action={updateProfile} className="space-y-4">
@@ -256,7 +256,7 @@ export default async function DashboardPage() {
               type="text" id="full_name" name="full_name"
               defaultValue={(profileData?.full_name as string) || user.user_metadata?.full_name || ''}
               placeholder="Your full name"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -266,7 +266,7 @@ export default async function DashboardPage() {
                 type="tel" id="phone" name="phone"
                 defaultValue={(profileData?.phone as string) || ''}
                 placeholder="+91 98765 43210"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
               />
             </div>
             <div>
@@ -275,12 +275,12 @@ export default async function DashboardPage() {
                 type="text" id="address" name="address"
                 defaultValue={(profileData?.address as string) || ''}
                 placeholder="Dahanu, Palghar"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
               />
             </div>
           </div>
           <button type="submit"
-            className="bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm">
+            className="bg-brand hover:bg-brand-strong text-bg font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm">
             Save Changes
           </button>
         </form>
@@ -289,7 +289,7 @@ export default async function DashboardPage() {
       {/* Account info */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-6">
         <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <User size={18} className="text-warli-terra" />
+          <User size={18} className="text-brand" />
           Your Account
         </h2>
         <div className="space-y-3 text-sm">

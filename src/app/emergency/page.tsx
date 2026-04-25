@@ -96,7 +96,7 @@ export default function EmergencyPage() {
   return (
     <div>
       {/* ---- TOP ALERT BANNER ---- */}
-      <div className="bg-warli-terra text-warli-cream px-4 py-2.5 text-center text-sm font-medium flex items-center justify-center gap-2">
+      <div className="bg-brand text-bg px-4 py-2.5 text-center text-sm font-medium flex items-center justify-center gap-2">
         <CheckCircle size={15} />
         <span>No active emergency alerts for Dahanu right now. All clear.</span>
       </div>
@@ -141,7 +141,7 @@ export default function EmergencyPage() {
         {/* Local Dahanu contacts */}
         <section className="mb-12">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <MapPin size={18} className="text-warli-terra" />
+            <MapPin size={18} className="text-brand" />
             Local Dahanu Emergency Contacts
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

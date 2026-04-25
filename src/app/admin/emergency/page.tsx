@@ -48,7 +48,7 @@ export default async function AdminEmergencyPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-8">
-        <Link href="/admin" className="text-sm text-gray-500 hover:text-warli-terra transition-colors">
+        <Link href="/admin" className="text-sm text-gray-500 hover:text-brand transition-colors">
           <ArrowLeft size={15} />
         </Link>
         <div>
@@ -102,7 +102,7 @@ export default async function AdminEmergencyPage() {
                     <form action={resolveAlert.bind(null, alert.id as string)}>
                       <button
                         type="submit"
-                        className="inline-flex items-center gap-1.5 bg-white border border-gray-200 hover:border-warli-terra hover:text-warli-terra text-gray-600 font-semibold px-3 py-1.5 rounded-xl transition-colors text-xs"
+                        className="inline-flex items-center gap-1.5 bg-white border border-gray-200 hover:border-brand hover:text-brand text-gray-600 font-semibold px-3 py-1.5 rounded-xl transition-colors text-xs"
                       >
                         <CheckCircle size={13} />
                         Resolve
@@ -130,7 +130,7 @@ export default async function AdminEmergencyPage() {
                 name="title"
                 required
                 placeholder="e.g. Heavy Rain Warning for Dahanu"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
               />
             </div>
 
@@ -144,7 +144,7 @@ export default async function AdminEmergencyPage() {
                 required
                 rows={4}
                 placeholder="Provide details about the situation and any instructions for residents..."
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm resize-none"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none"
               />
             </div>
 
@@ -157,7 +157,7 @@ export default async function AdminEmergencyPage() {
                   id="severity"
                   name="severity"
                   required
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm bg-white"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white"
                 >
                   {SEVERITIES.map(s => (
                     <option key={s.value} value={s.value}>{s.label}</option>
@@ -172,7 +172,7 @@ export default async function AdminEmergencyPage() {
                 <select
                   id="category"
                   name="category"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm bg-white"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white"
                 >
                   <option value="">Select category</option>
                   {CATEGORIES.map(c => (

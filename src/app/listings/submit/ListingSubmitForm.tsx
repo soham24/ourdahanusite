@@ -209,7 +209,7 @@ export default function ListingSubmitForm({
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <Link href="/listings" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-warli-terra mb-6 transition-colors">
+      <Link href="/listings" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand mb-6 transition-colors">
         <ArrowLeft size={15} /> Back to Listings
       </Link>
 
@@ -219,12 +219,12 @@ export default function ListingSubmitForm({
       </div>
 
       {/* Pricing card */}
-      <div className="mb-8 bg-gradient-to-br from-warli-light to-warli-sand/30 border-2 border-warli-terra rounded-2xl p-6">
+      <div className="mb-8 bg-gradient-to-br from-surface-soft to-border/30 border-2 border-brand rounded-2xl p-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Tag size={15} className="text-warli-terra" />
-              <span className="text-xs font-bold text-warli-terra uppercase tracking-wide">Launch Offer</span>
+              <Tag size={15} className="text-brand" />
+              <span className="text-xs font-bold text-brand uppercase tracking-wide">Launch Offer</span>
             </div>
             <div className="flex items-baseline gap-2 mb-3">
               <span className="text-4xl font-bold text-gray-900">₹{finalPrice}</span>
@@ -263,11 +263,11 @@ export default function ListingSubmitForm({
           <div key={step.n} className="flex items-center flex-1">
             <div className="flex flex-col items-center gap-1 flex-shrink-0">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                i === 0 ? 'bg-warli-terra text-warli-cream' : 'bg-gray-100 text-gray-400'
+                i === 0 ? 'bg-brand text-bg' : 'bg-gray-100 text-gray-400'
               }`}>
                 {step.n}
               </div>
-              <span className={`text-xs font-medium whitespace-nowrap ${i === 0 ? 'text-warli-terra' : 'text-gray-400'}`}>
+              <span className={`text-xs font-medium whitespace-nowrap ${i === 0 ? 'text-brand' : 'text-gray-400'}`}>
                 {step.label}
               </span>
             </div>
@@ -296,7 +296,7 @@ export default function ListingSubmitForm({
             </label>
             <input type="text" id="name" name="name" required
               placeholder="e.g. Dahanu Beach Resort"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
           </div>
 
           {/* Description */}
@@ -306,7 +306,7 @@ export default function ListingSubmitForm({
             </label>
             <textarea id="description" name="description" rows={4}
               placeholder="Describe your business, services offered, specialities..."
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm resize-none" />
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none" />
           </div>
 
           {/* Category */}
@@ -315,7 +315,7 @@ export default function ListingSubmitForm({
               Category <span className="text-red-500">*</span>
             </label>
             <select id="category" name="category" required defaultValue=""
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm bg-white">
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white">
               <option value="" disabled>Select a category</option>
               {LISTING_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -344,7 +344,7 @@ export default function ListingSubmitForm({
             <input type="url" id="website" name="website"
               onBlur={e => { e.target.value = normalizeOptionalUrl(e.target.value) }}
               placeholder="https://yourbusiness.com"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
           </div>
 
           {/* Address + Map Pin */}
@@ -352,7 +352,7 @@ export default function ListingSubmitForm({
             <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-1.5">Address</label>
             <input type="text" id="address" name="address"
               placeholder="e.g. Main Market, Dahanu Road, Palghar - 401602"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm mb-3" />
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm mb-3" />
             <LocationPicker />
           </div>
 
@@ -368,7 +368,7 @@ export default function ListingSubmitForm({
               placeholder="yourname@upi  or  9876543210@paytm"
               pattern="[a-zA-Z0-9._\-]+@[a-zA-Z0-9]+"
               title="Enter a valid UPI ID (e.g. name@bank or number@paytm)"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm" />
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
             <p className="mt-1 text-xs text-gray-400">
               Orders from customers will be paid to this UPI ID.
             </p>
@@ -380,7 +380,7 @@ export default function ListingSubmitForm({
         {/* ── Coupon Code ────────────────────────────────────────────────────── */}
         <div className="bg-white border border-gray-100 rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-4">
-            <BadgePercent size={17} className="text-warli-terra" />
+            <BadgePercent size={17} className="text-brand" />
             <span className="font-semibold text-gray-800 text-sm">Have a coupon code?</span>
           </div>
 
@@ -403,10 +403,10 @@ export default function ListingSubmitForm({
                 onChange={e => { setCouponInput(e.target.value); setCouponError('') }}
                 onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), applyCoupon())}
                 placeholder="Enter coupon code"
-                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-warli-terra text-sm"
+                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
               />
               <button type="button" onClick={applyCoupon}
-                className="px-5 py-2.5 bg-warli-terra text-warli-cream text-sm font-semibold rounded-xl hover:bg-warli-deep transition-colors">
+                className="px-5 py-2.5 bg-brand text-bg text-sm font-semibold rounded-xl hover:bg-brand-strong transition-colors">
                 Apply
               </button>
             </div>
@@ -420,8 +420,8 @@ export default function ListingSubmitForm({
         </div>
 
         {/* ── Order Summary ──────────────────────────────────────────────────── */}
-        <div className="bg-warli-light border border-warli-sand rounded-2xl p-5">
-          <h3 className="font-semibold text-chikoo-bark text-sm mb-3">Order Summary</h3>
+        <div className="bg-surface-soft border border-border rounded-2xl p-5">
+          <h3 className="font-semibold text-ink text-sm mb-3">Order Summary</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between text-gray-600">
               <span>Business Listing (1 year)</span>
@@ -433,20 +433,20 @@ export default function ListingSubmitForm({
                 <span>−₹{discount}</span>
               </div>
             )}
-            <div className="border-t border-warli-sand pt-2 flex justify-between font-bold text-chikoo-bark text-base">
+            <div className="border-t border-border pt-2 flex justify-between font-bold text-ink text-base">
               <span>Total</span>
               <span>₹{finalPrice}</span>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-chikoo-brown mt-3">
-            <ShieldCheck size={13} className="text-warli-terra flex-shrink-0" />
+          <div className="flex items-center gap-1.5 text-xs text-ink-2 mt-3">
+            <ShieldCheck size={13} className="text-brand flex-shrink-0" />
             Secure payment via Razorpay · UPI, Cards, Net Banking accepted
           </div>
         </div>
 
         {/* Submit button */}
         <button type="submit" disabled={busy}
-          className="w-full flex items-center justify-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold py-3.5 rounded-xl transition-colors disabled:opacity-60 text-base">
+          className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-strong text-bg font-semibold py-3.5 rounded-xl transition-colors disabled:opacity-60 text-base">
           {busy
             ? <><Loader2 size={16} className="animate-spin" />{btnLabel}</>
             : <><CreditCard size={16} />{btnLabel}</>

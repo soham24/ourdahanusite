@@ -166,7 +166,7 @@ export function ProductsManager({
           <button
             type="button"
             onClick={() => setMode({ kind: 'creating' })}
-            className="inline-flex items-center gap-2 rounded-xl bg-warli-terra px-4 py-2.5 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong"
           >
             <Plus size={14} />
             Add item
@@ -208,14 +208,14 @@ export function ProductsManager({
                 onDragEnd={() => setDragIndex(null)}
                 className={`flex flex-col gap-3 rounded-[20px] border bg-white p-4 shadow-sm sm:flex-row sm:items-center ${
                   isDraggingThis
-                    ? 'border-warli-terra opacity-60'
-                    : 'border-[#eee2d7] hover:border-warli-sand'
+                    ? 'border-brand opacity-60'
+                    : 'border-[#eee2d7] hover:border-border'
                 } ${!product.is_active ? 'bg-gray-50' : ''}`}
               >
                 <button
                   type="button"
                   aria-label="Drag to reorder"
-                  className="hidden cursor-grab items-center justify-center self-center text-[#c7b6a8] transition-colors hover:text-warli-terra active:cursor-grabbing sm:inline-flex"
+                  className="hidden cursor-grab items-center justify-center self-center text-[#c7b6a8] transition-colors hover:text-brand active:cursor-grabbing sm:inline-flex"
                 >
                   <GripVertical size={16} />
                 </button>
@@ -240,7 +240,7 @@ export function ProductsManager({
                       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
                         product.type === 'service'
                           ? 'bg-blue-50 text-blue-700'
-                          : 'bg-[#fff1e4] text-warli-terra'
+                          : 'bg-[#fff1e4] text-brand'
                       }`}
                     >
                       {product.type === 'service' ? <Wrench size={10} /> : <Package size={10} />}
@@ -270,7 +270,7 @@ export function ProductsManager({
                     type="button"
                     onClick={() => handleToggleActive(product)}
                     disabled={isPending}
-                    className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-warli-sand hover:text-warli-terra disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-border hover:text-brand disabled:opacity-50"
                   >
                     {product.is_active ? 'Hide' : 'Show'}
                   </button>
@@ -278,7 +278,7 @@ export function ProductsManager({
                     type="button"
                     onClick={() => setMode({ kind: 'editing', productId: product.id })}
                     disabled={isPending}
-                    className="inline-flex items-center gap-1 rounded-lg bg-warli-light px-2.5 py-1.5 text-xs font-semibold text-warli-terra transition-colors hover:bg-warli-terra hover:text-warli-cream disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-lg bg-surface-soft px-2.5 py-1.5 text-xs font-semibold text-brand transition-colors hover:bg-brand hover:text-bg disabled:opacity-50"
                   >
                     <Edit2 size={12} />
                     Edit
@@ -358,8 +358,8 @@ function ProductForm({
           onClick={() => setType('product')}
           className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${
             type === 'product'
-              ? 'border-warli-terra bg-warli-terra text-warli-cream'
-              : 'border-[#e8d6c4] bg-white text-[#6f584a] hover:border-warli-sand'
+              ? 'border-brand bg-brand text-bg'
+              : 'border-[#e8d6c4] bg-white text-[#6f584a] hover:border-border'
           }`}
         >
           <Package size={14} className="mr-2 inline-block -translate-y-px" />
@@ -370,8 +370,8 @@ function ProductForm({
           onClick={() => setType('service')}
           className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${
             type === 'service'
-              ? 'border-warli-terra bg-warli-terra text-warli-cream'
-              : 'border-[#e8d6c4] bg-white text-[#6f584a] hover:border-warli-sand'
+              ? 'border-brand bg-brand text-bg'
+              : 'border-[#e8d6c4] bg-white text-[#6f584a] hover:border-border'
           }`}
         >
           <Wrench size={14} className="mr-2 inline-block -translate-y-px" />
@@ -392,7 +392,7 @@ function ProductForm({
             required
             disabled={isPending}
             placeholder={type === 'service' ? 'e.g. Home Cleaning (2 hours)' : 'e.g. 1kg Alphonso Mangoes'}
-            className="w-full rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-warli-terra focus:outline-none disabled:bg-gray-50"
+            className="w-full rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand focus:outline-none disabled:bg-gray-50"
           />
         </label>
 
@@ -408,7 +408,7 @@ function ProductForm({
             step="0.01"
             required
             disabled={isPending}
-            className="w-full rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-warli-terra focus:outline-none disabled:bg-gray-50"
+            className="w-full rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand focus:outline-none disabled:bg-gray-50"
           />
         </label>
 
@@ -424,7 +424,7 @@ function ProductForm({
             step={1}
             disabled={isPending}
             placeholder="e.g. 25"
-            className="w-full rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-warli-terra focus:outline-none disabled:bg-gray-50"
+            className="w-full rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand focus:outline-none disabled:bg-gray-50"
           />
         </label>
 
@@ -439,7 +439,7 @@ function ProductForm({
             rows={3}
             disabled={isPending}
             placeholder="Short description shown next to the price."
-            className="w-full rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-warli-terra focus:outline-none disabled:bg-gray-50"
+            className="w-full rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand focus:outline-none disabled:bg-gray-50"
           />
         </label>
 
@@ -453,7 +453,7 @@ function ProductForm({
               <img
                 src={imageUrl}
                 alt="Preview"
-                className="h-24 w-24 flex-shrink-0 rounded-2xl border-2 border-warli-sand object-cover"
+                className="h-24 w-24 flex-shrink-0 rounded-2xl border-2 border-border object-cover"
               />
             ) : (
               <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-dashed border-[#e8d6c4] bg-[#fdf7f0] text-[#c4a990]">
@@ -487,7 +487,7 @@ function ProductForm({
             name="is_active"
             defaultChecked={existing?.is_active ?? true}
             disabled={isPending}
-            className="rounded border-gray-300 text-warli-terra focus:ring-warli-terra"
+            className="rounded border-gray-300 text-brand focus:ring-brand"
           />
           Visible on business page (uncheck to hide temporarily)
         </label>
@@ -505,7 +505,7 @@ function ProductForm({
         <button
           type="submit"
           disabled={isPending}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-warli-terra px-4 py-2.5 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong disabled:opacity-60"
         >
           {isPending && <Loader2 size={14} className="animate-spin" />}
           {existing ? 'Save changes' : 'Create item'}

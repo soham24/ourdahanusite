@@ -94,7 +94,7 @@ export function RazorpaySetupForm({
             autoComplete="off"
             spellCheck={false}
             disabled={isPending}
-            className="w-full rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-warli-terra focus:outline-none disabled:bg-gray-50"
+            className="w-full rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand focus:outline-none disabled:bg-gray-50"
           />
           {existing?.keyLast4 && !keyId && (
             <p className="mt-1 text-xs text-gray-500">
@@ -116,12 +116,12 @@ export function RazorpaySetupForm({
               autoComplete="off"
               spellCheck={false}
               disabled={isPending}
-              className="w-full rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 pr-10 text-sm text-gray-800 focus:border-warli-terra focus:outline-none disabled:bg-gray-50"
+              className="w-full rounded-xl border border-[#dfcdbd] bg-white px-4 py-2.5 pr-10 text-sm text-gray-800 focus:border-brand focus:outline-none disabled:bg-gray-50"
             />
             <button
               type="button"
               onClick={() => setShowSecret((v) => !v)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:text-warli-terra"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:text-brand"
               tabIndex={-1}
               aria-label={showSecret ? 'Hide secret' : 'Show secret'}
             >
@@ -140,7 +140,7 @@ export function RazorpaySetupForm({
           checked={testMode}
           onChange={(e) => setTestMode(e.target.checked)}
           disabled={isPending}
-          className="rounded border-gray-300 text-warli-terra focus:ring-warli-terra"
+          className="rounded border-gray-300 text-brand focus:ring-brand"
         />
         Using Razorpay test-mode keys (recommended while you set things up)
       </label>
@@ -162,7 +162,7 @@ export function RazorpaySetupForm({
         <button
           type="submit"
           disabled={isPending}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-warli-terra px-4 py-2.5 text-sm font-semibold text-warli-cream transition-colors hover:bg-warli-deep disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong disabled:opacity-60"
         >
           {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           {existing ? 'Update keys' : 'Save & verify'}

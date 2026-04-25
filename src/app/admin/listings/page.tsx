@@ -257,7 +257,7 @@ export default async function AdminListingsPage({
                         <input type="hidden" name="id"    value={listing.id as string} />
                         <button
                           type="submit"
-                          className="inline-flex items-center gap-1 bg-warli-terra hover:bg-warli-deep text-warli-cream text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
+                          className="inline-flex items-center gap-1 bg-brand hover:bg-brand-strong text-bg text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
                         >
                           <CheckCircle size={13} /> Approve
                         </button>
