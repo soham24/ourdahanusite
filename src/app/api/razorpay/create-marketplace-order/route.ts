@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { loadOwnerRazorpayKeys } from '@/app/actions/listing-payments'
+import { revalidatePublicListingDetail } from '@/lib/cache-tags'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 
@@ -109,7 +110,34 @@ export async function POST(request: Request) {
   }
 
   if (!response.ok || !orderPayload.id) {
-    console.error('[marketplace order] Razorpay create failed:', orderPayload)
+    console.error(
+      '[marketplace order] Razorpay create failed:',
+      'status=', response.status,
+      'listing=', product.listing_id,
+      'keyIdLast4=', ownerKeys.keyId.slice(-4),
+      'payload=', orderPayload,
+    )
+
+    // Razorpay 401 means the stored credentials no longer authenticate
+    // (owner most likely regenerated keys on the Razorpay dashboard, or
+    // the account was paused). Auto-clear verified_at so the Shop section
+    // hides itself on the public page until the owner re-saves keys.
+    if (response.status === 401) {
+      await adminClient
+        .from('listing_payment_configs')
+        .update({ verified_at: null, updated_at: new Date().toISOString() })
+        .eq('listing_id', product.listing_id)
+      revalidatePublicListingDetail(product.listing_id)
+
+      return NextResponse.json(
+        {
+          error:
+            "This business's payment setup needs to be refreshed by the owner. Please try again later or contact the seller directly.",
+        },
+        { status: 503 },
+      )
+    }
+
     return NextResponse.json(
       { error: orderPayload.error?.description || `Razorpay error ${response.status}.` },
       { status: 502 },
