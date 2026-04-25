@@ -87,24 +87,26 @@ export default function ListingsDirectoryContent({
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="od-page py-8 md:py-10">
+      <div className="od-shell">
       <StructuredData data={[breadcrumbSchema, itemListSchema]} />
 
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-10">
+      <div className="mb-8 grid gap-5 md:grid-cols-[1fr_auto] md:items-end">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+          <p className="od-eyebrow mb-2">Local directory</p>
+          <h1 className="od-section-title text-3xl md:text-5xl">
             {activeCategory ? `${activeCategory} in Dahanu` : 'Business Listings in Dahanu'}
           </h1>
-          <p className="text-gray-500 mt-2 max-w-2xl">
+          <p className="od-muted mt-3 max-w-2xl text-base leading-7">
             {activeCategory
               ? `${listings.length} business${listings.length !== 1 ? 'es' : ''} currently visible in ${activeCategory}. Search, sort, and compare before you contact them.`
               : 'Search, sort, and compare trusted businesses and services across Dahanu, Bordi, Gholvad, and nearby areas.'}
           </p>
         </div>
 
-        <div className="rounded-2xl bg-warli-light/70 border border-warli-sand/60 px-4 py-3 text-sm text-chikoo-brown">
-          <span className="font-semibold text-chikoo-bark">{Object.keys(categoryCounts).length || sortedCategories.length - 1}</span>{' '}
-          categories live on OurDahanu
+        <div className="od-card px-4 py-3 text-sm text-[var(--od-ink-2)]">
+          <span className="font-bold text-[var(--od-ink)]">{Object.keys(categoryCounts).length || sortedCategories.length - 1}</span>{' '}
+          categories live
         </div>
       </div>
 
@@ -115,14 +117,14 @@ export default function ListingsDirectoryContent({
         categoryCounts={categoryCounts}
       />
 
-      <div id="add" className="py-12 border-t border-gray-100">
+      <div id="add" className="border-t border-[var(--od-border)] py-12">
         <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Get Your Profile on OurDahanu</h2>
-          <p className="text-gray-500 mt-2">Whether you sell, serve, or create, you belong here.</p>
+          <h2 className="od-section-title text-2xl md:text-3xl">Get Your Profile on OurDahanu</h2>
+          <p className="od-muted mt-2">Whether you sell, serve, or create, you belong here.</p>
         </div>
 
-        <div className="max-w-md mx-auto bg-gradient-to-br from-warli-light to-warli-sand/30 border-2 border-warli-terra rounded-2xl p-8 text-center">
-          <div className="inline-flex items-center gap-1.5 bg-warli-terra/10 text-warli-terra text-xs font-bold px-3 py-1 rounded-full mb-4">
+        <div className="od-card mx-auto max-w-md p-8 text-center">
+          <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-[rgba(192,88,46,0.1)] px-3 py-1 text-xs font-bold text-[var(--od-brand)]">
             Launch Offer
           </div>
           <div className="flex items-baseline justify-center gap-2 mb-1">
@@ -140,16 +142,17 @@ export default function ListingsDirectoryContent({
           </ul>
           <Link
             href="/listings/submit"
-            className="block bg-warli-terra hover:bg-warli-deep text-warli-cream font-bold px-6 py-3.5 rounded-xl transition-colors text-base"
+            className="od-button-primary flex px-6 py-3.5 text-base"
           >
             Claim Your Profile
           </Link>
           {activeCategory ? (
-            <p className="text-xs text-gray-500 mt-3">
+            <p className="od-muted mt-3 text-xs">
               Want to rank for {activeCategory.toLowerCase()} in Dahanu? Claim this page with your business listing.
             </p>
           ) : null}
         </div>
+      </div>
       </div>
     </div>
   )

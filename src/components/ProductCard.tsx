@@ -26,7 +26,7 @@ export default function ProductCard({
     product.quantity_in_stock !== null && product.quantity_in_stock > 0 && product.quantity_in_stock <= 5
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-3xl border border-[#eee2d7] bg-white shadow-sm transition-all hover:border-warli-sand hover:shadow-md">
+    <article className="od-card od-card-hover flex flex-col overflow-hidden">
       <div className="relative aspect-square w-full overflow-hidden bg-[#fdf7f0]">
         {product.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -64,14 +64,14 @@ export default function ProductCard({
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div>
-          <h3 className="text-base font-bold text-[#2d160b]">{product.name}</h3>
+          <h3 className="text-base font-extrabold text-[var(--od-ink)]">{product.name}</h3>
           {product.description && (
-            <p className="mt-1 line-clamp-3 text-sm text-[#7c6253]">{product.description}</p>
+            <p className="mt-1 line-clamp-3 text-sm text-[var(--od-muted)]">{product.description}</p>
           )}
         </div>
 
         <div className="mt-auto flex items-center justify-between gap-2">
-          <p className="text-xl font-bold text-[#2d160b]">{formatPrice(product.price_paise)}</p>
+          <p className="text-xl font-extrabold text-[var(--od-ink)]">{formatPrice(product.price_paise)}</p>
           {buySlot}
         </div>
       </div>

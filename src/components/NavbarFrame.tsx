@@ -1,7 +1,6 @@
 'use client'
 
-import { type ReactNode, useEffect, useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { type ReactNode, useState } from 'react'
 import { Menu, X } from 'lucide-react'
 
 interface NavbarFrameProps {
@@ -17,17 +16,12 @@ export default function NavbarFrame({
   desktopActions,
   mobileMenu,
 }: NavbarFrameProps) {
-  const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  useEffect(() => {
-    setMenuOpen(false)
-  }, [pathname])
-
   return (
-    <nav className="sticky top-0 z-50 bg-[#FAFAF7]/96 backdrop-blur-md border-b border-[#E8DDD2]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-6 h-[60px]">
+    <nav className="sticky top-0 z-50 border-b border-[var(--od-border)] bg-[rgba(250,250,247,0.9)] backdrop-blur-xl">
+      <div className="od-shell">
+        <div className="flex h-[62px] items-center justify-between gap-6">
           {brand}
 
           <div className="hidden lg:flex items-center gap-0.5 flex-1 justify-center">
@@ -40,7 +34,7 @@ export default function NavbarFrame({
 
           <button
             type="button"
-            className="lg:hidden p-2 text-[#7A4520] hover:text-[#2E1205] transition-colors"
+            className="lg:hidden rounded-xl border border-[var(--od-border)] bg-white/70 p-2 text-[var(--od-ink-2)] hover:text-[var(--od-brand-strong)] transition-colors"
             onClick={() => setMenuOpen((open) => !open)}
             aria-expanded={menuOpen}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
@@ -51,7 +45,7 @@ export default function NavbarFrame({
       </div>
 
       {menuOpen ? (
-        <div className="lg:hidden bg-[#FAFAF7] border-t border-[#E8DDD2] px-4 py-4">
+        <div className="lg:hidden border-t border-[var(--od-border)] bg-[var(--od-bg)] px-4 py-4 shadow-[0_18px_40px_rgba(46,18,5,0.08)]">
           {mobileMenu}
         </div>
       ) : null}

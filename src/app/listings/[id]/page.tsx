@@ -613,12 +613,12 @@ async function ListingDetailContent({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="od-page min-h-screen">
       <StructuredData data={[breadcrumbSchema, localBusinessSchema]} />
       <RecordView listingId={listingId} />
 
       {/* ── Cover Image / Hero ──────────────────────────────────────────────── */}
-      <div className="relative w-full h-48 md:h-64 bg-gradient-to-br from-warli-terra to-chikoo-bark overflow-hidden">
+      <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-[#2E1205] via-[#7A4520] to-[#C0582E] md:h-64">
         {listing.cover_image ? (
           <Image src={String(listing.cover_image)} alt="Cover" fill className="object-cover opacity-80" />
         ) : (
@@ -652,7 +652,7 @@ async function ListingDetailContent({
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
 
         {/* ── Pinned Announcement ─────────────────────────────────────────── */}
         {listing.pinned_announcement && (
@@ -666,10 +666,10 @@ async function ListingDetailContent({
 
         {/* ── Profile Card ─────────────────────────────────────────────────── */}
         <div className="relative -mt-12 mb-6">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-md p-6">
+          <div id="overview" className="od-card scroll-mt-32 p-5 shadow-[0_18px_50px_rgba(46,18,5,0.12)] md:p-6">
             <div className="flex flex-col sm:flex-row items-start gap-5">
               {/* Avatar */}
-              <div className="w-20 h-20 rounded-2xl bg-warli-light border-4 border-white shadow flex-shrink-0 overflow-hidden flex items-center justify-center">
+                <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-[#F4EDE3] shadow">
                 {listing.image_url ? (
                   <Image src={String(listing.image_url)} alt={String(listing.name)} width={80} height={80} className="object-cover w-full h-full" />
                 ) : (
@@ -682,7 +682,7 @@ async function ListingDetailContent({
                 <div className="flex flex-wrap items-start justify-between gap-2 mb-1">
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h1 className="text-2xl font-bold text-gray-900">{String(listing.name)}</h1>
+                      <h1 className="text-2xl font-extrabold tracking-[-0.01em] text-[var(--od-ink)] md:text-3xl">{String(listing.name)}</h1>
                       {Boolean(listing.verified) && (
                         <span className="inline-flex items-center gap-1 text-xs font-semibold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">
                           <CheckCircle size={11} /> Verified
@@ -690,7 +690,7 @@ async function ListingDetailContent({
                       )}
                     </div>
                     {listing.tagline && (
-                      <p className="text-sm text-chikoo-brown mt-0.5 italic">{String(listing.tagline)}</p>
+                      <p className="od-muted mt-1 text-sm">{String(listing.tagline)}</p>
                     )}
                     {/* Established + Response Time */}
                     <div className="flex flex-wrap items-center gap-3 mt-1">
@@ -747,15 +747,15 @@ async function ListingDetailContent({
 
             {/* Quick contact buttons */}
             <div className="flex flex-wrap gap-2 mt-5 pt-4 border-t border-gray-100">
-              {phoneHref && (
+                    {phoneHref && (
                 <a href={`tel:${phoneHref}`}
-                  className="flex items-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm">
+                  className="od-button-primary px-4 py-2.5 text-sm">
                   <Phone size={14} /> Call Now
                 </a>
               )}
               {enquiryLink && (
                 <a href={enquiryLink} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm">
+                  className="flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                   </svg>
@@ -764,7 +764,7 @@ async function ListingDetailContent({
               )}
               {listing.website && (
                 <a href={String(listing.website)} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 border border-gray-200 text-gray-700 hover:border-warli-sand hover:bg-warli-light font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm">
+                  className="od-button-secondary px-4 py-2.5 text-sm">
                   <Globe size={14} /> Website
                 </a>
               )}
@@ -810,13 +810,25 @@ async function ListingDetailContent({
           </div>
         )}
 
+        <nav className="sticky top-[62px] z-30 mb-5 -mx-4 overflow-x-auto border-y border-[var(--od-border)] bg-[rgba(250,250,247,0.9)] px-4 py-2 backdrop-blur-xl md:static md:mx-0 md:rounded-2xl md:border">
+          <div className="flex min-w-max gap-2">
+            <a href="#overview" className="od-chip px-3 py-2 text-sm">Overview</a>
+            {(services.length > 0 || marketplaceProducts.length > 0) && (
+              <a href="#services" className="od-chip px-3 py-2 text-sm">Services</a>
+            )}
+            {photos.length > 0 && <a href="#photos" className="od-chip px-3 py-2 text-sm">Photos</a>}
+            <a href="#reviews" className="od-chip px-3 py-2 text-sm">Reviews</a>
+            <a href="#contact" className="od-chip px-3 py-2 text-sm">Contact</a>
+          </div>
+        </nav>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-32 md:pb-20">
           {/* ── Left / Main column ──────────────────────────────────────────── */}
           <div className="lg:col-span-2 space-y-5">
 
             {/* About */}
             {listing.description && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+              <div className="od-card scroll-mt-32 p-6">
                 <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
                   <span className="w-1 h-4 bg-warli-terra rounded-full inline-block" />
                   About
@@ -829,7 +841,7 @@ async function ListingDetailContent({
 
             {/* Photo Gallery */}
             {photos.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+              <div id="photos" className="od-card scroll-mt-32 p-6">
                 <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <span className="w-1 h-4 bg-warli-terra rounded-full inline-block" />
                   Gallery
@@ -840,7 +852,7 @@ async function ListingDetailContent({
 
             {/* Before/After */}
             {beforeAfter?.before && beforeAfter?.after && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+              <div className="od-card scroll-mt-32 p-6">
                 <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <span className="w-1 h-4 bg-warli-terra rounded-full inline-block" />
                   Before & After
@@ -851,7 +863,7 @@ async function ListingDetailContent({
 
             {/* YouTube Video */}
             {videoEmbedId && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+              <div className="od-card scroll-mt-32 p-6">
                 <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <span className="w-1 h-4 bg-warli-terra rounded-full inline-block" />
                   <Video size={15} className="text-warli-terra" />
@@ -871,7 +883,7 @@ async function ListingDetailContent({
 
             {/* Highlights */}
             {highlights.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+              <div className="od-card scroll-mt-32 p-6">
                 <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <span className="w-1 h-4 bg-warli-terra rounded-full inline-block" />
                   <Sparkles size={14} className="text-warli-terra" />
@@ -890,7 +902,7 @@ async function ListingDetailContent({
 
             {/* Services & Products */}
             {services.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+              <div id="services" className="od-card scroll-mt-32 p-6">
                 <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <span className="w-1 h-4 bg-warli-terra rounded-full inline-block" />
                   Services & Products
@@ -913,7 +925,7 @@ async function ListingDetailContent({
 
             {/* Marketplace — shoppable products & services */}
             {marketplaceReady && marketplaceProducts.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+              <div id={services.length > 0 ? undefined : 'services'} className="od-card scroll-mt-32 p-6">
                 <div className="flex items-center justify-between mb-4 gap-2">
                   <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
                     <span className="w-1 h-4 bg-warli-terra rounded-full inline-block" />
@@ -966,7 +978,7 @@ async function ListingDetailContent({
             )}
 
             {/* Recommend + Quote CTA */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-6">
+            <div className="od-card p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
@@ -1000,7 +1012,7 @@ async function ListingDetailContent({
             </div>
 
             {/* Reviews */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-6">
+            <div id="reviews" className="od-card scroll-mt-32 p-6">
               <h2 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
                 <span className="w-1 h-4 bg-warli-terra rounded-full inline-block" />
                 <MessageSquare size={16} className="text-warli-terra" />
@@ -1074,7 +1086,7 @@ async function ListingDetailContent({
             </div>
 
             {/* Review form */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-6">
+            <div className="od-card p-6">
               <h2 className="text-base font-bold text-gray-900 mb-2">Leave a Review</h2>
               <p className="text-sm text-gray-500 mb-4">
                 Reviews help locals decide which businesses to trust.
@@ -1095,7 +1107,7 @@ async function ListingDetailContent({
             </div>
 
             {/* Q&A Section */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-6">
+            <div className="od-card p-6">
               <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <span className="w-1 h-4 bg-warli-terra rounded-full inline-block" />
                 <MessageCircleQuestion size={15} className="text-warli-terra" />
@@ -1152,7 +1164,7 @@ async function ListingDetailContent({
           <div className="space-y-4">
 
             {/* Contact card */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+            <div id="contact" className="od-card scroll-mt-32 p-5">
               <h3 className="font-bold text-sm uppercase tracking-wide text-gray-500 mb-4">Contact & Location</h3>
               <div className="space-y-3">
                 {phoneHref && (
@@ -1307,7 +1319,7 @@ async function ListingDetailContent({
                   <div>
                     <p className="text-sm font-bold text-blue-700">Verified by OurDahanu</p>
                     <p className="text-xs text-blue-600 mt-0.5">
-                      Our team has verified this business's contact details, location, and basic info.
+                      Our team has verified this business&apos;s contact details, location, and basic info.
                     </p>
                   </div>
                 </div>

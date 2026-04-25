@@ -249,7 +249,7 @@ async function HomePageContent() {
       {/* ─────────────────────────────────────────────────────────────
           1. HERO — full-bleed coastal scene, bottom-aligned content
       ───────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden min-h-[640px] md:min-h-[680px] flex flex-col justify-end">
+      <section className="relative flex min-h-[560px] flex-col justify-end overflow-hidden md:min-h-[680px]">
         {/* Layered coastal backdrop — sunset gradient + scene */}
         <div className="absolute inset-0 z-0">
           {/* Base sunset gradient — sky to sea to bark */}
@@ -1097,7 +1097,7 @@ async function HomePageContent() {
             </div>
 
             {/* Content */}
-            <div className="relative z-10 h-full flex flex-col justify-end p-6 md:p-10 lg:p-12">
+          <div className="relative z-10 flex h-full flex-col justify-end p-5 md:p-10 lg:p-12">
               <div className="max-w-[560px]">
                 <span className="inline-block font-label-sm text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F0C87A] mb-3">
                   Heritage

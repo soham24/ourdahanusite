@@ -38,6 +38,22 @@
 :root {
   --background: #FAFAF7;
   --foreground: #1C0D05;
+  --od-bg: #FAFAF7;
+  --od-surface: #FFFFFF;
+  --od-surface-soft: #F6F1EA;
+  --od-ink: #1C0D05;
+  --od-ink-2: #4F3424;
+  --od-muted: #7B6658;
+  --od-border: #E8DDD2;
+  --od-brand: #C0582E;
+  --od-brand-strong: #8A3618;
+  --od-gold: #C8881E;
+  --od-success: #138A4B;
+  --od-danger: #B42318;
+  --od-radius: 18px;
+  --od-radius-sm: 12px;
+  --od-shadow-sm: 0 1px 2px rgba(46, 18, 5, 0.04), 0 1px 8px rgba(46, 18, 5, 0.04);
+  --od-shadow-md: 0 14px 40px rgba(46, 18, 5, 0.08);
 }
 
 body {
@@ -47,6 +63,122 @@ body {
   -webkit-font-smoothing: antialiased;
   font-size: 15px;
   line-height: 1.6;
+}
+
+::selection {
+  background: rgba(192, 88, 46, 0.18);
+}
+
+@layer components {
+  .od-shell {
+    width: min(100% - 2rem, 1216px);
+    margin-inline: auto;
+  }
+
+  .od-page {
+    background:
+      radial-gradient(circle at 18% 0%, rgba(200, 136, 30, 0.08), transparent 28rem),
+      linear-gradient(180deg, #FAFAF7 0%, #F7F2EB 100%);
+  }
+
+  .od-card {
+    border: 1px solid var(--od-border);
+    border-radius: var(--od-radius);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: var(--od-shadow-sm);
+  }
+
+  .od-card-hover {
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  }
+
+  .od-card-hover:hover {
+    border-color: rgba(192, 88, 46, 0.35);
+    box-shadow: var(--od-shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .od-section-title {
+    color: var(--od-ink);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .od-eyebrow {
+    color: var(--od-brand);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .od-muted {
+    color: var(--od-muted);
+  }
+
+  .od-button-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 12px;
+    background: var(--od-brand);
+    color: #fffaf3;
+    font-weight: 750;
+    box-shadow: 0 10px 24px rgba(192, 88, 46, 0.18);
+    transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .od-button-primary:hover {
+    background: var(--od-brand-strong);
+    box-shadow: 0 14px 30px rgba(192, 88, 46, 0.22);
+    transform: translateY(-1px);
+  }
+
+  .od-button-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid var(--od-border);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.86);
+    color: var(--od-ink-2);
+    font-weight: 700;
+    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+  }
+
+  .od-button-secondary:hover {
+    border-color: rgba(192, 88, 46, 0.35);
+    background: #F4EDE3;
+    color: var(--od-brand-strong);
+  }
+
+  .od-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid rgba(232, 221, 210, 0.9);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--od-ink-2);
+    font-size: 0.8125rem;
+    font-weight: 650;
+  }
+
+  .od-input {
+    border: 1px solid var(--od-border);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--od-ink);
+    outline: none;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .od-input:focus {
+    border-color: rgba(192, 88, 46, 0.58);
+    box-shadow: 0 0 0 4px rgba(192, 88, 46, 0.11);
+  }
 }
 
 html {

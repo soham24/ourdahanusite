@@ -213,7 +213,8 @@ export default async function MyBusinessPage({
   })
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="od-page min-h-screen py-8 md:py-10">
+      <div className="od-shell max-w-6xl">
 
       {/* Renewal success banner */}
       {renewed === '1' && (
@@ -229,17 +230,18 @@ export default async function MyBusinessPage({
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <Store size={28} className="text-warli-terra" />
+          <p className="od-eyebrow mb-2">Owner dashboard</p>
+          <h1 className="od-section-title flex items-center gap-2 text-3xl md:text-5xl">
+            <Store size={30} className="text-[var(--od-brand)]" />
             My Business
           </h1>
-          <p className="text-gray-500 mt-1 text-sm">Manage your listings and track performance</p>
+          <p className="od-muted mt-2 text-sm">Manage listings, products, orders, appointments, and customer trust from one place.</p>
         </div>
         <Link
           href="/listings/submit"
-          className="inline-flex items-center gap-2 bg-warli-terra hover:bg-warli-deep text-warli-cream font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
+          className="od-button-primary px-5 py-2.5 text-sm"
         >
           <Plus size={16} />
           Add New Listing
@@ -247,22 +249,22 @@ export default async function MyBusinessPage({
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 text-center">
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="od-card p-5 text-center">
           <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-2">
             <Eye size={18} className="text-blue-600" />
           </div>
           <div className="text-2xl font-bold text-gray-900">{totalViews}</div>
           <div className="text-xs text-gray-500 mt-0.5">Profile Views</div>
         </div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 text-center">
+        <div className="od-card p-5 text-center">
           <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center mx-auto mb-2">
             <MessageSquare size={18} className="text-warli-terra" />
           </div>
           <div className="text-2xl font-bold text-gray-900">{totalReviews}</div>
           <div className="text-xs text-gray-500 mt-0.5">Total Reviews</div>
         </div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 text-center">
+        <div className="od-card p-5 text-center">
           <div className="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center mx-auto mb-2">
             <Star size={18} className="text-yellow-500" />
           </div>
@@ -274,7 +276,7 @@ export default async function MyBusinessPage({
       </div>
 
       {/* Listings */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-6">
+      <div className="od-card mb-6 p-6">
         <h2 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
           <Store size={18} className="text-warli-terra" />
           Your Listings
@@ -285,7 +287,7 @@ export default async function MyBusinessPage({
           <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 text-sm text-yellow-800 flex items-start gap-2">
             <Clock size={15} className="mt-0.5 flex-shrink-0 text-yellow-600" />
             <span>
-              Some listings are <strong>pending review</strong>. They won't appear in the
+              Some listings are <strong>pending review</strong>. They won&apos;t appear in the
               public directory until approved — usually within 48 hours of submission.
             </span>
           </div>
@@ -335,7 +337,7 @@ export default async function MyBusinessPage({
                       ? 'border-red-200 bg-red-50/40'
                       : isExpiringStatus
                       ? 'border-orange-200 bg-orange-50/30'
-                      : 'border-gray-100 hover:border-warli-sand hover:shadow-sm'
+                    : 'border-[var(--od-border)] bg-white/70 hover:border-[rgba(192,88,46,0.35)] hover:shadow-sm'
                   }`}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -375,14 +377,14 @@ export default async function MyBusinessPage({
                     <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                       <Link
                         href={getListingHref(listing.id, listing.subdomain)}
-                        className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-warli-terra border border-gray-200 hover:border-warli-sand px-3 py-2 rounded-xl transition-colors"
+                        className="od-button-secondary px-3 py-2 text-sm"
                       >
                         <ArrowUpRight size={14} />
                         View
                       </Link>
                       <Link
                         href={`/my-business/edit/${listing.id}`}
-                        className="inline-flex items-center gap-1.5 text-sm text-warli-cream bg-warli-terra hover:bg-warli-deep px-3 py-2 rounded-xl transition-colors"
+                        className="od-button-primary px-3 py-2 text-sm"
                       >
                         <Edit2 size={14} />
                         Edit
@@ -410,7 +412,7 @@ export default async function MyBusinessPage({
       </div>
 
       {/* Orders shortcut */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 flex items-center justify-between gap-4">
+      <div className="od-card mb-4 flex items-center justify-between gap-4 p-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-warli-light rounded-xl flex items-center justify-center">
             <ShoppingBag size={18} className="text-warli-terra" />
@@ -429,7 +431,7 @@ export default async function MyBusinessPage({
         </Link>
       </div>
 
-      <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 flex items-center justify-between gap-4">
+      <div className="od-card mb-4 flex items-center justify-between gap-4 p-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-warli-light rounded-xl flex items-center justify-center">
             <Calendar size={18} className="text-warli-terra" />
@@ -448,7 +450,7 @@ export default async function MyBusinessPage({
         </Link>
       </div>
 
-      <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 flex items-center justify-between gap-4">
+      <div className="od-card mb-4 flex items-center justify-between gap-4 p-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-warli-light rounded-xl flex items-center justify-center">
             <Package size={18} className="text-warli-terra" />
@@ -467,7 +469,7 @@ export default async function MyBusinessPage({
         </Link>
       </div>
 
-      <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 flex items-center justify-between gap-4">
+      <div className="od-card mb-6 flex items-center justify-between gap-4 p-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-warli-light rounded-xl flex items-center justify-center">
             <CreditCard size={18} className="text-warli-terra" />
@@ -487,7 +489,7 @@ export default async function MyBusinessPage({
       </div>
 
       {/* Recent Reviews */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-6">
+      <div className="od-card mb-6 p-6">
         <h2 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
           <MessageSquare size={18} className="text-warli-terra" />
           Recent Reviews
@@ -560,7 +562,7 @@ export default async function MyBusinessPage({
           </div>
         )}
       </div>
-
+      </div>
     </div>
   )
 }

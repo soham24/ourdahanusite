@@ -30,15 +30,15 @@ export default function CategoryFilter({ sortedCategories, activeCategory, categ
           <Link
             key={cat}
             href={href(cat)}
-            className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+            className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
               activeCategory === cat
-                ? 'bg-warli-terra text-warli-cream'
-                : 'bg-gray-100 text-gray-600 hover:bg-warli-light hover:text-warli-terra'
+                ? 'bg-[var(--od-brand)] text-white shadow-[0_8px_18px_rgba(192,88,46,0.18)]'
+                : 'bg-white/76 text-[var(--od-ink-2)] border border-[var(--od-border)] hover:bg-[#F4EDE3] hover:text-[var(--od-brand-strong)]'
             }`}
           >
             <span>{cat}</span>
             {cat !== 'All' && categoryCounts[cat] ? (
-              <span className={`ml-1.5 text-xs ${activeCategory === cat ? 'text-warli-cream/80' : 'text-gray-400'}`}>
+              <span className={`ml-1.5 text-xs ${activeCategory === cat ? 'text-white/80' : 'text-[var(--od-muted)]'}`}>
                 {categoryCounts[cat]}
               </span>
             ) : null}
@@ -47,7 +47,7 @@ export default function CategoryFilter({ sortedCategories, activeCategory, categ
         {hiddenCount > 0 && (
           <button
             onClick={() => setExpanded(e => !e)}
-            className="whitespace-nowrap flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium bg-gray-50 border border-gray-200 text-gray-500 hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-1 whitespace-nowrap rounded-full border border-[var(--od-border)] bg-white/70 px-4 py-2 text-sm font-semibold text-[var(--od-muted)] transition-colors hover:bg-[#F4EDE3] hover:text-[var(--od-brand-strong)]"
           >
             {expanded ? <><ChevronUp size={14} /> Less</> : <><ChevronDown size={14} /> {hiddenCount} more</>}
           </button>
