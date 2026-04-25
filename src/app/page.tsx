@@ -86,9 +86,9 @@ function FeaturedSpotlight({ listing }: { listing: FeaturedListing }) {
           href={href}
           className="group block bg-white border border-[#E8DDD2] rounded-3xl overflow-hidden transition-all duration-200 hover:border-[#E8C49A] hover:shadow-card-hover hover:-translate-y-[2px]"
         >
-          {/* Image on top — 16:10 aspect ratio */}
+          {/* Image on top — taller on mobile, capped on desktop */}
           <div
-            className="relative aspect-[16/10] overflow-hidden"
+            className="relative aspect-[16/10] md:aspect-auto md:h-[320px] overflow-hidden"
             style={{ background: 'linear-gradient(135deg, #E8C49A, #C0582E)' }}
           >
             {listing.image_url ? (
