@@ -23,6 +23,7 @@ const ADMIN_ONLY_LINKS = [
   { href: '/admin/polls', label: 'Polls', icon: <BarChart3 size={16} /> },
   { href: '/admin/appointments', label: 'Appointments', icon: <Calendar size={16} /> },
   { href: '/admin/payments', label: 'Payments', icon: <CreditCard size={16} /> },
+  { href: '/admin/products', label: 'Products', icon: <Package size={16} /> },
   { href: '/admin/orders', label: 'Orders', icon: <ShoppingBag size={16} /> },
   { href: '/admin/emergency', label: 'Emergency', icon: <Megaphone size={16} /> },
   { href: '/admin/newsletter', label: 'Newsletter', icon: <Mail size={16} /> },

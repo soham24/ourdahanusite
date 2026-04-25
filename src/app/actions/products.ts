@@ -53,15 +53,35 @@ async function assertListingOwner(listingId: string): Promise<
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'Please sign in.' }
 
-  const { data: listing } = await supabase
-    .from('listings')
-    .select('id, owner_id, payments_enabled')
-    .eq('id', listingId)
-    .maybeSingle()
+  const { role } = await getUserRole(supabase)
+
+  // Admins manage products on any listing (including unapproved or
+  // not-yet-payments-enabled ones, e.g. during onboarding). The listings RLS
+  // policy hides unapproved listings from non-owners, so use the admin
+  // client for the lookup when the caller is an admin. Owners always satisfy
+  // RLS via the owner_id check.
+  type ListingRow = { id: string; owner_id: string; payments_enabled: boolean }
+  let listing: ListingRow | null = null
+  if (role === 'admin') {
+    const adminClient = createAdminClient()
+    if (!adminClient) return { ok: false, error: 'Server configuration error.' }
+    const { data } = await adminClient
+      .from('listings')
+      .select('id, owner_id, payments_enabled')
+      .eq('id', listingId)
+      .maybeSingle()
+    listing = (data ?? null) as ListingRow | null
+  } else {
+    const { data } = await supabase
+      .from('listings')
+      .select('id, owner_id, payments_enabled')
+      .eq('id', listingId)
+      .maybeSingle()
+    listing = (data ?? null) as ListingRow | null
+  }
 
   if (!listing) return { ok: false, error: 'Listing not found.' }
 
-  const { role } = await getUserRole(supabase)
   if (listing.owner_id !== user.id && role !== 'admin') {
     return { ok: false, error: 'You do not own this listing.' }
   }
