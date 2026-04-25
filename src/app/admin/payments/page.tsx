@@ -1,7 +1,9 @@
+import Link from 'next/link'
 import {
   CheckCircle,
   CreditCard,
   KeyRound,
+  Package,
   ShieldCheck,
   Sparkles,
   Store,
@@ -228,7 +230,7 @@ export default async function AdminPaymentsPage() {
                       <p className="mt-3 text-sm text-[#6f584a]">{configStatusLabel}</p>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <label className="inline-flex items-center gap-2 rounded-xl border border-[#e9d7c8] bg-white px-3 py-2 text-sm font-medium text-gray-700">
                         <input
                           type="checkbox"
@@ -245,6 +247,14 @@ export default async function AdminPaymentsPage() {
                       >
                         Save
                       </button>
+
+                      <Link
+                        href={`/admin/products/${row.id}`}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-[#dfcdbd] bg-white px-3 py-2.5 text-sm font-semibold text-[#6f584a] transition-colors hover:border-warli-terra hover:text-warli-terra"
+                      >
+                        <Package size={14} />
+                        Manage products
+                      </Link>
                     </div>
                   </div>
                 </form>
