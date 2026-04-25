@@ -26,17 +26,11 @@ export default function BottomCTABanner() {
           Join hundreds of local businesses and residents already on OurDahanu.
         </p>
         <div className="flex flex-wrap justify-center gap-3">
-          <Button asChild size="lg" className="bg-[#C8881E] hover:bg-[#D49A28] text-[var(--color-bark)] font-bold">
-            <SafeAppLink href="/listings/submit">
-              <Store size={15} className="mr-2" />
-              List Your Business
-            </SafeAppLink>
+          <Button href="/listings/submit" size="lg" icon={<Store size={15} />} className="bg-[#C8881E] hover:bg-[#D49A28] text-[var(--color-bark)] font-bold">
+            List Your Business
           </Button>
-          <Button asChild size="lg" variant="outline" className="bg-white/[0.09] hover:bg-white/[0.15] border-white/20 text-[var(--color-cream)] font-semibold">
-            <SafeAppLink href="/listings">
-              <Search size={15} className="mr-2" />
-              Explore Dahanu
-            </SafeAppLink>
+          <Button href="/listings" size="lg" variant="outline" icon={<Search size={15} />} className="bg-white/[0.09] hover:bg-white/[0.15] border-white/20 text-[var(--color-cream)] font-semibold">
+            Explore Dahanu
           </Button>
         </div>
       </div>

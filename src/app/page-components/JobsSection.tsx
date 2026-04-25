@@ -116,11 +116,8 @@ export default function JobsSection({
             <div className="font-display text-[32px] text-[#F0C87A] leading-none mb-4">
               ₹{jobCurrentPrice}
             </div>
-            <Button asChild className="bg-[#C8881E] hover:bg-[#D49A28] text-[var(--color-bark)] font-bold text-[13px] w-full">
-              <SafeAppLink href="/jobs/submit">
-                <Plus size={13} className="mr-2" />
-                Post a Job
-              </SafeAppLink>
+            <Button href="/jobs/submit" className="bg-[#C8881E] hover:bg-[#D49A28] text-[var(--color-bark)] font-bold text-[13px] w-full" icon={<Plus size={13} />}>
+              Post a Job
             </Button>
           </div>
         </div>

@@ -426,6 +426,7 @@ async function ListingDetailContent({
             <ListingReviewsSection 
               listing={listing}
               reviews={reviews}
+              rating={rating}
               isOwner={isOwner}
               currentUser={currentUser}
               currentUserName={currentUserName}
@@ -440,7 +441,7 @@ async function ListingDetailContent({
               isOwner={isOwner}
               isLoggedIn={!!currentUser}
               similarListings={similarListings}
-              categoryName={String(listing.category)}
+              listingCategory={String(listing.category)}
             />
           </div>
 

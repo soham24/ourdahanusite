@@ -73,7 +73,7 @@ async function HomePageContent() {
 
       <StatsBar 
         totalListings={totalListings} 
-        categoryCount={topCategoryLabels.length} 
+        topCategoryLabelsLength={topCategoryLabels.length} 
       />
 
       {featuredListing && <FeaturedSpotlight listing={featuredListing} />}

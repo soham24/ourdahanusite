@@ -89,11 +89,8 @@ export default function BusinessOwnerCTA({ currentPrice, basePrice }: BusinessOw
                 )}
               </div>
 
-              <Button asChild size="lg" className="bg-[#C8881E] hover:bg-[#D49A28] text-[var(--color-bark)] font-bold">
-                <SafeAppLink href="/listings/submit">
-                  <Plus size={15} className="mr-2" />
-                  Claim Your Profile
-                </SafeAppLink>
+              <Button href="/listings/submit" size="lg" icon={<Plus size={15} />} className="bg-[#C8881E] hover:bg-[#D49A28] text-[var(--color-bark)] font-bold">
+                Claim Your Profile
               </Button>
             </div>
 
