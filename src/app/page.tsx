@@ -55,7 +55,7 @@ function formatStat(value: number, fallback: string): string {
 }
 
 // ────────────────────────────────────────────────────────────────────
-// Featured spotlight — restyled per revamp spec
+// Featured spotlight — image-on-top card style (coastal revamp)
 // ────────────────────────────────────────────────────────────────────
 function FeaturedSpotlight({ listing }: { listing: FeaturedListing }) {
   const href = getListingHref(listing.id, listing.subdomain)
@@ -63,93 +63,99 @@ function FeaturedSpotlight({ listing }: { listing: FeaturedListing }) {
   const categoryEmoji = LISTING_CATEGORY_EMOJIS[listing.category] ?? '🏪'
 
   return (
-    <section className="py-12">
-      <div className="max-w-[1160px] mx-auto px-6">
-        <div className="mb-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#C0582E]">
-            ⭐ Featured Spotlight
-          </p>
+    <section className="py-10 md:py-14">
+      <div className="max-w-[1160px] mx-auto px-5 md:px-6">
+        <div className="mb-5 flex items-end justify-between gap-4 flex-wrap">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#C0582E]">
+              Editor's Choice
+            </p>
+            <h2 className="font-display text-[26px] md:text-[30px] leading-[1.15] text-[#2E1205] mt-1">
+              Featured Spotlight
+            </h2>
+          </div>
+          <SafeAppLink
+            href="/listings"
+            className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#C0582E] hover:text-[#8A3618] transition-colors"
+          >
+            View All <ArrowRight size={13} />
+          </SafeAppLink>
         </div>
 
         <SafeAppLink
           href={href}
-          className="group block bg-white border border-[#E8DDD2] rounded-[32px] overflow-hidden grid md:grid-cols-[380px_1fr] transition-shadow duration-200 hover:shadow-card-hover"
+          className="group block bg-white border border-[#E8DDD2] rounded-3xl overflow-hidden transition-all duration-200 hover:border-[#E8C49A] hover:shadow-card-hover hover:-translate-y-[2px]"
         >
-          {/* Image side */}
+          {/* Image on top — 16:10 aspect ratio */}
           <div
-            className="relative min-h-[280px] md:min-h-[320px] flex items-center justify-center overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, #E8C49A, #D4926A)' }}
+            className="relative aspect-[16/10] overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #E8C49A, #C0582E)' }}
           >
             {listing.image_url ? (
               <Image
                 src={listing.image_url}
                 alt={listing.name}
                 fill
-                sizes="(min-width: 768px) 380px, 100vw"
-                className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                sizes="(min-width: 1160px) 1112px, 100vw"
+                className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                 priority
               />
             ) : (
-              <span className="text-[80px] text-white/30" aria-hidden>
+              <div className="flex h-full items-center justify-center text-[80px] text-white/30" aria-hidden>
                 🏪
-              </span>
+              </div>
             )}
-            <span className="absolute top-4 left-4 inline-flex items-center gap-1 bg-[#C8881E] text-[#2E1205] text-[11px] font-bold px-3 py-[5px] rounded-full">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+            <span className="absolute top-4 left-4 inline-flex items-center gap-1 bg-[#C8881E] text-[#2E1205] text-[11px] font-bold px-3 py-[5px] rounded-full uppercase tracking-wide">
               ⭐ Featured
             </span>
           </div>
 
-          {/* Content side */}
-          <div className="p-8 md:p-10 flex flex-col justify-center">
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#C0582E] bg-[rgba(192,88,46,0.08)] border border-[rgba(192,88,46,0.15)] rounded-full px-[10px] py-1 w-fit mb-3.5">
-              {categoryEmoji} {listing.category}
-            </span>
-
-            <h2 className="font-display text-[28px] md:text-[32px] leading-[1.15] text-[#2E1205] mb-2.5">
-              {listing.name}
-            </h2>
+          {/* Content below */}
+          <div className="p-6 md:p-8">
+            <div className="flex items-start justify-between gap-4 mb-3">
+              <div className="min-w-0">
+                <h3 className="font-display text-[24px] md:text-[28px] leading-[1.2] text-[#2E1205] mb-1.5">
+                  {listing.name}
+                </h3>
+                {address && (
+                  <div className="flex items-center gap-1 text-[#9A7A60] text-[13px]">
+                    <MapPin size={13} />
+                    <span>{address}</span>
+                  </div>
+                )}
+              </div>
+              {listing.rating && listing.rating > 0 ? (
+                <div className="flex items-center gap-1 bg-[#F4EDE3] border border-[#E8C49A] text-[#2E1205] px-2.5 py-1 rounded-lg flex-shrink-0">
+                  <Star size={12} className="fill-amber-400 text-amber-400" />
+                  <span className="font-bold text-xs">{listing.rating.toFixed(1)}</span>
+                </div>
+              ) : (
+                <span className="text-[11px] bg-[#F4EDE3] text-[#C0582E] font-semibold px-2.5 py-1 rounded-full flex-shrink-0">
+                  New
+                </span>
+              )}
+            </div>
 
             {listing.tagline && (
-              <p className="text-sm text-[#9A7A60] leading-[1.6] mb-5 max-w-[360px]">
+              <p className="text-sm text-[#9A7A60] leading-[1.6] line-clamp-2 mb-4">
                 {listing.tagline}
               </p>
             )}
 
-            <div className="flex items-center gap-4 flex-wrap mb-7">
-              {listing.rating && listing.rating > 0 ? (
-                <div className="flex items-center gap-1.5 text-[13px] text-[#9A7A60]">
-                  <Star size={14} className="fill-amber-400 text-amber-400" />
-                  <span className="font-bold text-[#2E1205]">{listing.rating.toFixed(1)}</span>
-                  <span>({listing.review_count ?? 0} reviews)</span>
-                </div>
-              ) : (
-                <span className="text-[11px] bg-[#F4EDE3] text-[#C0582E] font-semibold px-2.5 py-1 rounded-full">
-                  New on OurDahanu
-                </span>
-              )}
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#C0582E] bg-[rgba(192,88,46,0.08)] border border-[rgba(192,88,46,0.15)] rounded-full px-2.5 py-1">
+                {categoryEmoji} {listing.category}
+              </span>
               {listing.verified && (
                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-[3px] rounded-full">
                   <CheckCircle2 size={11} /> Verified
                 </span>
               )}
-              {address && (
-                <span className="flex items-center gap-1 text-[13px] text-[#9A7A60]">
-                  <MapPin size={11} />
-                  {address}
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="inline-flex items-center gap-2 bg-[#C0582E] group-hover:bg-[#8A3618] text-white font-semibold text-sm px-6 py-3 rounded-[10px] transition-all group-hover:-translate-y-[1px]">
+              <span className="ml-auto inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#C0582E] group-hover:text-[#8A3618] group-hover:gap-2.5 transition-all">
                 Visit Page
-                <ArrowRight size={14} />
+                <ArrowRight size={13} />
               </span>
-              {listing.subdomain && (
-                <span className="text-xs text-[#9A7A60] font-mono">
-                  {listing.subdomain}.ourdahanu.in
-                </span>
-              )}
             </div>
           </div>
         </SafeAppLink>
@@ -241,159 +247,285 @@ async function HomePageContent() {
   return (
     <>
       {/* ─────────────────────────────────────────────────────────────
-          1. HERO — deep bark bg, editorial serif headline
+          1. HERO — full-bleed coastal scene, bottom-aligned content
       ───────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-[#2E1205] pt-16 pb-[72px] sm:pt-20">
-        {/* Warli pattern overlay */}
-        <div className="absolute inset-0 warli-pattern opacity-[0.04] pointer-events-none" />
-
-        {/* Warm glow orbs */}
-        <div
-          className="absolute w-[600px] h-[600px] rounded-full pointer-events-none"
-          style={{
-            top: '-120px',
-            left: '-80px',
-            background: 'radial-gradient(circle, rgba(192,88,46,0.22) 0%, transparent 65%)',
-          }}
-        />
-        <div
-          className="absolute w-[400px] h-[400px] rounded-full pointer-events-none"
-          style={{
-            bottom: '-60px',
-            right: '-40px',
-            background: 'radial-gradient(circle, rgba(200,136,30,0.14) 0%, transparent 65%)',
-          }}
-        />
-
-        <div className="relative max-w-[760px] mx-auto px-6 text-center">
-          {/* Live badge */}
+      <section className="relative overflow-hidden min-h-[640px] md:min-h-[680px] flex flex-col justify-end">
+        {/* Layered coastal backdrop — sunset gradient + scene */}
+        <div className="absolute inset-0 z-0">
+          {/* Base sunset gradient — sky to sea to bark */}
           <div
-            className="inline-flex items-center gap-2 border border-white/[0.12] bg-white/[0.07] backdrop-blur-sm rounded-full pl-2.5 pr-3.5 py-1.5 text-xs font-semibold tracking-[0.02em] mb-7"
-            style={{ color: 'rgba(251,240,220,0.7)' }}
-          >
-            <span className="relative flex h-[7px] w-[7px]">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-40 animate-pulse-green" />
-              <span className="relative inline-flex h-[7px] w-[7px] rounded-full bg-green-400" />
-            </span>
-            <MapPin size={11} className="opacity-70" />
-            Dahanu · Bordi · Gholvad · Palghar
-          </div>
-
-          {/* H1 */}
-          <h1
-            className="font-display text-[#FBF0DC] mb-[18px]"
+            className="absolute inset-0"
             style={{
-              fontSize: 'clamp(44px, 7vw, 74px)',
-              lineHeight: 1.05,
-              letterSpacing: '-0.02em',
+              background:
+                'linear-gradient(180deg, #1A0A03 0%, #2E1205 28%, #6E2D11 52%, #C0582E 72%, #E8A855 86%, #F0C87A 100%)',
             }}
-          >
-            Everything Dahanu.
-            <br />
-            <em className="italic text-[#F0C87A]">One Place.</em>
-          </h1>
+          />
 
-          <p
-            className="text-base max-w-[420px] mx-auto leading-[1.65] mb-9"
-            style={{ color: 'rgba(232,196,154,0.65)' }}
-          >
-            Businesses, jobs, food, services — your whole local community, right here.
-          </p>
+          {/* Setting sun glow */}
+          <div
+            className="absolute w-[520px] h-[520px] rounded-full pointer-events-none"
+            style={{
+              top: '8%',
+              right: '-120px',
+              background:
+                'radial-gradient(circle, rgba(240,200,122,0.55) 0%, rgba(232,168,85,0.25) 35%, transparent 70%)',
+            }}
+          />
 
-          {/* Search bar */}
-          <form action="/search" method="get" className="mb-5">
-            <div className="flex items-center bg-white rounded-[14px] overflow-hidden shadow-search">
-              <span className="pl-[14px] pr-2 text-[#AAA] flex items-center flex-shrink-0">
-                <Search size={18} />
+          {/* Warli pattern overlay (light) */}
+          <div className="absolute inset-0 warli-pattern opacity-[0.05] pointer-events-none" />
+
+          {/* Coastal scene SVG — waves + palms anchored to bottom */}
+          <svg
+            className="absolute bottom-0 left-0 w-full pointer-events-none"
+            viewBox="0 0 1440 360"
+            preserveAspectRatio="none"
+            aria-hidden
+            style={{ height: '52%' }}
+          >
+            {/* Distant wave (back) */}
+            <path
+              d="M0,200 Q360,170 720,195 T1440,200 L1440,360 L0,360 Z"
+              fill="rgba(20, 60, 80, 0.35)"
+            />
+            {/* Mid wave */}
+            <path
+              d="M0,240 Q300,210 600,235 T1200,240 T1440,235 L1440,360 L0,360 Z"
+              fill="rgba(14, 48, 64, 0.55)"
+            />
+            {/* Front wave with shimmer line */}
+            <path
+              d="M0,278 Q240,250 480,275 T960,278 T1440,275 L1440,360 L0,360 Z"
+              fill="rgba(8, 32, 48, 0.75)"
+            />
+            <path
+              d="M0,278 Q240,250 480,275 T960,278 T1440,275"
+              stroke="rgba(240,200,122,0.4)"
+              strokeWidth="1.5"
+              fill="none"
+            />
+            {/* Sand strip */}
+            <path d="M0,340 L1440,340 L1440,360 L0,360 Z" fill="rgba(46, 18, 5, 0.95)" />
+          </svg>
+
+          {/* Palm silhouette — left */}
+          <svg
+            className="absolute pointer-events-none hidden sm:block"
+            style={{ bottom: '14%', left: '4%', width: 110, height: 180 }}
+            viewBox="0 0 110 180"
+            aria-hidden
+          >
+            <path
+              d="M55,180 Q53,120 50,80 Q48,55 52,30"
+              stroke="rgba(20, 8, 0, 0.85)"
+              strokeWidth="3"
+              strokeLinecap="round"
+              fill="none"
+            />
+            {/* Palm fronds */}
+            <g fill="rgba(20, 8, 0, 0.8)">
+              <path d="M52,30 Q30,18 8,22 Q26,30 52,38 Z" />
+              <path d="M52,30 Q70,12 95,18 Q78,30 52,38 Z" />
+              <path d="M52,30 Q24,40 4,60 Q30,46 54,42 Z" />
+              <path d="M52,30 Q82,42 102,58 Q78,46 54,42 Z" />
+              <path d="M52,30 Q44,4 38,-2 Q50,18 54,32 Z" />
+            </g>
+          </svg>
+
+          {/* Palm silhouette — right (smaller) */}
+          <svg
+            className="absolute pointer-events-none"
+            style={{ bottom: '15%', right: '6%', width: 80, height: 140 }}
+            viewBox="0 0 80 140"
+            aria-hidden
+          >
+            <path
+              d="M40,140 Q39,90 36,60 Q35,40 38,20"
+              stroke="rgba(20, 8, 0, 0.8)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              fill="none"
+            />
+            <g fill="rgba(20, 8, 0, 0.75)">
+              <path d="M38,20 Q22,10 6,14 Q22,20 40,26 Z" />
+              <path d="M38,20 Q54,6 72,12 Q56,20 40,26 Z" />
+              <path d="M38,20 Q18,28 2,46 Q22,32 40,28 Z" />
+              <path d="M38,20 Q60,30 76,44 Q58,32 40,28 Z" />
+            </g>
+          </svg>
+
+          {/* Bottom dark overlay for text contrast */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1A0A03] via-[#2E1205]/40 to-transparent" />
+        </div>
+
+        {/* Content — bottom-aligned, left-aligned (mobile) / centered (large) */}
+        <div className="relative z-10 max-w-[1160px] mx-auto w-full px-5 md:px-6 pt-24 pb-10 md:pb-14">
+          <div className="max-w-[640px]">
+            {/* Live badge */}
+            <div
+              className="inline-flex items-center gap-2 border border-white/[0.18] bg-white/[0.10] backdrop-blur-sm rounded-full pl-2.5 pr-3.5 py-1.5 text-xs font-semibold tracking-[0.02em] mb-5"
+              style={{ color: 'rgba(251,240,220,0.85)' }}
+            >
+              <span className="relative flex h-[7px] w-[7px]">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-40 animate-pulse-green" />
+                <span className="relative inline-flex h-[7px] w-[7px] rounded-full bg-green-400" />
               </span>
-              <input
-                type="text"
-                name="q"
-                placeholder="Search businesses, services, jobs in Dahanu…"
-                className="flex-1 border-none outline-none text-[15px] text-[#1C0D05] placeholder-[#BAA590] py-4 pr-3 bg-transparent"
-              />
-              <button
-                type="submit"
-                className="m-[7px] px-[22px] py-2.5 bg-[#C0582E] hover:bg-[#8A3618] text-white font-semibold text-sm rounded-[9px] transition-all flex-shrink-0"
-              >
-                Search
-              </button>
+              <MapPin size={11} className="opacity-80" />
+              Dahanu · Bordi · Gholvad · Palghar
             </div>
-          </form>
 
-          {/* Hero tags */}
-          <div className="flex flex-wrap justify-center gap-2">
-            {[
-              { label: 'Homemade Food', href: getCategoryPath('Homemade Food') },
-              { label: 'Repair Services', href: getCategoryPath('Repair Services') },
-              { label: 'Healthcare', href: getCategoryPath('Healthcare & Clinics') },
-              { label: 'Photography', href: getCategoryPath('Photography') },
-              { label: 'Salons & Beauty', href: getCategoryPath('Salons & Beauty') },
-            ].map(({ label, href }) => (
+            {/* H1 — coastal serif */}
+            <h1
+              className="font-display text-white mb-4"
+              style={{
+                fontSize: 'clamp(38px, 7vw, 64px)',
+                lineHeight: 1.05,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Discover the coastal soul of <em className="italic text-[#F0C87A]">Dahanu.</em>
+            </h1>
+
+            <p
+              className="text-base max-w-[460px] leading-[1.6] mb-7"
+              style={{ color: 'rgba(251,240,220,0.78)' }}
+            >
+              Businesses, food, jobs, services — your whole local community, right here.
+            </p>
+
+            {/* Search bar — pill style */}
+            <form action="/search" method="get" className="mb-5 max-w-[560px]">
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[#9A7A60]">
+                  <Search size={18} />
+                </div>
+                <input
+                  type="text"
+                  name="q"
+                  placeholder="Explore dining, stays, services, secrets…"
+                  className="w-full h-14 pl-12 pr-32 bg-white/95 backdrop-blur-sm border-none rounded-2xl text-[15px] text-[#2E1205] placeholder-[#9A7A60] focus:outline-none focus:ring-2 focus:ring-[#F0C87A] shadow-search transition-all"
+                />
+                <button
+                  type="submit"
+                  className="absolute right-[6px] top-[6px] bottom-[6px] px-5 bg-[#C0582E] hover:bg-[#8A3618] text-white font-semibold text-sm rounded-xl transition-all"
+                >
+                  Search
+                </button>
+              </div>
+            </form>
+
+            {/* Hero quick tags */}
+            <div className="flex flex-wrap gap-2 mb-7">
+              {[
+                { label: 'Homemade Food', href: getCategoryPath('Homemade Food') },
+                { label: 'Repair Services', href: getCategoryPath('Repair Services') },
+                { label: 'Healthcare', href: getCategoryPath('Healthcare & Clinics') },
+                { label: 'Photography', href: getCategoryPath('Photography') },
+                { label: 'Salons & Beauty', href: getCategoryPath('Salons & Beauty') },
+              ].map(({ label, href }) => (
+                <SafeAppLink
+                  key={label}
+                  href={href}
+                  prefetch={false}
+                  className="text-xs font-medium border border-white/15 bg-white/[0.10] rounded-full px-3 py-[5px] transition-all hover:bg-white/[0.18] hover:border-white/25"
+                  style={{ color: 'rgba(251,240,220,0.75)' }}
+                >
+                  {label}
+                </SafeAppLink>
+              ))}
+            </div>
+
+            {/* CTA buttons */}
+            <div className="flex flex-wrap gap-3">
               <SafeAppLink
-                key={label}
-                href={href}
-                prefetch={false}
-                className="text-xs font-medium border border-white/10 bg-white/[0.07] rounded-full px-3 py-[5px] transition-all hover:bg-white/[0.13]"
-                style={{ color: 'rgba(232,196,154,0.55)' }}
+                href="/listings"
+                className="inline-flex items-center gap-2 px-[22px] py-3 bg-[#C8881E] hover:bg-[#D49A28] text-[#2E1205] font-bold text-sm rounded-xl transition-all hover:-translate-y-[1px] shadow-lg"
               >
-                {label}
+                <Store size={15} />
+                Explore Businesses
               </SafeAppLink>
-            ))}
-          </div>
-
-          {/* CTA buttons */}
-          <div className="flex flex-wrap justify-center gap-3 mt-8">
-            <SafeAppLink
-              href="/listings"
-              className="inline-flex items-center gap-2 px-[26px] py-[13px] bg-[#C8881E] hover:bg-[#D49A28] text-[#2E1205] font-bold text-sm rounded-[10px] transition-all hover:-translate-y-[1px]"
-            >
-              <Store size={15} />
-              Explore Businesses
-            </SafeAppLink>
-            <SafeAppLink
-              href="/listings/submit"
-              className="inline-flex items-center gap-2 px-[26px] py-[13px] bg-white/[0.09] hover:bg-white/[0.15] border border-white/20 text-[#FBF0DC] font-semibold text-sm rounded-[10px] transition-all"
-            >
-              <Plus size={15} />
-              List Your Business
-            </SafeAppLink>
+              <SafeAppLink
+                href="/listings/submit"
+                className="inline-flex items-center gap-2 px-[22px] py-3 bg-white/[0.12] hover:bg-white/[0.20] border border-white/25 backdrop-blur-sm text-white font-semibold text-sm rounded-xl transition-all"
+              >
+                <Plus size={15} />
+                List Your Business
+              </SafeAppLink>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
-          2. QUICK NAV STRIP — sticky under navbar
+          2. QUICK CATEGORIES — circular icons, horizontal scroll
       ───────────────────────────────────────────────────────────── */}
-      <section className="sticky top-[60px] z-40 bg-white border-b border-[#E8DDD2]">
-        <div className="max-w-[1160px] mx-auto">
-          <div className="flex gap-1 overflow-x-auto scrollbar-hide px-6 py-2.5">
+      <section className="bg-white border-b border-[#E8DDD2]">
+        <div className="max-w-[1160px] mx-auto px-5 md:px-6 py-7">
+          <div className="flex items-center justify-between sm:justify-around gap-4 overflow-x-auto scrollbar-hide -mx-2 px-2">
             {[
-              { icon: '🏪', label: 'Businesses', href: '/listings', bg: '#FEF3E8' },
-              { icon: '💼', label: 'Jobs', href: '/jobs', bg: '#F0FDF4' },
-              { icon: '🍱', label: 'Food', href: getCategoryPath('Homemade Food'), bg: '#FFF7ED' },
-              { icon: '🔧', label: 'Services', href: getCategoryPath('Repair Services'), bg: '#EFF6FF' },
-              { icon: '🏥', label: 'Healthcare', href: getCategoryPath('Healthcare & Clinics'), bg: '#FDF2F8' },
-              { icon: '📚', label: 'Education', href: getCategoryPath('Education & Coaching'), bg: '#F5F3FF' },
-              { icon: '💇', label: 'Salons', href: getCategoryPath('Salons & Beauty'), bg: '#FFF0F0' },
-              { icon: '📸', label: 'Photography', href: getCategoryPath('Photography'), bg: '#F0F9FF' },
-              { icon: '🎉', label: 'Events', href: '/listings', bg: '#FEFCE8' },
-              { icon: '🆘', label: 'Emergency', href: '/emergency', bg: '#FEF2F2' },
+              {
+                icon: '🍽️',
+                label: 'Dining',
+                href: getCategoryPath('Homemade Food'),
+                bg: 'bg-[#FFE6CC]',
+                fg: 'text-[#7A3D14]',
+              },
+              {
+                icon: '🛏️',
+                label: 'Stays',
+                href: '/listings',
+                bg: 'bg-[#E8E0F4]',
+                fg: 'text-[#3D2A6E]',
+              },
+              {
+                icon: '🛍️',
+                label: 'Shops',
+                href: '/listings',
+                bg: 'bg-[#FBF0DC]',
+                fg: 'text-[#7A4520]',
+              },
+              {
+                icon: '🩺',
+                label: 'Health',
+                href: getCategoryPath('Healthcare & Clinics'),
+                bg: 'bg-[#FFE0E0]',
+                fg: 'text-[#7A1A1A]',
+              },
+              {
+                icon: '🌿',
+                label: 'Nature',
+                href: '/listings',
+                bg: 'bg-[#DDEFE0]',
+                fg: 'text-[#1F4A28]',
+              },
+              {
+                icon: '💼',
+                label: 'Jobs',
+                href: '/jobs',
+                bg: 'bg-[#E0EAF8]',
+                fg: 'text-[#1A3D7A]',
+              },
+              {
+                icon: '🆘',
+                label: 'Emergency',
+                href: '/emergency',
+                bg: 'bg-[#FFE0E0]',
+                fg: 'text-[#7A1A1A]',
+              },
             ].map((item) => (
               <SafeAppLink
                 key={item.label}
                 href={item.href}
                 prefetch={false}
-                className="flex flex-col items-center gap-1 px-4 py-2 rounded-[10px] min-w-[70px] flex-shrink-0 hover:bg-[#F4EDE3] transition-colors"
+                className="group flex flex-col items-center gap-2 min-w-[72px] flex-shrink-0"
               >
                 <span
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-base"
-                  style={{ background: item.bg }}
+                  className={`w-16 h-16 rounded-full ${item.bg} ${item.fg} flex items-center justify-center text-[26px] shadow-[0_2px_10px_rgba(46,18,5,0.06)] transition-transform duration-200 group-active:scale-95 group-hover:-translate-y-[2px] group-hover:shadow-[0_8px_20px_rgba(192,88,46,0.18)]`}
                   aria-hidden
                 >
                   {item.icon}
                 </span>
-                <span className="text-[11px] font-semibold text-[#7A4520] whitespace-nowrap">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#7A4520] whitespace-nowrap">
                   {item.label}
                 </span>
               </SafeAppLink>
@@ -467,18 +599,20 @@ async function HomePageContent() {
       )}
 
       {/* ─────────────────────────────────────────────────────────────
-          6. NEW BUSINESSES — just-added additions, white bg
+          6. WHAT'S NEW — horizontal scroll, snap-x
       ───────────────────────────────────────────────────────────── */}
       {newListings.length > 0 && (
-        <section className="py-16">
-          <div className="max-w-[1160px] mx-auto px-6">
+        <section className="py-12 md:py-16">
+          <div className="max-w-[1160px] mx-auto px-5 md:px-6 mb-6">
             <SectionHeader
               label="Just added"
-              title="New on OurDahanu"
+              title="What's New"
               sub="Fresh additions — be the first to check them out"
               viewAllHref="/listings"
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
+          </div>
+          <div className="max-w-[1160px] mx-auto">
+            <div className="flex overflow-x-auto scrollbar-hide gap-4 px-5 md:px-6 pb-4 snap-x">
               {newListings.map((listing) => {
                 const href = getListingHref(listing.id, listing.subdomain)
                 const address = summarizeAddress(listing.address, 2)
@@ -486,10 +620,10 @@ async function HomePageContent() {
                   <SafeAppLink
                     key={listing.id}
                     href={href}
-                    className="group bg-white border border-[#E8DDD2] rounded-3xl overflow-hidden transition-all duration-200 hover:border-[#E8C49A] hover:-translate-y-1 hover:shadow-card-hover"
+                    className="group min-w-[280px] sm:min-w-[300px] snap-start bg-white border border-[#E8DDD2] rounded-2xl overflow-hidden transition-all duration-200 hover:border-[#E8C49A] hover:-translate-y-1 hover:shadow-card-hover flex-shrink-0"
                   >
                     <div
-                      className="relative h-[180px] overflow-hidden"
+                      className="relative h-[170px] overflow-hidden"
                       style={{ background: 'linear-gradient(135deg, #F4EDE3, #E8C49A)' }}
                     >
                       {listing.image_url ? (
@@ -497,7 +631,7 @@ async function HomePageContent() {
                           src={listing.image_url}
                           alt={listing.name}
                           fill
-                          sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+                          sizes="300px"
                           className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
                         />
                       ) : (
@@ -509,9 +643,6 @@ async function HomePageContent() {
                       <span className="absolute top-3 left-3 bg-[#C8881E] text-[#2E1205] text-[10px] font-bold px-2.5 py-[3px] rounded-full uppercase tracking-wide">
                         New
                       </span>
-                      <span className="absolute bottom-3 left-3 bg-black/55 backdrop-blur-sm text-white text-[11px] font-semibold px-2.5 py-1 rounded-full">
-                        {listing.category}
-                      </span>
                       {listing.verified && (
                         <span className="absolute top-3 right-3 bg-blue-700 text-white text-[10px] font-bold px-2.5 py-[3px] rounded-full flex items-center gap-1">
                           <CheckCircle2 size={9} />
@@ -519,31 +650,36 @@ async function HomePageContent() {
                         </span>
                       )}
                     </div>
-                    <div className="p-[18px]">
-                      <h3 className="font-bold text-[16px] text-[#2E1205] leading-[1.25] mb-1 group-hover:text-[#C0582E] transition-colors">
+                    <div className="p-4">
+                      <span className="font-label-sm text-[11px] font-semibold uppercase tracking-[0.08em] text-[#C0582E]">
+                        {listing.category}
+                      </span>
+                      <h4 className="font-display text-[18px] text-[#2E1205] leading-[1.25] mt-1 group-hover:text-[#C0582E] transition-colors line-clamp-2">
                         {listing.name}
-                      </h3>
+                      </h4>
                       {listing.tagline && (
-                        <p className="text-xs text-[#9A7A60] truncate mb-3">{listing.tagline}</p>
+                        <p className="text-xs text-[#9A7A60] mt-1.5 line-clamp-1">
+                          {listing.tagline}
+                        </p>
                       )}
-                      <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center justify-between text-xs mt-3">
                         {listing.rating && listing.rating > 0 ? (
                           <div className="flex items-center gap-1">
-                            <Star size={12} className="fill-amber-400 text-amber-400" />
-                            <span className="font-bold text-[13px] text-[#2E1205]">
+                            <Star size={11} className="fill-amber-400 text-amber-400" />
+                            <span className="font-bold text-[12px] text-[#2E1205]">
                               {listing.rating.toFixed(1)}
                             </span>
                             <span className="text-[#9A7A60]">({listing.review_count ?? 0})</span>
                           </div>
                         ) : (
                           <span className="text-[11px] text-[#9A7A60] bg-[#F4EDE3] px-2 py-0.5 rounded-full">
-                            Be the first to review
+                            Be the first
                           </span>
                         )}
                         {address && (
                           <span className="flex items-center gap-1 text-[#9A7A60]">
                             <MapPin size={10} />
-                            <span className="truncate max-w-[110px]">{address}</span>
+                            <span className="truncate max-w-[100px]">{address}</span>
                           </span>
                         )}
                       </div>
@@ -898,10 +1034,99 @@ async function HomePageContent() {
       )}
 
       {/* ─────────────────────────────────────────────────────────────
+          8.7 COMMUNITY STORIES — big visual heritage card
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-12 md:py-16">
+        <div className="max-w-[1160px] mx-auto px-5 md:px-6">
+          <SafeAppLink
+            href="/about"
+            className="group relative block rounded-3xl overflow-hidden aspect-[4/5] sm:aspect-[16/9] md:aspect-[21/9]"
+          >
+            {/* Layered backdrop — sunset-over-sea + warli + silhouette */}
+            <div className="absolute inset-0">
+              {/* Warm sunset gradient base */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    'linear-gradient(135deg, #1A0A03 0%, #3D1808 30%, #8A3618 55%, #C0582E 75%, #E8A855 95%)',
+                }}
+              />
+              {/* Sun/moon glow */}
+              <div
+                className="absolute w-[400px] h-[400px] rounded-full pointer-events-none"
+                style={{
+                  top: '-15%',
+                  right: '-8%',
+                  background:
+                    'radial-gradient(circle, rgba(240,200,122,0.5) 0%, rgba(232,168,85,0.2) 40%, transparent 75%)',
+                }}
+              />
+              {/* Warli pattern overlay */}
+              <div className="absolute inset-0 warli-pattern opacity-[0.10] pointer-events-none" />
+
+              {/* Boat + waves silhouette */}
+              <svg
+                className="absolute bottom-0 left-0 w-full pointer-events-none"
+                viewBox="0 0 1440 280"
+                preserveAspectRatio="none"
+                aria-hidden
+                style={{ height: '50%' }}
+              >
+                <path
+                  d="M0,160 Q360,135 720,158 T1440,160 L1440,280 L0,280 Z"
+                  fill="rgba(20, 8, 0, 0.40)"
+                />
+                <path
+                  d="M0,200 Q300,175 600,198 T1200,205 T1440,200 L1440,280 L0,280 Z"
+                  fill="rgba(15, 4, 0, 0.65)"
+                />
+                {/* Lone fishing boat silhouette */}
+                <g transform="translate(960, 165)">
+                  <path
+                    d="M-40,12 Q-32,22 0,22 Q32,22 40,12 L30,0 L-30,0 Z"
+                    fill="rgba(15, 4, 0, 0.95)"
+                  />
+                  <line x1="0" y1="0" x2="0" y2="-32" stroke="rgba(15, 4, 0, 0.95)" strokeWidth="1.5" />
+                  <path d="M0,-30 L18,-8 L0,-8 Z" fill="rgba(20, 8, 0, 0.85)" />
+                </g>
+              </svg>
+
+              {/* Bottom dark gradient for text legibility */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#1A0A03] via-[#2E1205]/60 to-transparent" />
+            </div>
+
+            {/* Content */}
+            <div className="relative z-10 h-full flex flex-col justify-end p-6 md:p-10 lg:p-12">
+              <div className="max-w-[560px]">
+                <span className="inline-block font-label-sm text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F0C87A] mb-3">
+                  Heritage
+                </span>
+                <h2
+                  className="font-display text-white leading-[1.05] tracking-[-0.01em] mb-4"
+                  style={{ fontSize: 'clamp(28px, 4.2vw, 44px)' }}
+                >
+                  The last traditional <em className="italic text-[#F0C87A]">fishermen.</em>
+                </h2>
+                <p className="text-[#FBF0DC]/85 text-sm md:text-[15px] leading-[1.65] mb-6 max-w-[460px]">
+                  Preserving a thousand-year-old connection to the Arabian Sea through art, ritual,
+                  and community memory. Discover the people who keep Dahanu's coastal soul alive.
+                </p>
+                <span className="inline-flex items-center gap-2 bg-white text-[#2E1205] font-semibold text-sm px-5 py-2.5 rounded-full transition-all group-hover:gap-3 group-hover:bg-[#F0C87A] shadow-lg">
+                  Read the Story
+                  <ArrowRight size={14} />
+                </span>
+              </div>
+            </div>
+          </SafeAppLink>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
           9. ABOUT DAHANU
       ───────────────────────────────────────────────────────────── */}
-      <section className="py-16">
-        <div className="max-w-[1160px] mx-auto px-6">
+      <section className="py-12 md:py-16">
+        <div className="max-w-[1160px] mx-auto px-5 md:px-6">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#C0582E] mb-1.5">
               Our Town
