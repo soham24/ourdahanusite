@@ -3,6 +3,7 @@ import 'server-only'
 import { cacheLife, cacheTag } from 'next/cache'
 
 import { CACHE_TAGS } from '@/lib/cache-tags'
+import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createPublicClient } from '@/lib/supabase/public'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -116,12 +117,22 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
             .order('sort_order', { ascending: true })
             .order('created_at', { ascending: true })
         : Promise.resolve({ data: [] as ListingProductPublic[] }),
+      // RLS on listing_payment_configs only permits the listing owner to
+      // SELECT — there is no public/anon policy. Use the service-role admin
+      // client so public visitors can resolve marketplaceReady. We only read
+      // the verified_at timestamp (no secrets like key_id/key_secret).
       paymentsEnabled
-        ? supabase
-            .from('listing_payment_configs')
-            .select('verified_at')
-            .eq('listing_id', listingId)
-            .maybeSingle()
+        ? (() => {
+            const adminClient = createAdminClient()
+            if (!adminClient) {
+              return Promise.resolve({ data: null as { verified_at: string | null } | null })
+            }
+            return adminClient
+              .from('listing_payment_configs')
+              .select('verified_at')
+              .eq('listing_id', listingId)
+              .maybeSingle()
+          })()
         : Promise.resolve({ data: null as { verified_at: string | null } | null }),
     ])
 
