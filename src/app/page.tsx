@@ -84,11 +84,11 @@ function FeaturedSpotlight({ listing }: { listing: FeaturedListing }) {
 
         <SafeAppLink
           href={href}
-          className="group block bg-white border border-[#E8DDD2] rounded-3xl overflow-hidden transition-all duration-200 hover:border-[#E8C49A] hover:shadow-card-hover hover:-translate-y-[2px]"
+          className="group block bg-white border border-[#E8DDD2] rounded-3xl overflow-hidden md:grid md:grid-cols-[400px_1fr] max-w-full md:max-w-[920px] md:mx-auto transition-all duration-200 hover:border-[#E8C49A] hover:shadow-card-hover hover:-translate-y-[2px]"
         >
-          {/* Image on top — taller on mobile, capped on desktop */}
+          {/* Image — top on mobile, left on desktop */}
           <div
-            className="relative aspect-[16/10] md:aspect-auto md:h-[320px] overflow-hidden"
+            className="relative aspect-[16/10] md:aspect-auto md:h-full overflow-hidden"
             style={{ background: 'linear-gradient(135deg, #E8C49A, #C0582E)' }}
           >
             {listing.image_url ? (
@@ -96,7 +96,7 @@ function FeaturedSpotlight({ listing }: { listing: FeaturedListing }) {
                 src={listing.image_url}
                 alt={listing.name}
                 fill
-                sizes="(min-width: 1160px) 1112px, 100vw"
+                sizes="(min-width: 768px) 400px, 100vw"
                 className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                 priority
               />
@@ -111,8 +111,8 @@ function FeaturedSpotlight({ listing }: { listing: FeaturedListing }) {
             </span>
           </div>
 
-          {/* Content below */}
-          <div className="p-6 md:p-8">
+          {/* Content — below image on mobile, right on desktop */}
+          <div className="p-6 md:p-8 md:flex md:flex-col md:justify-center">
             <div className="flex items-start justify-between gap-4 mb-3">
               <div className="min-w-0">
                 <h3 className="font-display text-[24px] md:text-[28px] leading-[1.2] text-[#2E1205] mb-1.5">
