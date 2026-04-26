@@ -32,7 +32,7 @@
   --color-ivory: #FAFAF7;
 
   /* Fonts — DM Sans body, Instrument Serif display */
-  --font-family-sans: var(--font-dm), var(--font-jakarta), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-sans: var(--font-dm), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-family-serif: var(--font-instrument), Georgia, 'Times New Roman', serif;
 }
 

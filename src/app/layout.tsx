@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Suspense } from 'react'
-import { DM_Sans, Instrument_Serif, Noto_Sans_Devanagari, Plus_Jakarta_Sans } from 'next/font/google'
+import { DM_Sans, Instrument_Serif, Noto_Sans_Devanagari } from 'next/font/google'
 import './globals.css'
 import Navbar, { NavbarFallback } from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -30,14 +30,6 @@ const instrumentSerif = Instrument_Serif({
   subsets: ['latin'],
   variable: '--font-instrument',
   display: 'swap',
-})
-
-// Kept for backward compat — some older pages still reference var(--font-jakarta) via the legacy --font-family-sans fallback
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-jakarta',
-  display: 'swap',
-  weight: ['400', '500', '600', '700', '800'],
 })
 
 // Devanagari support for the loader logo ("आपले डहाणू"). Loaded so the
@@ -142,7 +134,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${dmSans.variable} ${instrumentSerif.variable} ${jakarta.variable} ${notoDevanagari.variable}`}
+      className={`${dmSans.variable} ${instrumentSerif.variable} ${notoDevanagari.variable}`}
     >
       <body>
         <StructuredData data={siteSchema} />

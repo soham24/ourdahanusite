@@ -36,7 +36,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const supabase = createPublicClient()
     const { data: listings } = await supabase
       .from('listings')
-      .select('id, subdomain, name, category, image_url, cover_image, address, updated_at')
+      // Only the columns sitemap entries actually consume — keeps Supabase
+      // egress and JSON serialization small on every regen.
+      .select('id, subdomain, category, image_url, cover_image, updated_at')
       .eq('approved', true)
 
     const sitemapListings = (listings ?? []) as SitemapListing[]
