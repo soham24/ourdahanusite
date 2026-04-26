@@ -1,8 +1,15 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 
-import OurDahanuLoader from '@/components/OurDahanuLoader'
-import { getHomePageData } from '@/lib/data/home'
+import {
+  getHomeNewListings,
+  getHomePopularListings,
+  getHomeRecentJobs,
+  getHomeStats,
+} from '@/lib/data/home'
+import { getCachedPricingConfig } from '@/lib/data/pricing'
+import { getActivePoll } from '@/lib/data/polls'
+
 import HeroSection from './page-components/HeroSection'
 import QuickCategories from './page-components/QuickCategories'
 import StatsBar from './page-components/StatsBar'
@@ -16,6 +23,7 @@ import CommunityPollSection from './page-components/CommunityPollSection'
 import HeritageSection from './page-components/HeritageSection'
 import AboutDahanu from './page-components/AboutDahanu'
 import BottomCTABanner from './page-components/BottomCTABanner'
+import HomeSectionSkeleton from './page-components/HomeSectionSkeleton'
 
 export const metadata: Metadata = {
   title: 'Dahanu Business Directory, Local Jobs & Community',
@@ -43,69 +51,108 @@ export const metadata: Metadata = {
 
 export const unstable_instant = false
 
+// Hero + QuickCategories render synchronously so the search bar appears
+// instantly. Each below-fold section has its own Suspense boundary fed by
+// a focused cached fetcher in lib/data/home.ts, so the page streams in
+// section-by-section as data lands instead of blocking the whole tree
+// behind one big fetch.
 export default function HomePage() {
-  return (
-    <Suspense fallback={<OurDahanuLoader />}>
-      <HomePageContent />
-    </Suspense>
-  )
-}
-
-async function HomePageContent() {
-  const {
-    listings,
-    newListings,
-    recentJobs,
-    topCategoryLabels,
-    categoryCounts,
-    totalListings,
-    totalJobs,
-    pricing,
-    featuredListing,
-    activePoll,
-  } = await getHomePageData()
-
   return (
     <>
       <HeroSection />
-      
       <QuickCategories />
 
-      <StatsBar 
-        totalListings={totalListings} 
-        topCategoryLabelsLength={topCategoryLabels.length} 
-      />
+      <Suspense fallback={<HomeSectionSkeleton variant="bar" />}>
+        <StatsAndCategoriesAsync />
+      </Suspense>
 
-      {featuredListing && <FeaturedSpotlight listing={featuredListing} />}
+      <Suspense fallback={<HomeSectionSkeleton variant="row" label="Newest businesses" />}>
+        <NewListingsAsync />
+      </Suspense>
 
-      <CategoryGrid 
-        topCategoryLabels={topCategoryLabels} 
-        categoryCounts={categoryCounts} 
-      />
+      <Suspense fallback={<HomeSectionSkeleton variant="row" label="Popular in Dahanu" />}>
+        <PopularBusinessesAsync />
+      </Suspense>
 
-      {newListings.length > 0 && <NewListingsSection newListings={newListings} />}
+      <Suspense fallback={<HomeSectionSkeleton variant="cta" />}>
+        <BusinessOwnerCTAAsync />
+      </Suspense>
 
-      {listings.length > 0 && <PopularBusinesses listings={listings} />}
+      <Suspense fallback={<HomeSectionSkeleton variant="jobs" />}>
+        <JobsSectionAsync />
+      </Suspense>
 
-      <BusinessOwnerCTA 
-        currentPrice={pricing.current_price} 
-        basePrice={pricing.base_price} 
-      />
-
-      <JobsSection 
-        recentJobs={recentJobs} 
-        totalJobs={totalJobs} 
-        jobCurrentPrice={pricing.job_current_price} 
-        jobBasePrice={pricing.job_base_price} 
-      />
-
-      {activePoll && <CommunityPollSection activePoll={activePoll} />}
+      <Suspense fallback={<HomeSectionSkeleton variant="card" label="Community poll" />}>
+        <CommunityPollAsync />
+      </Suspense>
 
       <HeritageSection />
-
       <AboutDahanu />
-
       <BottomCTABanner />
     </>
   )
+}
+
+async function StatsAndCategoriesAsync() {
+  const stats = await getHomeStats()
+  return (
+    <>
+      <StatsBar
+        totalListings={stats.totalListings}
+        topCategoryLabelsLength={stats.topCategoryLabels.length}
+      />
+      {stats.featuredListing && <FeaturedSpotlight listing={stats.featuredListing} />}
+      <CategoryGrid
+        topCategoryLabels={stats.topCategoryLabels}
+        categoryCounts={stats.categoryCounts}
+      />
+    </>
+  )
+}
+
+async function NewListingsAsync() {
+  const newListings = await getHomeNewListings()
+  if (newListings.length === 0) return null
+  return <NewListingsSection newListings={newListings} />
+}
+
+async function PopularBusinessesAsync() {
+  const listings = await getHomePopularListings()
+  if (listings.length === 0) return null
+  return <PopularBusinesses listings={listings} />
+}
+
+async function BusinessOwnerCTAAsync() {
+  const pricing = await getCachedPricingConfig()
+  return (
+    <BusinessOwnerCTA
+      currentPrice={pricing.current_price}
+      basePrice={pricing.base_price}
+    />
+  )
+}
+
+async function JobsSectionAsync() {
+  // Three independent cached fetches; with `'use cache'` Next dedupes any
+  // overlap and runs them in parallel. JobsSection needs totalJobs from
+  // the stats RPC plus the recent-jobs query plus pricing.
+  const [recentJobs, stats, pricing] = await Promise.all([
+    getHomeRecentJobs(),
+    getHomeStats(),
+    getCachedPricingConfig(),
+  ])
+  return (
+    <JobsSection
+      recentJobs={recentJobs}
+      totalJobs={stats.totalJobs}
+      jobCurrentPrice={pricing.job_current_price}
+      jobBasePrice={pricing.job_base_price}
+    />
+  )
+}
+
+async function CommunityPollAsync() {
+  const activePoll = await getActivePoll()
+  if (!activePoll) return null
+  return <CommunityPollSection activePoll={activePoll} />
 }

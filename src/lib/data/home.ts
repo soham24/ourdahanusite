@@ -3,8 +3,6 @@ import 'server-only'
 import { cacheLife, cacheTag } from 'next/cache'
 
 import { CACHE_TAGS } from '@/lib/cache-tags'
-import { getActivePoll, type PollWithResults } from '@/lib/data/polls'
-import { getCachedPricingConfig } from '@/lib/data/pricing'
 import { sortCategoriesForDiscovery } from '@/lib/listing-category'
 import { createPublicClient } from '@/lib/supabase/public'
 
@@ -49,80 +47,60 @@ export interface HomeJob {
   created_at: string
 }
 
-export async function getHomePageData() {
+export interface HomeStats {
+  totalListings: number
+  totalJobs: number
+  featuredListing: FeaturedListing | null
+  categoryCounts: Record<string, number>
+  topCategoryLabels: string[]
+}
+
+const FALLBACK_TOP_CATEGORIES = [
+  'Restaurants',
+  'Medical Store',
+  'Grocery & Shops',
+  'Hotels & Stay',
+  'Salons & Beauty',
+  'Repair Services',
+  'Education & Coaching',
+  'Transport & Taxi',
+]
+
+const HOME_LISTING_COLUMNS =
+  'id, name, category, address, rating, review_count, image_url, image_thumb_url, tagline, subdomain, verified'
+
+// ─── Granular cached fetchers ──────────────────────────────────────────────
+//
+// Each section of the homepage suspends on its own slice of data so the
+// page can stream into view as data lands. The hero + quick categories
+// don't fetch anything and render synchronously, then these fetchers
+// resolve independently and fill in the rest of the page.
+
+/**
+ * Stats for the StatsBar, FeaturedSpotlight and CategoryGrid sections.
+ * One RPC call returns every count we need plus the featured listing,
+ * so these three sections share a fetcher and stream in together.
+ */
+export async function getHomeStats(): Promise<HomeStats> {
   'use cache'
 
   cacheLife({ stale: 300, revalidate: 600, expire: 3600 })
   cacheTag(CACHE_TAGS.home)
   cacheTag(CACHE_TAGS.listings)
   cacheTag(CACHE_TAGS.listingCategories)
-  cacheTag(CACHE_TAGS.jobs)
-  cacheTag(CACHE_TAGS.pricing)
   cacheTag(CACHE_TAGS.settings)
-  cacheTag(CACHE_TAGS.polls)
 
-  const pricing = await getCachedPricingConfig()
-
-  let listings: HomeListing[] = []
-  let newListings: HomeListing[] = []
-  let topCategoryLabels: string[] = []
-  let recentJobs: HomeJob[] = []
-  let totalListings = 0
-  let totalJobs = 0
-  const categoryCounts: Record<string, number> = {}
-  let featuredListing: FeaturedListing | null = null
-  let activePoll: PollWithResults | null = null
+  const empty: HomeStats = {
+    totalListings: 0,
+    totalJobs: 0,
+    featuredListing: null,
+    categoryCounts: {},
+    topCategoryLabels: FALLBACK_TOP_CATEGORIES,
+  }
 
   try {
     const supabase = createPublicClient()
-    const [
-      { data: listingData },
-      { data: newListingData },
-      { data: jobData },
-      { data: statsData },
-      activePollData,
-    ] = await Promise.all([
-      supabase
-        .from('listings')
-        .select('id, name, category, address, rating, review_count, image_url, image_thumb_url, tagline, subdomain, verified')
-        .eq('approved', true)
-        .order('verified', { ascending: false })
-        .order('review_count', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(6),
-      // Newest-first query, fetched separately so it doesn't get biased by
-      // verified/review_count ordering. We overfetch to 12 so we have room
-      // to dedupe against the "popular" listings above and still land a
-      // full row on screen.
-      supabase
-        .from('listings')
-        .select('id, name, category, address, rating, review_count, image_url, image_thumb_url, tagline, subdomain, verified')
-        .eq('approved', true)
-        .order('created_at', { ascending: false })
-        .limit(12),
-      supabase
-        .from('jobs')
-        .select('id, title, company, location, type, salary, category, status, created_at')
-        .eq('approved', true)
-        .in('status', ['open', 'hiring'])
-        .order('created_at', { ascending: false })
-        .limit(3),
-      // Single RPC that replaces four separate queries: the full-scan
-      // `select category where approved` (now a server-side GROUP BY), the
-      // two `count: 'exact'` probes, and the `site_settings -> listings`
-      // featured-listing lookup that used to run serially after the setting
-      // row came back. See supabase/add_get_homepage_stats_rpc.sql.
-      supabase.rpc('get_homepage_stats'),
-      getActivePoll(),
-    ])
-
-    listings = (listingData ?? []) as HomeListing[]
-    const popularIds = new Set(listings.map((l) => l.id))
-    newListings = ((newListingData ?? []) as HomeListing[])
-      .filter((l) => !popularIds.has(l.id))
-      .slice(0, 6)
-    recentJobs = (jobData ?? []) as HomeJob[]
-    activePoll = activePollData
+    const { data: statsData } = await supabase.rpc('get_homepage_stats')
 
     const stats = (statsData ?? {}) as {
       category_counts?: Record<string, number> | null
@@ -131,49 +109,97 @@ export async function getHomePageData() {
       featured_listing?: FeaturedListing | null
     }
 
-    totalListings = stats.total_listings ?? 0
-    totalJobs = stats.total_jobs ?? 0
-    featuredListing = stats.featured_listing ?? null
-
+    const categoryCounts: Record<string, number> = {}
     if (stats.category_counts) {
       for (const [category, count] of Object.entries(stats.category_counts)) {
         if (!category) continue
         categoryCounts[category] = count
       }
+    }
 
-      if (Object.keys(categoryCounts).length) {
-        topCategoryLabels = sortCategoriesForDiscovery(Object.entries(categoryCounts))
+    const topCategoryLabels = Object.keys(categoryCounts).length
+      ? sortCategoriesForDiscovery(Object.entries(categoryCounts))
           .slice(0, 10)
           .map(([category]) => category)
-      }
+      : FALLBACK_TOP_CATEGORIES
+
+    return {
+      totalListings: stats.total_listings ?? 0,
+      totalJobs: stats.total_jobs ?? 0,
+      featuredListing: stats.featured_listing ?? null,
+      categoryCounts,
+      topCategoryLabels,
     }
   } catch {
-    // Use empty-state fallbacks below if public reads fail.
+    return empty
   }
+}
 
-  if (!topCategoryLabels.length) {
-    topCategoryLabels = [
-      'Restaurants',
-      'Medical Store',
-      'Grocery & Shops',
-      'Hotels & Stay',
-      'Salons & Beauty',
-      'Repair Services',
-      'Education & Coaching',
-      'Transport & Taxi',
-    ]
+/** Top 6 popular listings for the PopularBusinesses carousel. */
+export async function getHomePopularListings(): Promise<HomeListing[]> {
+  'use cache'
+
+  cacheLife({ stale: 300, revalidate: 600, expire: 3600 })
+  cacheTag(CACHE_TAGS.home)
+  cacheTag(CACHE_TAGS.listings)
+
+  try {
+    const supabase = createPublicClient()
+    const { data } = await supabase
+      .from('listings')
+      .select(HOME_LISTING_COLUMNS)
+      .eq('approved', true)
+      .order('verified', { ascending: false })
+      .order('review_count', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(6)
+    return (data ?? []) as HomeListing[]
+  } catch {
+    return []
   }
+}
 
-  return {
-    listings,
-    newListings,
-    topCategoryLabels,
-    categoryCounts,
-    recentJobs,
-    totalListings,
-    totalJobs,
-    pricing,
-    featuredListing,
-    activePoll,
+/** Newest 6 listings for the NewListingsSection carousel. */
+export async function getHomeNewListings(): Promise<HomeListing[]> {
+  'use cache'
+
+  cacheLife({ stale: 300, revalidate: 600, expire: 3600 })
+  cacheTag(CACHE_TAGS.home)
+  cacheTag(CACHE_TAGS.listings)
+
+  try {
+    const supabase = createPublicClient()
+    const { data } = await supabase
+      .from('listings')
+      .select(HOME_LISTING_COLUMNS)
+      .eq('approved', true)
+      .order('created_at', { ascending: false })
+      .limit(6)
+    return (data ?? []) as HomeListing[]
+  } catch {
+    return []
+  }
+}
+
+/** Three most recent open/hiring jobs for the JobsSection list. */
+export async function getHomeRecentJobs(): Promise<HomeJob[]> {
+  'use cache'
+
+  cacheLife({ stale: 300, revalidate: 600, expire: 3600 })
+  cacheTag(CACHE_TAGS.home)
+  cacheTag(CACHE_TAGS.jobs)
+
+  try {
+    const supabase = createPublicClient()
+    const { data } = await supabase
+      .from('jobs')
+      .select('id, title, company, location, type, salary, category, status, created_at')
+      .eq('approved', true)
+      .in('status', ['open', 'hiring'])
+      .order('created_at', { ascending: false })
+      .limit(3)
+    return (data ?? []) as HomeJob[]
+  } catch {
+    return []
   }
 }
