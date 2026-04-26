@@ -15,6 +15,7 @@
 
 import { connection, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
+import { runAppointmentReminders } from '@/lib/cron/appointment-reminders'
 import { sendNotification } from '@/lib/notifications'
 
 export async function GET(request: Request) {
@@ -122,6 +123,9 @@ export async function GET(request: Request) {
     }
   }
 
+  const appointmentReminders = await runAppointmentReminders(adminClient, now)
+
   console.log('[cron/listing-expiry]', stats)
-  return NextResponse.json({ ok: true, ...stats })
+  console.log('[cron/appointment-reminders]', appointmentReminders)
+  return NextResponse.json({ ok: true, listings: stats, appointmentReminders })
 }
