@@ -21,6 +21,7 @@ export interface DirectoryListing {
   description?: string | null
   tags?: string[]
   image_url?: string | null
+  image_thumb_url?: string | null
   plan?: string | null
   verified?: boolean | null
   updated_at?: string | null
@@ -97,7 +98,7 @@ export async function getListingsDirectoryData(activeCategory: string | null = n
     const supabase = createPublicClient()
     let query = supabase
       .from('listings')
-      .select('id, name, category, subdomain, phone, address, rating, review_count, image_url, tagline, description, plan, verified, updated_at, created_at')
+      .select('id, name, category, subdomain, phone, address, rating, review_count, image_url, image_thumb_url, tagline, description, plan, verified, updated_at, created_at')
       .eq('approved', true)
       .order('plan', { ascending: false })
       .order('created_at', { ascending: false })

@@ -24,6 +24,7 @@ interface Listing {
   description?: string | null
   tags?: string[]
   image_url?: string | null
+  image_thumb_url?: string | null
   plan?: string | null
   verified?: boolean | null
 }
@@ -49,8 +50,14 @@ export default function ListingCard({ listing }: { listing: Listing }) {
 
       <div className="relative z-10 flex items-start gap-4">
         <div className="relative flex h-[72px] w-[72px] flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[var(--od-surface-soft)] text-3xl border border-[var(--od-border)]">
-          {listing.image_url ? (
-            <Image src={listing.image_url} alt={listing.name} fill className="object-cover" sizes="72px" />
+          {listing.image_thumb_url || listing.image_url ? (
+            <Image
+              src={(listing.image_thumb_url || listing.image_url) as string}
+              alt={listing.name}
+              fill
+              className="object-cover"
+              sizes="72px"
+            />
           ) : (
             <span>{listing.icon || '🏪'}</span>
           )}

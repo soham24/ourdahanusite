@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
@@ -20,8 +19,8 @@ import {
   shouldRedirectListingToSubdomain 
 } from '@/lib/listing-url'
 import { buildAbsoluteUrl } from '@/lib/site'
-import RecordView from './RecordView'
 import { getCachedListingDetail } from '@/lib/data/listing-detail'
+import { ListingViewerProvider } from './ListingViewerContext'
 
 // Modular Components
 import ListingHero from './components/ListingHero'
@@ -202,44 +201,11 @@ async function ListingDetailContent({
   const reviews: Record<string, any>[] = (publicData?.reviews as Record<string, any>[] | undefined) ?? []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const questions: Record<string, any>[] = (publicData?.questions as Record<string, any>[] | undefined) ?? []
-  let currentUser: any | null = null
-  let currentUserName: string | null = null
-  let currentUserPhone: string | null = null
-  let isFavourited = false
-  let isRecommended = false
   const recommendCount = publicData?.recommendCount ?? 0
   const favouriteCount = publicData?.favouriteCount ?? 0
   const similarListings = publicData?.similarListings ?? []
   const marketplaceProducts = publicData?.products ?? []
   const marketplaceReady = publicData?.marketplaceReady ?? false
-
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    currentUser = user
-
-    if (!listing && user) {
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
-      const { data: listingData } = await supabase
-        .from('listings')
-        .select('*')
-        .eq(isUuid ? 'id' : 'subdomain', id)
-        .single()
-      listing = listingData as Record<string, any> | null
-    }
-
-    if (user && listing) {
-      const [profileResult, favResult, recResult] = await Promise.all([
-        supabase.from('profiles').select('full_name, phone').eq('id', user.id).single(),
-        supabase.from('listing_favourites').select('listing_id').eq('user_id', user.id).eq('listing_id', listing.id).maybeSingle(),
-        supabase.from('listing_recommendations').select('listing_id').eq('user_id', user.id).eq('listing_id', listing.id).maybeSingle(),
-      ])
-      currentUserName = profileResult.data?.full_name || user.email?.split('@')[0] || null
-      currentUserPhone = profileResult.data?.phone || null
-      isFavourited = !!favResult.data
-      isRecommended = !!recResult.data
-    }
-  } catch { /* auth error */ }
 
   if (!listing) {
     return (
@@ -269,7 +235,6 @@ async function ListingDetailContent({
   const rating      = (listing.rating as number) || 0
   const reviewCount = (listing.review_count as number) || reviews.length
   const subdomain   = listing.subdomain as string | null
-  const isOwner     = currentUser?.id === (listing.owner_id as string)
 
   if (shouldRedirectListingToSubdomain(currentHost, subdomain)) {
     permanentRedirect(getCanonicalListingUrl(listingId, subdomain))
@@ -368,13 +333,12 @@ async function ListingDetailContent({
   }
 
   return (
+    <ListingViewerProvider listingId={listingId}>
     <div className="od-page min-h-screen">
       <StructuredData data={[breadcrumbSchema, localBusinessSchema]} />
-      <RecordView listingId={listingId} />
 
       <ListingHero 
         listing={listing}
-        isOwner={isOwner}
         subdomain={subdomain}
         platformListingsUrl={platformListingsUrl}
         platformEditUrl={platformEditUrl}
@@ -388,8 +352,6 @@ async function ListingDetailContent({
         enquiryLink={enquiryLink}
         statusShareLink={statusShareLink}
         listingId={listingId}
-        isFavourited={isFavourited}
-        isLoggedIn={!!currentUser}
       />
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -411,13 +373,9 @@ async function ListingDetailContent({
               listingId={listingId}
               whatsappNum={whatsappNum}
               businessUrl={businessUrl}
-              currentUserName={currentUserName ?? ''}
-              currentUserEmail={currentUser?.email ?? ''}
               marketplaceReady={marketplaceReady}
               marketplaceProducts={marketplaceProducts}
-              currentUser={currentUser}
               platformLoginUrl={platformLoginUrl}
-              currentUserPhone={currentUserPhone ?? ''}
               appointmentsEnabled={appointmentsEnabled}
               appointmentSettings={appointmentSettings}
               appointmentBookingFee={appointmentBookingFee}
@@ -427,9 +385,6 @@ async function ListingDetailContent({
               listing={listing}
               reviews={reviews}
               rating={rating}
-              isOwner={isOwner}
-              currentUser={currentUser}
-              currentUserName={currentUserName}
               platformLoginUrl={platformLoginUrl}
               listingId={listingId}
             />
@@ -438,8 +393,6 @@ async function ListingDetailContent({
               listingId={listingId}
               subdomain={subdomain}
               questions={questions}
-              isOwner={isOwner}
-              isLoggedIn={!!currentUser}
               similarListings={similarListings}
               listingCategory={String(listing.category)}
             />
@@ -456,7 +409,6 @@ async function ListingDetailContent({
               paymentMethods={paymentMethods}
               deliveryInfo={deliveryInfo}
               favouriteCount={favouriteCount}
-              isOwner={isOwner}
               platformEditUrl={platformEditUrl}
             />
           </div>
@@ -486,5 +438,6 @@ async function ListingDetailContent({
         </div>
       )}
     </div>
+    </ListingViewerProvider>
   )
 }

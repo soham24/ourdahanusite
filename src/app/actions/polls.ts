@@ -1,6 +1,5 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { getUserRole } from '@/app/actions/admin'
@@ -123,7 +122,6 @@ export async function createPoll(
   if (error) return { error: error.message, fields }
 
   revalidatePollsCache()
-  revalidatePath('/admin/polls')
   return { success: true }
 }
 
@@ -153,6 +151,5 @@ export async function deletePoll(
   if (error) return { error: error.message }
 
   revalidatePollsCache()
-  revalidatePath('/admin/polls')
   return { success: true }
 }

@@ -1,7 +1,5 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
-
 import { getUserRole } from '@/app/actions/admin'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
 import { normalizeInlineText, normalizeMultilineText } from '@/lib/listing-content'
@@ -188,8 +186,6 @@ export async function createProduct(
   if (error) return { error: error.message }
 
   revalidatePublicListingDetail(listingId)
-  revalidatePath(`/my-business/products/${listingId}`)
-  revalidatePath(`/listings/${listingId}`)
   return { id: data?.id }
 }
 
@@ -253,8 +249,6 @@ export async function updateProduct(
   if (error) return { error: error.message }
 
   revalidatePublicListingDetail(product.listing_id)
-  revalidatePath(`/my-business/products/${product.listing_id}`)
-  revalidatePath(`/listings/${product.listing_id}`)
   return {}
 }
 
@@ -285,8 +279,6 @@ export async function deleteProduct(
   if (error) return { error: error.message }
 
   revalidatePublicListingDetail(product.listing_id)
-  revalidatePath(`/my-business/products/${product.listing_id}`)
-  revalidatePath(`/listings/${product.listing_id}`)
   return {}
 }
 
@@ -316,8 +308,6 @@ export async function toggleProductActive(
   if (error) return { error: error.message }
 
   revalidatePublicListingDetail(product.listing_id)
-  revalidatePath(`/my-business/products/${product.listing_id}`)
-  revalidatePath(`/listings/${product.listing_id}`)
   return {}
 }
 
@@ -360,7 +350,5 @@ export async function reorderProducts(
   if (firstError?.error) return { error: firstError.error.message }
 
   revalidatePublicListingDetail(listingId)
-  revalidatePath(`/my-business/products/${listingId}`)
-  revalidatePath(`/listings/${listingId}`)
   return {}
 }

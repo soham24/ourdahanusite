@@ -7,13 +7,12 @@ import { MessageCircleQuestion, Star } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import QASection from '../QASection'
 import { getListingHref } from '@/lib/listing-url'
+import { useListingViewer } from '../ListingViewerContext'
 
 interface ListingQASectionProps {
   questions: any[]
   listingId: string
   subdomain: string | null
-  isOwner: boolean
-  isLoggedIn: boolean
   similarListings: any[]
   listingCategory: string
 }
@@ -22,11 +21,11 @@ export default function ListingQASection({
   questions,
   listingId,
   subdomain,
-  isOwner,
-  isLoggedIn,
   similarListings,
   listingCategory,
 }: ListingQASectionProps) {
+  const viewer = useListingViewer()
+
   return (
     <div className="space-y-5">
       {/* Q&A Section */}
@@ -43,8 +42,8 @@ export default function ListingQASection({
           listingId={listingId}
           subdomain={subdomain}
           questions={questions}
-          isOwner={isOwner}
-          isLoggedIn={isLoggedIn}
+          isOwner={viewer.isOwner}
+          isLoggedIn={viewer.isLoggedIn}
         />
       </Card>
 
@@ -60,8 +59,8 @@ export default function ListingQASection({
               <Link key={s.id} href={getListingHref(s.id, s.subdomain)}
                 className="flex items-center gap-3 p-3 rounded-xl border border-border/50 hover:border-brand/30 hover:bg-surface-soft/40 transition-all">
                 <div className="w-10 h-10 rounded-lg bg-surface-soft flex-shrink-0 overflow-hidden flex items-center justify-center">
-                  {s.image_url ? (
-                    <Image src={s.image_url} alt={s.name} width={40} height={40} className="object-cover w-full h-full" />
+                  {s.image_thumb_url || s.image_url ? (
+                    <Image src={s.image_thumb_url || s.image_url} alt={s.name} width={40} height={40} className="object-cover w-full h-full" />
                   ) : (
                     <span className="text-lg">🏪</span>
                   )}

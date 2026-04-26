@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { ThumbsUp } from 'lucide-react'
 import { toggleRecommendation } from '@/app/actions/listing-interactions'
+import { useListingViewer } from './ListingViewerContext'
 
 interface Props {
   listingId: string
@@ -15,16 +16,23 @@ interface Props {
 export default function RecommendButton({
   listingId, subdomain, initialRecommended, initialCount, isLoggedIn,
 }: Props) {
-  const [isRecommended, setIsRecommended] = useState(initialRecommended)
+  const viewer = useListingViewer()
+  const [optimisticRecommended, setOptimisticRecommended] = useState<boolean | null>(null)
+  const [hasInteracted, setHasInteracted] = useState(false)
   const [count, setCount] = useState(initialCount)
   const [isPending, startTransition] = useTransition()
+  const signedIn = isLoggedIn || viewer.isLoggedIn
+  const isRecommended = hasInteracted
+    ? optimisticRecommended ?? false
+    : viewer.isRecommended || initialRecommended
 
   const handle = () => {
-    if (!isLoggedIn) { window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`; return }
+    if (!signedIn) { window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`; return }
+    setHasInteracted(true)
     startTransition(async () => {
       const res = await toggleRecommendation(listingId, subdomain)
       if (res.error) return
-      setIsRecommended(res.isRecommended)
+      setOptimisticRecommended(res.isRecommended)
       setCount(c => res.isRecommended ? c + 1 : c - 1)
     })
   }

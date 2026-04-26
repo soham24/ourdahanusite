@@ -16,7 +16,7 @@ export interface EmergencyAlert {
 export async function getActiveEmergencyAlert(): Promise<EmergencyAlert | null> {
   'use cache'
 
-  cacheLife({ stale: 30, revalidate: 60, expire: 300 })
+  cacheLife({ stale: 1800, revalidate: 3600, expire: 86400 })
   cacheTag(CACHE_TAGS.emergency)
 
   try {

@@ -3,29 +3,37 @@
 import { useState, useTransition } from 'react'
 import { Heart } from 'lucide-react'
 import { toggleFavourite } from '@/app/actions/listing-interactions'
+import { useListingViewer } from './ListingViewerContext'
 
 interface Props {
   listingId: string
   subdomain?: string | null
-  initialFavourited: boolean
-  isLoggedIn: boolean
+  initialFavourited?: boolean
+  isLoggedIn?: boolean
 }
 
 export default function FavouriteButton({ listingId, subdomain, initialFavourited, isLoggedIn }: Props) {
-  const [isFavourited, setIsFavourited] = useState(initialFavourited)
+  const viewer = useListingViewer()
+  const [optimisticFavourited, setOptimisticFavourited] = useState<boolean | null>(null)
+  const [hasInteracted, setHasInteracted] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
+  const signedIn = isLoggedIn ?? viewer.isLoggedIn
+  const isFavourited = hasInteracted
+    ? optimisticFavourited ?? false
+    : viewer.isFavourited || initialFavourited === true
 
   const handle = () => {
-    if (!isLoggedIn) {
+    if (!signedIn) {
       window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`
       return
     }
     setError('')
+    setHasInteracted(true)
     startTransition(async () => {
       const res = await toggleFavourite(listingId, subdomain)
       if (res.error) { setError(res.error); return }
-      setIsFavourited(res.isFavourited)
+      setOptimisticFavourited(res.isFavourited)
     })
   }
 

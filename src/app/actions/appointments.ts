@@ -1,7 +1,5 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
-
 import { getUserRole, requireAdmin } from '@/app/actions/admin'
 import { generateAvailableSlots, type AppointmentSlot } from '@/lib/appointment-slots'
 import { revalidateAppointmentsCache } from '@/lib/cache-tags'
@@ -307,10 +305,6 @@ export async function bookAppointment(
   }
 
   revalidateAppointmentsCache(listingId)
-  revalidatePath(`/listings/${listingId}`)
-  revalidatePath('/dashboard/appointments')
-  revalidatePath('/my-business/appointments')
-  revalidatePath('/admin/appointments')
 
   // Fire-and-forget notifications: fan out to owner + buyer + admins via
   // the unified notification engine.
@@ -440,9 +434,6 @@ export async function cancelAppointment(
   })()
 
   revalidateAppointmentsCache(appointment.listing_id)
-  revalidatePath('/dashboard/appointments')
-  revalidatePath('/my-business/appointments')
-  revalidatePath('/admin/appointments')
   return {}
 }
 
@@ -543,8 +534,6 @@ export async function updateAppointmentStatus(
   if (error) return { error: error.message }
 
   revalidateAppointmentsCache(appointment.listing_id)
-  revalidatePath('/my-business/appointments')
-  revalidatePath('/admin/appointments')
   return {}
 }
 
@@ -576,7 +565,5 @@ export async function updateAppointmentAdminSettings(
   if (error) return { error: error.message }
 
   revalidateAppointmentsCache(listingId)
-  revalidatePath('/admin/appointments')
-  revalidatePath(`/listings/${listingId}`)
   return {}
 }

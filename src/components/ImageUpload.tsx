@@ -6,52 +6,70 @@ import { Camera, Upload, X, Loader2 } from 'lucide-react'
 
 interface ImageUploadProps {
   bucket: string
-  onUpload: (url: string) => void
+  onUpload: (url: string, thumbUrl: string | null) => void
   label?: string
+  thumbMaxEdge?: number
 }
 
-export default function ImageUpload({ bucket, onUpload, label = 'Upload Image' }: ImageUploadProps) {
+const FULL_MAX_EDGE = 1920
+const FULL_QUALITY = 0.85
+const THUMB_QUALITY = 0.78
+
+function loadHTMLImage(file: File): Promise<{ img: HTMLImageElement; revoke: () => void }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const objectUrl = URL.createObjectURL(file)
+    img.onload = () => resolve({ img, revoke: () => URL.revokeObjectURL(objectUrl) })
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      reject(new Error('Could not load image'))
+    }
+    img.src = objectUrl
+  })
+}
+
+function fitWithinEdge(width: number, height: number, maxEdge: number) {
+  if (width <= maxEdge && height <= maxEdge) return { width, height }
+  if (width >= height) {
+    return { width: maxEdge, height: Math.round((height * maxEdge) / width) }
+  }
+  return { width: Math.round((width * maxEdge) / height), height: maxEdge }
+}
+
+function drawToBlob(
+  img: HTMLImageElement,
+  width: number,
+  height: number,
+  quality: number,
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')
+    if (!ctx) {
+      reject(new Error('Canvas not available'))
+      return
+    }
+    ctx.drawImage(img, 0, 0, width, height)
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error('Compression failed'))),
+      'image/jpeg',
+      quality,
+    )
+  })
+}
+
+export default function ImageUpload({
+  bucket,
+  onUpload,
+  label = 'Upload Image',
+  thumbMaxEdge = 240,
+}: ImageUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-
-  const compressImage = (file: File): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image()
-      const objectUrl = URL.createObjectURL(file)
-      img.onload = () => {
-        URL.revokeObjectURL(objectUrl)
-        // Scale down if wider/taller than 1920px
-        const MAX = 1920
-        let { width, height } = img
-        if (width > MAX || height > MAX) {
-          if (width > height) {
-            height = Math.round((height * MAX) / width)
-            width = MAX
-          } else {
-            width = Math.round((width * MAX) / height)
-            height = MAX
-          }
-        }
-        const canvas = document.createElement('canvas')
-        canvas.width = width
-        canvas.height = height
-        const ctx = canvas.getContext('2d')!
-        ctx.drawImage(img, 0, 0, width, height)
-        canvas.toBlob(
-          (blob) => {
-            if (blob) resolve(blob)
-            else reject(new Error('Compression failed'))
-          },
-          'image/jpeg',
-          0.85,
-        )
-      }
-      img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('Could not load image')) }
-      img.src = objectUrl
-    })
-  }
 
   const handleFile = async (file: File) => {
     setError(null)
@@ -66,25 +84,47 @@ export default function ImageUpload({ bucket, onUpload, label = 'Upload Image' }
       return
     }
 
-    // Show local preview immediately
     const objectUrl = URL.createObjectURL(file)
     setPreview(objectUrl)
     setUploading(true)
 
     try {
-      const compressed = await compressImage(file)
-      const supabase = createClient()
-      const ext = 'jpg'
-      const path = `public/${Date.now()}-${file.name.replace(/\.[^.]+$/, '')}.${ext}`
+      const { img, revoke } = await loadHTMLImage(file)
+      try {
+        const fullSize = fitWithinEdge(img.naturalWidth, img.naturalHeight, FULL_MAX_EDGE)
+        const thumbSize = fitWithinEdge(img.naturalWidth, img.naturalHeight, thumbMaxEdge)
 
-      const { error: uploadError } = await supabase.storage
-        .from(bucket)
-        .upload(path, compressed, { upsert: true, contentType: 'image/jpeg' })
+        const [fullBlob, thumbBlob] = await Promise.all([
+          drawToBlob(img, fullSize.width, fullSize.height, FULL_QUALITY),
+          drawToBlob(img, thumbSize.width, thumbSize.height, THUMB_QUALITY),
+        ])
 
-      if (uploadError) throw uploadError
+        const supabase = createClient()
+        const baseName = file.name.replace(/\.[^.]+$/, '')
+        const stamp = Date.now()
+        const fullPath = `public/${stamp}-${baseName}.jpg`
+        const thumbPath = `public/${stamp}-${baseName}-thumb.jpg`
 
-      const { data } = supabase.storage.from(bucket).getPublicUrl(path)
-      onUpload(data.publicUrl)
+        const [fullRes, thumbRes] = await Promise.all([
+          supabase.storage
+            .from(bucket)
+            .upload(fullPath, fullBlob, { upsert: true, contentType: 'image/jpeg' }),
+          supabase.storage
+            .from(bucket)
+            .upload(thumbPath, thumbBlob, { upsert: true, contentType: 'image/jpeg' }),
+        ])
+
+        if (fullRes.error) throw fullRes.error
+
+        const { data: fullData } = supabase.storage.from(bucket).getPublicUrl(fullPath)
+        const thumbUrl = thumbRes.error
+          ? null
+          : supabase.storage.from(bucket).getPublicUrl(thumbPath).data.publicUrl
+
+        onUpload(fullData.publicUrl, thumbUrl)
+      } finally {
+        revoke()
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed. Please try again.')
       setPreview(null)

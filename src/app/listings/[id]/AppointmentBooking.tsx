@@ -171,6 +171,14 @@ export default function AppointmentBooking({
   ]
 
   useEffect(() => {
+    setName(userName)
+  }, [userName])
+
+  useEffect(() => {
+    setPhone(userPhone)
+  }, [userPhone])
+
+  useEffect(() => {
     let active = true
 
     async function loadSlots() {

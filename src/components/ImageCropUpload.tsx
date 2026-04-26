@@ -7,7 +7,7 @@ import { Camera, Upload, X, Loader2, ZoomIn, ZoomOut, RotateCw, Check } from 'lu
 
 interface Props {
   bucket?: string
-  onUpload: (url: string) => void
+  onUpload: (url: string, thumbUrl: string | null) => void
   label?: string
   size?: number   // output square size in px, default 240
   aspect?: number // default 1 (square)
@@ -120,7 +120,9 @@ export default function ImageCropUpload({
         .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
       if (upErr) throw upErr
       const { data } = supabase.storage.from(bucket).getPublicUrl(path)
-      onUpload(data.publicUrl)
+      // Cropped output is already at thumb-friendly size (default 240×240),
+      // so the same URL serves as both the full image and the thumb.
+      onUpload(data.publicUrl, data.publicUrl)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed')
       setPreview(null)

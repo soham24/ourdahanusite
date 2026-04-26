@@ -9,7 +9,6 @@ import {
   getJobSubmissionCharge,
   validateRazorpayOrder,
 } from '@/lib/payment-security'
-import { revalidatePath } from 'next/cache'
 
 /** Fire-and-forget: email all admins + job_reviewers about a new job submission */
 async function notifyJobReviewers(jobTitle: string, company: string, jobId: string) {
@@ -158,7 +157,6 @@ export async function submitPaidJob(
   }).catch(err => console.error('[notify:new-job-paid]', err))
 
   revalidatePublicJobs()
-  revalidatePath('/jobs')
   return {}
 }
 
@@ -211,7 +209,6 @@ export async function submitFreeJob(
   }).catch(err => console.error('[notify:new-job-free]', err))
 
   revalidatePublicJobs()
-  revalidatePath('/jobs')
   return {}
 }
 
@@ -270,9 +267,5 @@ export async function updateJobStatus(
   if (error) return { error: error.message }
 
   revalidatePublicJobs()
-  revalidatePath('/jobs')
-  revalidatePath(`/jobs/${jobId}`)
-  revalidatePath('/my-jobs')
-  revalidatePath('/admin/jobs')
   return {}
 }

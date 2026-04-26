@@ -41,9 +41,9 @@ export default function NewListingsSection({ newListings }: NewListingsSectionPr
                     className="relative h-[170px] overflow-hidden"
                     style={{ background: 'linear-gradient(135deg, var(--color-muted), #E8C49A)' }}
                   >
-                    {listing.image_url ? (
+                    {listing.image_thumb_url || listing.image_url ? (
                       <Image
-                        src={listing.image_url}
+                        src={(listing.image_thumb_url || listing.image_url) as string}
                         alt={listing.name}
                         fill
                         sizes="300px"

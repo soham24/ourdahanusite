@@ -67,6 +67,14 @@ export default function BuyButton({
   const isService = product.type === 'service'
 
   useEffect(() => {
+    setBuyerName(userName)
+  }, [userName])
+
+  useEffect(() => {
+    setBuyerPhone(userPhone)
+  }, [userPhone])
+
+  useEffect(() => {
     if (!isOpen) return
     if (document.getElementById('razorpay-script')) {
       setScriptReady(true)

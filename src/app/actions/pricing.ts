@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
-import { revalidatePath } from 'next/cache'
 import {
   revalidateCouponCache,
   revalidatePricingCache,
@@ -64,8 +63,6 @@ export async function updatePricing(formData: FormData): Promise<{ error?: strin
 
     if (error) return { error: error.message }
     revalidatePricingCache()
-    revalidatePath('/admin/pricing')
-    revalidatePath('/listings/submit')
     return {}
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : 'Failed to update pricing.' }
@@ -87,8 +84,6 @@ export async function updateJobPricing(formData: FormData): Promise<{ error?: st
 
     if (error) return { error: error.message }
     revalidatePricingCache()
-    revalidatePath('/admin/pricing')
-    revalidatePath('/jobs/submit')
     return {}
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : 'Failed to update job pricing.' }
@@ -115,7 +110,6 @@ export async function createCoupon(formData: FormData): Promise<{ error?: string
       return { error: error.message }
     }
     revalidateCouponCache()
-    revalidatePath('/admin/pricing')
     return {}
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : 'Failed to create coupon.' }
@@ -128,7 +122,6 @@ export async function toggleCoupon(id: string, enabled: boolean): Promise<{ erro
     const { error } = await db.from('coupons').update({ enabled }).eq('id', id)
     if (error) return { error: error.message }
     revalidateCouponCache()
-    revalidatePath('/admin/pricing')
     return {}
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : 'Failed to toggle coupon.' }
@@ -141,7 +134,6 @@ export async function deleteCoupon(id: string): Promise<{ error?: string }> {
     const { error } = await db.from('coupons').delete().eq('id', id)
     if (error) return { error: error.message }
     revalidateCouponCache()
-    revalidatePath('/admin/pricing')
     return {}
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : 'Failed to delete coupon.' }

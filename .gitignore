@@ -26,6 +26,7 @@
 .claude/
 *.bak
 supabase/.temp/
+/tmp/
 
 # debug
 npm-debug.log*

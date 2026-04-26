@@ -3,12 +3,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
 import { normalizeInlineText, normalizeMultilineText } from '@/lib/listing-content'
-import { revalidatePath } from 'next/cache'
 
-function revalidateListing(listingId: string, subdomain?: string | null) {
+function revalidateListing(listingId: string) {
   revalidatePublicListingDetail(listingId)
-  revalidatePath(`/listings/${listingId}`)
-  if (subdomain) revalidatePath(`/listings/${subdomain}`)
 }
 
 // ── Favourites ───────────────────────────────────────────────────────────────
@@ -17,6 +14,7 @@ export async function toggleFavourite(
   listingId: string,
   subdomain?: string | null,
 ): Promise<{ isFavourited: boolean; error?: string }> {
+  void subdomain
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { isFavourited: false, error: 'Sign in to save favourites.' }
@@ -31,12 +29,10 @@ export async function toggleFavourite(
   if (existing) {
     await supabase.from('listing_favourites')
       .delete().eq('user_id', user.id).eq('listing_id', listingId)
-    revalidateListing(listingId, subdomain)
     return { isFavourited: false }
   } else {
     await supabase.from('listing_favourites')
       .insert({ user_id: user.id, listing_id: listingId })
-    revalidateListing(listingId, subdomain)
     return { isFavourited: true }
   }
 }
@@ -47,6 +43,7 @@ export async function toggleRecommendation(
   listingId: string,
   subdomain?: string | null,
 ): Promise<{ isRecommended: boolean; error?: string }> {
+  void subdomain
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { isRecommended: false, error: 'Sign in to recommend.' }
@@ -61,12 +58,10 @@ export async function toggleRecommendation(
   if (existing) {
     await supabase.from('listing_recommendations')
       .delete().eq('user_id', user.id).eq('listing_id', listingId)
-    revalidateListing(listingId, subdomain)
     return { isRecommended: false }
   } else {
     await supabase.from('listing_recommendations')
       .insert({ user_id: user.id, listing_id: listingId })
-    revalidateListing(listingId, subdomain)
     return { isRecommended: true }
   }
 }
@@ -78,6 +73,7 @@ export async function askQuestion(
   question: string,
   subdomain?: string | null,
 ): Promise<{ error?: string }> {
+  void subdomain
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Sign in to ask a question.' }
@@ -91,7 +87,7 @@ export async function askQuestion(
   })
 
   if (error) return { error: error.message }
-  revalidateListing(listingId, subdomain)
+  revalidateListing(listingId)
   return {}
 }
 
@@ -101,6 +97,7 @@ export async function answerQuestion(
   listingId: string,
   subdomain?: string | null,
 ): Promise<{ error?: string }> {
+  void subdomain
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated.' }
@@ -128,6 +125,6 @@ export async function answerQuestion(
   }).eq('id', questionId)
 
   if (error) return { error: error.message }
-  revalidateListing(listingId, subdomain)
+  revalidateListing(listingId)
   return {}
 }

@@ -18,6 +18,7 @@ interface SimilarListing {
   subdomain: string | null
   category: string
   image_url: string | null
+  image_thumb_url: string | null
   rating: number
 }
 
@@ -48,7 +49,6 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
   'use cache'
 
   cacheLife({ stale: 300, revalidate: 600, expire: 3600 })
-  cacheTag(CACHE_TAGS.listings)
 
   try {
     const supabase = createPublicClient()
@@ -102,7 +102,7 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
       listingCategory
         ? supabase
             .from('listings')
-            .select('id, name, subdomain, category, image_url, rating')
+            .select('id, name, subdomain, category, image_url, image_thumb_url, rating')
             .eq('category', listingCategory)
             .eq('approved', true)
             .neq('id', listingId)

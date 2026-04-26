@@ -205,7 +205,6 @@ export async function placeOrder(formData: FormData): Promise<{ error?: string; 
   }
 
   revalidatePublicListingDetail(listingId)
-  revalidatePath('/my-business/orders')
   return { orderId: newOrderId }
 }
 

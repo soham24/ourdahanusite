@@ -7,15 +7,13 @@ import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import ReviewForm from '../ReviewForm'
 import OwnerReplyForm from '@/components/OwnerReplyForm'
+import { useListingViewer } from '../ListingViewerContext'
 
 interface ListingReviewsSectionProps {
   reviews: any[]
   rating: number
-  isOwner: boolean
   listing: any
-  currentUser: any
   listingId: string
-  currentUserName: string | null
   platformLoginUrl: string
 }
 
@@ -40,13 +38,12 @@ function formatDate(dateStr: string) {
 export default function ListingReviewsSection({
   reviews,
   rating,
-  isOwner,
   listing,
-  currentUser,
   listingId,
-  currentUserName,
   platformLoginUrl,
 }: ListingReviewsSectionProps) {
+  const viewer = useListingViewer()
+
   return (
     <div className="space-y-5">
       {/* Reviews List */}
@@ -111,7 +108,7 @@ export default function ListingReviewsSection({
                     </div>
                   )}
 
-                  {!ownerReply && isOwner && (
+                  {!ownerReply && viewer.isOwner && (
                     <div className="ml-10">
                       <OwnerReplyForm reviewId={reviewId} compact />
                     </div>
@@ -129,8 +126,8 @@ export default function ListingReviewsSection({
         <p className="text-sm text-ink-2/50 mb-4">
           Reviews help locals decide which businesses to trust.
         </p>
-        {currentUser ? (
-          <ReviewForm listingId={listingId} userName={currentUserName} />
+        {viewer.isLoggedIn ? (
+          <ReviewForm listingId={listingId} userName={viewer.name} />
         ) : (
           <div className="rounded-2xl border border-border/60 bg-surface-soft/60 px-4 py-5 text-center text-ink-2/60">
             <p className="mb-3 text-sm">Sign in to leave a review and help other Dahanu locals.</p>

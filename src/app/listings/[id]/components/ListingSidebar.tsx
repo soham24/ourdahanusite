@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
+import { useListingViewer } from '../ListingViewerContext'
 
 interface ListingSidebarProps {
   phoneHref: string | null
@@ -20,7 +21,6 @@ interface ListingSidebarProps {
   paymentMethods: string[]
   deliveryInfo: { areas?: string; note?: string } | null
   favouriteCount: number
-  isOwner: boolean
   platformEditUrl: string
 }
 
@@ -34,9 +34,10 @@ export default function ListingSidebar({
   paymentMethods,
   deliveryInfo,
   favouriteCount,
-  isOwner,
   platformEditUrl,
 }: ListingSidebarProps) {
+  const viewer = useListingViewer()
+
   return (
     <div className="space-y-4">
       {/* Contact card */}
@@ -215,7 +216,7 @@ export default function ListingSidebar({
       )}
 
       {/* Owner edit shortcut */}
-      {isOwner && (
+      {viewer.isOwner && (
         <Link href={platformEditUrl}
           className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-border text-brand hover:bg-surface-soft font-semibold py-3 rounded-2xl transition-colors text-sm">
           <Edit2 size={14} /> Edit Your Profile

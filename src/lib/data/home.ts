@@ -16,6 +16,7 @@ export interface HomeListing {
   rating: number | null
   review_count: number | null
   image_url: string | null
+  image_thumb_url: string | null
   tagline: string | null
   subdomain: string | null
   verified: boolean | null
@@ -29,6 +30,7 @@ export interface FeaturedListing {
   rating: number | null
   review_count: number | null
   image_url: string | null
+  image_thumb_url: string | null
   tagline: string | null
   subdomain: string | null
   verified: boolean | null
@@ -82,7 +84,7 @@ export async function getHomePageData() {
     ] = await Promise.all([
       supabase
         .from('listings')
-        .select('id, name, category, address, rating, review_count, image_url, tagline, subdomain, verified')
+        .select('id, name, category, address, rating, review_count, image_url, image_thumb_url, tagline, subdomain, verified')
         .eq('approved', true)
         .order('verified', { ascending: false })
         .order('review_count', { ascending: false })
@@ -94,7 +96,7 @@ export async function getHomePageData() {
       // full row on screen.
       supabase
         .from('listings')
-        .select('id, name, category, address, rating, review_count, image_url, tagline, subdomain, verified')
+        .select('id, name, category, address, rating, review_count, image_url, image_thumb_url, tagline, subdomain, verified')
         .eq('approved', true)
         .order('created_at', { ascending: false })
         .limit(12),

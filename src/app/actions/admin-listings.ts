@@ -70,8 +70,6 @@ export async function adminCreateListing(
     if (error) return { error: error.message }
 
     revalidatePublicListingCollections()
-    revalidatePath('/admin/listings')
-    revalidatePath('/listings')
     return { id: data.id }
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : 'Failed to create listing.' }
@@ -130,8 +128,6 @@ export async function adminExtendListing(
     if (error) return { error: error.message }
 
     revalidatePublicListingCollections()
-    revalidatePath('/admin/listings')
-    revalidatePath('/listings')
     return {}
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : 'Failed to extend listing.' }

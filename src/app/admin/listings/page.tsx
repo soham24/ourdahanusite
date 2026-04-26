@@ -198,9 +198,9 @@ export default async function AdminListingsPage({
                   <div className="flex gap-4 flex-1 min-w-0">
                     {/* Thumbnail */}
                     <div className="relative w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                      {listing.image_url ? (
+                      {listing.image_thumb_url || listing.image_url ? (
                         <Image
-                          src={listing.image_url as string}
+                          src={(listing.image_thumb_url ?? listing.image_url) as string}
                           alt=""
                           fill
                           className="object-cover"

@@ -28,7 +28,6 @@ import {
   validateRazorpayOrder,
 } from '@/lib/payment-security'
 import { normalizeOptionalUrlOrNull } from '@/lib/url'
-import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 export async function submitPaidListing(formData: FormData): Promise<{ error?: string }> {
@@ -70,7 +69,8 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
   const whatsapp    = normalizePhoneOrNull(formData.get('whatsapp') as string)
   const address     = normalizeInlineText(formData.get('address') as string, 180)
   const website     = normalizeOptionalUrlOrNull(formData.get('website') as string)
-  const image_url   = normalizeOptionalUrlOrNull(formData.get('image_url') as string)
+  const image_url       = normalizeOptionalUrlOrNull(formData.get('image_url') as string)
+  const image_thumb_url = normalizeOptionalUrlOrNull(formData.get('image_thumb_url') as string)
   const coupon_used = (formData.get('coupon')      as string)?.trim() || null
   const map_url     = normalizeOptionalUrlOrNull(formData.get('map_url') as string)
   const upi_id      = normalizeInlineText(formData.get('upi_id') as string, 80)
@@ -146,6 +146,7 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
     website,
     plan:           'standard',
     image_url,
+    image_thumb_url: image_thumb_url || image_url,
     subdomain,
     approved:       false,
     verified:       false,
@@ -170,7 +171,6 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
   }).catch(err => console.error('[notify:new-listing-paid]', err))
 
   revalidatePublicListingCollections()
-  revalidatePath('/listings')
   return {}
 }
 
@@ -213,8 +213,10 @@ export async function updateListing(
   const facebook    = normalizeOptionalUrlOrNull(formData.get('facebook') as string)
   const upi_id      = normalizeInlineText(formData.get('upi_id') as string, 80)
   const hours       = normalizeMultilineText(formData.get('hours') as string, 240)
-  const image_url_new   = normalizeOptionalUrlOrNull(formData.get('image_url') as string)
-  const cover_image_new = normalizeOptionalUrlOrNull(formData.get('cover_image') as string)
+  const image_url_new        = normalizeOptionalUrlOrNull(formData.get('image_url') as string)
+  const image_thumb_url_new  = normalizeOptionalUrlOrNull(formData.get('image_thumb_url') as string)
+  const cover_image_new      = normalizeOptionalUrlOrNull(formData.get('cover_image') as string)
+  const cover_image_thumb_url_new = normalizeOptionalUrlOrNull(formData.get('cover_image_thumb_url') as string)
   const servicesRaw = (formData.get('services')      as string) || '[]'
   const tagsRaw     = (formData.get('tags')          as string) || '[]'
   const map_url     = normalizeOptionalUrlOrNull(formData.get('map_url') as string)
@@ -280,8 +282,14 @@ export async function updateListing(
   // Only overwrite images if a new file was actually uploaded
   // (empty string means no new upload - keep existing DB value)
   const imageFields: Record<string, string> = {}
-  if (image_url_new)   imageFields.image_url   = image_url_new
-  if (cover_image_new) imageFields.cover_image = cover_image_new
+  if (image_url_new) {
+    imageFields.image_url       = image_url_new
+    imageFields.image_thumb_url = image_thumb_url_new || image_url_new
+  }
+  if (cover_image_new) {
+    imageFields.cover_image            = cover_image_new
+    imageFields.cover_image_thumb_url  = cover_image_thumb_url_new || cover_image_new
+  }
 
   const appointmentFields =
     appointment_settingsRaw !== null
@@ -309,9 +317,6 @@ export async function updateListing(
   if (error) return { error: error.message }
 
   revalidatePublicListingContent(id)
-  revalidatePath(`/listings/${id}`)
-  revalidatePath('/my-business')
-  revalidatePath('/admin/listings')
   return {}
 }
 
@@ -327,7 +332,8 @@ export async function submitListing(formData: FormData) {
   const address = normalizeInlineText(formData.get('address') as string, 180)
   const website = normalizeOptionalUrlOrNull(formData.get('website') as string)
   const plan = normalizeInlineText(formData.get('plan') as string, 30) || 'basic'
-  const image_url = normalizeOptionalUrlOrNull(formData.get('image_url') as string)
+  const image_url       = normalizeOptionalUrlOrNull(formData.get('image_url') as string)
+  const image_thumb_url = normalizeOptionalUrlOrNull(formData.get('image_thumb_url') as string)
   const rawSubdomain = ((formData.get('subdomain') as string) || '').trim().toLowerCase()
 
   const RESERVED = new Set([
@@ -370,6 +376,7 @@ export async function submitListing(formData: FormData) {
     website,
     plan,
     image_url,
+    image_thumb_url: image_thumb_url || image_url,
     subdomain,
     approved: false,
     verified: false,
@@ -387,7 +394,6 @@ export async function submitListing(formData: FormData) {
   }).catch(err => console.error('[notify:new-listing-free]', err))
 
   revalidatePublicListingCollections()
-  revalidatePath('/listings')
   redirect('/listings?submitted=1')
 }
 
@@ -431,17 +437,11 @@ export async function submitReview(formData: FormData) {
   }
 
   revalidatePublicListingContent(listingId)
-  // Revalidate both UUID path and subdomain path
-  revalidatePath('/listings/' + listingId)
   const { data: listingMeta } = await dbClient
     .from('listings')
     .select('name, subdomain')
     .eq('id', listingId)
     .single()
-  if (listingMeta?.subdomain) {
-    revalidatePath('/listings/' + listingMeta.subdomain)
-  }
-
   const reviewer =
     (user.user_metadata?.full_name as string | undefined)?.trim() ||
     user.email ||
@@ -565,9 +565,6 @@ export async function replyToReview(
 
   // 3. Revalidate cached views.
   revalidatePublicListingContent(listing.id)
-  revalidatePath('/listings/' + listing.id)
-  if (listing.subdomain) revalidatePath('/listings/' + listing.subdomain)
-  revalidatePath('/my-business')
 
   // 4. Fire notifications (fire-and-forget; never break the UX).
   const ownerName =
@@ -716,26 +713,5 @@ export async function renewListing(
   if (error) return { error: error.message }
 
   revalidatePublicListingContent(listingId)
-  revalidatePath('/my-business')
-  revalidatePath(`/listings/${listingId}`)
-  revalidatePath('/listings')
   return {}
-}
-
-export async function incrementListingView(listingId: string) {
-  try {
-    const adminClient = createAdminClient()
-    if (!adminClient) return
-    // Fetch current views, increment by 1
-    const { data } = await adminClient
-      .from('listings')
-      .select('views')
-      .eq('id', listingId)
-      .single()
-    const currentViews = (data?.views as number) || 0
-    await adminClient
-      .from('listings')
-      .update({ views: currentViews + 1 })
-      .eq('id', listingId)
-  } catch { /* views column may not exist yet */ }
 }

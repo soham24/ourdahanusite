@@ -1,7 +1,5 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
-
 import { getUserRole, requireAdmin } from '@/app/actions/admin'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
 import { encryptSecret, keyIdLast4 } from '@/lib/crypto/secret'
@@ -30,9 +28,6 @@ export async function toggleListingPaymentsEnabled(
   if (error) return { error: error.message }
 
   revalidatePublicListingDetail(listingId)
-  revalidatePath('/admin/payments')
-  revalidatePath('/my-business/payments')
-  revalidatePath(`/listings/${listingId}`)
   return {}
 }
 
@@ -142,9 +137,6 @@ export async function saveRazorpayConfig(formData: FormData): Promise<{ error?: 
   if (error) return { error: error.message }
 
   revalidatePublicListingDetail(listingId)
-  revalidatePath('/my-business/payments')
-  revalidatePath('/admin/payments')
-  revalidatePath(`/listings/${listingId}`)
   return { ok: true }
 }
 
@@ -163,8 +155,6 @@ export async function deleteRazorpayConfig(listingId: string): Promise<{ error?:
   if (error) return { error: error.message }
 
   revalidatePublicListingDetail(listingId)
-  revalidatePath('/my-business/payments')
-  revalidatePath('/admin/payments')
   return { ok: true }
 }
 

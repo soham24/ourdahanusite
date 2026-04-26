@@ -85,7 +85,9 @@ export default function EditListingForm({ listing }: Props) {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
   const [newProfileUrl, setNewProfileUrl] = useState('')
+  const [newProfileThumbUrl, setNewProfileThumbUrl] = useState('')
   const [newCoverUrl, setNewCoverUrl] = useState('')
+  const [newCoverThumbUrl, setNewCoverThumbUrl] = useState('')
   const appointmentsEnabled = listing.appointments_enabled === true
 
   // Category state
@@ -287,7 +289,9 @@ export default function EditListingForm({ listing }: Props) {
     fd.set('services', JSON.stringify(services))
     fd.set('tags', JSON.stringify(tags))
     if (newProfileUrl) fd.set('image_url', newProfileUrl)
+    if (newProfileThumbUrl) fd.set('image_thumb_url', newProfileThumbUrl)
     if (newCoverUrl) fd.set('cover_image', newCoverUrl)
+    if (newCoverThumbUrl) fd.set('cover_image_thumb_url', newCoverThumbUrl)
     fd.set('photos', JSON.stringify(photos))
     fd.set('highlights', JSON.stringify(highlights))
     fd.set('certifications', JSON.stringify(certifications))
@@ -788,7 +792,10 @@ export default function EditListingForm({ listing }: Props) {
                     label="Profile Photo"
                     size={240}
                     aspect={1}
-                    onUpload={url => setNewProfileUrl(url)}
+                    onUpload={(url, thumbUrl) => {
+                      setNewProfileUrl(url)
+                      setNewProfileThumbUrl(thumbUrl ?? '')
+                    }}
                   />
                   {listing.image_url && !newProfileUrl && (
                     <p className="text-xs text-gray-400 mt-1">Upload to replace current photo · Cropped to 240×240px</p>
@@ -805,7 +812,10 @@ export default function EditListingForm({ listing }: Props) {
               <ImageUpload
                 bucket="uploads"
                 label="Upload banner (wide, 16:9)"
-                onUpload={url => setNewCoverUrl(url)}
+                onUpload={(url, thumbUrl) => {
+                  setNewCoverUrl(url)
+                  setNewCoverThumbUrl(thumbUrl ?? '')
+                }}
               />
               {!listing.cover_image && (
                 <p className="text-xs text-gray-400 mt-1">Wide banner shown at the top of your profile.</p>

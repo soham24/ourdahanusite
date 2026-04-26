@@ -255,10 +255,12 @@ export async function approveContent(formData: FormData) {
   if (table === 'jobs') {
     revalidatePublicJobs()
   }
-  const basePath = TABLE_PATH_MAP[table] || '/'
-  revalidatePath(basePath)
-  revalidatePath('/admin')
-  revalidatePath('/admin/news')
+  if (table !== 'listings' && table !== 'jobs') {
+    const basePath = TABLE_PATH_MAP[table] || '/'
+    revalidatePath(basePath)
+    revalidatePath('/admin')
+    revalidatePath('/admin/news')
+  }
 }
 
 export async function rejectContent(formData: FormData) {
@@ -317,9 +319,11 @@ export async function rejectContent(formData: FormData) {
   if (table === 'jobs') {
     revalidatePublicJobs()
   }
-  const basePath = TABLE_PATH_MAP[table] || '/'
-  revalidatePath(basePath)
-  revalidatePath('/admin')
+  if (table !== 'listings' && table !== 'jobs') {
+    const basePath = TABLE_PATH_MAP[table] || '/'
+    revalidatePath(basePath)
+    revalidatePath('/admin')
+  }
 }
 
 export async function createAlert(formData: FormData) {
@@ -343,8 +347,6 @@ export async function createAlert(formData: FormData) {
   if (error) throw new Error(error.message)
 
   revalidateEmergencyCache()
-  revalidatePath('/emergency')
-  revalidatePath('/admin/emergency')
 }
 
 export async function unpublishContent(formData: FormData) {
@@ -367,11 +369,12 @@ export async function unpublishContent(formData: FormData) {
   if (table === 'jobs') {
     revalidatePublicJobs()
   }
-  const basePath = TABLE_PATH_MAP[table] || '/'
-  revalidatePath(basePath)
-  revalidatePath('/admin')
-  revalidatePath('/admin/listings')
-  revalidatePath('/admin/events')
+  if (table !== 'listings' && table !== 'jobs') {
+    const basePath = TABLE_PATH_MAP[table] || '/'
+    revalidatePath(basePath)
+    revalidatePath('/admin')
+    revalidatePath('/admin/events')
+  }
 }
 
 export async function deleteListing(formData: FormData) {
@@ -388,8 +391,6 @@ export async function deleteListing(formData: FormData) {
   if (error) throw new Error(error.message)
 
   revalidatePublicListingCollections()
-  revalidatePath('/listings')
-  revalidatePath('/admin/listings')
 }
 
 export async function updateListing(formData: FormData) {
@@ -414,8 +415,6 @@ export async function updateListing(formData: FormData) {
 
   revalidatePublicListingCollections()
   revalidatePublicListingContent(id)
-  revalidatePath('/listings')
-  revalidatePath('/admin/listings')
   redirect('/admin/listings')
 }
 
@@ -443,6 +442,4 @@ export async function resolveAlert(id: string) {
   if (error) throw new Error(error.message)
 
   revalidateEmergencyCache()
-  revalidatePath('/emergency')
-  revalidatePath('/admin/emergency')
 }

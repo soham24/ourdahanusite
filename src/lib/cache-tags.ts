@@ -33,9 +33,6 @@ export function revalidatePublicListingCollections() {
 
 export function revalidatePublicListingDetail(listingId: string) {
   updateTag(CACHE_TAGS.listing(listingId))
-  // Also invalidate the collections tag so any cached list/search
-  // snippets that include this listing's summary refresh immediately.
-  updateTag(CACHE_TAGS.listings)
 }
 
 export function revalidatePublicListingContent(listingId: string) {

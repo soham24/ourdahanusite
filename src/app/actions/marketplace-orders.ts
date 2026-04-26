@@ -242,8 +242,6 @@ export async function placeMarketplaceOrder(
   })().catch((err) => console.error('[marketplace:order.placed notify]', err))
 
   revalidatePublicListingDetail(product.listing_id)
-  revalidatePath('/my-business/orders')
-  revalidatePath('/account/orders')
   return { orderId: newOrder.id }
 }
 

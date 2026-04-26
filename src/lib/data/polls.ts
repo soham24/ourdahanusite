@@ -75,7 +75,7 @@ function toPollWithResults(
  */
 export async function getActivePoll(): Promise<PollWithResults | null> {
   'use cache'
-  cacheLife({ stale: 60, revalidate: 120, expire: 600 })
+  cacheLife({ stale: 1800, revalidate: 3600, expire: 86400 })
   cacheTag(CACHE_TAGS.polls)
   cacheTag(CACHE_TAGS.home)
 
@@ -106,7 +106,7 @@ export async function getActivePoll(): Promise<PollWithResults | null> {
 
 export async function getPollById(id: string): Promise<PollWithResults | null> {
   'use cache'
-  cacheLife({ stale: 60, revalidate: 120, expire: 600 })
+  cacheLife({ stale: 1800, revalidate: 3600, expire: 86400 })
   cacheTag(CACHE_TAGS.polls)
 
   const supabase = createPublicClient()
@@ -137,7 +137,7 @@ export async function getPollById(id: string): Promise<PollWithResults | null> {
  */
 export async function getAllPolls(): Promise<PollWithResults[]> {
   'use cache'
-  cacheLife({ stale: 60, revalidate: 120, expire: 600 })
+  cacheLife({ stale: 1800, revalidate: 3600, expire: 86400 })
   cacheTag(CACHE_TAGS.polls)
 
   const supabase = createPublicClient()

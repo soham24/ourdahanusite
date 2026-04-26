@@ -9,6 +9,7 @@ import ServicesSection from '../ServicesSection'
 import ProductCard from '@/components/ProductCard'
 import BuyButton from '@/components/BuyButton'
 import AppointmentBooking from '../AppointmentBooking'
+import { useListingViewer } from '../ListingViewerContext'
 
 interface ListingContentProps {
   listing: any
@@ -20,13 +21,9 @@ interface ListingContentProps {
   listingId: string
   whatsappNum: string | null
   businessUrl: string
-  currentUserName: string
-  currentUserEmail: string
   marketplaceReady: boolean
   marketplaceProducts: any[]
-  currentUser: any
   platformLoginUrl: string
-  currentUserPhone: string
   appointmentsEnabled: boolean
   appointmentSettings: any
   appointmentBookingFee: number
@@ -42,17 +39,15 @@ export default function ListingContent({
   listingId,
   whatsappNum,
   businessUrl,
-  currentUserName,
-  currentUserEmail,
   marketplaceReady,
   marketplaceProducts,
-  currentUser,
   platformLoginUrl,
-  currentUserPhone,
   appointmentsEnabled,
   appointmentSettings,
   appointmentBookingFee,
 }: ListingContentProps) {
+  const viewer = useListingViewer()
+
   return (
     <div className="lg:col-span-2 space-y-5">
       {/* About */}
@@ -146,8 +141,8 @@ export default function ListingContent({
             }}
             whatsappNum={whatsappNum}
             businessUrl={businessUrl}
-            userName={currentUserName}
-            userEmail={currentUserEmail}
+            userName={viewer.name}
+            userEmail={viewer.email}
           />
         </Card>
       )}
@@ -180,11 +175,11 @@ export default function ListingContent({
                       listingName: String(listing.name),
                       type: product.type,
                     }}
-                    isSignedIn={!!currentUser}
+                    isSignedIn={viewer.isLoggedIn}
                     loginHref={platformLoginUrl}
-                    userName={currentUserName}
-                    userPhone={currentUserPhone}
-                    userEmail={currentUserEmail}
+                    userName={viewer.name}
+                    userPhone={viewer.phone}
+                    userEmail={viewer.email}
                   />
                 }
               />
@@ -199,10 +194,10 @@ export default function ListingContent({
           listingName={String(listing.name)}
           bookingFee={appointmentBookingFee}
           appointmentSettings={appointmentSettings}
-          isLoggedIn={!!currentUser}
-          userName={currentUserName}
-          userPhone={currentUserPhone}
-          userEmail={currentUserEmail}
+          isLoggedIn={viewer.isLoggedIn}
+          userName={viewer.name}
+          userPhone={viewer.phone}
+          userEmail={viewer.email}
         />
       )}
     </div>

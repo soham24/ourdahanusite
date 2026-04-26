@@ -56,6 +56,7 @@ AS $$
         'rating', l.rating,
         'review_count', l.review_count,
         'image_url', l.image_url,
+        'image_thumb_url', l.image_thumb_url,
         'tagline', l.tagline,
         'subdomain', l.subdomain,
         'verified', l.verified,
