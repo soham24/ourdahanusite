@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /**
- * Backfill image_thumb_url and cover_image_thumb_url for existing listings.
+ * Backfill image_thumb_url and cover_image_thumb_url for existing listings,
+ * and image_thumb_url for existing listing products.
  *
- * For every listing where the thumb column is null but the source URL
+ * For every listing/product where the thumb column is null but the source URL
  * exists, this script:
  *   1. Downloads the source from Supabase storage.
  *   2. Generates a JPEG thumb (240px max edge for logos, 640w for covers).
  *   3. Uploads the thumb to the same bucket with a `-thumb-<n>` suffix.
- *   4. Updates the listing row with the new public URL.
+ *   4. Updates the row with the new public URL.
  *
  * Usage:
  *   node scripts/backfill-listing-thumbs.mjs [--dry-run] [--id <listingId>]
@@ -55,9 +56,9 @@ const idArgIndex = args.indexOf('--id')
 const ONLY_ID = idArgIndex >= 0 ? args[idArgIndex + 1] : null
 
 const LOGO_MAX_EDGE = 240
+const PRODUCT_MAX_EDGE = 400
 const COVER_MAX_WIDTH = 640
 const JPEG_QUALITY = 78
-const BUCKET = 'uploads'
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
@@ -100,7 +101,7 @@ function buildThumbPath(originalPath, suffix) {
   return `${base}-${suffix}.jpg`
 }
 
-async function generateThumb(sourceUrl, kind /* 'logo' | 'cover' */) {
+async function generateThumb(sourceUrl, kind /* 'logo' | 'cover' | 'product' */) {
   const parsed = parseStorageUrl(sourceUrl)
   if (!parsed) {
     return { skipped: true, reason: 'not a Supabase public storage URL' }
@@ -118,6 +119,9 @@ async function generateThumb(sourceUrl, kind /* 'logo' | 'cover' */) {
   if (kind === 'logo') {
     resizeOpts = { width: LOGO_MAX_EDGE, height: LOGO_MAX_EDGE, fit: 'inside' }
     suffix = `thumb-${LOGO_MAX_EDGE}`
+  } else if (kind === 'product') {
+    resizeOpts = { width: PRODUCT_MAX_EDGE, height: PRODUCT_MAX_EDGE, fit: 'inside' }
+    suffix = `thumb-${PRODUCT_MAX_EDGE}`
   } else {
     resizeOpts = { width: COVER_MAX_WIDTH, fit: 'inside' }
     suffix = `thumb-${COVER_MAX_WIDTH}`
@@ -195,8 +199,43 @@ async function processListing(listing) {
   return { changed: Object.keys(updates).length > 0, logs }
 }
 
+async function processProduct(product) {
+  const logs = []
+
+  if (!product.image_url || product.image_thumb_url) {
+    return { changed: false, logs: ['  â€¢ nothing to do'] }
+  }
+
+  try {
+    const r = await generateThumb(product.image_url, 'product')
+    if (r.skipped) {
+      logs.push(`  â€¢ product image: skipped (${r.reason})`)
+      return { changed: false, logs }
+    }
+    if (r.dryRun) {
+      logs.push(`  â€¢ product image: DRY â†’ ${r.thumbBucket}/${r.thumbPath} (${r.thumbBytes} bytes)`)
+      return { changed: false, logs }
+    }
+
+    const { error } = await supabase
+      .from('listing_products')
+      .update({ image_thumb_url: r.thumbUrl })
+      .eq('id', product.id)
+    if (error) {
+      logs.push(`  â€¢ DB update ERROR ${error.message}`)
+      return { changed: false, logs }
+    }
+
+    logs.push(`  â€¢ image_thumb_url â† ${r.thumbUrl} (${r.thumbBytes} bytes)`)
+    return { changed: true, logs }
+  } catch (err) {
+    logs.push(`  â€¢ product image: ERROR ${err.message}`)
+    return { changed: false, logs }
+  }
+}
+
 async function main() {
-  console.log(`Backfill listing thumbs ${DRY_RUN ? '(DRY RUN)' : ''}${ONLY_ID ? ` [id=${ONLY_ID}]` : ''}`)
+  console.log(`Backfill listing/product thumbs ${DRY_RUN ? '(DRY RUN)' : ''}${ONLY_ID ? ` [id=${ONLY_ID}]` : ''}`)
 
   let query = supabase
     .from('listings')
@@ -227,7 +266,28 @@ async function main() {
     if (didChange) changed += 1
   }
 
-  console.log(`\nDone. ${changed} listing(s) updated.`)
+  const { data: products, error: productError } = await supabase
+    .from('listing_products')
+    .select('id, name, image_url, image_thumb_url')
+    .not('image_url', 'is', null)
+    .is('image_thumb_url', null)
+    .order('created_at', { ascending: true })
+
+  if (productError) {
+    console.error('Failed to fetch products:', productError.message)
+    process.exit(1)
+  }
+
+  let productsChanged = 0
+  console.log(`\nFound ${products.length} product(s) needing thumbs.`)
+  for (const product of products) {
+    console.log(`\n[product:${product.id}] ${product.name}`)
+    const { changed: didChange, logs } = await processProduct(product)
+    for (const line of logs) console.log(line)
+    if (didChange) productsChanged += 1
+  }
+
+  console.log(`\nDone. ${changed} listing(s), ${productsChanged} product(s) updated.`)
 }
 
 main().catch((err) => {

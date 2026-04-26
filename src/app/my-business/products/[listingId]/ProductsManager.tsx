@@ -220,10 +220,10 @@ export function ProductsManager({
                   <GripVertical size={16} />
                 </button>
 
-                {product.image_url ? (
+                {product.image_thumb_url || product.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={product.image_url}
+                    src={(product.image_thumb_url || product.image_url) as string}
                     alt={product.name}
                     className="h-20 w-20 flex-shrink-0 rounded-2xl border border-[#f1e3d5] object-cover"
                   />
@@ -320,6 +320,7 @@ function ProductForm({
 }) {
   const [type, setType] = useState<ProductType>(existing?.type ?? 'product')
   const [imageUrl, setImageUrl] = useState<string>(existing?.image_url ?? '')
+  const [imageThumbUrl, setImageThumbUrl] = useState<string>(existing?.image_thumb_url ?? '')
   const defaultPriceRupees = existing ? String(existing.price_paise / 100) : ''
   const defaultStock =
     existing && existing.quantity_in_stock !== null ? String(existing.quantity_in_stock) : ''
@@ -329,6 +330,7 @@ function ProductForm({
     const formData = new FormData(event.currentTarget)
     formData.set('type', type)
     formData.set('image_url', imageUrl)
+    formData.set('image_thumb_url', imageThumbUrl)
     onSubmit(formData)
   }
 
@@ -466,12 +468,18 @@ function ProductForm({
                 label={imageUrl ? 'Replace image' : 'Upload image'}
                 size={400}
                 aspect={1}
-                onUpload={(url) => setImageUrl(url)}
+                onUpload={(url, thumbUrl) => {
+                  setImageUrl(url)
+                  setImageThumbUrl(thumbUrl ?? url)
+                }}
               />
               {imageUrl && (
                 <button
                   type="button"
-                  onClick={() => setImageUrl('')}
+                  onClick={() => {
+                    setImageUrl('')
+                    setImageThumbUrl('')
+                  }}
                   className="mt-1 text-xs text-gray-400 hover:text-red-600"
                 >
                   Remove image

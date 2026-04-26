@@ -39,9 +39,9 @@ export default function FeaturedSpotlight({ listing }: { listing: FeaturedListin
             className="relative aspect-[16/10] md:aspect-auto md:h-full overflow-hidden"
             style={{ background: 'linear-gradient(135deg, var(--color-sand), var(--color-terra))' }}
           >
-            {listing.image_url ? (
+            {listing.image_thumb_url || listing.image_url ? (
               <Image
-                src={listing.image_url}
+                src={(listing.image_thumb_url || listing.image_url) as string}
                 alt={listing.name}
                 fill
                 sizes="(min-width: 768px) 400px, 100vw"

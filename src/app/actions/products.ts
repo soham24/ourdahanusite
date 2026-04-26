@@ -18,6 +18,7 @@ export interface ListingProduct {
   price_paise: number
   quantity_in_stock: number | null
   image_url: string | null
+  image_thumb_url: string | null
   is_active: boolean
   sort_order: number
   created_at: string
@@ -152,6 +153,7 @@ export async function createProduct(
   }
 
   const imageUrl = normalizeOptionalUrlOrNull(formData.get('image_url') as string)
+  const imageThumbUrl = normalizeOptionalUrlOrNull(formData.get('image_thumb_url') as string)
   const isActive = formData.get('is_active') !== 'off'
 
   const adminClient = createAdminClient()
@@ -177,6 +179,7 @@ export async function createProduct(
       price_paise: pricePaise,
       quantity_in_stock: quantity,
       image_url: imageUrl,
+      image_thumb_url: imageThumbUrl || imageUrl,
       is_active: isActive,
       sort_order: nextSortOrder,
     })
@@ -231,6 +234,7 @@ export async function updateProduct(
   }
 
   const imageUrl = normalizeOptionalUrlOrNull(formData.get('image_url') as string)
+  const imageThumbUrl = normalizeOptionalUrlOrNull(formData.get('image_thumb_url') as string)
   const isActive = formData.get('is_active') !== 'off'
 
   const { error } = await adminClient
@@ -242,6 +246,7 @@ export async function updateProduct(
       price_paise: pricePaise,
       quantity_in_stock: quantity,
       image_url: imageUrl,
+      image_thumb_url: imageThumbUrl || imageUrl,
       is_active: isActive,
     })
     .eq('id', productId)

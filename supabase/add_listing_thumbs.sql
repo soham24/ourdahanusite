@@ -11,3 +11,6 @@ ALTER TABLE listings
 
 ALTER TABLE listings
   ADD COLUMN IF NOT EXISTS cover_image_thumb_url text;
+
+ALTER TABLE listing_products
+  ADD COLUMN IF NOT EXISTS image_thumb_url text;

@@ -30,6 +30,7 @@ export interface ListingProductPublic {
   price_paise: number
   quantity_in_stock: number | null
   image_url: string | null
+  image_thumb_url: string | null
   sort_order: number
 }
 
@@ -111,7 +112,7 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
       paymentsEnabled
         ? supabase
             .from('listing_products')
-            .select('id, type, name, description, price_paise, quantity_in_stock, image_url, sort_order')
+            .select('id, type, name, description, price_paise, quantity_in_stock, image_url, image_thumb_url, sort_order')
             .eq('listing_id', listingId)
             .eq('is_active', true)
             .order('sort_order', { ascending: true })

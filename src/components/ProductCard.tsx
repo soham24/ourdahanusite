@@ -8,6 +8,7 @@ export type PublicProduct = {
   price_paise: number
   quantity_in_stock: number | null
   image_url: string | null
+  image_thumb_url?: string | null
 }
 
 function formatPrice(paise: number): string {
@@ -28,10 +29,10 @@ export default function ProductCard({
   return (
     <article className="od-card od-card-hover flex flex-col overflow-hidden">
       <div className="relative aspect-square w-full overflow-hidden bg-[#fdf7f0]">
-        {product.image_url ? (
+        {product.image_thumb_url || product.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={product.image_url}
+            src={(product.image_thumb_url || product.image_url) as string}
             alt={product.name}
             className="h-full w-full object-cover"
           />

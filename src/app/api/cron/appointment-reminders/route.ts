@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { connection, NextResponse } from 'next/server'
 
 import { sendNotification } from '@/lib/notifications'
 import { createAdminClient } from '@/lib/supabase/admin-client'
@@ -53,12 +53,16 @@ type AppointmentReminderRow = {
 }
 
 export async function GET(request: Request) {
+  await connection()
+
   const cronSecret = process.env.CRON_SECRET?.trim()
-  if (cronSecret) {
-    const authHeader = request.headers.get('authorization')
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'CRON_SECRET is not configured' }, { status: 500 })
+  }
+
+  const authHeader = request.headers.get('authorization')
+  if (authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const adminClient = createAdminClient()

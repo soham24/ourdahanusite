@@ -13,18 +13,22 @@
  * whatsapp) based on the owner's `notification_preferences`.
  */
 
-import { NextResponse } from 'next/server'
+import { connection, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { sendNotification } from '@/lib/notifications'
 
 export async function GET(request: Request) {
+  await connection()
+
   // ── Auth: verify CRON_SECRET if configured ──────────────────────────────────
   const cronSecret = process.env.CRON_SECRET?.trim()
-  if (cronSecret) {
-    const authHeader = request.headers.get('authorization')
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'CRON_SECRET is not configured' }, { status: 500 })
+  }
+
+  const authHeader = request.headers.get('authorization')
+  if (authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const adminClient = createAdminClient()
