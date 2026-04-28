@@ -31,7 +31,7 @@ import {
   normalizeServiceImageAspect,
   type ServiceImageAspect,
 } from '@/lib/service-image'
-import { LISTING_CATEGORIES } from '@/lib/listing-category'
+import { LISTING_CATEGORY_GROUPS, LISTING_CATEGORY_EMOJIS } from '@/lib/listing-category'
 
 const SUGGESTED_TAGS: Record<string, string[]> = {
   'Restaurants': ['delivery', 'dine-in', 'veg', 'non-veg', 'seafood', 'open-sunday', 'AC', 'outdoor'],
@@ -404,7 +404,15 @@ export default function EditListingForm({ listing }: Props) {
               <select name="category" required defaultValue={String(listing.category || '')}
                 onChange={e => setCategory(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white">
-                {LISTING_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {LISTING_CATEGORY_GROUPS.map((group) => (
+                  <optgroup key={group.label} label={`${group.icon}  ${group.label}`}>
+                    {group.categories.map((c) => (
+                      <option key={c} value={c}>
+                        {(LISTING_CATEGORY_EMOJIS[c] ?? '🏪') + '  ' + c}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
 

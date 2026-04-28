@@ -13,7 +13,7 @@ import SubdomainInput from '@/components/SubdomainInput'
 import PhoneInput from '@/components/PhoneInput'
 import LocationPicker from '@/components/LocationPicker'
 import { normalizeOptionalUrl } from '@/lib/url'
-import { LISTING_CATEGORIES } from '@/lib/listing-category'
+import { LISTING_CATEGORY_GROUPS, LISTING_CATEGORY_EMOJIS } from '@/lib/listing-category'
 
 const PLAN_FEATURES = [
   'Your own profile page on OurDahanu',
@@ -317,7 +317,15 @@ export default function ListingSubmitForm({
             <select id="category" name="category" required defaultValue=""
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white">
               <option value="" disabled>Select a category</option>
-              {LISTING_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {LISTING_CATEGORY_GROUPS.map((group) => (
+                <optgroup key={group.label} label={`${group.icon}  ${group.label}`}>
+                  {group.categories.map((c) => (
+                    <option key={c} value={c}>
+                      {(LISTING_CATEGORY_EMOJIS[c] ?? '🏪') + '  ' + c}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
             </select>
           </div>
 

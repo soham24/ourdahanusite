@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { adminCreateListing, adminSearchUsers } from '@/app/actions/admin-listings'
 import { Search, Loader2, CheckCircle, UserCheck, X } from 'lucide-react'
 import { normalizeOptionalUrl } from '@/lib/url'
-import { LISTING_CATEGORIES } from '@/lib/listing-category'
+import { LISTING_CATEGORY_GROUPS, LISTING_CATEGORY_EMOJIS } from '@/lib/listing-category'
 
 interface User { id: string; email: string; name: string }
 
@@ -74,7 +74,15 @@ export default function AdminNewListingForm() {
             <select name="category" required defaultValue=""
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-400 text-sm bg-white">
               <option value="" disabled>Select category…</option>
-              {LISTING_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {LISTING_CATEGORY_GROUPS.map((group) => (
+                <optgroup key={group.label} label={`${group.icon}  ${group.label}`}>
+                  {group.categories.map((c) => (
+                    <option key={c} value={c}>
+                      {(LISTING_CATEGORY_EMOJIS[c] ?? '🏪') + '  ' + c}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
             </select>
           </div>
 

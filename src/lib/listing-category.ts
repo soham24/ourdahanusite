@@ -1,60 +1,186 @@
 import { buildAbsoluteUrl } from '@/lib/site'
 
-export const LISTING_CATEGORIES = [
-  'Restaurants', 'Homemade Food', 'Hotels & Stay', 'Grocery & Shops',
-  'Healthcare & Clinics', 'Medical Store', 'Hardware', 'Education & Coaching',
-  'Transport & Taxi', 'Salons & Beauty', 'Massage & Wellness', 'Warli Art', 'Warli Arts & Crafts', 'Arts & Crafts',
-  'Photography', 'Event Services', 'Repair Services', 'Electricians & Plumbing',
-  'Contractors & Construction', 'Cleaning Services', 'Tailoring', 'Farms & Organic',
-  'Dairy & Milk', 'Bakers & Sweets', 'Home-based Sellers', 'Financial Services',
-  'Content Creators', 'Video Editors', 'Graphic Designers', 'Social Media & Marketing',
-  'Freelancers & Digital',
-  'Fashion & Clothing', 'Skincare & Cosmetics', 'Interior Design',
-  'Internet & Telecom', 'NGOs & Social Causes',
-  'Other',
+/**
+ * Categories grouped into discoverable clusters. Each form's <select>
+ * renders these as <optgroup>s so the (now ~45-item) list is easier to
+ * scan than a single flat dropdown. Order within a group is hand-tuned —
+ * the most common choices appear first.
+ *
+ * To add a category: drop it into the right group's `categories` array
+ * and add an emoji to LISTING_CATEGORY_EMOJIS below.
+ */
+export const LISTING_CATEGORY_GROUPS = [
+  {
+    label: 'Food & Dining',
+    icon: '🍽️',
+    categories: ['Restaurants', 'Homemade Food', 'Bakers & Sweets', 'Dairy & Milk', 'Farms & Organic'],
+  },
+  {
+    label: 'Hospitality & Stay',
+    icon: '🏨',
+    categories: ['Hotels & Stay'],
+  },
+  {
+    label: 'Health & Wellness',
+    icon: '🏥',
+    categories: [
+      'Healthcare & Clinics',
+      'Medical Store',
+      'Salons & Beauty',
+      'Massage & Wellness',
+      'Fitness & Wellness',
+      'Skincare & Cosmetics',
+    ],
+  },
+  {
+    label: 'Shopping & Retail',
+    icon: '🛒',
+    categories: ['Grocery & Shops', 'Hardware', 'Fashion & Clothing', 'Home-based Sellers'],
+  },
+  {
+    label: 'Education & Sports',
+    icon: '📚',
+    categories: ['Education & Coaching', 'Sports Academy'],
+  },
+  {
+    label: 'Events & Entertainment',
+    icon: '🎉',
+    categories: [
+      'Event Services',
+      'Spiritual & Cultural Events',
+      'Photography',
+      'Singers',
+      'Musicians',
+      'DJ',
+      'Banjo Group',
+      'Mehendi Artist',
+      'Makeup Artist',
+    ],
+  },
+  {
+    label: 'Arts & Crafts',
+    icon: '🎨',
+    categories: ['Warli Art', 'Warli Arts & Crafts', 'Arts & Crafts'],
+  },
+  {
+    label: 'Home Services',
+    icon: '🛠️',
+    categories: [
+      'Repair Services',
+      'Electricians & Plumbing',
+      'Contractors & Construction',
+      'Cleaning Services',
+      'Tailoring',
+      'Interior Design',
+    ],
+  },
+  {
+    label: 'Digital & Creative',
+    icon: '💻',
+    categories: [
+      'Content Creators',
+      'Video Editors',
+      'Graphic Designers',
+      'Social Media & Marketing',
+      'Freelancers & Digital',
+    ],
+  },
+  {
+    label: 'Transport & Connectivity',
+    icon: '🚕',
+    categories: ['Transport & Taxi', 'Internet & Telecom'],
+  },
+  {
+    label: 'Money & Community',
+    icon: '💰',
+    categories: ['Financial Services', 'NGOs & Social Causes'],
+  },
+  {
+    label: 'Other',
+    icon: '🏪',
+    categories: ['Other'],
+  },
 ] as const
 
+// Flat list derived from the groups — keep this for backward-compat with
+// callers that just need the full list (slug routing, RPC inputs, etc.).
+export const LISTING_CATEGORIES = LISTING_CATEGORY_GROUPS.flatMap(
+  (group) => group.categories,
+) as readonly string[]
+
 export const LISTING_CATEGORY_EMOJIS: Record<string, string> = {
+  // Food & Dining
   Restaurants: '🍽️',
   'Homemade Food': '🍱',
+  'Bakers & Sweets': '🍰',
+  'Dairy & Milk': '🥛',
+  'Farms & Organic': '🌱',
+
+  // Hospitality
   'Hotels & Stay': '🏨',
   'Hotels & Stays': '🏨',
-  'Grocery & Shops': '🛒',
-  Grocery: '🛒',
+
+  // Health & Wellness
   'Healthcare & Clinics': '🏥',
   'Medical Store': '💊',
-  Hardware: '🔩',
-  'Education & Coaching': '📚',
-  Tutors: '📚',
-  'Transport & Taxi': '🚕',
-  Transport: '🚕',
   'Salons & Beauty': '💇',
   'Massage & Wellness': '💆',
+  'Fitness & Wellness': '🏋️',
+  'Skincare & Cosmetics': '🧴',
+
+  // Shopping
+  'Grocery & Shops': '🛒',
+  Grocery: '🛒',
+  Hardware: '🔩',
+  'Fashion & Clothing': '👗',
+  'Home-based Sellers': '🏡',
+
+  // Education & Sports
+  'Education & Coaching': '📚',
+  Tutors: '📚',
+  'Sports Academy': '🏆',
+
+  // Events & Entertainment
+  'Event Services': '🎉',
+  'Spiritual & Cultural Events': '🪔',
+  Photography: '📸',
+  Singers: '🎤',
+  Musicians: '🎼',
+  DJ: '🎧',
+  'Banjo Group': '🎺',
+  'Mehendi Artist': '🪷',
+  'Makeup Artist': '💄',
+
+  // Arts & Crafts
   'Warli Art': '🎨',
   'Warli Arts & Crafts': '🎨',
   'Arts & Crafts': '🖼️',
-  Photography: '📸',
-  'Event Services': '🎉',
+
+  // Home Services
   'Repair Services': '🔧',
   'Electricians & Plumbing': '⚡',
   'Contractors & Construction': '🏗️',
   'Cleaning Services': '🧹',
   Tailoring: '🧵',
-  'Farms & Organic': '🌱',
-  'Dairy & Milk': '🥛',
-  'Bakers & Sweets': '🍰',
-  'Home-based Sellers': '🏡',
-  'Financial Services': '💰',
+  'Interior Design': '🛋️',
+
+  // Digital & Creative
   'Content Creators': '📱',
   'Video Editors': '🎬',
   'Graphic Designers': '🖌️',
   'Social Media & Marketing': '📣',
   'Freelancers & Digital': '💻',
-  'Fashion & Clothing': '👗',
-  'Skincare & Cosmetics': '🧴',
-  'Interior Design': '🛋️',
+
+  // Transport & Connectivity
+  'Transport & Taxi': '🚕',
+  Transport: '🚕',
   'Internet & Telecom': '📡',
+
+  // Money & Community
+  'Financial Services': '💰',
   'NGOs & Social Causes': '🌍',
+
+  // Other
   Other: '🏪',
 }
 
