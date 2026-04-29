@@ -21,12 +21,12 @@ export default function CategoryGrid({ topCategoryLabels, categoryCounts }: Cate
     >
       <div className="relative max-w-[1160px] mx-auto px-6">
         <SectionHeader
-          label="Browse"
-          title="Popular Categories"
-          sub="The most searched services in Dahanu"
+          label="Browse by need"
+          title="Explore Categories"
+          sub="One clear place to jump into food, shops, services, health, jobs and more"
           viewAllHref="/listings"
         />
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+        <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-5">
           {topCategoryLabels.map((label) => {
             const count = categoryCounts[label] || 0
             const emoji = LISTING_CATEGORY_EMOJIS[label] || '🏪'

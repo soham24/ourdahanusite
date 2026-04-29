@@ -11,7 +11,6 @@ import { getCachedPricingConfig } from '@/lib/data/pricing'
 import { getActivePoll } from '@/lib/data/polls'
 
 import HeroSection from './page-components/HeroSection'
-import QuickCategories from './page-components/QuickCategories'
 import StatsBar from './page-components/StatsBar'
 import FeaturedSpotlight from './page-components/FeaturedSpotlight'
 import CategoryGrid from './page-components/CategoryGrid'
@@ -59,8 +58,8 @@ export const unstable_instant = {
   unstable_disableValidation: true,
 }
 
-// Hero + QuickCategories render synchronously so the search bar appears
-// instantly. Each below-fold section has its own Suspense boundary fed by
+// Hero renders synchronously so the search bar appears instantly.
+// Each below-fold section has its own Suspense boundary fed by
 // a focused cached fetcher in lib/data/home.ts, so the page streams in
 // section-by-section as data lands instead of blocking the whole tree
 // behind one big fetch.
@@ -68,7 +67,6 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
-      <QuickCategories />
 
       <Suspense fallback={<HomeSectionSkeleton variant="bar" />}>
         <StatsAndCategoriesAsync />

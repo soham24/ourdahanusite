@@ -1,6 +1,4 @@
 import { Search, MapPin, Store, Plus } from 'lucide-react'
-import SafeAppLink from '@/components/SafeAppLink'
-import { getCategoryPath } from '@/lib/listing-category'
 import Button from '@/components/ui/Button'
 
 export default function HeroSection() {
@@ -169,27 +167,6 @@ export default function HeroSection() {
               </button>
             </div>
           </form>
-
-          {/* Hero quick tags */}
-          <div className="flex flex-wrap gap-2 mb-7">
-            {[
-              { label: 'Homemade Food', href: getCategoryPath('Homemade Food') },
-              { label: 'Repair Services', href: getCategoryPath('Repair Services') },
-              { label: 'Healthcare', href: getCategoryPath('Healthcare & Clinics') },
-              { label: 'Photography', href: getCategoryPath('Photography') },
-              { label: 'Salons & Beauty', href: getCategoryPath('Salons & Beauty') },
-            ].map(({ label, href }) => (
-              <SafeAppLink
-                key={label}
-                href={href}
-                prefetch={false}
-                className="text-xs font-medium border border-white/15 bg-white/[0.10] rounded-full px-3 py-[5px] transition-all hover:bg-white/[0.18] hover:border-white/25"
-                style={{ color: 'rgba(251,240,220,0.75)' }}
-              >
-                {label}
-              </SafeAppLink>
-            ))}
-          </div>
 
           {/* CTA buttons */}
           <div className="flex flex-wrap gap-3">

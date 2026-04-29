@@ -1,11 +1,11 @@
 import Image from 'next/image'
-import { Star, MapPin, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, CheckCircle2, MapPin, Sparkles, Star } from 'lucide-react'
+
 import SafeAppLink from '@/components/SafeAppLink'
-import { getListingHref } from '@/lib/listing-url'
-import { summarizeAddress } from '@/lib/listing-content'
 import SectionHeader from '@/components/ui/SectionHeader'
-import Card from '@/components/ui/Card'
+import { summarizeAddress } from '@/lib/listing-content'
 import type { HomeListing } from '@/lib/data/home'
+import { getListingHref } from '@/lib/listing-url'
 
 interface NewListingsSectionProps {
   newListings: HomeListing[]
@@ -15,92 +15,90 @@ export default function NewListingsSection({ newListings }: NewListingsSectionPr
   if (newListings.length === 0) return null
 
   return (
-    <section className="py-12 md:py-16">
-      <div className="max-w-[1160px] mx-auto px-5 md:px-6 mb-6">
+    <section className="bg-[#fffdf9] py-12 md:py-16">
+      <div className="mx-auto max-w-[1160px] px-5 md:px-6">
         <SectionHeader
-          label="Just added"
-          title="What's New"
-          sub="Fresh additions — be the first to check them out"
+          label="New arrivals"
+          title="Recently Listed"
+          sub="Fresh businesses and services added to the directory"
           viewAllHref="/listings"
         />
-      </div>
-      <div className="max-w-[1160px] mx-auto">
-        <div className="flex overflow-x-auto scrollbar-hide gap-4 px-5 md:px-6 pb-4 snap-x">
-          {newListings.map((listing) => {
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {newListings.slice(0, 6).map((listing, index) => {
             const href = getListingHref(listing.id, listing.subdomain)
             const address = summarizeAddress(listing.address, 2)
+            const imageUrl = listing.image_thumb_url || listing.image_url
+
             return (
-              <Card
+              <SafeAppLink
                 key={listing.id}
-                padding="none"
-                hover
-                className="min-w-[280px] sm:min-w-[300px] snap-start flex-shrink-0 border-[var(--color-border)]"
+                href={href}
+                className="group overflow-hidden rounded-xl border border-[var(--od-border)] bg-white shadow-[0_10px_30px_rgba(46,18,5,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(192,88,46,0.35)] hover:shadow-[0_18px_44px_rgba(46,18,5,0.10)]"
               >
-                <SafeAppLink href={href} className="group block">
-                  <div
-                    className="relative h-[170px] overflow-hidden"
-                    style={{ background: 'linear-gradient(135deg, var(--color-muted), #E8C49A)' }}
-                  >
-                    {listing.image_thumb_url || listing.image_url ? (
-                      <Image
-                        src={(listing.image_thumb_url || listing.image_url) as string}
-                        alt={listing.name}
-                        fill
-                        sizes="300px"
-                        className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
-                      />
+                <div className="relative aspect-[4/3] overflow-hidden bg-[var(--od-surface-soft)]">
+                  {imageUrl ? (
+                    <Image
+                      src={imageUrl}
+                      alt={listing.name}
+                      fill
+                      sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center font-display text-4xl text-[var(--od-brand)]/25">
+                      OD
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+                  <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/92 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--od-ink)]">
+                    <Sparkles size={11} className="text-[#C8881E]" />
+                    New {index + 1}
+                  </div>
+                  {listing.verified && (
+                    <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-blue-700 px-2.5 py-1 text-[10px] font-bold text-white">
+                      <CheckCircle2 size={10} />
+                      Verified
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4">
+                  <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--od-brand)]">
+                    {listing.category}
+                  </div>
+                  <h3 className="line-clamp-2 min-h-[44px] font-display text-[20px] leading-[1.1] text-[var(--od-ink)] transition-colors group-hover:text-[var(--od-brand-strong)]">
+                    {listing.name}
+                  </h3>
+                  {listing.tagline ? (
+                    <p className="mt-2 line-clamp-2 min-h-[40px] text-sm leading-5 text-[var(--od-muted)]">
+                      {listing.tagline}
+                    </p>
+                  ) : (
+                    <p className="mt-2 min-h-[40px] text-sm leading-5 text-[var(--od-muted)]">
+                      Newly added to OurDahanu.
+                    </p>
+                  )}
+
+                  <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--od-border)] pt-3 text-xs text-[var(--od-muted)]">
+                    {listing.rating && listing.rating > 0 ? (
+                      <span className="inline-flex items-center gap-1 font-semibold text-[var(--od-ink)]">
+                        <Star size={12} className="fill-amber-400 text-amber-400" />
+                        {listing.rating.toFixed(1)}
+                      </span>
                     ) : (
-                      <div className="flex h-full items-center justify-center text-[52px] text-[var(--color-brand)]/20">
-                        🏪
-                      </div>
+                      <span className="font-semibold text-[var(--od-brand)]">New</span>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
-                    <span className="absolute top-3 left-3 bg-[#C8881E] text-[var(--color-bark)] text-[10px] font-bold px-2.5 py-[3px] rounded-full uppercase tracking-wide">
-                      New
-                    </span>
-                    {listing.verified && (
-                      <span className="absolute top-3 right-3 bg-blue-700 text-white text-[10px] font-bold px-2.5 py-[3px] rounded-full flex items-center gap-1">
-                        <CheckCircle2 size={9} />
-                        Verified
+                    {address && (
+                      <span className="inline-flex min-w-0 items-center gap-1">
+                        <MapPin size={11} />
+                        <span className="truncate">{address}</span>
                       </span>
                     )}
+                    <ArrowRight size={13} className="flex-shrink-0 text-[var(--od-brand)]" />
                   </div>
-                  <div className="p-4">
-                    <span className="font-label-sm text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-brand)]">
-                      {listing.category}
-                    </span>
-                    <h4 className="font-display text-[18px] text-[var(--color-bark)] leading-[1.25] mt-1 group-hover:text-[var(--color-brand)] transition-colors line-clamp-2">
-                      {listing.name}
-                    </h4>
-                    {listing.tagline && (
-                      <p className="text-xs text-[var(--color-text-muted)] mt-1.5 line-clamp-1">
-                        {listing.tagline}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between text-xs mt-3">
-                      {listing.rating && listing.rating > 0 ? (
-                        <div className="flex items-center gap-1">
-                          <Star size={11} className="fill-amber-400 text-amber-400" />
-                          <span className="font-bold text-[12px] text-[var(--color-bark)]">
-                            {listing.rating.toFixed(1)}
-                          </span>
-                          <span className="text-[var(--color-text-muted)]">({listing.review_count ?? 0})</span>
-                        </div>
-                      ) : (
-                        <span className="text-[11px] text-[var(--color-text-muted)] bg-[var(--color-muted)] px-2 py-0.5 rounded-full">
-                          Be the first
-                        </span>
-                      )}
-                      {address && (
-                        <span className="flex items-center gap-1 text-[var(--color-text-muted)]">
-                          <MapPin size={10} />
-                          <span className="truncate max-w-[100px]">{address}</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </SafeAppLink>
-              </Card>
+                </div>
+              </SafeAppLink>
             )
           })}
         </div>

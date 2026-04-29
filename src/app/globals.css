@@ -186,6 +186,11 @@ body {
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
 }
 
 /* ─── Warli geometric pattern (on-dark) — used for hero + CTA section overlays ─── */
