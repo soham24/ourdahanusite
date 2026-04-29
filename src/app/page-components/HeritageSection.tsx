@@ -1,5 +1,15 @@
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, MessageCircle, UsersRound } from 'lucide-react'
+
 import SafeAppLink from '@/components/SafeAppLink'
+
+const people = [
+  ['SR', 180, 150],
+  ['AT', 390, 78],
+  ['KK', 610, 142],
+  ['AB', 820, 208],
+  ['NM', 1030, 118],
+  ['KB', 1210, 72],
+] as const
 
 export default function HeritageSection() {
   return (
@@ -7,80 +17,112 @@ export default function HeritageSection() {
       <div className="max-w-[1160px] mx-auto px-5 md:px-6">
         <SafeAppLink
           href="/about"
-          className="group relative block rounded-3xl overflow-hidden aspect-[4/5] sm:aspect-[16/9] md:aspect-[21/9]"
+          className="group relative block overflow-hidden rounded-3xl aspect-[4/5] sm:aspect-[16/9] md:aspect-[21/9]"
         >
-          {/* Layered backdrop — sunset-over-sea + warli + silhouette */}
           <div className="absolute inset-0">
-            {/* Warm sunset gradient base */}
             <div
               className="absolute inset-0"
               style={{
                 background:
-                  'linear-gradient(135deg, #1A0A03 0%, #3D1808 30%, var(--color-brand-strong) 55%, var(--color-brand) 75%, #E8A855 95%)',
+                  'linear-gradient(135deg, #1A0A03 0%, #2E1205 34%, #6F2D14 68%, #C0582E 100%)',
               }}
             />
-            {/* Sun/moon glow */}
             <div
-              className="absolute w-[400px] h-[400px] rounded-full pointer-events-none"
+              className="absolute h-[420px] w-[420px] rounded-full pointer-events-none"
               style={{
-                top: '-15%',
-                right: '-8%',
+                top: '-18%',
+                right: '-6%',
                 background:
                   'radial-gradient(circle, rgba(240,200,122,0.5) 0%, rgba(232,168,85,0.2) 40%, transparent 75%)',
               }}
             />
-            {/* Warli pattern overlay */}
             <div className="absolute inset-0 warli-pattern opacity-[0.10] pointer-events-none" />
 
-            {/* Boat + waves silhouette */}
             <svg
-              className="absolute bottom-0 left-0 w-full pointer-events-none"
+              className="absolute inset-y-0 right-0 hidden h-full w-[55%] pointer-events-none opacity-80 md:block"
               viewBox="0 0 1440 280"
               preserveAspectRatio="none"
               aria-hidden
-              style={{ height: '50%' }}
             >
               <path
-                d="M0,160 Q360,135 720,158 T1440,160 L1440,280 L0,280 Z"
-                fill="rgba(20, 8, 0, 0.40)"
+                d="M160,140 C300,40 470,38 620,132 C760,220 940,214 1100,90"
+                fill="none"
+                stroke="rgba(240,200,122,0.26)"
+                strokeWidth="3"
+                strokeDasharray="10 14"
               />
               <path
-                d="M0,200 Q300,175 600,198 T1200,205 T1440,200 L1440,280 L0,280 Z"
-                fill="rgba(15, 4, 0, 0.65)"
+                d="M260,210 C430,120 560,112 720,190 C870,264 1020,212 1180,130"
+                fill="none"
+                stroke="rgba(255,255,255,0.16)"
+                strokeWidth="2"
+                strokeDasharray="8 14"
               />
-              {/* Lone fishing boat silhouette */}
-              <g transform="translate(960, 165)">
-                <path
-                  d="M-40,12 Q-32,22 0,22 Q32,22 40,12 L30,0 L-30,0 Z"
-                  fill="rgba(15, 4, 0, 0.95)"
-                />
-                <line x1="0" y1="0" x2="0" y2="-32" stroke="rgba(15, 4, 0, 0.95)" strokeWidth="1.5" />
-                <path d="M0,-30 L18,-8 L0,-8 Z" fill="rgba(20, 8, 0, 0.85)" />
+              {people.map(([label, cx, cy]) => (
+                <g key={label}>
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r="46"
+                    fill="rgba(15,4,0,0.68)"
+                    stroke="rgba(240,200,122,0.35)"
+                    strokeWidth="2"
+                  />
+                  <text
+                    x={cx}
+                    y={cy + 8}
+                    textAnchor="middle"
+                    fill="#F0C87A"
+                    fontSize="24"
+                    fontWeight="700"
+                  >
+                    {label}
+                  </text>
+                </g>
+              ))}
+              <g transform="translate(1015 186)">
+                <rect x="0" y="0" width="190" height="54" rx="18" fill="rgba(255,255,255,0.12)" />
+                <text x="24" y="34" fill="#F8E9D5" fontSize="18" fontWeight="700">
+                  WhatsApp groups
+                </text>
               </g>
             </svg>
 
-            {/* Bottom dark gradient for text legibility */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#1A0A03] via-[var(--color-bark)]/60 to-transparent" />
           </div>
 
-          {/* Content */}
           <div className="relative z-10 flex h-full flex-col justify-end p-5 md:p-10 lg:p-12">
-            <div className="max-w-[560px]">
+            <div className="max-w-[600px]">
               <span className="inline-block font-label-sm text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F0C87A] mb-3">
-                Heritage
+                Who runs OurDahanu
               </span>
               <h2
-                className="font-display text-white leading-[1.05] tracking-[-0.01em] mb-4"
+                className="font-display text-white leading-[1.05] tracking-normal mb-4"
                 style={{ fontSize: 'clamp(28px, 4.2vw, 44px)' }}
               >
-                The last traditional <em className="italic text-[#F0C87A]">fishermen.</em>
+                A local core team carrying the <em className="italic text-[#F0C87A]">community forward.</em>
               </h2>
-              <p className="text-[var(--color-cream)]/85 text-sm md:text-[15px] leading-[1.65] mb-6 max-w-[460px]">
-                Preserving a thousand-year-old connection to the Arabian Sea through art, ritual,
-                and community memory. Discover the people who keep Dahanu's coastal soul alive.
+              <p className="text-[var(--color-cream)]/85 text-sm md:text-[15px] leading-[1.65] mb-5 max-w-[500px]">
+                Founded by Soham Railkar and managed with Ankit, Khushbu, Ajay, Nupur and
+                Khushbu Bari, OurDahanu connects social pages, WhatsApp groups and the
+                marketplace into one trusted local network.
               </p>
+              <div className="mb-6 flex flex-wrap gap-2">
+                {[
+                  { icon: UsersRound, label: 'Core group' },
+                  { icon: MessageCircle, label: 'WhatsApp communities' },
+                ].map(({ icon: Icon, label }) => (
+                  <span
+                    key={label}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-[#F8E9D5]"
+                  >
+                    <Icon size={13} />
+                    {label}
+                  </span>
+                ))}
+              </div>
               <span className="inline-flex items-center gap-2 bg-white text-[var(--color-bark)] font-semibold text-sm px-5 py-2.5 rounded-full transition-all group-hover:gap-3 group-hover:bg-[#F0C87A] shadow-lg">
-                Read the Story
+                Meet the team
                 <ArrowRight size={14} />
               </span>
             </div>

@@ -965,6 +965,49 @@ html.loader-fonts-ready .our-dahanu-loader__logo-arc-bottom text {
   animation: warli-fade-in 0.5s ease-out both;
 }
 
+@keyframes about-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes about-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes about-line {
+  from {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  to {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+}
+
+.about-reveal {
+  animation: about-reveal 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.about-float {
+  animation: about-reveal 720ms cubic-bezier(0.16, 1, 0.3, 1) both, about-float 6s ease-in-out 900ms infinite;
+}
+
+.about-line {
+  animation: about-line 1100ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* Skeleton shimmer for content placeholders */
 @keyframes skeleton-shimmer {
   0% { background-position: -468px 0; }

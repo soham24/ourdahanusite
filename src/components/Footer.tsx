@@ -11,7 +11,7 @@ const EXPLORE_LINKS = [
   { href: '/jobs', label: 'Jobs in Dahanu' },
   { href: '/emergency', label: 'Emergency & Safety' },
   { href: '/search', label: 'Search' },
-  { href: '/about', label: 'About Dahanu' },
+  { href: '/about', label: 'About OurDahanu' },
 ]
 
 export default function Footer() {
