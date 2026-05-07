@@ -6,6 +6,14 @@ import Link from 'next/link'
 import { Loader2, CreditCard, ShieldCheck, Tag, CheckCircle, X, BadgePercent, Phone, MessageCircle } from 'lucide-react'
 import { submitPaidJob, submitFreeJob } from '@/app/actions/jobs'
 import PhoneInput from '@/components/PhoneInput'
+import {
+  attemptWithRetry,
+  clearRecoveryDraft,
+  persistRecoveryDraft,
+  recoveryUrlFor,
+  snapshotFormData,
+  updateRecoveryDraft,
+} from '@/lib/payment-retry'
 
 const CATEGORIES = [
   'Agriculture', 'Healthcare', 'Education', 'Hospitality', 'Construction',
@@ -120,6 +128,14 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
       setStatus('paying')
       formSnapshot.set('amount_paid', String(finalPrice))
 
+      persistRecoveryDraft({
+        orderId: orderData.orderId,
+        flow: 'job',
+        amountPaise: orderData.amount,
+        fields: snapshotFormData(formSnapshot),
+        returnTo: typeof window !== 'undefined' ? window.location.pathname : undefined,
+      })
+
       const rzp = new window.Razorpay({
         key: orderData.keyId,
         amount: orderData.amount,
@@ -133,13 +149,23 @@ export default function JobSubmitForm({ userEmail, userName, basePrice, currentP
           formSnapshot.set('razorpay_order_id',   response.razorpay_order_id)
           formSnapshot.set('razorpay_signature',  response.razorpay_signature)
 
-          const result = await submitPaidJob(formSnapshot)
+          updateRecoveryDraft(orderData.orderId, {
+            fields: snapshotFormData(formSnapshot),
+            paymentId: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+          })
+
+          const result = await attemptWithRetry(() => submitPaidJob(formSnapshot))
           if (result?.error) {
-            setErrorMsg(result.error + (response.razorpay_payment_id
-              ? ` (Payment ID: ${response.razorpay_payment_id} — contact us if charged)`
-              : ''))
+            updateRecoveryDraft(orderData.orderId, { lastError: result.error })
+            setErrorMsg(
+              result.error +
+              ` (Payment ID: ${response.razorpay_payment_id}). ` +
+              `If the amount was debited, click here to recover: ${recoveryUrlFor(orderData.orderId)}`,
+            )
             setStatus('error')
           } else {
+            clearRecoveryDraft(orderData.orderId)
             router.push('/jobs?submitted=1')
           }
         },

@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Calendar, MapPin, Newspaper, MessageCircle, Package, Megaphone, Shield, Mail, Briefcase, Users, BadgePercent, ShoppingBag, Sparkles, BarChart3, CreditCard } from 'lucide-react'
+import { LayoutDashboard, Calendar, MapPin, Newspaper, MessageCircle, Package, Megaphone, Shield, Mail, Briefcase, Users, BadgePercent, ShoppingBag, Sparkles, BarChart3, CreditCard, ShieldAlert } from 'lucide-react'
 import { getUserRole } from '@/app/actions/admin'
 
 export const unstable_instant = false
@@ -23,6 +23,7 @@ const ADMIN_ONLY_LINKS = [
   { href: '/admin/polls', label: 'Polls', icon: <BarChart3 size={16} /> },
   { href: '/admin/appointments', label: 'Appointments', icon: <Calendar size={16} /> },
   { href: '/admin/payments', label: 'Payments', icon: <CreditCard size={16} /> },
+  { href: '/admin/payment-intents', label: 'Payment Intents', icon: <ShieldAlert size={16} /> },
   { href: '/admin/products', label: 'Products', icon: <Package size={16} /> },
   { href: '/admin/orders', label: 'Orders', icon: <ShoppingBag size={16} /> },
   { href: '/admin/emergency', label: 'Emergency', icon: <Megaphone size={16} /> },

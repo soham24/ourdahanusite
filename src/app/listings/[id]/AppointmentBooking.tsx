@@ -21,6 +21,14 @@ import {
 } from '@/app/actions/appointments'
 import type { AppointmentSlot } from '@/lib/appointment-slots'
 import type { AppointmentSettings } from '@/lib/listing-content'
+import {
+  attemptWithRetry,
+  clearRecoveryDraft,
+  persistRecoveryDraft,
+  recoveryUrlFor,
+  snapshotFormData,
+  updateRecoveryDraft,
+} from '@/lib/payment-retry'
 
 type Props = {
   listingId: string
@@ -258,11 +266,31 @@ export default function AppointmentBooking({
       formData.set('razorpay_signature', payment.razorpay_signature)
     }
 
-    const result = await bookAppointment(formData)
+    if (payment?.razorpay_order_id && payment?.razorpay_payment_id) {
+      updateRecoveryDraft(payment.razorpay_order_id, {
+        fields: snapshotFormData(formData),
+        paymentId: payment.razorpay_payment_id,
+        signature: payment.razorpay_signature,
+      })
+    }
+
+    const result = await attemptWithRetry(() => bookAppointment(formData))
     if (result.error) {
+      if (payment?.razorpay_order_id) {
+        updateRecoveryDraft(payment.razorpay_order_id, { lastError: result.error })
+      }
       setStatus('error')
-      setError(result.error)
+      setError(
+        payment?.razorpay_payment_id
+          ? `${result.error} (Payment ID: ${payment.razorpay_payment_id}). ` +
+            `If the amount was debited, click here to recover: ${recoveryUrlFor(payment.razorpay_order_id ?? '')}`
+          : result.error,
+      )
       return
+    }
+
+    if (payment?.razorpay_order_id) {
+      clearRecoveryDraft(payment.razorpay_order_id)
     }
 
     setConfirmation({ date: selectedDate, slot: selectedSlot })
@@ -339,6 +367,22 @@ export default function AppointmentBooking({
       await submitBooking()
       return
     }
+
+    persistRecoveryDraft({
+      orderId: orderData.orderId,
+      flow: 'appointment',
+      amountPaise: orderData.amount,
+      fields: {
+        listing_id: listingId,
+        booking_date: selectedDate,
+        slot_start: selectedSlot.start,
+        user_name: name.trim(),
+        user_phone: phone.trim(),
+        user_email: userEmail,
+        notes: notes.trim(),
+      },
+      returnTo: typeof window !== 'undefined' ? window.location.pathname : undefined,
+    })
 
     const RazorpayClass = window.Razorpay as unknown as new (options: RazorpayOptions) => { open: () => void }
     const razorpay = new RazorpayClass({

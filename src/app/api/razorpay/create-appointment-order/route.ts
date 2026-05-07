@@ -5,6 +5,7 @@ import {
   getAppointmentCountsForDate,
   getLiveAppointmentBookingConfig,
 } from '@/lib/data/appointments'
+import { recordPaymentIntent } from '@/lib/payment-intents'
 import { createClient } from '@/lib/supabase/server'
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
@@ -131,6 +132,22 @@ export async function POST(request: Request) {
       error: order.error?.description || `Razorpay error ${response.status}`,
     }, { status: 500 })
   }
+
+  await recordPaymentIntent({
+    userId: user.id,
+    flow: 'appointment',
+    razorpayOrderId: order.id as string,
+    amountPaise,
+    currency: 'INR',
+    payload: {
+      listing_id: listingId,
+      booking_date: bookingDate,
+      slot_start: slotStart,
+      slot_end: selectedSlot.end,
+      booking_fee: amountRupees,
+    },
+    listingId,
+  })
 
   return NextResponse.json({
     isFree: false,

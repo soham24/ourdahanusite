@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { recordPaymentIntent } from '@/lib/payment-intents'
 import { resolveListingService } from '@/lib/payment-security'
 import { createClient } from '@/lib/supabase/server'
 
@@ -99,6 +100,22 @@ export async function POST(request: Request) {
       error: order.error?.description || `Razorpay error ${response.status}`,
     }, { status: 500 })
   }
+
+  await recordPaymentIntent({
+    userId: user.id,
+    flow: 'order',
+    razorpayOrderId: order.id as string,
+    amountPaise,
+    currency: 'INR',
+    payload: {
+      listing_id: listingId,
+      service_index: service.index,
+      service_name: service.name,
+      service_price: service.price,
+      quantity,
+    },
+    listingId,
+  })
 
   return NextResponse.json({
     orderId: order.id,

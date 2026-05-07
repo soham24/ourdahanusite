@@ -3,6 +3,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, ShoppingCart, Loader2, CheckCircle, Minus, Plus, ShieldCheck } from 'lucide-react'
 import { placeOrder } from '@/app/actions/orders'
+import {
+  attemptWithRetry,
+  clearRecoveryDraft,
+  persistRecoveryDraft,
+  recoveryUrlFor,
+  snapshotFormData,
+  updateRecoveryDraft,
+} from '@/lib/payment-retry'
 
 interface RazorpayOptions {
   key: string; amount: number; currency: string; name: string
@@ -98,6 +106,25 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
 
       setStatus('paying')
 
+      const baseFields: Record<string, string> = {
+        listing_id: listing.id,
+        service_name: orderData.serviceName || service.name,
+        service_index: String(orderData.serviceIndex ?? serviceIndex),
+        quantity: String(quantity),
+        buyer_name: buyerName.trim(),
+        buyer_phone: buyerPhone.trim(),
+        delivery_address: deliveryAddress.trim(),
+        notes: notes.trim(),
+      }
+
+      persistRecoveryDraft({
+        orderId: orderData.orderId,
+        flow: 'order',
+        amountPaise: orderData.amount,
+        fields: baseFields,
+        returnTo: typeof window !== 'undefined' ? window.location.pathname : undefined,
+      })
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const RazorpayClass = (window as any).Razorpay as new (o: RazorpayOptions) => { open(): void }
       const rzp = new RazorpayClass({
@@ -110,25 +137,28 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
         handler: async (response) => {
           setStatus('submitting')
           const fd = new FormData()
-          fd.set('listing_id',           listing.id)
-          fd.set('service_name',         orderData.serviceName || service.name)
-          fd.set('service_index',        String(orderData.serviceIndex ?? serviceIndex))
-          fd.set('quantity',             String(quantity))
-          fd.set('buyer_name',           buyerName.trim())
-          fd.set('buyer_phone',          buyerPhone.trim())
-          fd.set('delivery_address',     deliveryAddress.trim())
-          fd.set('notes',                notes.trim())
+          for (const [key, value] of Object.entries(baseFields)) fd.set(key, value)
           fd.set('razorpay_payment_id',  response.razorpay_payment_id)
           fd.set('razorpay_order_id',    response.razorpay_order_id)
           fd.set('razorpay_signature',   response.razorpay_signature)
 
-          const result = await placeOrder(fd)
+          updateRecoveryDraft(orderData.orderId, {
+            fields: snapshotFormData(fd),
+            paymentId: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+          })
+
+          const result = await attemptWithRetry(() => placeOrder(fd))
           if (result.error) {
-            setErrorMsg(result.error + (response.razorpay_payment_id
-              ? ` (Payment ID: ${response.razorpay_payment_id} — contact us if amount was debited)`
-              : ''))
+            updateRecoveryDraft(orderData.orderId, { lastError: result.error })
+            setErrorMsg(
+              result.error +
+              ` (Payment ID: ${response.razorpay_payment_id}). ` +
+              `If the amount was debited, click here to recover: ${recoveryUrlFor(orderData.orderId)}`,
+            )
             setStatus('error')
           } else {
+            clearRecoveryDraft(orderData.orderId)
             setStatus('done')
           }
         },

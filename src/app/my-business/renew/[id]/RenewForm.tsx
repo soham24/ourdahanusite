@@ -8,6 +8,14 @@ import {
   Calendar, Store, ArrowLeft, ShieldCheck,
 } from 'lucide-react'
 import { renewListing } from '@/app/actions/listings'
+import {
+  attemptWithRetry,
+  clearRecoveryDraft,
+  persistRecoveryDraft,
+  recoveryUrlFor,
+  snapshotFormData,
+  updateRecoveryDraft,
+} from '@/lib/payment-retry'
 
 interface RazorpayOptions {
   key: string; amount: number; currency: string; name: string
@@ -142,6 +150,14 @@ export default function RenewForm({
 
       setStatus('paying')
 
+      persistRecoveryDraft({
+        orderId: orderData.orderId,
+        flow: 'renew',
+        amountPaise: orderData.amount,
+        fields: { ...snapshotFormData(fd), listing_id: listingId },
+        returnTo: typeof window !== 'undefined' ? window.location.pathname : undefined,
+      })
+
       const rzp = new window.Razorpay({
         key:         orderData.keyId,
         amount:      orderData.amount,
@@ -155,16 +171,23 @@ export default function RenewForm({
           fd.set('razorpay_order_id',   response.razorpay_order_id)
           fd.set('razorpay_signature',  response.razorpay_signature)
 
-          const result = await renewListing(listingId, fd)
+          updateRecoveryDraft(orderData.orderId, {
+            fields: { ...snapshotFormData(fd), listing_id: listingId },
+            paymentId: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+          })
+
+          const result = await attemptWithRetry(() => renewListing(listingId, fd))
           if (result?.error) {
+            updateRecoveryDraft(orderData.orderId, { lastError: result.error })
             setErrorMsg(
               result.error +
-              (response.razorpay_payment_id
-                ? ` (Payment ID: ${response.razorpay_payment_id} — contact us if amount was debited)`
-                : '')
+              ` (Payment ID: ${response.razorpay_payment_id}). ` +
+              `If the amount was debited, click here to recover: ${recoveryUrlFor(orderData.orderId)}`,
             )
             setStatus('error')
           } else {
+            clearRecoveryDraft(orderData.orderId)
             router.push('/my-business?renewed=1')
           }
         },

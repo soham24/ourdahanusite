@@ -8,6 +8,12 @@ import {
   sendNotification,
   sendNotificationToAdmins,
 } from '@/lib/notifications'
+import {
+  findFinalizedIntentByPaymentId,
+  markIntentCaptured,
+  markIntentFinalized,
+  recordIntentError,
+} from '@/lib/payment-intents'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
 
@@ -54,6 +60,13 @@ export async function placeMarketplaceOrder(
 
   if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
     return { error: 'Payment details are missing. Please try again.' }
+  }
+
+  // Idempotency: same payment id retried should return the existing
+  // order rather than re-decrementing stock and re-charging metadata.
+  const finalized = await findFinalizedIntentByPaymentId(razorpayPaymentId)
+  if (finalized && finalized.user_id === user.id && finalized.entity_table === 'orders') {
+    return { orderId: finalized.entity_id ?? undefined }
   }
 
   const productId = sanitizeString(formData.get('product_id'), 80)
@@ -110,6 +123,12 @@ export async function placeMarketplaceOrder(
   if (expectedSignature !== razorpaySignature) {
     return { error: 'Payment verification failed. Please contact support with your payment ID.' }
   }
+
+  await markIntentCaptured({
+    razorpayOrderId,
+    razorpayPaymentId,
+    razorpaySignature,
+  })
 
   // 3. Re-fetch Razorpay order to confirm amount + notes (defense in depth)
   const expectedAmountPaise = product.price_paise * quantity
@@ -204,12 +223,22 @@ export async function placeMarketplaceOrder(
 
   if (insertError || !newOrder) {
     console.error('[marketplace] insert order failed:', insertError)
+    await recordIntentError({
+      razorpayOrderId,
+      message: insertError?.message || 'marketplace order insert failed',
+    })
     return {
       error:
         'Order recorded at Razorpay but failed to save locally. Contact support with payment ID ' +
         razorpayPaymentId,
     }
   }
+
+  await markIntentFinalized({
+    razorpayOrderId,
+    entityId: newOrder.id as string,
+    entityTable: 'orders',
+  })
 
   // Fan out notifications to buyer + owner + admins (fire-and-forget)
   void (async () => {

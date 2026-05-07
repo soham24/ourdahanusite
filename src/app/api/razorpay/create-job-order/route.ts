@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { recordPaymentIntent } from '@/lib/payment-intents'
 import { getJobSubmissionCharge } from '@/lib/payment-security'
 
 export async function POST(req: NextRequest) {
@@ -15,7 +16,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Payment gateway not configured.' }, { status: 500 })
   }
 
-  const body = await req.json().catch(() => ({}))
+  const body = (await req.json().catch(() => ({}))) as {
+    coupon?: string
+    payload?: Record<string, unknown>
+  }
   const charge = await getJobSubmissionCharge((body.coupon as string | undefined) ?? null)
   const finalPrice = charge.finalPrice
 
@@ -47,6 +51,18 @@ export async function POST(req: NextRequest) {
       error: order.error?.description || `Razorpay HTTP ${response.status}`,
     }, { status: 500 })
   }
+
+  await recordPaymentIntent({
+    userId: user.id,
+    flow: 'job',
+    razorpayOrderId: order.id as string,
+    amountPaise: finalPrice * 100,
+    currency: 'INR',
+    payload: {
+      coupon: charge.couponCode ?? '',
+      ...(body.payload ?? {}),
+    },
+  })
 
   return NextResponse.json({ orderId: order.id, amount: order.amount, currency: order.currency, keyId })
 }

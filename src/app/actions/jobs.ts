@@ -5,6 +5,12 @@ import { createAdminClient } from '@/lib/supabase/admin-client'
 import { revalidatePublicJobs } from '@/lib/cache-tags'
 import { sendNotificationToAdmins } from '@/lib/notifications'
 import {
+  findFinalizedIntentByPaymentId,
+  markIntentCaptured,
+  markIntentFinalized,
+  recordIntentError,
+} from '@/lib/payment-intents'
+import {
   fetchRazorpayOrder,
   getJobSubmissionCharge,
   validateRazorpayOrder,
@@ -94,6 +100,14 @@ export async function submitPaidJob(
     return { error: 'Payment details are missing. Please try again.' }
   }
 
+  // Idempotent path: if this Razorpay payment already finalized a job
+  // for this user, just return success silently. Prevents duplicate
+  // jobs when the client retries after a transient failure.
+  const finalized = await findFinalizedIntentByPaymentId(paymentId)
+  if (finalized && finalized.user_id === user.id && finalized.entity_table === 'jobs') {
+    return {}
+  }
+
   const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim()
   if (!keySecret) return { error: 'Payment gateway not configured.' }
 
@@ -122,6 +136,7 @@ export async function submitPaidJob(
     expectedNotes: { flow: 'job', buyer_id: user.id },
   })
   if (paymentOrderError) {
+    await recordIntentError({ razorpayOrderId: orderId, message: paymentOrderError })
     return { error: paymentOrderError }
   }
 
@@ -129,6 +144,14 @@ export async function submitPaidJob(
   if (!fields.title || !fields.company || !fields.category || !fields.description) {
     return { error: 'Title, company, category and description are required.' }
   }
+
+  // Mark captured as soon as the signature/order checks pass — even if
+  // the row insert fails below, recovery can still find this intent.
+  await markIntentCaptured({
+    razorpayOrderId: orderId,
+    razorpayPaymentId: paymentId,
+    razorpaySignature: signature,
+  })
 
   const { data: inserted, error } = await supabase.from('jobs').insert({
     ...fields,
@@ -141,7 +164,16 @@ export async function submitPaidJob(
     status: 'open',
   }).select('id').single()
 
-  if (error) return { error: error.message }
+  if (error) {
+    await recordIntentError({ razorpayOrderId: orderId, message: error.message })
+    return { error: error.message }
+  }
+
+  await markIntentFinalized({
+    razorpayOrderId: orderId,
+    entityId: inserted!.id as string,
+    entityTable: 'jobs',
+  })
 
   if (charge.couponValid && charge.couponCode) {
     const { incrementCouponUsage } = await import('./pricing')

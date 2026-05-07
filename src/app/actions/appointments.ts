@@ -13,6 +13,12 @@ import {
   sendNotificationToAdmins,
 } from '@/lib/notifications'
 import {
+  findFinalizedIntentByPaymentId,
+  markIntentCaptured,
+  markIntentFinalized,
+  recordIntentError,
+} from '@/lib/payment-intents'
+import {
   fetchRazorpayOrder,
   validateRazorpayOrder,
 } from '@/lib/payment-security'
@@ -233,6 +239,15 @@ export async function bookAppointment(
       return { error: 'Payment details are missing. Please try again.' }
     }
 
+    const finalized = await findFinalizedIntentByPaymentId(paymentId)
+    if (
+      finalized &&
+      finalized.user_id === user.id &&
+      finalized.entity_table === 'appointments'
+    ) {
+      return { appointmentId: finalized.entity_id ?? undefined }
+    }
+
     const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim()
     if (!keySecret) return { error: 'Payment gateway not configured.' }
 
@@ -261,8 +276,15 @@ export async function bookAppointment(
     })
 
     if (paymentOrderError) {
+      await recordIntentError({ razorpayOrderId: orderId, message: paymentOrderError })
       return { error: paymentOrderError }
     }
+
+    await markIntentCaptured({
+      razorpayOrderId: orderId,
+      razorpayPaymentId: paymentId,
+      razorpaySignature: signature,
+    })
   } else {
     paymentStatus = 'free'
   }
@@ -288,6 +310,13 @@ export async function bookAppointment(
   })
 
   if (error || !data) {
+    if (orderId) {
+      await recordIntentError({
+        razorpayOrderId: orderId,
+        message: error?.message || 'appointment booking failed',
+      })
+    }
+
     const isSlotConflict =
       error?.message?.toLowerCase().includes('full') ||
       error?.message?.toLowerCase().includes('duplicate')
@@ -302,6 +331,14 @@ export async function bookAppointment(
     }
 
     return { error: error?.message || 'Unable to confirm this booking right now.' }
+  }
+
+  if (orderId) {
+    await markIntentFinalized({
+      razorpayOrderId: orderId,
+      entityId: String(data),
+      entityTable: 'appointments',
+    })
   }
 
   revalidateAppointmentsCache(listingId)

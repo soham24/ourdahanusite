@@ -23,6 +23,12 @@ import {
   normalizeUrlArray,
 } from '@/lib/listing-content'
 import {
+  findFinalizedIntentByPaymentId,
+  markIntentCaptured,
+  markIntentFinalized,
+  recordIntentError,
+} from '@/lib/payment-intents'
+import {
   fetchRazorpayOrder,
   getListingSubmissionCharge,
   validateRazorpayOrder,
@@ -46,6 +52,13 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
   if (!isFree) {
     if (!paymentId || !orderId || !signature) {
       return { error: 'Payment details are missing. Please try again.' }
+    }
+
+    // Idempotency: a successful retry must not create a duplicate
+    // listing for the same Razorpay payment.
+    const finalized = await findFinalizedIntentByPaymentId(paymentId)
+    if (finalized && finalized.user_id === user.id && finalized.entity_table === 'listings') {
+      return {}
     }
 
     const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim()
@@ -101,8 +114,15 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
       expectedNotes: { flow: 'listing', buyer_id: user.id },
     })
     if (paymentOrderError) {
+      await recordIntentError({ razorpayOrderId: orderId, message: paymentOrderError })
       return { error: paymentOrderError }
     }
+
+    await markIntentCaptured({
+      razorpayOrderId: orderId,
+      razorpayPaymentId: paymentId,
+      razorpaySignature: signature,
+    })
   }
 
   // 3. Validate subdomain
@@ -128,6 +148,12 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
     .eq('subdomain', rawSubdomain)
     .maybeSingle()
   if (existing) {
+    if (!isFree) {
+      await recordIntentError({
+        razorpayOrderId: orderId,
+        message: `Subdomain ${rawSubdomain} taken — buyer needs to pick another`,
+      })
+    }
     return { error: `The subdomain "${rawSubdomain}.ourdahanu.in" is already taken.` }
   }
   const subdomain = rawSubdomain
@@ -135,7 +161,7 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
   // 4. Insert listing
   const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
 
-  const { error } = await supabase.from('listings').insert({
+  const { data: insertedListing, error } = await supabase.from('listings').insert({
     owner_id:       user.id,
     name,
     description,
@@ -159,9 +185,22 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
     amount_paid: charge.finalPrice,
     map_url,
     expires_at:     expiresAt,
-  })
+  }).select('id').single()
 
-  if (error) return { error: error.message }
+  if (error) {
+    if (!isFree) {
+      await recordIntentError({ razorpayOrderId: orderId, message: error.message })
+    }
+    return { error: error.message }
+  }
+
+  if (!isFree && insertedListing?.id) {
+    await markIntentFinalized({
+      razorpayOrderId: orderId,
+      entityId: insertedListing.id as string,
+      entityTable: 'listings',
+    })
+  }
 
   void sendNotificationToAdmins('admin.new_submission', {
     kind: 'listing',
@@ -635,6 +674,17 @@ export async function renewListing(
     if (!paymentId || !orderId || !signature) {
       return { error: 'Payment details are missing. Please try again.' }
     }
+
+    const finalized = await findFinalizedIntentByPaymentId(paymentId)
+    if (
+      finalized &&
+      finalized.user_id === user.id &&
+      finalized.entity_table === 'listings' &&
+      finalized.entity_id === listingId
+    ) {
+      return {}
+    }
+
     const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim()
     if (!keySecret) return { error: 'Payment gateway not configured.' }
 
@@ -682,8 +732,15 @@ export async function renewListing(
       expectedNotes: { flow: 'listing', buyer_id: user.id },
     })
     if (paymentOrderError) {
+      await recordIntentError({ razorpayOrderId: orderId, message: paymentOrderError })
       return { error: paymentOrderError }
     }
+
+    await markIntentCaptured({
+      razorpayOrderId: orderId,
+      razorpayPaymentId: paymentId,
+      razorpaySignature: signature,
+    })
   }
 
   // 3. Compute new expiry
@@ -710,7 +767,20 @@ export async function renewListing(
     })
     .eq('id', listingId)
 
-  if (error) return { error: error.message }
+  if (error) {
+    if (!isFree) {
+      await recordIntentError({ razorpayOrderId: orderId, message: error.message })
+    }
+    return { error: error.message }
+  }
+
+  if (!isFree) {
+    await markIntentFinalized({
+      razorpayOrderId: orderId,
+      entityId: listingId,
+      entityTable: 'listings',
+    })
+  }
 
   revalidatePublicListingContent(listingId)
   return {}

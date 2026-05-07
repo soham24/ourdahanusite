@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { loadOwnerRazorpayKeys } from '@/app/actions/listing-payments'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
+import { recordPaymentIntent } from '@/lib/payment-intents'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 
@@ -143,6 +144,22 @@ export async function POST(request: Request) {
       { status: 502 },
     )
   }
+
+  await recordPaymentIntent({
+    userId: user.id,
+    flow: 'marketplace',
+    razorpayOrderId: orderPayload.id,
+    amountPaise,
+    currency: 'INR',
+    payload: {
+      product_id: product.id,
+      listing_id: product.listing_id,
+      quantity,
+      product_name: product.name,
+      product_price_paise: product.price_paise,
+    },
+    listingId: product.listing_id,
+  })
 
   return NextResponse.json({
     orderId: orderPayload.id,

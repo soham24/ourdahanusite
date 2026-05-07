@@ -12,6 +12,14 @@ import ImageUploadField from '@/components/ImageUploadField'
 import SubdomainInput from '@/components/SubdomainInput'
 import PhoneInput from '@/components/PhoneInput'
 import LocationPicker from '@/components/LocationPicker'
+import {
+  attemptWithRetry,
+  clearRecoveryDraft,
+  persistRecoveryDraft,
+  recoveryUrlFor,
+  snapshotFormData,
+  updateRecoveryDraft,
+} from '@/lib/payment-retry'
 import { normalizeOptionalUrl } from '@/lib/url'
 import { LISTING_CATEGORY_GROUPS, LISTING_CATEGORY_EMOJIS } from '@/lib/listing-category'
 
@@ -159,6 +167,16 @@ export default function ListingSubmitForm({
 
       setStatus('paying')
 
+      // Persist the draft before opening Razorpay. If the page reloads
+      // mid-checkout we still know what to recreate.
+      persistRecoveryDraft({
+        orderId: orderData.orderId,
+        flow: 'listing',
+        amountPaise: orderData.amount,
+        fields: snapshotFormData(formSnapshot),
+        returnTo: typeof window !== 'undefined' ? window.location.pathname : undefined,
+      })
+
       const rzp = new window.Razorpay({
         key:         orderData.keyId,
         amount:      orderData.amount,
@@ -172,16 +190,26 @@ export default function ListingSubmitForm({
           formSnapshot.set('razorpay_order_id',   response.razorpay_order_id)
           formSnapshot.set('razorpay_signature',  response.razorpay_signature)
 
-          const result = await submitPaidListing(formSnapshot)
+          // Update the draft with the captured payment IDs. Even if
+          // the next call fails or this tab dies, the recovery page
+          // can still finish the submission.
+          updateRecoveryDraft(orderData.orderId, {
+            fields: snapshotFormData(formSnapshot),
+            paymentId: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+          })
+
+          const result = await attemptWithRetry(() => submitPaidListing(formSnapshot))
           if (result?.error) {
+            updateRecoveryDraft(orderData.orderId, { lastError: result.error })
             setErrorMsg(
               result.error +
-              (response.razorpay_payment_id
-                ? ` (Payment ID: ${response.razorpay_payment_id} — contact us if amount was debited)`
-                : '')
+              ` (Payment ID: ${response.razorpay_payment_id}). ` +
+              `If the amount was debited, click here to recover: ${recoveryUrlFor(orderData.orderId)}`,
             )
             setStatus('error')
           } else {
+            clearRecoveryDraft(orderData.orderId)
             const bizName = encodeURIComponent(formSnapshot.get('name') as string || '')
             router.push(`/listings/submit?submitted=1&name=${bizName}`)
           }

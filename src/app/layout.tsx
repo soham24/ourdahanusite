@@ -7,6 +7,7 @@ import Footer from '@/components/Footer'
 import BottomTabBar from '@/components/BottomTabBar'
 import EmergencyRibbon, { EmergencyRibbonFallback } from '@/components/EmergencyRibbon'
 import LoaderFontsReady from '@/components/LoaderFontsReady'
+import PaymentRecoveryWatcher from '@/components/PaymentRecoveryWatcher'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import StructuredData from '@/components/StructuredData'
 import { buildAbsoluteUrl, SITE_URL } from '@/lib/site'
@@ -154,6 +155,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <BottomTabBar />
         </Suspense>
         <ServiceWorkerRegistration />
+        <PaymentRecoveryWatcher />
         <Analytics />
       </body>
     </html>

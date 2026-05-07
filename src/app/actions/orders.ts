@@ -5,6 +5,12 @@ import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
 import {
+  findFinalizedIntentByPaymentId,
+  markIntentCaptured,
+  markIntentFinalized,
+  recordIntentError,
+} from '@/lib/payment-intents'
+import {
   fetchRazorpayOrder,
   resolveListingService,
   validateRazorpayOrder,
@@ -55,6 +61,11 @@ export async function placeOrder(formData: FormData): Promise<{ error?: string; 
 
   if (!paymentId || !orderId || !signature) {
     return { error: 'Payment details missing. Please try again.' }
+  }
+
+  const finalized = await findFinalizedIntentByPaymentId(paymentId)
+  if (finalized && finalized.user_id === user.id && finalized.entity_table === 'orders') {
+    return { orderId: finalized.entity_id ?? undefined }
   }
 
   const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim()
@@ -119,8 +130,15 @@ export async function placeOrder(formData: FormData): Promise<{ error?: string; 
     },
   })
   if (paymentOrderError) {
+    await recordIntentError({ razorpayOrderId: orderId, message: paymentOrderError })
     return { error: paymentOrderError }
   }
+
+  await markIntentCaptured({
+    razorpayOrderId: orderId,
+    razorpayPaymentId: paymentId,
+    razorpaySignature: signature,
+  })
 
   const amountTotal = service.price * quantity
   const commissionRate = 0.03
@@ -159,10 +177,20 @@ export async function placeOrder(formData: FormData): Promise<{ error?: string; 
 
   if (insertError || !newOrder) {
     console.error('[placeOrder] insert error:', insertError)
+    await recordIntentError({
+      razorpayOrderId: orderId,
+      message: insertError?.message || 'order insert failed',
+    })
     return { error: 'Failed to record order. Please contact support with payment ID: ' + paymentId }
   }
 
   const newOrderId = newOrder.id
+
+  await markIntentFinalized({
+    razorpayOrderId: orderId,
+    entityId: newOrderId,
+    entityTable: 'orders',
+  })
   void (async () => {
     const { payoutToUpi } = await import('@/lib/razorpay-payouts')
     const result = await payoutToUpi({

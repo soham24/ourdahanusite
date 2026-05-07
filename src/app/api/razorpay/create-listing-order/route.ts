@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { recordPaymentIntent } from '@/lib/payment-intents'
 import { getListingSubmissionCharge } from '@/lib/payment-security'
 import { createClient } from '@/lib/supabase/server'
 
@@ -16,11 +17,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Payment gateway not configured.' }, { status: 500 })
   }
 
-  const body = await request.json().catch(() => ({})) as { coupon?: string }
+  const body = await request.json().catch(() => ({})) as {
+    coupon?: string
+    intent?: 'submit' | 'renew'
+    listingId?: string
+    payload?: Record<string, unknown>
+  }
   const charge = await getListingSubmissionCharge(body.coupon ?? null)
   const amountRupees = charge.finalPrice
   const couponValid = charge.couponValid
   const appliedCoupon = charge.couponCode ?? ''
+  const intentFlow = body.intent === 'renew' ? 'renew' : 'listing'
 
   // Increment usage count (non-blocking)
   if (couponValid && appliedCoupon) {
@@ -68,6 +75,23 @@ export async function POST(request: Request) {
       error: order.error?.description || `Razorpay error ${response.status}`,
     }, { status: 500 })
   }
+
+  // Record the intent BEFORE Razorpay checkout opens. This is the
+  // server-side anchor we use to recover the listing/renewal if the
+  // user closes the page after paying.
+  await recordPaymentIntent({
+    userId: user.id,
+    flow: intentFlow,
+    razorpayOrderId: order.id as string,
+    amountPaise: amountPaise,
+    currency: 'INR',
+    payload: {
+      coupon: appliedCoupon,
+      ...(body.payload ?? {}),
+      ...(body.listingId ? { listing_id: body.listingId } : {}),
+    },
+    listingId: body.listingId ?? null,
+  })
 
   return NextResponse.json({
     orderId: order.id,
