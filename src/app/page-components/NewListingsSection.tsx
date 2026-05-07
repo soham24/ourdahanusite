@@ -28,7 +28,7 @@ export default function NewListingsSection({ newListings }: NewListingsSectionPr
           {newListings.slice(0, 6).map((listing, index) => {
             const href = getListingHref(listing.id, listing.subdomain)
             const address = summarizeAddress(listing.address, 2)
-            const imageUrl = listing.image_thumb_url || listing.image_url
+            const imageUrl = listing.image_url || listing.image_thumb_url
 
             return (
               <SafeAppLink

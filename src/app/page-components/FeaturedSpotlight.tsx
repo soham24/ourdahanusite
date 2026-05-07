@@ -34,9 +34,9 @@ export default function FeaturedSpotlight({ listing }: { listing: FeaturedListin
             className="relative min-h-[260px] overflow-hidden md:min-h-[430px]"
             style={{ background: 'linear-gradient(135deg, #F7E7CF, #C4663A)' }}
           >
-            {listing.image_thumb_url || listing.image_url ? (
+            {listing.image_url || listing.image_thumb_url ? (
               <Image
-                src={(listing.image_thumb_url || listing.image_url) as string}
+                src={(listing.image_url || listing.image_thumb_url) as string}
                 alt={listing.name}
                 fill
                 sizes="(min-width: 768px) 420px, 100vw"
