@@ -5,8 +5,6 @@ import { getUserRole } from '@/app/actions/admin'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
 
-export const dynamic = 'force-dynamic'
-
 interface IntentRow {
   id: string
   user_id: string
