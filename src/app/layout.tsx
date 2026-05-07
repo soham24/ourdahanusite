@@ -155,7 +155,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <BottomTabBar />
         </Suspense>
         <ServiceWorkerRegistration />
-        <PaymentRecoveryWatcher />
+        <Suspense fallback={null}>
+          <PaymentRecoveryWatcher />
+        </Suspense>
         <Analytics />
       </body>
     </html>
