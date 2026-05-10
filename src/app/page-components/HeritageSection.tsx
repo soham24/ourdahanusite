@@ -103,7 +103,7 @@ export default function HeritageSection() {
                 A local core team carrying the <em className="italic text-[#F0C87A]">community forward.</em>
               </h2>
               <p className="text-[var(--color-cream)]/85 text-sm md:text-[15px] leading-[1.65] mb-5 max-w-[500px]">
-                Founded by Soham Railkar and managed with Ankit, Khushbu, Ajay, Nupur and
+                Founded by Soham Railkar and managed with Ankit, Khushboo, Ajay, Nupur and
                 Khushbu Bari, OurDahanu connects social pages, WhatsApp groups and the
                 marketplace into one trusted local network.
               </p>

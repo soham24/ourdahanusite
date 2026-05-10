@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 const coreGroup = [
   { name: 'Soham Railkar', role: 'Founder', detail: 'Started OurDahanu as a local Facebook, Instagram and WhatsApp community.' },
   { name: 'Ankit Thakkar', role: 'Core Group', detail: 'Helps manage community conversations and local coordination.' },
-  { name: 'Khushbu Kapadia', role: 'Core Group', detail: 'Part of the team shaping useful community spaces for Dahanu.' },
+  { name: 'Khushboo Kapadia', role: 'Core Group', detail: 'Part of the team shaping useful community spaces for Dahanu.' },
   { name: 'Ajay Bari', role: 'Core Group', detail: 'Supports group management and day-to-day community operations.' },
   { name: 'Nupur Mestry', role: 'Core Group', detail: 'Helps keep OurDahanu active, helpful and locally relevant.' },
   { name: 'Khushbu Bari', role: 'Content / Media', detail: 'Supports the community with content, media and storytelling.' },
@@ -80,7 +80,7 @@ const timeline = [
   {
     year: 'The core group forms',
     title: 'A team starts carrying the work',
-    text: 'Ankit Thakkar, Khushbu Kapadia, Ajay Bari, Nupur Mestry and Khushbu Bari joined Soham, forming a core group that manages multiple spaces with care.',
+    text: 'Ankit Thakkar, Khushboo Kapadia, Ajay Bari, Nupur Mestry and Khushbu Bari joined Soham, forming a core group that manages multiple spaces with care.',
   },
   {
     year: 'Now',
