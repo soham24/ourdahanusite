@@ -13,7 +13,7 @@ export const LISTING_CATEGORY_GROUPS = [
   {
     label: 'Food & Dining',
     icon: '🍽️',
-    categories: ['Restaurants', 'Homemade Food', 'Bakers & Sweets', 'Dairy & Milk', 'Farms & Organic'],
+    categories: ['Restaurants', 'Cafe', 'Homemade Food', 'Bakers & Sweets', 'Dairy & Milk', 'Farms & Organic'],
   },
   {
     label: 'Hospitality & Stay',
@@ -111,6 +111,7 @@ export const LISTING_CATEGORIES = LISTING_CATEGORY_GROUPS.flatMap(
 export const LISTING_CATEGORY_EMOJIS: Record<string, string> = {
   // Food & Dining
   Restaurants: '🍽️',
+  Cafe: '☕',
   'Homemade Food': '🍱',
   'Bakers & Sweets': '🍰',
   'Dairy & Milk': '🥛',
