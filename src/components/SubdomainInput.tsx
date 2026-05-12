@@ -9,6 +9,7 @@ export default function SubdomainInput() {
   const [value, setValue] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const resultCacheRef = useRef(new Map<string, Status>())
 
   const validate = (v: string) => /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$/.test(v)
 
@@ -26,7 +27,13 @@ export default function SubdomainInput() {
       return
     }
 
-    debounceRef.current = setTimeout(() => check(raw), 600)
+    const cached = resultCacheRef.current.get(raw)
+    if (cached) {
+      setStatus(cached)
+      return
+    }
+
+    debounceRef.current = setTimeout(() => check(raw), 900)
   }
 
   const check = async (slug: string) => {
@@ -35,9 +42,16 @@ export default function SubdomainInput() {
     try {
       const res = await fetch(`/api/check-subdomain?s=${encodeURIComponent(slug)}`)
       const data = await res.json()
-      if (data.reason === 'invalid') setStatus('invalid')
-      else if (data.reason === 'reserved') setStatus('reserved')
-      else setStatus(data.available ? 'available' : 'taken')
+      const nextStatus =
+        data.reason === 'invalid'
+          ? 'invalid'
+          : data.reason === 'reserved'
+            ? 'reserved'
+            : data.available
+              ? 'available'
+              : 'taken'
+      resultCacheRef.current.set(slug, nextStatus)
+      setStatus(nextStatus)
     } catch {
       setStatus('idle')
     }

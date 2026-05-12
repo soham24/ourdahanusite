@@ -1,5 +1,4 @@
 import type { PollWithResults } from '@/lib/data/polls'
-import { createClient } from '@/lib/supabase/server'
 
 import PollCard from '@/components/PollCard'
 
@@ -25,27 +24,12 @@ export function HomepagePollCardFallback() {
   )
 }
 
-export default async function HomepagePollCard({ poll }: { poll: PollWithResults }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  let userVote: string | null = null
-  if (user) {
-    const { data: vote } = await supabase
-      .from('poll_votes')
-      .select('option_id')
-      .eq('poll_id', poll.id)
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    userVote = vote?.option_id ?? null
-  }
-
+export default function HomepagePollCard({ poll }: { poll: PollWithResults }) {
   return (
     <PollCard
       poll={poll}
-      userVote={userVote}
-      isLoggedIn={!!user}
+      userVote={null}
+      isLoggedIn={false}
       loginNextPath="/"
     />
   )

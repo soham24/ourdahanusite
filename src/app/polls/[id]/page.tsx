@@ -6,7 +6,6 @@ import { notFound } from 'next/navigation'
 import PollCard from '@/components/PollCard'
 import { getPollById } from '@/lib/data/polls'
 import { buildAbsoluteUrl } from '@/lib/site'
-import { createClient } from '@/lib/supabase/server'
 
 type PollPageProps = {
   params: Promise<{ id: string }>
@@ -60,28 +59,6 @@ export default async function PollDetailPage({
 
   const pollUrl = buildAbsoluteUrl(`/polls/${poll.id}`)
 
-  let userId: string | null = null
-  let userVote: string | null = null
-
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    userId = user?.id ?? null
-
-    if (userId) {
-      const { data: vote } = await supabase
-        .from('poll_votes')
-        .select('option_id')
-        .eq('poll_id', poll.id)
-        .eq('user_id', userId)
-        .maybeSingle()
-
-      userVote = vote?.option_id ?? null
-    }
-  } catch {
-    // Treat auth lookup failures as logged out.
-  }
-
   return (
     <div className="min-h-screen bg-[#FDFAF6]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
@@ -109,8 +86,8 @@ export default async function PollDetailPage({
 
         <PollCard
           poll={poll}
-          userVote={userVote}
-          isLoggedIn={!!userId}
+          userVote={null}
+          isLoggedIn={false}
           loginNextPath={`/polls/${poll.id}`}
           pollHref={null}
         />

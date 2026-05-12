@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState, useTransition, useEffect } from 'react'
 import { BarChart3, Clock, CheckCircle, Lock } from 'lucide-react'
 import { castVote } from '@/app/actions/polls'
+import { hasSupabaseSessionCookie } from '@/lib/supabase/client-session'
 
 interface PollOption {
   id: string
@@ -45,6 +46,7 @@ export default function PollCard({
 }: Props) {
   const [selected, setSelected] = useState<string | null>(userVote)
   const [hasVoted, setHasVoted] = useState(!!userVote)
+  const [isLoggedInState, setIsLoggedInState] = useState(isLoggedIn)
   const [voteCounts, setVoteCounts] = useState(poll.vote_counts)
   const [totalVotes, setTotalVotes] = useState(poll.total_votes)
   const [isPending, startTransition] = useTransition()
@@ -53,6 +55,49 @@ export default function PollCard({
 
   const hasEnded = new Date(poll.ends_at) < new Date()
   const showResults = hasVoted || hasEnded
+
+  useEffect(() => {
+    setIsLoggedInState(isLoggedIn)
+    setSelected(userVote)
+    setHasVoted(!!userVote)
+  }, [isLoggedIn, userVote, poll.id])
+
+  useEffect(() => {
+    if (isLoggedIn || !hasSupabaseSessionCookie()) return
+
+    let active = true
+    setIsLoggedInState(true)
+
+    async function loadViewer() {
+      try {
+        const response = await fetch(`/api/polls/${encodeURIComponent(poll.id)}/viewer`, {
+          credentials: 'same-origin',
+          cache: 'no-store',
+        })
+        if (!active || !response.ok) return
+
+        const data = (await response.json()) as {
+          isLoggedIn?: boolean
+          userVote?: string | null
+        }
+
+        if (data.isLoggedIn === true) {
+          setIsLoggedInState(true)
+          setSelected(data.userVote ?? null)
+          setHasVoted(!!data.userVote)
+        } else {
+          setIsLoggedInState(false)
+        }
+      } catch {
+        if (active) setIsLoggedInState(false)
+      }
+    }
+
+    void loadViewer()
+    return () => {
+      active = false
+    }
+  }, [isLoggedIn, poll.id])
 
   // Update countdown every minute
   useEffect(() => {
@@ -64,7 +109,7 @@ export default function PollCard({
 
   const handleVote = (optionId: string) => {
     if (hasEnded) return
-    if (!isLoggedIn) {
+    if (!isLoggedInState) {
       window.location.assign(`/login?next=${encodeURIComponent(loginNextPath)}`)
       return
     }
@@ -97,6 +142,7 @@ export default function PollCard({
         setTotalVotes(prevTotal)
         setError(res.error)
       } else if (res.vote_counts && typeof res.total_votes === 'number') {
+        setIsLoggedInState(true)
         setVoteCounts(res.vote_counts)
         setTotalVotes(res.total_votes)
       }
@@ -207,7 +253,7 @@ export default function PollCard({
             </Link>
           )}
         </div>
-        {!isLoggedIn && !hasEnded && (
+        {!isLoggedInState && !hasEnded && (
           <a
             href={`/login?next=${encodeURIComponent(loginNextPath)}`}
             className="text-xs text-brand hover:underline"

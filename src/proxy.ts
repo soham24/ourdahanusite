@@ -19,7 +19,7 @@ function getSubdomain(host: string): string | null {
   return null
 }
 
-export async function proxy(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const host = request.headers.get('host') || ''
   const subdomain = getSubdomain(host)
 
@@ -66,11 +66,25 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     {
-      source:
-        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-      missing: [
-        { type: 'header', key: 'next-router-prefetch' },
-        { type: 'header', key: 'purpose', value: 'prefetch' },
+      source: '/',
+      has: [
+        {
+          type: 'header',
+          key: 'host',
+          value:
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+        },
+      ],
+    },
+    {
+      source: '/robots.txt',
+      has: [
+        {
+          type: 'header',
+          key: 'host',
+          value:
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+        },
       ],
     },
   ],
