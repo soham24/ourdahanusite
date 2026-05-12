@@ -2,6 +2,8 @@ import 'server-only'
 
 import { updateTag } from 'next/cache'
 
+import { logCacheInvalidation } from '@/lib/isr-debug'
+
 export const CACHE_TAGS = {
   home: 'home',
   pricing: 'pricing',
@@ -25,14 +27,28 @@ export const CACHE_TAGS = {
 // which is exactly what `updateTag` provides. `updateTag` MUST be called
 // from within a Server Action — every caller of these helpers is one.
 
+function updatePublicTag(scope: string, tag: string) {
+  logCacheInvalidation({ scope, tags: [tag] })
+  updateTag(tag)
+}
+
+function updatePublicTags(scope: string, tags: string[]) {
+  logCacheInvalidation({ scope, tags })
+  for (const tag of tags) {
+    updateTag(tag)
+  }
+}
+
 export function revalidatePublicListingCollections() {
-  updateTag(CACHE_TAGS.home)
-  updateTag(CACHE_TAGS.listings)
-  updateTag(CACHE_TAGS.listingCategories)
+  updatePublicTags('public-listing-collections', [
+    CACHE_TAGS.home,
+    CACHE_TAGS.listings,
+    CACHE_TAGS.listingCategories,
+  ])
 }
 
 export function revalidatePublicListingDetail(listingId: string) {
-  updateTag(CACHE_TAGS.listing(listingId))
+  updatePublicTag('public-listing-detail', CACHE_TAGS.listing(listingId))
 }
 
 export function revalidatePublicListingContent(listingId: string) {
@@ -41,34 +57,30 @@ export function revalidatePublicListingContent(listingId: string) {
 }
 
 export function revalidatePublicJobs() {
-  updateTag(CACHE_TAGS.home)
-  updateTag(CACHE_TAGS.jobs)
+  updatePublicTags('public-jobs', [CACHE_TAGS.home, CACHE_TAGS.jobs])
 }
 
 export function revalidatePricingCache() {
-  updateTag(CACHE_TAGS.home)
-  updateTag(CACHE_TAGS.pricing)
+  updatePublicTags('pricing', [CACHE_TAGS.home, CACHE_TAGS.pricing])
 }
 
 export function revalidateCouponCache() {
-  updateTag(CACHE_TAGS.coupons)
+  updatePublicTag('coupons', CACHE_TAGS.coupons)
 }
 
 export function revalidateEmergencyCache() {
-  updateTag(CACHE_TAGS.emergency)
+  updatePublicTag('emergency', CACHE_TAGS.emergency)
 }
 
 export function revalidateSettingsCache() {
-  updateTag(CACHE_TAGS.settings)
-  updateTag(CACHE_TAGS.home)
+  updatePublicTags('settings', [CACHE_TAGS.settings, CACHE_TAGS.home])
 }
 
 export function revalidatePollsCache() {
-  updateTag(CACHE_TAGS.polls)
-  updateTag(CACHE_TAGS.home)
+  updatePublicTags('polls', [CACHE_TAGS.polls, CACHE_TAGS.home])
 }
 
 export function revalidateAppointmentsCache(listingId: string) {
-  updateTag(CACHE_TAGS.appointments)
+  updatePublicTag('appointments', CACHE_TAGS.appointments)
   revalidatePublicListingDetail(listingId)
 }

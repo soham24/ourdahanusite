@@ -210,6 +210,17 @@ export function findCategoryBySlug(categories: string[], slug: string): string |
   return categories.find((category) => toCategorySlug(category) === slug) ?? null
 }
 
+export function compareStableText(a: string, b: string): number {
+  const normalizedA = a.trim().toLowerCase()
+  const normalizedB = b.trim().toLowerCase()
+
+  if (normalizedA < normalizedB) return -1
+  if (normalizedA > normalizedB) return 1
+  if (a < b) return -1
+  if (a > b) return 1
+  return 0
+}
+
 export function sortCategoriesForDiscovery(entries: Array<[string, number]>): Array<[string, number]> {
   return [...entries].sort((a, b) => {
     const penaltyA = DISCOVERY_CATEGORY_PENALTIES[toCategorySlug(a[0])] ?? 0
@@ -218,6 +229,6 @@ export function sortCategoriesForDiscovery(entries: Array<[string, number]>): Ar
     if (penaltyA !== penaltyB) return penaltyA - penaltyB
     if (a[1] !== b[1]) return b[1] - a[1]
 
-    return a[0].localeCompare(b[0])
+    return compareStableText(a[0], b[0])
   })
 }

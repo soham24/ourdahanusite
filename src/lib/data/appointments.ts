@@ -3,6 +3,8 @@ import 'server-only'
 import { cacheLife, cacheTag } from 'next/cache'
 
 import { CACHE_TAGS } from '@/lib/cache-tags'
+import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
+import { logCacheRegeneration } from '@/lib/isr-debug'
 import {
   normalizeAppointmentSettings,
   type AppointmentSettings,
@@ -43,9 +45,14 @@ export async function getCachedAppointmentSettings(
 ): Promise<CachedAppointmentSettings | null> {
   'use cache'
 
-  cacheLife({ stale: 120, revalidate: 300, expire: 1800 })
+  cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.appointments)
   cacheTag(CACHE_TAGS.listing(listingId))
+  logCacheRegeneration({
+    scope: 'appointments:settings',
+    tags: [CACHE_TAGS.appointments, CACHE_TAGS.listing(listingId)],
+    detail: { listingId },
+  })
 
   try {
     const supabase = createPublicClient()

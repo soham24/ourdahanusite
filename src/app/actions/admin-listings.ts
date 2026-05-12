@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
-import { revalidatePublicListingCollections } from '@/lib/cache-tags'
+import { revalidatePublicListingContent } from '@/lib/cache-tags'
 import {
   normalizeInlineText,
   normalizeMultilineText,
@@ -69,7 +69,9 @@ export async function adminCreateListing(
 
     if (error) return { error: error.message }
 
-    revalidatePublicListingCollections()
+    if (approved) {
+      revalidatePublicListingContent(data.id)
+    }
     return { id: data.id }
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : 'Failed to create listing.' }
@@ -127,7 +129,7 @@ export async function adminExtendListing(
 
     if (error) return { error: error.message }
 
-    revalidatePublicListingCollections()
+    revalidatePublicListingContent(listingId)
     return {}
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : 'Failed to extend listing.' }

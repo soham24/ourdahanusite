@@ -3,6 +3,8 @@ import 'server-only'
 import { cacheLife, cacheTag } from 'next/cache'
 
 import { CACHE_TAGS } from '@/lib/cache-tags'
+import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
+import { logCacheRegeneration } from '@/lib/isr-debug'
 import { sortCategoriesForDiscovery } from '@/lib/listing-category'
 import { createPublicClient } from '@/lib/supabase/public'
 
@@ -84,11 +86,15 @@ const HOME_LISTING_COLUMNS =
 export async function getHomeStats(): Promise<HomeStats> {
   'use cache'
 
-  cacheLife({ stale: 300, revalidate: 600, expire: 3600 })
+  cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.home)
   cacheTag(CACHE_TAGS.listings)
   cacheTag(CACHE_TAGS.listingCategories)
   cacheTag(CACHE_TAGS.settings)
+  logCacheRegeneration({
+    scope: 'home:stats',
+    tags: [CACHE_TAGS.home, CACHE_TAGS.listings, CACHE_TAGS.listingCategories, CACHE_TAGS.settings],
+  })
 
   const empty: HomeStats = {
     totalListings: 0,
@@ -139,9 +145,10 @@ export async function getHomeStats(): Promise<HomeStats> {
 export async function getHomePopularListings(): Promise<HomeListing[]> {
   'use cache'
 
-  cacheLife({ stale: 300, revalidate: 600, expire: 3600 })
+  cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.home)
   cacheTag(CACHE_TAGS.listings)
+  logCacheRegeneration({ scope: 'home:popular-listings', tags: [CACHE_TAGS.home, CACHE_TAGS.listings] })
 
   try {
     const supabase = createPublicClient()
@@ -152,6 +159,7 @@ export async function getHomePopularListings(): Promise<HomeListing[]> {
       .order('verified', { ascending: false })
       .order('review_count', { ascending: false })
       .order('created_at', { ascending: false })
+      .order('id', { ascending: true })
       .limit(6)
     return (data ?? []) as HomeListing[]
   } catch {
@@ -163,9 +171,10 @@ export async function getHomePopularListings(): Promise<HomeListing[]> {
 export async function getHomeNewListings(): Promise<HomeListing[]> {
   'use cache'
 
-  cacheLife({ stale: 300, revalidate: 600, expire: 3600 })
+  cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.home)
   cacheTag(CACHE_TAGS.listings)
+  logCacheRegeneration({ scope: 'home:new-listings', tags: [CACHE_TAGS.home, CACHE_TAGS.listings] })
 
   try {
     const supabase = createPublicClient()
@@ -174,6 +183,7 @@ export async function getHomeNewListings(): Promise<HomeListing[]> {
       .select(HOME_LISTING_COLUMNS)
       .eq('approved', true)
       .order('created_at', { ascending: false })
+      .order('id', { ascending: true })
       .limit(6)
     return (data ?? []) as HomeListing[]
   } catch {
@@ -185,9 +195,10 @@ export async function getHomeNewListings(): Promise<HomeListing[]> {
 export async function getHomeRecentJobs(): Promise<HomeJob[]> {
   'use cache'
 
-  cacheLife({ stale: 300, revalidate: 600, expire: 3600 })
+  cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.home)
   cacheTag(CACHE_TAGS.jobs)
+  logCacheRegeneration({ scope: 'home:recent-jobs', tags: [CACHE_TAGS.home, CACHE_TAGS.jobs] })
 
   try {
     const supabase = createPublicClient()
@@ -197,6 +208,7 @@ export async function getHomeRecentJobs(): Promise<HomeJob[]> {
       .eq('approved', true)
       .in('status', ['open', 'hiring'])
       .order('created_at', { ascending: false })
+      .order('id', { ascending: true })
       .limit(3)
     return (data ?? []) as HomeJob[]
   } catch {

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 
 import { loadOwnerRazorpayKeys } from '@/app/actions/listing-payments'
-import { revalidatePublicListingDetail } from '@/lib/cache-tags'
+import { CACHE_TAGS } from '@/lib/cache-tags'
 import { recordPaymentIntent } from '@/lib/payment-intents'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
@@ -128,7 +129,7 @@ export async function POST(request: Request) {
         .from('listing_payment_configs')
         .update({ verified_at: null, updated_at: new Date().toISOString() })
         .eq('listing_id', product.listing_id)
-      revalidatePublicListingDetail(product.listing_id)
+      revalidateTag(CACHE_TAGS.listing(product.listing_id), 'max')
 
       return NextResponse.json(
         {

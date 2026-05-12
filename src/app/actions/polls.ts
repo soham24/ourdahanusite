@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { getUserRole } from '@/app/actions/admin'
 import { revalidatePollsCache } from '@/lib/cache-tags'
+import { getLivePollVoteTotals } from '@/lib/data/polls'
 
 type PollFormState = {
   error?: string
@@ -22,7 +23,12 @@ type PollFormState = {
 export async function castVote(
   pollId: string,
   optionId: string,
-): Promise<{ error?: string; optionId?: string }> {
+): Promise<{
+  error?: string
+  optionId?: string
+  vote_counts?: Record<string, number>
+  total_votes?: number
+}> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Sign in to vote.' }
@@ -59,8 +65,8 @@ export async function castVote(
 
   if (error) return { error: error.message }
 
-  revalidatePollsCache()
-  return { optionId }
+  const totals = await getLivePollVoteTotals(pollId, options)
+  return { optionId, ...totals }
 }
 
 /**

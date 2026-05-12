@@ -1,7 +1,9 @@
 import { cacheLife, cacheTag } from 'next/cache'
 
 import { CACHE_TAGS } from '@/lib/cache-tags'
+import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
 import { getCachedPricingConfig } from '@/lib/data/pricing'
+import { logCacheRegeneration } from '@/lib/isr-debug'
 import { sortCategoriesForDiscovery } from '@/lib/listing-category'
 import { createPublicClient } from '@/lib/supabase/public'
 
@@ -50,9 +52,13 @@ function buildCategoryCounts(rows: Array<{ category?: string | null }>): Record<
 export async function getListingCategories() {
   'use cache'
 
-  cacheLife({ stale: 300, revalidate: 600, expire: 3600 })
+  cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.listings)
   cacheTag(CACHE_TAGS.listingCategories)
+  logCacheRegeneration({
+    scope: 'listings:categories',
+    tags: [CACHE_TAGS.listings, CACHE_TAGS.listingCategories],
+  })
 
   try {
     const supabase = createPublicClient()
@@ -60,6 +66,7 @@ export async function getListingCategories() {
       .from('listings')
       .select('category')
       .eq('approved', true)
+      .order('category', { ascending: true })
 
     const categoryCounts = buildCategoryCounts((data || []) as Array<{ category?: string | null }>)
     const categories = sortCategoriesForDiscovery(Object.entries(categoryCounts))
@@ -82,10 +89,15 @@ export async function getListingCategories() {
 export async function getListingsDirectoryData(activeCategory: string | null = null) {
   'use cache'
 
-  cacheLife({ stale: 300, revalidate: 600, expire: 3600 })
+  cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.listings)
   cacheTag(CACHE_TAGS.listingCategories)
   cacheTag(CACHE_TAGS.pricing)
+  logCacheRegeneration({
+    scope: 'listings:directory',
+    tags: [CACHE_TAGS.listings, CACHE_TAGS.listingCategories, CACHE_TAGS.pricing],
+    detail: { activeCategory },
+  })
 
   const [pricing, categoryData] = await Promise.all([
     getCachedPricingConfig().catch(() => ({ current_price: 210, base_price: 500 })),
@@ -102,6 +114,7 @@ export async function getListingsDirectoryData(activeCategory: string | null = n
       .eq('approved', true)
       .order('plan', { ascending: false })
       .order('created_at', { ascending: false })
+      .order('id', { ascending: true })
       .limit(48)
 
     if (activeCategory) {

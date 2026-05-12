@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { revalidatePublicListingContent } from '@/lib/cache-tags'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -51,7 +52,7 @@ export async function updateListing(formData: FormData) {
   }
 
   revalidatePath('/my-business')
-  revalidatePath('/listings/' + id)
+  revalidatePublicListingContent(id)
 
   return { success: true }
 }

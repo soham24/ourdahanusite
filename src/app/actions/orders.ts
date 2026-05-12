@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache'
 
 import { createAdminClient } from '@/lib/supabase/admin-client'
-import { revalidatePublicListingDetail } from '@/lib/cache-tags'
 import {
   findFinalizedIntentByPaymentId,
   markIntentCaptured,
@@ -232,7 +231,6 @@ export async function placeOrder(formData: FormData): Promise<{ error?: string; 
     void Promise.resolve(msg)
   }
 
-  revalidatePublicListingDetail(listingId)
   return { orderId: newOrderId }
 }
 

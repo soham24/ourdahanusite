@@ -2,7 +2,9 @@ import type { MetadataRoute } from 'next'
 import { cacheLife, cacheTag } from 'next/cache'
 
 import { CACHE_TAGS } from '@/lib/cache-tags'
-import { getCategoryUrl } from '@/lib/listing-category'
+import { PUBLIC_SITEMAP_CACHE } from '@/lib/cache-policy'
+import { logCacheRegeneration } from '@/lib/isr-debug'
+import { compareStableText, getCategoryUrl } from '@/lib/listing-category'
 import { SITE_URL } from '@/lib/site'
 import { createPublicClient } from '@/lib/supabase/public'
 
@@ -20,8 +22,9 @@ type SitemapListing = {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   'use cache'
 
-  cacheLife({ stale: 3600, revalidate: 7200, expire: 86400 })
+  cacheLife(PUBLIC_SITEMAP_CACHE)
   cacheTag(CACHE_TAGS.listings)
+  logCacheRegeneration({ scope: 'sitemap', tags: [CACHE_TAGS.listings] })
 
   const base = SITE_URL
 
@@ -40,6 +43,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // egress and JSON serialization small on every regen.
       .select('id, subdomain, category, image_url, cover_image, updated_at')
       .eq('approved', true)
+      .order('updated_at', { ascending: false })
+      .order('id', { ascending: true })
 
     const sitemapListings = (listings ?? []) as SitemapListing[]
     const listingRoutes: MetadataRoute.Sitemap = sitemapListings.flatMap((l) => {
@@ -51,7 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
       const entry: MetadataRoute.Sitemap[number] = {
         url: canonicalUrl,
-        lastModified: l.updated_at ? new Date(l.updated_at) : new Date(),
+        lastModified: l.updated_at ? new Date(l.updated_at) : STATIC_LAST_MODIFIED,
         changeFrequency: 'weekly',
         priority: 0.85,
         ...(images.length > 0 ? { images } : {}),
@@ -63,6 +68,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
 
     const categoryRoutes: MetadataRoute.Sitemap = [...new Set(sitemapListings.map((listing) => listing.category).filter(Boolean))]
+      .sort((a, b) => compareStableText(a as string, b as string))
       .map((category) => ({
         url: getCategoryUrl(category as string),
         lastModified: STATIC_LAST_MODIFIED,

@@ -3,8 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import {
-  revalidatePublicListingCollections,
   revalidatePublicListingContent,
+  revalidatePublicListingDetail,
 } from '@/lib/cache-tags'
 import {
   sendNotification,
@@ -209,7 +209,6 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
     reviewPath: '/admin/listings',
   }).catch(err => console.error('[notify:new-listing-paid]', err))
 
-  revalidatePublicListingCollections()
   return {}
 }
 
@@ -432,7 +431,6 @@ export async function submitListing(formData: FormData) {
     reviewPath: '/admin/listings',
   }).catch(err => console.error('[notify:new-listing-free]', err))
 
-  revalidatePublicListingCollections()
   redirect('/listings?submitted=1')
 }
 
@@ -603,7 +601,7 @@ export async function replyToReview(
   }
 
   // 3. Revalidate cached views.
-  revalidatePublicListingContent(listing.id)
+  revalidatePublicListingDetail(listing.id)
 
   // 4. Fire notifications (fire-and-forget; never break the UX).
   const ownerName =

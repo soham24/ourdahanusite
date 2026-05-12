@@ -96,6 +96,9 @@ export default function PollCard({
         setVoteCounts(prevCounts)
         setTotalVotes(prevTotal)
         setError(res.error)
+      } else if (res.vote_counts && typeof res.total_votes === 'number') {
+        setVoteCounts(res.vote_counts)
+        setTotalVotes(res.total_votes)
       }
     })
   }

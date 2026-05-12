@@ -3,15 +3,20 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   cacheLife: {
-    publicFast: {
-      stale: 300,
-      revalidate: 600,
-      expire: 3600,
+    publicContent: {
+      stale: 3600,
+      revalidate: 86400,
+      expire: 604800,
     },
-    emergencyShort: {
-      stale: 30,
-      revalidate: 60,
-      expire: 300,
+    urgentPublic: {
+      stale: 3600,
+      revalidate: 86400,
+      expire: 604800,
+    },
+    sitemap: {
+      stale: 86400,
+      revalidate: 604800,
+      expire: 2592000,
     },
   },
   images: {

@@ -3,6 +3,8 @@ import 'server-only'
 import { cacheLife, cacheTag } from 'next/cache'
 
 import { CACHE_TAGS } from '@/lib/cache-tags'
+import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
+import { logCacheRegeneration } from '@/lib/isr-debug'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createPublicClient } from '@/lib/supabase/public'
 
@@ -47,6 +49,21 @@ function countVotes(
   return { vote_counts, total_votes: votes.length }
 }
 
+export async function getLivePollVoteTotals(
+  pollId: string,
+  options: PollOption[],
+): Promise<{ vote_counts: Record<string, number>; total_votes: number }> {
+  const voteReader = getVoteReader()
+
+  const { data: voteData } = await voteReader
+    .from('poll_votes')
+    .select('option_id')
+    .eq('poll_id', pollId)
+
+  const votes = (voteData ?? []) as { option_id: string }[]
+  return countVotes(votes, options)
+}
+
 function getVoteReader() {
   return createAdminClient() ?? createPublicClient()
 }
@@ -75,9 +92,10 @@ function toPollWithResults(
  */
 export async function getActivePoll(): Promise<PollWithResults | null> {
   'use cache'
-  cacheLife({ stale: 1800, revalidate: 3600, expire: 86400 })
+  cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.polls)
   cacheTag(CACHE_TAGS.home)
+  logCacheRegeneration({ scope: 'polls:active', tags: [CACHE_TAGS.polls, CACHE_TAGS.home] })
 
   const supabase = createPublicClient()
 
@@ -85,29 +103,27 @@ export async function getActivePoll(): Promise<PollWithResults | null> {
     .from('polls')
     .select('*')
     .eq('active', true)
-    .gt('ends_at', new Date().toISOString())
     .order('created_at', { ascending: false })
+    .order('id', { ascending: true })
     .limit(1)
     .maybeSingle()
 
   const poll = pollData as PollRow | null
   if (!poll) return null
 
-  const voteReader = getVoteReader()
-
-  const { data: voteData } = await voteReader
-    .from('poll_votes')
-    .select('option_id')
-    .eq('poll_id', poll.id)
-
-  const votes = (voteData ?? []) as { option_id: string }[]
-  return toPollWithResults(poll, votes)
+  const totals = await getLivePollVoteTotals(poll.id, poll.options ?? [])
+  return { ...poll, ...totals }
 }
 
 export async function getPollById(id: string): Promise<PollWithResults | null> {
   'use cache'
-  cacheLife({ stale: 1800, revalidate: 3600, expire: 86400 })
+  cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.polls)
+  logCacheRegeneration({
+    scope: 'polls:detail',
+    tags: [CACHE_TAGS.polls],
+    detail: { pollId: id },
+  })
 
   const supabase = createPublicClient()
 
@@ -121,14 +137,8 @@ export async function getPollById(id: string): Promise<PollWithResults | null> {
   const poll = pollData as PollRow | null
   if (!poll) return null
 
-  const voteReader = getVoteReader()
-  const { data: voteData } = await voteReader
-    .from('poll_votes')
-    .select('option_id')
-    .eq('poll_id', poll.id)
-
-  const votes = (voteData ?? []) as { option_id: string }[]
-  return toPollWithResults(poll, votes)
+  const totals = await getLivePollVoteTotals(poll.id, poll.options ?? [])
+  return { ...poll, ...totals }
 }
 
 /**
@@ -137,8 +147,9 @@ export async function getPollById(id: string): Promise<PollWithResults | null> {
  */
 export async function getAllPolls(): Promise<PollWithResults[]> {
   'use cache'
-  cacheLife({ stale: 1800, revalidate: 3600, expire: 86400 })
+  cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.polls)
+  logCacheRegeneration({ scope: 'polls:list', tags: [CACHE_TAGS.polls] })
 
   const supabase = createPublicClient()
   type VoteRow = { poll_id: string; option_id: string }
@@ -148,6 +159,7 @@ export async function getAllPolls(): Promise<PollWithResults[]> {
     .select('*')
     .eq('active', true)
     .order('created_at', { ascending: false })
+    .order('id', { ascending: true })
 
   const polls = (pollsData ?? []) as PollRow[]
   if (polls.length === 0) return []

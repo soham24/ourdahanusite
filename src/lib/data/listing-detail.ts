@@ -3,6 +3,8 @@ import 'server-only'
 import { cacheLife, cacheTag } from 'next/cache'
 
 import { CACHE_TAGS } from '@/lib/cache-tags'
+import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
+import { logCacheRegeneration } from '@/lib/isr-debug'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createPublicClient } from '@/lib/supabase/public'
 
@@ -19,7 +21,7 @@ interface SimilarListing {
   category: string
   image_url: string | null
   image_thumb_url: string | null
-  rating: number
+  rating: number | null
 }
 
 export interface ListingProductPublic {
@@ -49,7 +51,7 @@ export interface ListingDetailData {
 export async function getCachedListingDetail(idOrSubdomain: string): Promise<ListingDetailData | null> {
   'use cache'
 
-  cacheLife({ stale: 300, revalidate: 600, expire: 3600 })
+  cacheLife(PUBLIC_CONTENT_CACHE)
 
   try {
     const supabase = createPublicClient()
@@ -69,6 +71,11 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
     const listingCategory = typeof listing.category === 'string' ? listing.category : ''
 
     cacheTag(CACHE_TAGS.listing(listingId))
+    logCacheRegeneration({
+      scope: 'listing:detail',
+      tags: [CACHE_TAGS.listing(listingId)],
+      detail: { listingId },
+    })
 
     const paymentsEnabled = listing.payments_enabled === true
 
@@ -86,12 +93,14 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
         .select('*')
         .eq('listing_id', listingId)
         .order('created_at', { ascending: false })
+        .order('id', { ascending: true })
         .limit(20),
       supabase
         .from('listing_questions')
         .select('*')
         .eq('listing_id', listingId)
-        .order('created_at', { ascending: false }),
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true }),
       supabase
         .from('listing_recommendations')
         .select('listing_id', { count: 'exact', head: true })
@@ -107,6 +116,9 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
             .eq('category', listingCategory)
             .eq('approved', true)
             .neq('id', listingId)
+            .order('rating', { ascending: false, nullsFirst: false })
+            .order('created_at', { ascending: false })
+            .order('id', { ascending: true })
             .limit(4)
         : Promise.resolve({ data: [] as SimilarListing[] }),
       paymentsEnabled
@@ -117,6 +129,7 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
             .eq('is_active', true)
             .order('sort_order', { ascending: true })
             .order('created_at', { ascending: true })
+            .order('id', { ascending: true })
         : Promise.resolve({ data: [] as ListingProductPublic[] }),
       // RLS on listing_payment_configs only permits the listing owner to
       // SELECT — there is no public/anon policy. Use the service-role admin

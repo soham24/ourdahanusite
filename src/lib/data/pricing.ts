@@ -3,6 +3,8 @@ import 'server-only'
 import { cacheLife, cacheTag } from 'next/cache'
 
 import { CACHE_TAGS } from '@/lib/cache-tags'
+import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
+import { logCacheRegeneration } from '@/lib/isr-debug'
 import { createPublicClient } from '@/lib/supabase/public'
 
 export interface PricingConfig {
@@ -32,8 +34,9 @@ const FALLBACK_PRICING: PricingConfig = {
 export async function getCachedPricingConfig(): Promise<PricingConfig> {
   'use cache'
 
-  cacheLife({ stale: 300, revalidate: 600, expire: 3600 })
+  cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.pricing)
+  logCacheRegeneration({ scope: 'pricing:config', tags: [CACHE_TAGS.pricing] })
 
   try {
     const supabase = createPublicClient()
@@ -56,8 +59,9 @@ export async function getCachedPricingConfig(): Promise<PricingConfig> {
 export async function getCachedActiveCoupons(): Promise<Coupon[]> {
   'use cache'
 
-  cacheLife({ stale: 300, revalidate: 600, expire: 3600 })
+  cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.coupons)
+  logCacheRegeneration({ scope: 'pricing:coupons', tags: [CACHE_TAGS.coupons] })
 
   try {
     const supabase = createPublicClient()
@@ -66,6 +70,7 @@ export async function getCachedActiveCoupons(): Promise<Coupon[]> {
       .select('*')
       .eq('enabled', true)
       .order('created_at', { ascending: false })
+      .order('id', { ascending: true })
 
     return data ?? []
   } catch {

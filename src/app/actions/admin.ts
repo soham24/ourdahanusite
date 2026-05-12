@@ -5,7 +5,6 @@ import { createAdminClient } from '@/lib/supabase/admin-client'
 import {
   revalidateEmergencyCache,
   revalidatePublicJobs,
-  revalidatePublicListingCollections,
   revalidatePublicListingContent,
 } from '@/lib/cache-tags'
 import { sendNotification } from '@/lib/notifications'
@@ -249,7 +248,6 @@ export async function approveContent(formData: FormData) {
   }
 
   if (table === 'listings') {
-    revalidatePublicListingCollections()
     revalidatePublicListingContent(id)
   }
   if (table === 'jobs') {
@@ -314,7 +312,7 @@ export async function rejectContent(formData: FormData) {
   }
 
   if (table === 'listings') {
-    revalidatePublicListingCollections()
+    revalidatePublicListingContent(id)
   }
   if (table === 'jobs') {
     revalidatePublicJobs()
@@ -363,7 +361,6 @@ export async function unpublishContent(formData: FormData) {
   if (error) throw new Error(error.message)
 
   if (table === 'listings') {
-    revalidatePublicListingCollections()
     revalidatePublicListingContent(id)
   }
   if (table === 'jobs') {
@@ -390,7 +387,7 @@ export async function deleteListing(formData: FormData) {
   const { error } = await adminClient.from('listings').delete().eq('id', id)
   if (error) throw new Error(error.message)
 
-  revalidatePublicListingCollections()
+  revalidatePublicListingContent(id)
 }
 
 export async function updateListing(formData: FormData) {
@@ -413,7 +410,6 @@ export async function updateListing(formData: FormData) {
 
   if (error) throw new Error(error.message)
 
-  revalidatePublicListingCollections()
   revalidatePublicListingContent(id)
   redirect('/admin/listings')
 }
