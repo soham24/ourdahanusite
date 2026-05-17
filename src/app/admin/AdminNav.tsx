@@ -19,6 +19,7 @@ import {
   ShieldAlert,
   ShoppingBag,
   Sparkles,
+  Star,
   Users,
 } from 'lucide-react'
 
@@ -42,6 +43,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/listings', label: 'Listings', icon: MapPin, roles: MOD_ROLES },
   { href: '/admin/classifieds', label: 'Classifieds', icon: Package, roles: MOD_ROLES },
   { href: '/admin/forum', label: 'Forum', icon: MessageCircle, roles: MOD_ROLES },
+  { href: '/admin/reviews', label: 'Reviews', icon: Star, roles: MOD_ROLES },
   { href: '/admin/featured', label: 'Featured', icon: Sparkles, roles: ADMIN_ONLY },
   { href: '/admin/polls', label: 'Polls', icon: BarChart3, roles: ADMIN_ONLY },
   { href: '/admin/appointments', label: 'Appointments', icon: Calendar, roles: ADMIN_ONLY },

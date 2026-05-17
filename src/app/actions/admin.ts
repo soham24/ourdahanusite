@@ -439,3 +439,21 @@ export async function resolveAlert(id: string) {
 
   revalidateEmergencyCache()
 }
+
+export async function deleteReview(formData: FormData) {
+  const supabase = await createClient()
+  await requireAdminOrMod(supabase)
+
+  const id = formData.get('id') as string
+  const listingId = formData.get('listing_id') as string
+
+  const adminClient = createAdminClient()
+  const db = adminClient ?? supabase
+  const { error } = await db.from('reviews').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+
+  if (listingId) {
+    revalidatePublicListingContent(listingId)
+  }
+  revalidatePath('/admin/reviews')
+}
