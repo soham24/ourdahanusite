@@ -40,7 +40,7 @@ export const LISTING_CATEGORY_GROUPS = [
   {
     label: 'Education & Sports',
     icon: '📚',
-    categories: ['Education & Coaching', 'Sports Academy'],
+    categories: ['Education & Coaching', 'Books & Literature', 'Sports Academy'],
   },
   {
     label: 'Events & Entertainment',
@@ -138,6 +138,7 @@ export const LISTING_CATEGORY_EMOJIS: Record<string, string> = {
 
   // Education & Sports
   'Education & Coaching': '📚',
+  'Books & Literature': '📖',
   Tutors: '📚',
   'Sports Academy': '🏆',
 
