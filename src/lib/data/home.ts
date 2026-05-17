@@ -49,6 +49,17 @@ export interface HomeJob {
   created_at: string
 }
 
+export interface HomeReview {
+  id: string
+  listing_id: string
+  listing_name: string
+  listing_subdomain: string | null
+  rating: number
+  comment: string | null
+  reviewer_name: string | null
+  created_at: string
+}
+
 export interface HomeStats {
   totalListings: number
   totalJobs: number
@@ -186,6 +197,61 @@ export async function getHomeNewListings(): Promise<HomeListing[]> {
       .order('id', { ascending: true })
       .limit(6)
     return (data ?? []) as HomeListing[]
+  } catch {
+    return []
+  }
+}
+
+/**
+ * 5 most recent reviews each from a different listing.
+ * Fetches the latest 60 reviews then dedupes by listing_id in JS,
+ * keeping the single most-recent review per listing, up to 5 results.
+ */
+export async function getHomeRecentReviews(): Promise<HomeReview[]> {
+  'use cache'
+
+  cacheLife(PUBLIC_CONTENT_CACHE)
+  cacheTag(CACHE_TAGS.home)
+  cacheTag(CACHE_TAGS.listings)
+  logCacheRegeneration({ scope: 'home:recent-reviews', tags: [CACHE_TAGS.home, CACHE_TAGS.listings] })
+
+  try {
+    const supabase = createPublicClient()
+    const { data } = await supabase
+      .from('reviews')
+      .select(`
+        id, listing_id, rating, comment, created_at,
+        profiles!reviews_user_id_fkey(full_name),
+        listings!reviews_listing_id_fkey(name, subdomain)
+      `)
+      .not('comment', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(60)
+
+    if (!data) return []
+
+    // Dedupe: keep first (most recent) review per listing_id
+    const seen = new Set<string>()
+    const result: HomeReview[] = []
+    for (const r of data as Record<string, unknown>[]) {
+      const lid = r.listing_id as string
+      if (seen.has(lid)) continue
+      seen.add(lid)
+      const listing = r.listings as { name?: string; subdomain?: string | null } | null
+      const profile = r.profiles as { full_name?: string | null } | null
+      result.push({
+        id: r.id as string,
+        listing_id: lid,
+        listing_name: listing?.name ?? 'Unknown listing',
+        listing_subdomain: listing?.subdomain ?? null,
+        rating: r.rating as number,
+        comment: r.comment as string | null,
+        reviewer_name: profile?.full_name ?? null,
+        created_at: r.created_at as string,
+      })
+      if (result.length === 5) break
+    }
+    return result
   } catch {
     return []
   }

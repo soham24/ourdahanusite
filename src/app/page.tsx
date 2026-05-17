@@ -5,10 +5,10 @@ import {
   getHomeNewListings,
   getHomePopularListings,
   getHomeRecentJobs,
+  getHomeRecentReviews,
   getHomeStats,
 } from '@/lib/data/home'
 import { getCachedPricingConfig } from '@/lib/data/pricing'
-import { getActivePoll } from '@/lib/data/polls'
 
 import HeroSection from './page-components/HeroSection'
 import StatsBar from './page-components/StatsBar'
@@ -18,7 +18,7 @@ import NewListingsSection from './page-components/NewListingsSection'
 import PopularBusinesses from './page-components/PopularBusinesses'
 import BusinessOwnerCTA from './page-components/BusinessOwnerCTA'
 import JobsSection from './page-components/JobsSection'
-import CommunityPollSection from './page-components/CommunityPollSection'
+import RecentReviewsSection from './page-components/RecentReviewsSection'
 import HeritageSection from './page-components/HeritageSection'
 import AboutDahanu from './page-components/AboutDahanu'
 import BottomCTABanner from './page-components/BottomCTABanner'
@@ -88,8 +88,8 @@ export default function HomePage() {
         <JobsSectionAsync />
       </Suspense>
 
-      <Suspense fallback={<HomeSectionSkeleton variant="card" label="Community poll" />}>
-        <CommunityPollAsync />
+      <Suspense fallback={<HomeSectionSkeleton variant="row" label="What people are saying" />}>
+        <RecentReviewsAsync />
       </Suspense>
 
       <HeritageSection />
@@ -157,8 +157,8 @@ async function JobsSectionAsync() {
   )
 }
 
-async function CommunityPollAsync() {
-  const activePoll = await getActivePoll()
-  if (!activePoll) return null
-  return <CommunityPollSection activePoll={activePoll} />
+async function RecentReviewsAsync() {
+  const reviews = await getHomeRecentReviews()
+  if (reviews.length === 0) return null
+  return <RecentReviewsSection reviews={reviews} />
 }
