@@ -23,14 +23,8 @@ function StarRow({ rating }: { rating: number }) {
   )
 }
 
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const days = Math.floor(diff / 86400000)
-  if (days === 0) return 'Today'
-  if (days === 1) return 'Yesterday'
-  if (days < 30) return `${days}d ago`
-  const months = Math.floor(days / 30)
-  return months === 1 ? '1 month ago' : `${months} months ago`
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 export default function RecentReviewsSection({ reviews }: RecentReviewsSectionProps) {
@@ -80,7 +74,7 @@ export default function RecentReviewsSection({ reviews }: RecentReviewsSectionPr
                     {review.reviewer_name ?? 'Community member'}
                   </p>
                   <p className="text-[11px] text-[var(--od-muted)] whitespace-nowrap">
-                    {timeAgo(review.created_at)}
+                    {formatDate(review.created_at)}
                   </p>
                 </div>
               </Link>
