@@ -137,6 +137,10 @@ CREATE TRIGGER listing_products_set_updated_at
   FOR EACH ROW
   EXECUTE PROCEDURE public.touch_listing_products_updated_at();
 
+-- Add thumbnail column to listing_products (from add_listing_thumbs.sql)
+ALTER TABLE listing_products
+  ADD COLUMN IF NOT EXISTS image_thumb_url text;
+
 -- ============================================================
 -- Extend existing orders table for the new owner-razorpay flow.
 --   Old rows remain payment_flow='platform_upi_payout'.

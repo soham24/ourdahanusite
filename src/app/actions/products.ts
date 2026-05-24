@@ -169,20 +169,25 @@ export async function createProduct(
 
   const nextSortOrder = existing && existing.length > 0 ? (existing[0].sort_order ?? 0) + 1 : 0
 
+  const thumbUrl = imageThumbUrl || imageUrl
+  const insertPayload: Record<string, unknown> = {
+    listing_id: listingId,
+    type,
+    name,
+    description,
+    price_paise: pricePaise,
+    quantity_in_stock: quantity,
+    image_url: imageUrl,
+    is_active: isActive,
+    sort_order: nextSortOrder,
+  }
+  // image_thumb_url was added in a later migration — only include it when
+  // we have a value so inserts don't fail if the column doesn't exist yet.
+  if (thumbUrl) insertPayload.image_thumb_url = thumbUrl
+
   const { data, error } = await adminClient
     .from('listing_products')
-    .insert({
-      listing_id: listingId,
-      type,
-      name,
-      description,
-      price_paise: pricePaise,
-      quantity_in_stock: quantity,
-      image_url: imageUrl,
-      image_thumb_url: imageThumbUrl || imageUrl,
-      is_active: isActive,
-      sort_order: nextSortOrder,
-    })
+    .insert(insertPayload)
     .select('id')
     .single()
 
@@ -237,18 +242,21 @@ export async function updateProduct(
   const imageThumbUrl = normalizeOptionalUrlOrNull(formData.get('image_thumb_url') as string)
   const isActive = formData.get('is_active') !== 'off'
 
+  const thumbUrl = imageThumbUrl || imageUrl
+  const updatePayload: Record<string, unknown> = {
+    type,
+    name,
+    description,
+    price_paise: pricePaise,
+    quantity_in_stock: quantity,
+    image_url: imageUrl,
+    is_active: isActive,
+  }
+  if (thumbUrl !== undefined) updatePayload.image_thumb_url = thumbUrl
+
   const { error } = await adminClient
     .from('listing_products')
-    .update({
-      type,
-      name,
-      description,
-      price_paise: pricePaise,
-      quantity_in_stock: quantity,
-      image_url: imageUrl,
-      image_thumb_url: imageThumbUrl || imageUrl,
-      is_active: isActive,
-    })
+    .update(updatePayload)
     .eq('id', productId)
 
   if (error) return { error: error.message }
