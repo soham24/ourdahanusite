@@ -21,6 +21,16 @@ interface Service {
   type?: 'service' | 'product'
 }
 
+interface ListingRow {
+  id: string
+  name: string
+  subdomain: string | null
+  whatsapp: string | null
+  phone: string | null
+  services: unknown
+  approved: boolean
+}
+
 function parseJson<T>(value: unknown, fallback: T): T {
   try {
     if (Array.isArray(value) || (value !== null && typeof value === 'object')) return value as T
@@ -31,12 +41,13 @@ function parseJson<T>(value: unknown, fallback: T): T {
 
 async function getListingAndService(subdomain: string, index: number) {
   const supabase = createPublicClient()
-  const { data: listing } = await supabase
+  const { data: listingData } = await supabase
     .from('listings')
     .select('id, name, subdomain, whatsapp, phone, services, approved')
     .eq('subdomain', subdomain)
     .eq('approved', true)
     .maybeSingle()
+  const listing = listingData as ListingRow | null
 
   if (!listing) return null
 
