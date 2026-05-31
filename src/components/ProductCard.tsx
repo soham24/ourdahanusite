@@ -1,4 +1,7 @@
-import { Package, Wrench } from 'lucide-react'
+'use client'
+
+import { useState } from 'react'
+import { Package, Wrench, Link2, Check } from 'lucide-react'
 
 export type PublicProduct = {
   id: string
@@ -15,19 +18,64 @@ function formatPrice(paise: number): string {
   return `₹${(paise / 100).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
 }
 
+function ShareButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Fallback for older browsers
+      const ta = document.createElement('textarea')
+      ta.value = url
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      title="Copy direct link to this item"
+      className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-all ${
+        copied
+          ? 'border-green-200 bg-green-50 text-green-700'
+          : 'border-[var(--od-border)] bg-white text-[var(--od-muted)] hover:border-[var(--od-brand)]/40 hover:text-[var(--od-brand)]'
+      }`}
+    >
+      {copied ? <Check size={11} /> : <Link2 size={11} />}
+      {copied ? 'Copied!' : 'Share'}
+    </button>
+  )
+}
+
 export default function ProductCard({
   product,
   buySlot,
+  shareUrl,
 }: {
   product: PublicProduct
   buySlot?: React.ReactNode
+  shareUrl?: string
 }) {
   const isOutOfStock = product.quantity_in_stock === 0
   const lowStock =
     product.quantity_in_stock !== null && product.quantity_in_stock > 0 && product.quantity_in_stock <= 5
 
   return (
-    <article className="od-card od-card-hover flex flex-col overflow-hidden">
+    <article
+      id={`product-${product.id}`}
+      className="od-card od-card-hover flex flex-col overflow-hidden scroll-mt-28"
+    >
       <div className="relative aspect-square w-full overflow-hidden bg-[#fdf7f0]">
         {product.image_thumb_url || product.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -71,12 +119,14 @@ export default function ProductCard({
           )}
         </div>
 
-        <div className="mt-auto flex items-center justify-between gap-2">
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-2">
           <p className="text-xl font-extrabold text-[var(--od-ink)]">{formatPrice(product.price_paise)}</p>
-          {buySlot}
+          <div className="flex items-center gap-2">
+            {shareUrl && <ShareButton url={shareUrl} />}
+            {buySlot}
+          </div>
         </div>
       </div>
     </article>
   )
 }
-

@@ -165,6 +165,7 @@ export default function ListingContent({
               <ProductCard
                 key={product.id}
                 product={product}
+                shareUrl={`${businessUrl}#product-${product.id}`}
                 buySlot={
                   <BuyButton
                     product={{
