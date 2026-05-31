@@ -4,7 +4,21 @@ import type { Metadata } from 'next'
 import { ArrowLeft, Package, Wrench } from 'lucide-react'
 import { createPublicClient } from '@/lib/supabase/public'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
-import type { ListingProduct } from '@/app/actions/products'
+interface ListingProduct {
+  id: string
+  listing_id: string
+  type: 'product' | 'service'
+  name: string
+  description: string | null
+  price_paise: number
+  quantity_in_stock: number | null
+  image_url: string | null
+  image_thumb_url: string | null
+  is_active: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
 
 interface ListingBasic {
   id: string
