@@ -24,7 +24,7 @@ export async function generateMetadata({
   const supabase = createPublicClient()
   const { data: product } = await supabase
     .from('listing_products')
-    .select('name, description, price_paise, image_url, listing_id')
+    .select('*')
     .eq('id', productId)
     .eq('is_active', true)
     .maybeSingle()
@@ -33,7 +33,7 @@ export async function generateMetadata({
 
   const { data: listing } = await supabase
     .from('listings')
-    .select('name')
+    .select('id, name, subdomain, whatsapp, phone, approved')
     .eq('id', product.listing_id)
     .eq('approved', true)
     .maybeSingle()
