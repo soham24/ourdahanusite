@@ -12,8 +12,6 @@ import {
   type ServiceImageAspect,
 } from '@/lib/service-image'
 
-export const dynamic = 'force-dynamic'
-
 interface Service {
   name: string
   price?: string
@@ -42,6 +40,7 @@ function parseJson<T>(value: unknown, fallback: T): T {
 }
 
 async function getListingAndService(subdomain: string, index: number) {
+  'use cache'
   const supabase = createPublicClient()
   const { data: listingData } = await supabase
     .from('listings')
@@ -60,33 +59,10 @@ async function getListingAndService(subdomain: string, index: number) {
   return { listing, service }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ index: string }>
-}): Promise<Metadata> {
-  try {
-    const { index } = await params
-    const headersList = await headers()
-    const subdomain = headersList.get('x-subdomain')
-    if (!subdomain) return { title: 'Service | OurDahanu' }
-
-    const result = await getListingAndService(subdomain, Number(index))
-    if (!result) return { title: 'Service | OurDahanu' }
-
-    const { listing, service } = result
-    return {
-      title: `${service.name}${service.price ? ` — ${service.price}` : ''} | ${String(listing.name)}`,
-      description: service.desc ?? undefined,
-      openGraph: {
-        title: service.name,
-        description: service.desc ?? undefined,
-        images: service.image ? [{ url: service.image }] : undefined,
-      },
-    }
-  } catch {
-    return { title: 'Service | OurDahanu' }
-  }
+// generateMetadata cannot call headers() at build time — return generic fallback.
+// Full OG data is available at request time via the page component.
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: 'Service | OurDahanu' }
 }
 
 const WA_ICON = (
