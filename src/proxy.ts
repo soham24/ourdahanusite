@@ -63,29 +63,17 @@ export function proxy(request: NextRequest) {
   return response
 }
 
+const SUBDOMAIN_HOST_PATTERN =
+  '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)'
+
+const subdomainHas = [{ type: 'header' as const, key: 'host', value: SUBDOMAIN_HOST_PATTERN }]
+
 export const config = {
   matcher: [
-    {
-      source: '/',
-      has: [
-        {
-          type: 'header',
-          key: 'host',
-          value:
-            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
-        },
-      ],
-    },
-    {
-      source: '/robots.txt',
-      has: [
-        {
-          type: 'header',
-          key: 'host',
-          value:
-            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
-        },
-      ],
-    },
+    { source: '/',           has: subdomainHas },
+    { source: '/robots.txt', has: subdomainHas },
+    // Standalone product & service detail pages — middleware sets x-subdomain header
+    { source: '/p/:path*',   has: subdomainHas },
+    { source: '/s/:path*',   has: subdomainHas },
   ],
 }

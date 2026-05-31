@@ -186,7 +186,7 @@ export default function ServicesSection({
                       </a>
                     )}
 
-                    <ServiceShareButton url={`${businessUrl}#service-${serviceIndex}`} />
+                    <ServiceShareButton url={`${businessUrl}/s/${serviceIndex}`} />
                   </div>
                 </div>
 
