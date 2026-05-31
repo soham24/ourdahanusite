@@ -12,9 +12,45 @@ import {
 } from '@/lib/service-image'
 import { fetchListingAndService } from '@/lib/data/service-detail'
 
-// generateMetadata cannot call headers() at build time — return generic fallback.
-export async function generateMetadata(): Promise<Metadata> {
-  return { title: 'Service | OurDahanu' }
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ index: string }>
+}): Promise<Metadata> {
+  const { index } = await params
+  const serviceIndex = Number(index)
+  if (Number.isNaN(serviceIndex)) return { title: 'Service | OurDahanu' }
+
+  const headersList = await headers()
+  const subdomain = headersList.get('x-subdomain')
+  if (!subdomain) return { title: 'Service | OurDahanu' }
+
+  const result = await fetchListingAndService(subdomain, serviceIndex)
+  if (!result) return { title: 'Service | OurDahanu' }
+
+  const { listing, service } = result
+  const businessUrl = getCanonicalListingUrl(String(listing.id), listing.subdomain as string | null)
+  const title = `${service.name}${service.price ? ` — ${service.price}` : ''} | ${listing.name}`
+  const description =
+    service.desc ??
+    `${service.type === 'product' ? 'Product' : 'Service'} offered by ${listing.name} in Dahanu.`
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `${businessUrl}/s/${serviceIndex}`,
+      images: service.image ? [{ url: service.image }] : undefined,
+    },
+    twitter: {
+      card: service.image ? 'summary_large_image' : 'summary',
+      title,
+      description,
+      images: service.image ? [service.image] : undefined,
+    },
+  }
 }
 
 const WA_ICON = (

@@ -27,13 +27,23 @@ export async function generateMetadata({
 
   const { product, listing } = data
   const price = formatPrice(product.price_paise)
+  const businessUrl = getCanonicalListingUrl(String(listing?.id ?? ''), listing?.subdomain ?? null)
+  const title = `${product.name} — ${price} | ${listing?.name ?? 'OurDahanu'}`
+  const description = product.description ?? `${product.name} for ${price}`
   return {
-    title: `${product.name} — ${price} | ${listing?.name ?? 'OurDahanu'}`,
-    description: product.description ?? `${product.name} for ${price}`,
+    title,
+    description,
     openGraph: {
-      title: `${product.name} — ${price}`,
-      description: product.description ?? undefined,
+      title,
+      description,
+      url: `${businessUrl}/p/${product.id}`,
       images: product.image_url ? [{ url: product.image_url }] : undefined,
+    },
+    twitter: {
+      card: product.image_url ? 'summary_large_image' : 'summary',
+      title,
+      description,
+      images: product.image_url ? [product.image_url] : undefined,
     },
   }
 }
