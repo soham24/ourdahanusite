@@ -63,23 +63,27 @@ export async function generateMetadata({
 }: {
   params: Promise<{ index: string }>
 }): Promise<Metadata> {
-  const { index } = await params
-  const headersList = await headers()
-  const subdomain = headersList.get('x-subdomain')
-  if (!subdomain) return { title: 'Service | OurDahanu' }
+  try {
+    const { index } = await params
+    const headersList = await headers()
+    const subdomain = headersList.get('x-subdomain')
+    if (!subdomain) return { title: 'Service | OurDahanu' }
 
-  const result = await getListingAndService(subdomain, Number(index))
-  if (!result) return { title: 'Service | OurDahanu' }
+    const result = await getListingAndService(subdomain, Number(index))
+    if (!result) return { title: 'Service | OurDahanu' }
 
-  const { listing, service } = result
-  return {
-    title: `${service.name}${service.price ? ` — ${service.price}` : ''} | ${String(listing.name)}`,
-    description: service.desc ?? undefined,
-    openGraph: {
-      title: service.name,
+    const { listing, service } = result
+    return {
+      title: `${service.name}${service.price ? ` — ${service.price}` : ''} | ${String(listing.name)}`,
       description: service.desc ?? undefined,
-      images: service.image ? [{ url: service.image }] : undefined,
-    },
+      openGraph: {
+        title: service.name,
+        description: service.desc ?? undefined,
+        images: service.image ? [{ url: service.image }] : undefined,
+      },
+    }
+  } catch {
+    return { title: 'Service | OurDahanu' }
   }
 }
 

@@ -44,35 +44,39 @@ export async function generateMetadata({
 }: {
   params: Promise<{ productId: string }>
 }): Promise<Metadata> {
-  const { productId } = await params
-  const supabase = createPublicClient()
-  const { data: productData } = await supabase
-    .from('listing_products')
-    .select('*')
-    .eq('id', productId)
-    .eq('is_active', true)
-    .maybeSingle()
-  const product = productData as ListingProduct | null
+  try {
+    const { productId } = await params
+    const supabase = createPublicClient()
+    const { data: productData } = await supabase
+      .from('listing_products')
+      .select('*')
+      .eq('id', productId)
+      .eq('is_active', true)
+      .maybeSingle()
+    const product = productData as ListingProduct | null
 
-  if (!product) return { title: 'Product | OurDahanu' }
+    if (!product) return { title: 'Product | OurDahanu' }
 
-  const { data: listingData } = await supabase
-    .from('listings')
-    .select('id, name, subdomain, whatsapp, phone, approved')
-    .eq('id', product.listing_id)
-    .eq('approved', true)
-    .maybeSingle()
-  const listing = listingData as ListingBasic | null
+    const { data: listingData } = await supabase
+      .from('listings')
+      .select('id, name, subdomain, whatsapp, phone, approved')
+      .eq('id', product.listing_id)
+      .eq('approved', true)
+      .maybeSingle()
+    const listing = listingData as ListingBasic | null
 
-  const price = formatPrice(product.price_paise)
-  return {
-    title: `${product.name} — ${price} | ${listing?.name ?? 'OurDahanu'}`,
-    description: product.description ?? `${product.name} for ${price}`,
-    openGraph: {
-      title: `${product.name} — ${price}`,
-      description: product.description ?? undefined,
-      images: product.image_url ? [{ url: product.image_url }] : undefined,
-    },
+    const price = formatPrice(product.price_paise)
+    return {
+      title: `${product.name} — ${price} | ${listing?.name ?? 'OurDahanu'}`,
+      description: product.description ?? `${product.name} for ${price}`,
+      openGraph: {
+        title: `${product.name} — ${price}`,
+        description: product.description ?? undefined,
+        images: product.image_url ? [{ url: product.image_url }] : undefined,
+      },
+    }
+  } catch {
+    return { title: 'Product | OurDahanu' }
   }
 }
 
