@@ -4,60 +4,12 @@ import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
-import { createPublicClient } from '@/lib/supabase/public'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
 import {
   DEFAULT_SERVICE_IMAGE_ASPECT,
   getServiceImageAspectOption,
-  type ServiceImageAspect,
 } from '@/lib/service-image'
-
-interface Service {
-  name: string
-  price?: string
-  desc?: string
-  image?: string
-  imageAspect?: ServiceImageAspect
-  type?: 'service' | 'product'
-}
-
-interface ListingRow {
-  id: string
-  name: string
-  subdomain: string | null
-  whatsapp: string | null
-  phone: string | null
-  services: unknown
-  approved: boolean
-}
-
-function parseJson<T>(value: unknown, fallback: T): T {
-  try {
-    if (Array.isArray(value) || (value !== null && typeof value === 'object')) return value as T
-    if (typeof value === 'string') return JSON.parse(value)
-  } catch { /* empty */ }
-  return fallback
-}
-
-async function getListingAndService(subdomain: string, index: number) {
-  'use cache'
-  const supabase = createPublicClient()
-  const { data: listingData } = await supabase
-    .from('listings')
-    .select('id, name, subdomain, whatsapp, phone, services, approved')
-    .eq('subdomain', subdomain)
-    .eq('approved', true)
-    .maybeSingle()
-  const listing = listingData as ListingRow | null
-
-  if (!listing) return null
-
-  const services = parseJson<Service[]>(listing.services, [])
-  const service = services[index]
-  if (!service) return null
-
-  return { listing, service }
-}
+import { fetchListingAndService } from '@/lib/data/service-detail'
 
 // generateMetadata cannot call headers() at build time — return generic fallback.
 // Full OG data is available at request time via the page component.
@@ -83,7 +35,7 @@ export default async function StandaloneServicePage({
   const subdomain = headersList.get('x-subdomain')
   if (!subdomain || Number.isNaN(serviceIndex)) notFound()
 
-  const result = await getListingAndService(subdomain, serviceIndex)
+  const result = await fetchListingAndService(subdomain, serviceIndex)
   if (!result) notFound()
 
   const { listing, service } = result

@@ -2,58 +2,11 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { ArrowLeft, Package, Wrench } from 'lucide-react'
-import { createPublicClient } from '@/lib/supabase/public'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
-
-interface ListingProduct {
-  id: string
-  listing_id: string
-  type: 'product' | 'service'
-  name: string
-  description: string | null
-  price_paise: number
-  quantity_in_stock: number | null
-  image_url: string | null
-  image_thumb_url: string | null
-  is_active: boolean
-  sort_order: number
-  created_at: string
-  updated_at: string
-}
-
-interface ListingBasic {
-  id: string
-  name: string
-  subdomain: string | null
-  whatsapp: string | null
-  phone: string | null
-  approved: boolean
-}
+import { fetchProductAndListing } from '@/lib/data/product-detail'
 
 function formatPrice(paise: number) {
   return `₹${(paise / 100).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
-}
-
-async function fetchProductAndListing(productId: string) {
-  'use cache'
-  const supabase = createPublicClient()
-  const { data: productData } = await supabase
-    .from('listing_products')
-    .select('*')
-    .eq('id', productId)
-    .eq('is_active', true)
-    .maybeSingle()
-  const product = productData as ListingProduct | null
-  if (!product) return null
-
-  const { data: listingData } = await supabase
-    .from('listings')
-    .select('id, name, subdomain, whatsapp, phone, approved')
-    .eq('id', product.listing_id)
-    .eq('approved', true)
-    .maybeSingle()
-  const listing = listingData as ListingBasic | null
-  return { product, listing }
 }
 
 const WA_ICON = (
