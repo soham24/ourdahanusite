@@ -4,6 +4,8 @@ import type { Metadata } from 'next'
 import { ArrowLeft, Package, Wrench } from 'lucide-react'
 import { createPublicClient } from '@/lib/supabase/public'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
+
+export const dynamic = 'force-dynamic'
 interface ListingProduct {
   id: string
   listing_id: string

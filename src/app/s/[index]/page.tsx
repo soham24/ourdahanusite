@@ -12,6 +12,8 @@ import {
   type ServiceImageAspect,
 } from '@/lib/service-image'
 
+export const dynamic = 'force-dynamic'
+
 interface Service {
   name: string
   price?: string
