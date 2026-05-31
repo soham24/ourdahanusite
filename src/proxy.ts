@@ -63,17 +63,57 @@ export function proxy(request: NextRequest) {
   return response
 }
 
-const SUBDOMAIN_HOST_PATTERN =
-  '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)'
-
-const subdomainHas = [{ type: 'header' as const, key: 'host', value: SUBDOMAIN_HOST_PATTERN }]
-
+// Keep all values in export const config as pure inline literals.
+// Next.js's extractExportedConstValue cannot resolve variable references inside this export
+// and will mark the config as "unsupported", failing the build with
+// "Invalid segment configuration export detected".
 export const config = {
   matcher: [
-    { source: '/',           has: subdomainHas },
-    { source: '/robots.txt', has: subdomainHas },
-    // Standalone product & service detail pages — middleware sets x-subdomain header
-    { source: '/p/:path*',   has: subdomainHas },
-    { source: '/s/:path*',   has: subdomainHas },
+    {
+      source: '/',
+      has: [
+        {
+          type: 'header',
+          key: 'host',
+          value:
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+        },
+      ],
+    },
+    {
+      source: '/robots.txt',
+      has: [
+        {
+          type: 'header',
+          key: 'host',
+          value:
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+        },
+      ],
+    },
+    {
+      // Standalone product detail pages — middleware sets x-subdomain header
+      source: '/p/:path*',
+      has: [
+        {
+          type: 'header',
+          key: 'host',
+          value:
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+        },
+      ],
+    },
+    {
+      // Standalone service detail pages — middleware sets x-subdomain header
+      source: '/s/:path*',
+      has: [
+        {
+          type: 'header',
+          key: 'host',
+          value:
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+        },
+      ],
+    },
   ],
 }

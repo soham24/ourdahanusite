@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
+import { Suspense } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
@@ -12,7 +13,6 @@ import {
 import { fetchListingAndService } from '@/lib/data/service-detail'
 
 // generateMetadata cannot call headers() at build time — return generic fallback.
-// Full OG data is available at request time via the page component.
 export async function generateMetadata(): Promise<Metadata> {
   return { title: 'Service | OurDahanu' }
 }
@@ -23,7 +23,21 @@ const WA_ICON = (
   </svg>
 )
 
-export default async function StandaloneServicePage({
+// Root page: non-async, wraps content in Suspense so PPR prerendering
+// can build a static shell while headers() and dynamic params resolve at request time.
+export default function StandaloneServicePage({
+  params,
+}: {
+  params: Promise<{ index: string }>
+}) {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <ServiceContent params={params} />
+    </Suspense>
+  )
+}
+
+async function ServiceContent({
   params,
 }: {
   params: Promise<{ index: string }>

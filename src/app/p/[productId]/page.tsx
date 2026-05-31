@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { ArrowLeft, Package, Wrench } from 'lucide-react'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
 import { fetchProductAndListing } from '@/lib/data/product-detail'
@@ -37,7 +38,21 @@ export async function generateMetadata({
   }
 }
 
-export default async function StandaloneProductPage({
+// Root page: non-async, wraps content in Suspense so PPR prerendering
+// can build a static shell while the dynamic params/data resolve at request time.
+export default function StandaloneProductPage({
+  params,
+}: {
+  params: Promise<{ productId: string }>
+}) {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <ProductContent params={params} />
+    </Suspense>
+  )
+}
+
+async function ProductContent({
   params,
 }: {
   params: Promise<{ productId: string }>
