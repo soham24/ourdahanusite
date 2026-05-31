@@ -6,6 +6,15 @@ import { createPublicClient } from '@/lib/supabase/public'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
 import type { ListingProduct } from '@/app/actions/products'
 
+interface ListingBasic {
+  id: string
+  name: string
+  subdomain: string | null
+  whatsapp: string | null
+  phone: string | null
+  approved: boolean
+}
+
 function formatPrice(paise: number) {
   return `₹${(paise / 100).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
 }
@@ -33,12 +42,13 @@ export async function generateMetadata({
 
   if (!product) return { title: 'Product | OurDahanu' }
 
-  const { data: listing } = await supabase
+  const { data: listingData } = await supabase
     .from('listings')
     .select('id, name, subdomain, whatsapp, phone, approved')
     .eq('id', product.listing_id)
     .eq('approved', true)
     .maybeSingle()
+  const listing = listingData as ListingBasic | null
 
   const price = formatPrice(product.price_paise)
   return {
@@ -70,12 +80,13 @@ export default async function StandaloneProductPage({
 
   if (!product) notFound()
 
-  const { data: listing } = await supabase
+  const { data: listingData } = await supabase
     .from('listings')
     .select('id, name, subdomain, whatsapp, phone, approved')
     .eq('id', product.listing_id)
     .eq('approved', true)
     .maybeSingle()
+  const listing = listingData as ListingBasic | null
 
   if (!listing) notFound()
 
