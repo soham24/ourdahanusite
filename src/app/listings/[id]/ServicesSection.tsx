@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
-import { ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingCart, Link2, Check } from 'lucide-react'
 import {
   DEFAULT_SERVICE_IMAGE_ASPECT,
   getServiceImageAspectOption,
@@ -36,6 +36,43 @@ interface Props {
 }
 
 const ITEMS_PER_PAGE = 10
+
+function ServiceShareButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      const ta = document.createElement('textarea')
+      ta.value = url
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      title="Copy direct link to this item"
+      className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-all ${
+        copied
+          ? 'border-green-200 bg-green-50 text-green-700'
+          : 'border-border bg-white text-gray-400 hover:border-brand/40 hover:text-brand'
+      }`}
+    >
+      {copied ? <Check size={11} /> : <Link2 size={11} />}
+      {copied ? 'Copied!' : 'Share'}
+    </button>
+  )
+}
 
 function parsePriceNum(price?: string): number | null {
   if (!price) return null
@@ -84,7 +121,7 @@ export default function ServicesSection({
             : null
 
           return (
-            <div key={serviceIndex} className="overflow-hidden rounded-xl border border-border/50 bg-surface-soft/40">
+            <div key={serviceIndex} id={`service-${serviceIndex}`} className="overflow-hidden rounded-xl border border-border/50 bg-surface-soft/40 scroll-mt-28">
               {service.image && (
                 <div className={`bg-gray-100 ${imageAspect.value === 'portrait' ? 'p-3' : ''}`}>
                   <div
@@ -148,6 +185,8 @@ export default function ServicesSection({
                         {canOrderThis ? 'Enquire' : service.type === 'product' ? 'Order Now' : 'Book Now'}
                       </a>
                     )}
+
+                    <ServiceShareButton url={`${businessUrl}#service-${serviceIndex}`} />
                   </div>
                 </div>
 
