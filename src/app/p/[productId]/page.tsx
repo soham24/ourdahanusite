@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { ArrowLeft, Package, Wrench } from 'lucide-react'
 import { createPublicClient } from '@/lib/supabase/public'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
+import type { ListingProduct } from '@/app/actions/products'
 
 function formatPrice(paise: number) {
   return `₹${(paise / 100).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
@@ -22,12 +23,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { productId } = await params
   const supabase = createPublicClient()
-  const { data: product } = await supabase
+  const { data: productData } = await supabase
     .from('listing_products')
     .select('*')
     .eq('id', productId)
     .eq('is_active', true)
     .maybeSingle()
+  const product = productData as ListingProduct | null
 
   if (!product) return { title: 'Product | OurDahanu' }
 
@@ -58,12 +60,13 @@ export default async function StandaloneProductPage({
   const { productId } = await params
   const supabase = createPublicClient()
 
-  const { data: product } = await supabase
+  const { data: productData } = await supabase
     .from('listing_products')
     .select('*')
     .eq('id', productId)
     .eq('is_active', true)
     .maybeSingle()
+  const product = productData as ListingProduct | null
 
   if (!product) notFound()
 
