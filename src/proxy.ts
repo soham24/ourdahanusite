@@ -1,27 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
-const RESERVED = new Set([
-  'www', 'admin', 'api', 'app', 'mail', 'shop', 'news', 'events',
-  'jobs', 'forum', 'classifieds', 'emergency', 'dashboard', 'login',
-  'profile', 'search', 'about', 'listings', 'my-business', 'offline',
-  'auth', 'static', 'assets', 'media', 'cdn',
-])
-
-function getSubdomain(host: string): string | null {
-  if (host.endsWith('.ourdahanu.in')) {
-    const prefix = host.slice(0, host.length - '.ourdahanu.in'.length)
-    if (prefix && !prefix.includes('.') && !RESERVED.has(prefix)) return prefix
-  } else if (host.includes('.localhost')) {
-    const withoutPort = host.split(':')[0]
-    const parts = withoutPort.split('.')
-    if (parts.length >= 2 && parts[0] && !RESERVED.has(parts[0])) return parts[0]
-  }
-  return null
-}
+import { getBusinessSubdomain } from '@/lib/subdomain'
 
 export function proxy(request: NextRequest) {
   const host = request.headers.get('host') || ''
-  const subdomain = getSubdomain(host)
+  const subdomain = getBusinessSubdomain(host)
 
   const pathname = request.nextUrl.pathname
 

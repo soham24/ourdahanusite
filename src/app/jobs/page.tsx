@@ -19,11 +19,20 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   hiring: { label: 'Hiring in Progress', cls: 'bg-amber-100 text-amber-700' },
 }
 
+// The x-forwarded-host header sample is required because the root layout's
+// SiteChrome components read the request host (to hide generic chrome on
+// business subdomains). /jobs only exists on the main domain.
 export const unstable_instant = {
   prefetch: 'runtime',
   samples: [
-    { searchParams: { category: null, type: null, submitted: null } },
-    { searchParams: { category: 'Restaurants', type: 'Full-time', submitted: '1' } },
+    {
+      searchParams: { category: null, type: null, submitted: null },
+      headers: [['x-forwarded-host', 'ourdahanu.in']],
+    },
+    {
+      searchParams: { category: 'Restaurants', type: 'Full-time', submitted: '1' },
+      headers: [['x-forwarded-host', 'ourdahanu.in']],
+    },
   ],
 }
 

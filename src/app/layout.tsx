@@ -2,10 +2,9 @@ import type { Metadata, Viewport } from 'next'
 import { Suspense } from 'react'
 import { DM_Sans, Instrument_Serif, Noto_Sans_Devanagari } from 'next/font/google'
 import './globals.css'
-import Navbar, { NavbarFallback } from '@/components/Navbar'
-import Footer from '@/components/Footer'
-import BottomTabBar from '@/components/BottomTabBar'
-import EmergencyRibbon, { EmergencyRibbonFallback } from '@/components/EmergencyRibbon'
+import { NavbarFallback } from '@/components/Navbar'
+import { EmergencyRibbonFallback } from '@/components/EmergencyRibbon'
+import { SiteNavbar, SiteFooter, SiteBottomTabBar, SiteEmergencyRibbon } from '@/components/SiteChrome'
 import LoaderFontsReady from '@/components/LoaderFontsReady'
 import PaymentRecoveryWatcher from '@/components/PaymentRecoveryWatcher'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
@@ -141,18 +140,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <StructuredData data={siteSchema} />
         <LoaderFontsReady />
         <Suspense fallback={<EmergencyRibbonFallback />}>
-          <EmergencyRibbon />
+          <SiteEmergencyRibbon />
         </Suspense>
         <Suspense fallback={<NavbarFallback />}>
-          <Navbar />
+          <SiteNavbar />
         </Suspense>
         {/* Navbar is sticky (not fixed), so <main> no longer needs top padding */}
         <main className="pb-16 lg:pb-0 min-h-screen">
           {children}
         </main>
-        <Footer />
         <Suspense fallback={null}>
-          <BottomTabBar />
+          <SiteFooter />
+        </Suspense>
+        <Suspense fallback={null}>
+          <SiteBottomTabBar />
         </Suspense>
         <ServiceWorkerRegistration />
         <Suspense fallback={null}>
