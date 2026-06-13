@@ -11,6 +11,7 @@ import {
 import { getCachedPricingConfig } from '@/lib/data/pricing'
 
 import HeroSection from './page-components/HeroSection'
+import QuickCategories from './page-components/QuickCategories'
 import StatsBar from './page-components/StatsBar'
 import FeaturedSpotlight from './page-components/FeaturedSpotlight'
 import CategoryGrid from './page-components/CategoryGrid'
@@ -67,6 +68,7 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
+      <QuickCategories />
 
       <Suspense fallback={<HomeSectionSkeleton variant="bar" />}>
         <StatsAndCategoriesAsync />

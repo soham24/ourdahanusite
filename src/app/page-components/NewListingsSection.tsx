@@ -53,7 +53,7 @@ export default function NewListingsSection({ newListings }: NewListingsSectionPr
                   <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
                   <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/92 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--od-ink)]">
                     <Sparkles size={11} className="text-[#C8881E]" />
-                    New {index + 1}
+                    New
                   </div>
                   {listing.verified && (
                     <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-blue-700 px-2.5 py-1 text-[10px] font-bold text-white">
