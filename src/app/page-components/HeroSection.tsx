@@ -3,7 +3,7 @@ import Button from '@/components/ui/Button'
 
 export default function HeroSection() {
   return (
-    <section className="relative flex min-h-[560px] flex-col justify-end overflow-hidden md:min-h-[680px]">
+    <section className="relative flex min-h-[380px] flex-col justify-end overflow-hidden sm:min-h-[480px] md:min-h-[680px]">
       {/* Layered coastal backdrop — sunset gradient + scene */}
       <div className="absolute inset-0 z-0">
         {/* Base sunset gradient — sky to sea to bark */}

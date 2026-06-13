@@ -64,7 +64,7 @@ export default async function DashboardPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
       {/* Profile Card */}
-      <div className="bg-gradient-to-br from-ink to-brand rounded-3xl p-8 text-white mb-8">
+      <div className="bg-gradient-to-br from-ink to-brand rounded-3xl p-5 sm:p-8 text-white mb-8">
         <div className="flex items-center gap-5">
           <Image src={avatar} alt={name} width={80} height={80} className="w-20 h-20 rounded-2xl border-4 border-white/30 object-cover" />
           <div className="flex-1 min-w-0">

@@ -16,7 +16,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
 
     const classes = [
       'bg-white border border-[var(--od-border)] rounded-[var(--od-radius)] shadow-[var(--od-shadow-sm)] overflow-hidden',
-      hover ? 'transition-all duration-200 hover:border-[rgba(192,88,46,0.35)] hover:shadow-[var(--od-shadow-md)] hover:-translate-y-[2px]' : '',
+      hover ? 'transition-all duration-200 hover:border-[rgba(192,88,46,0.35)] hover:shadow-[var(--od-shadow-md)] hover:-translate-y-[2px] active:scale-[0.98]' : '',
       paddings[padding],
       className
     ].filter(Boolean).join(' ')

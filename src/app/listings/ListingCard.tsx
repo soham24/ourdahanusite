@@ -45,7 +45,7 @@ export default function ListingCard({ listing }: { listing: Listing }) {
         : null)
 
   return (
-    <Card hover className="relative overflow-hidden" padding="md">
+    <Card hover className="relative overflow-hidden p-4 sm:p-6" padding="none">
       <Link href={href} className="absolute inset-0 z-0" aria-label={`View ${listing.name}`} />
 
       <div className="relative z-10 flex items-start gap-4">

@@ -107,6 +107,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: '#2E1205',
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -148,7 +149,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <SiteNavbar />
           </Suspense>
           {/* Navbar is sticky (not fixed), so <main> no longer needs top padding */}
-          <main className="pb-16 lg:pb-0 min-h-screen">
+          <main className="pb-safe-bottom min-h-screen">
             {children}
           </main>
           <Suspense fallback={null}>

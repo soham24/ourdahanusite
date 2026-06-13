@@ -143,6 +143,7 @@ export default function ProfilePage() {
               type="text"
               id="full_name"
               name="full_name"
+              autoComplete="name"
               defaultValue={profile?.full_name || user.user_metadata?.full_name || ''}
               placeholder="Your full name"
               className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-brand bg-white text-sm text-ink"
@@ -173,6 +174,7 @@ export default function ProfilePage() {
                 type="tel"
                 id="phone"
                 name="phone"
+                autoComplete="tel"
                 defaultValue={profile?.phone || ''}
                 placeholder="+91 98765 43210"
                 className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-brand bg-white text-sm text-ink"
@@ -186,6 +188,7 @@ export default function ProfilePage() {
                 type="text"
                 id="address"
                 name="address"
+                autoComplete="street-address"
                 defaultValue={profile?.address || ''}
                 placeholder="Dahanu, Palghar"
                 className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-brand bg-white text-sm text-ink"

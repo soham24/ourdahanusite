@@ -102,10 +102,10 @@ async function JobsPageContent({
       </div>
 
       {categories.length > 0 ? (
-        <div className="flex gap-2 flex-wrap mb-5">
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-5 pb-1">
           <Link
             href="/jobs"
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               !activeCategory ? 'bg-brand text-bg' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
@@ -115,7 +115,7 @@ async function JobsPageContent({
             <Link
               key={category}
               href={`/jobs?category=${encodeURIComponent(category)}${activeType ? `&type=${encodeURIComponent(activeType)}` : ''}`}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 activeCategory === category ? 'bg-brand text-bg' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >

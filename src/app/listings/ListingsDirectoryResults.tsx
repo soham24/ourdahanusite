@@ -88,8 +88,8 @@ export default function ListingsDirectoryResults({
 
   return (
     <>
-      <Card padding="sm" className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex-1">
+      <Card padding="sm" className="mb-6 flex items-center gap-2">
+        <div className="flex-1 min-w-0">
           <Input
             type="text"
             value={searchQuery}
@@ -100,34 +100,34 @@ export default function ListingsDirectoryResults({
           />
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--od-ink-2)]">
-              <ArrowUpDown size={14} className="text-[var(--od-brand)]" />
-              Sort
-            </span>
-            <select
-              value={sortKey}
-              onChange={(event) => setSortKey(event.target.value as SortKey)}
-              className="h-11 rounded-xl border border-[var(--od-border)] bg-white px-3 py-2 text-sm text-[var(--od-ink)] outline-none transition-all focus:border-[var(--od-brand)] focus:ring-4 focus:ring-[rgba(192,88,46,0.11)]"
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+        <select
+          value={sortKey}
+          onChange={(event) => setSortKey(event.target.value as SortKey)}
+          className="h-11 flex-shrink-0 rounded-xl border border-[var(--od-border)] bg-white px-2 sm:px-3 py-2 text-sm text-[var(--od-ink)] outline-none transition-all focus:border-[var(--od-brand)] focus:ring-4 focus:ring-[rgba(192,88,46,0.11)]"
+        >
+          {SORT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
 
-          <Button
-            href="/listings/submit"
-            variant="primary"
-            size="md"
-            icon={<Plus size={16} />}
-          >
-            Add Business
-          </Button>
-        </div>
+        <Link
+          href="/listings/submit"
+          className="sm:hidden flex-shrink-0 inline-flex items-center justify-center h-11 w-11 bg-brand rounded-xl text-bg"
+          aria-label="Add Business"
+        >
+          <Plus size={16} />
+        </Link>
+        <Button
+          href="/listings/submit"
+          variant="primary"
+          size="md"
+          icon={<Plus size={16} />}
+          className="hidden sm:flex flex-shrink-0"
+        >
+          Add Business
+        </Button>
       </Card>
 
       <CategoryFilter

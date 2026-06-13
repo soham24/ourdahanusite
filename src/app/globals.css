@@ -1018,3 +1018,13 @@ html.loader-fonts-ready .our-dahanu-loader__logo-arc-bottom text {
   background-size: 936px 100%;
   animation: skeleton-shimmer 1.8s ease-in-out infinite;
 }
+
+/* Safe-area-aware bottom padding for pages that sit above the tab bar */
+.pb-safe-bottom {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 1024px) {
+  .pb-safe-bottom {
+    padding-bottom: 0;
+  }
+}
