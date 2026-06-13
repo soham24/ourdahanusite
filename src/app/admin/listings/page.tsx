@@ -113,7 +113,7 @@ export default async function AdminListingsPage({
         .lt('expires_at', nowIso)
     }
 
-    const { data } = await query
+    const { data } = await query.limit(300)
     listings = data || []
   } catch {
     // DB error

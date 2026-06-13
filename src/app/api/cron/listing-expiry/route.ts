@@ -5,9 +5,9 @@
  * Secured with CRON_SECRET env var.
  *
  * What it does:
- *  1. Finds approved listings whose expires_at has passed → sets approved=false + sends "expired" notification
- *  2. For each milestone (30/15/5/3/1 days before expiry), finds listings due for that reminder
- *     and sends a notification, then marks that milestone as sent in reminders_sent[]
+ *  1. Finds approved listings whose expires_at has passed → bulk sets approved=false + sends notifications
+ *  2. Fetches all listings expiring within 30 days in ONE query, filters by milestone in JS,
+ *     sends notification and marks milestone sent per listing
  *
  * Notifications fan out through the unified engine (in-app + email + telegram +
  * whatsapp) based on the owner's `notification_preferences`.
@@ -18,10 +18,12 @@ import { createAdminClient } from '@/lib/supabase/admin-client'
 import { runAppointmentReminders } from '@/lib/cron/appointment-reminders'
 import { sendNotification } from '@/lib/notifications'
 
+const MILESTONES = [30, 15, 5, 3, 1] as const
+const MS_PER_DAY = 24 * 60 * 60 * 1000
+
 export async function GET(request: Request) {
   await connection()
 
-  // ── Auth: verify CRON_SECRET if configured ──────────────────────────────────
   const cronSecret = process.env.CRON_SECRET?.trim()
   if (!cronSecret) {
     return NextResponse.json({ error: 'CRON_SECRET is not configured' }, { status: 500 })
@@ -37,11 +39,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Admin client unavailable' }, { status: 500 })
   }
 
-  const now   = new Date()
+  const now = new Date()
   const stats = {
-    expired:   0,
-    reminded:  { 30: 0, 15: 0, 5: 0, 3: 0, 1: 0 } as Record<number, number>,
-    errors:    0,
+    expired: 0,
+    reminded: { 30: 0, 15: 0, 5: 0, 3: 0, 1: 0 } as Record<number, number>,
+    errors: 0,
     timestamp: now.toISOString(),
   }
 
@@ -53,15 +55,16 @@ export async function GET(request: Request) {
     .not('expires_at', 'is', null)
     .lt('expires_at', now.toISOString())
 
-  for (const listing of expiredListings ?? []) {
-    try {
-      // Unpublish the listing
-      await adminClient
-        .from('listings')
-        .update({ approved: false })
-        .eq('id', listing.id)
+  if (expiredListings && expiredListings.length > 0) {
+    // Bulk unpublish in one UPDATE instead of N individual updates
+    const expiredIds = expiredListings.map((l) => l.id as string)
+    await adminClient
+      .from('listings')
+      .update({ approved: false })
+      .in('id', expiredIds)
 
-      // Notify owner via the unified engine (fire-and-forget, non-blocking)
+    // Notifications still need to fire per-listing (fire-and-forget)
+    for (const listing of expiredListings) {
       if (listing.owner_id && listing.name) {
         void sendNotification(listing.owner_id as string, 'listing.expiring', {
           listingId: listing.id as string,
@@ -69,54 +72,49 @@ export async function GET(request: Request) {
           daysLeft: 0,
         }).catch((err) => console.error('[cron/listing-expiry:expired]', err))
       }
-
       stats.expired++
-    } catch {
-      stats.errors++
     }
   }
 
-  // ── 2. Send reminder notifications for each milestone ──────────────────────
-  // For each milestone, find listings that:
-  //   • are still approved (not yet expired)
-  //   • have an expires_at set
-  //   • will expire within `days` days from now
-  //   • have NOT already had that specific reminder sent
-  const milestones = [30, 15, 5, 3, 1] as const
+  // ── 2. Send reminder notifications for milestones ─────────────────────────
+  // ONE query fetches all approved listings expiring within the widest window (30 days).
+  // JS then filters per milestone rather than making 5 separate DB round-trips.
+  const maxCutoff = new Date(now.getTime() + 30 * MS_PER_DAY).toISOString()
 
-  for (const days of milestones) {
-    const cutoff = new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString()
+  const { data: upcomingListings } = await adminClient
+    .from('listings')
+    .select('id, name, owner_id, reminders_sent, expires_at')
+    .eq('approved', true)
+    .not('expires_at', 'is', null)
+    .gt('expires_at', now.toISOString())
+    .lte('expires_at', maxCutoff)
 
-    const { data: dueListings } = await adminClient
-      .from('listings')
-      .select('id, name, owner_id, reminders_sent')
-      .eq('approved', true)
-      .not('expires_at', 'is', null)
-      .gt('expires_at', now.toISOString())   // still active
-      .lte('expires_at', cutoff)             // expiring within `days` days
+  for (const listing of upcomingListings ?? []) {
+    const sent = (listing.reminders_sent as number[]) ?? []
+    const expiresAt = new Date(listing.expires_at as string).getTime()
+    const daysLeft = Math.floor((expiresAt - now.getTime()) / MS_PER_DAY)
 
-    for (const listing of dueListings ?? []) {
-      const sent = (listing.reminders_sent as number[]) ?? []
-
-      // Skip if we already sent this milestone reminder
-      if (sent.includes(days)) continue
+    // Find which milestones this listing qualifies for and hasn't been notified about
+    for (const milestone of MILESTONES) {
+      if (daysLeft > milestone) continue    // not yet within this window
+      if (sent.includes(milestone)) continue // already sent
 
       try {
         if (listing.owner_id && listing.name) {
           await sendNotification(listing.owner_id as string, 'listing.expiring', {
             listingId: listing.id as string,
             listingName: listing.name as string,
-            daysLeft: days,
+            daysLeft: milestone,
           })
         }
 
-        // Mark this milestone as sent
         await adminClient
           .from('listings')
-          .update({ reminders_sent: [...sent, days] })
+          .update({ reminders_sent: [...sent, milestone] })
           .eq('id', listing.id)
 
-        stats.reminded[days]++
+        sent.push(milestone)
+        stats.reminded[milestone]++
       } catch {
         stats.errors++
       }
