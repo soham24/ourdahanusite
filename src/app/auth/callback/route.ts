@@ -6,9 +6,18 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/'
 
+  const oauthError = searchParams.get('error')
+  if (oauthError) {
+    console.error('[auth/callback] OAuth provider error:', oauthError, searchParams.get('error_description'))
+    return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+  }
+
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (error) {
+      console.error('[auth/callback] exchangeCodeForSession failed:', error.message, error.status)
+    }
     if (!error) {
       // Auto-upsert profile with Google name so reviews/posts show real name
       try {

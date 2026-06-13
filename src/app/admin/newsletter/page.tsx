@@ -16,7 +16,7 @@ export default function AdminNewsletterPage() {
     supabase
       .from('newsletter_subscriptions')
       .select('id', { count: 'exact', head: true })
-      .then(({ count }) => setSubscriberCount(count ?? 0))
+      .then(({ count }: { count: number | null }) => setSubscriberCount(count ?? 0))
   }, [supabase])
 
   // Reset form on successful send

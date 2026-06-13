@@ -92,7 +92,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
           table: 'notifications',
           filter: `user_id=eq.${userId}`,
         },
-        (payload) => {
+        (payload: { new: unknown }) => {
           const row = payload.new as NotificationRow
           setItems((prev) => [row, ...prev].slice(0, 15))
           setUnread((c) => c + 1)
