@@ -7,12 +7,12 @@ import {
   ArrowRight,
   Calendar,
   CheckCircle,
+  ChevronLeft,
   Clock3,
   CreditCard,
   Loader2,
   ShieldCheck,
-  Sparkles,
-  Users,
+  User,
 } from 'lucide-react'
 
 import {
@@ -42,6 +42,7 @@ type Props = {
 }
 
 type BookingStatus = 'idle' | 'loading-slots' | 'processing' | 'success' | 'error'
+type Step = 'date' | 'time' | 'details'
 
 type RazorpayOptions = {
   key: string
@@ -88,6 +89,15 @@ function formatSelectedDate(value: string): string {
   })
 }
 
+function formatShortDate(value: string): { day: string; weekday: string; month: string } {
+  const d = new Date(`${value}T12:00:00+05:30`)
+  return {
+    day: d.toLocaleDateString('en-IN', { day: 'numeric', timeZone: 'Asia/Kolkata' }),
+    weekday: d.toLocaleDateString('en-IN', { weekday: 'short', timeZone: 'Asia/Kolkata' }),
+    month: d.toLocaleDateString('en-IN', { month: 'short', timeZone: 'Asia/Kolkata' }),
+  }
+}
+
 function formatTimeLabel(value: string): string {
   return new Date(`1970-01-01T${value}:00+05:30`).toLocaleTimeString('en-IN', {
     hour: 'numeric',
@@ -97,7 +107,7 @@ function formatTimeLabel(value: string): string {
 }
 
 function formatSlotLabel(slot: AppointmentSlot): string {
-  return `${formatTimeLabel(slot.start)} - ${formatTimeLabel(slot.end)}`
+  return `${formatTimeLabel(slot.start)} – ${formatTimeLabel(slot.end)}`
 }
 
 function getSlotPeriod(slot: AppointmentSlot): 'morning' | 'afternoon' | 'evening' {
@@ -108,14 +118,20 @@ function getSlotPeriod(slot: AppointmentSlot): 'morning' | 'afternoon' | 'evenin
 }
 
 const PERIOD_META = {
-  morning: { label: 'Morning', icon: '☀️' },
-  afternoon: { label: 'Afternoon', icon: '🌤️' },
-  evening: { label: 'Evening', icon: '🌙' },
+  morning: { label: 'Morning', emoji: '☀️' },
+  afternoon: { label: 'Afternoon', emoji: '🌤️' },
+  evening: { label: 'Evening', emoji: '🌙' },
 } as const
 
 function formatFee(value: number): string {
   return value > 0 ? `Rs ${value.toLocaleString('en-IN')}` : 'Free'
 }
+
+const STEPS: { id: Step; label: string }[] = [
+  { id: 'date', label: 'Date' },
+  { id: 'time', label: 'Time' },
+  { id: 'details', label: 'Details' },
+]
 
 export default function AppointmentBooking({
   listingId,
@@ -134,6 +150,15 @@ export default function AppointmentBooking({
     [appointmentSettings.advance_days, today],
   )
 
+  const quickDates = useMemo(() => {
+    const dates: string[] = []
+    for (let i = 0; i < Math.min(7, appointmentSettings.advance_days); i++) {
+      dates.push(addIndiaDays(today, i))
+    }
+    return dates
+  }, [today, appointmentSettings.advance_days])
+
+  const [step, setStep] = useState<Step>('date')
   const [selectedDate, setSelectedDate] = useState(today)
   const [slots, setSlots] = useState<AppointmentSlot[]>([])
   const [selectedSlot, setSelectedSlot] = useState<AppointmentSlot | null>(null)
@@ -144,47 +169,15 @@ export default function AppointmentBooking({
   const [name, setName] = useState(userName)
   const [phone, setPhone] = useState(userPhone)
   const [notes, setNotes] = useState('')
-  const [fieldErrors, setFieldErrors] = useState<{ name?: string; phone?: string; slot?: string }>({})
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; phone?: string }>({})
 
   const availableSlotsCount = useMemo(
     () => slots.filter((slot) => slot.available).length,
     [slots],
   )
 
-  const selectedSlotLabel = selectedSlot
-    ? formatSlotLabel(selectedSlot)
-    : 'Pick a time slot to continue'
-
-  const bookingHighlights = [
-    {
-      label: 'Fee',
-      value: formatFee(bookingFee),
-      tone: 'text-brand',
-    },
-    {
-      label: 'Slot Length',
-      value: `${appointmentSettings.slot_duration} min`,
-      tone: 'text-gray-900',
-    },
-    {
-      label: 'Capacity',
-      value: `${appointmentSettings.capacity} / slot`,
-      tone: 'text-gray-900',
-    },
-    {
-      label: 'Booking Window',
-      value: `${appointmentSettings.advance_days} days`,
-      tone: 'text-gray-900',
-    },
-  ]
-
-  useEffect(() => {
-    setName(userName)
-  }, [userName])
-
-  useEffect(() => {
-    setPhone(userPhone)
-  }, [userPhone])
+  useEffect(() => { setName(userName) }, [userName])
+  useEffect(() => { setPhone(userPhone) }, [userPhone])
 
   useEffect(() => {
     let active = true
@@ -208,9 +201,7 @@ export default function AppointmentBooking({
     }
 
     void loadSlots()
-    return () => {
-      active = false
-    }
+    return () => { active = false }
   }, [listingId, selectedDate])
 
   useEffect(() => {
@@ -232,10 +223,7 @@ export default function AppointmentBooking({
     razorpay_order_id?: string
     razorpay_signature?: string
   }) {
-    if (!selectedSlot) {
-      setError('Please choose a slot first.')
-      return
-    }
+    if (!selectedSlot) return
 
     const trimmedName = name.trim()
     const trimmedPhone = phone.trim()
@@ -256,15 +244,9 @@ export default function AppointmentBooking({
     formData.set('user_email', userEmail)
     formData.set('notes', notes.trim())
 
-    if (payment?.razorpay_order_id) {
-      formData.set('razorpay_order_id', payment.razorpay_order_id)
-    }
-    if (payment?.razorpay_payment_id) {
-      formData.set('razorpay_payment_id', payment.razorpay_payment_id)
-    }
-    if (payment?.razorpay_signature) {
-      formData.set('razorpay_signature', payment.razorpay_signature)
-    }
+    if (payment?.razorpay_order_id) formData.set('razorpay_order_id', payment.razorpay_order_id)
+    if (payment?.razorpay_payment_id) formData.set('razorpay_payment_id', payment.razorpay_payment_id)
+    if (payment?.razorpay_signature) formData.set('razorpay_signature', payment.razorpay_signature)
 
     if (payment?.razorpay_order_id && payment?.razorpay_payment_id) {
       updateRecoveryDraft(payment.razorpay_order_id, {
@@ -289,20 +271,14 @@ export default function AppointmentBooking({
       return
     }
 
-    if (payment?.razorpay_order_id) {
-      clearRecoveryDraft(payment.razorpay_order_id)
-    }
+    if (payment?.razorpay_order_id) clearRecoveryDraft(payment.razorpay_order_id)
 
     setConfirmation({ date: selectedDate, slot: selectedSlot })
     setStatus('success')
   }
 
   function validateFields(): boolean {
-    const errors: { name?: string; phone?: string; slot?: string } = {}
-
-    if (!selectedSlot) {
-      errors.slot = 'Please select a time slot.'
-    }
+    const errors: { name?: string; phone?: string } = {}
 
     const trimmedName = name.trim()
     if (!trimmedName) {
@@ -331,7 +307,7 @@ export default function AppointmentBooking({
 
   async function handleConfirm() {
     if (!validateFields()) return
-    if (!selectedSlot) return // type guard — validateFields already checks this
+    if (!selectedSlot) return
 
     if (bookingFee <= 0) {
       await submitBooking()
@@ -392,414 +368,400 @@ export default function AppointmentBooking({
       name: listingName,
       description: `Appointment on ${formatSelectedDate(selectedDate)} at ${selectedSlot.start}`,
       order_id: orderData.orderId,
-      handler: async (paymentResponse) => {
-        await submitBooking(paymentResponse)
-      },
-      modal: {
-        ondismiss: () => {
-          setStatus('idle')
-        },
-      },
-      prefill: {
-        name: name.trim(),
-        contact: phone.trim(),
-        email: userEmail,
-      },
+      handler: async (paymentResponse) => { await submitBooking(paymentResponse) },
+      modal: { ondismiss: () => { setStatus('idle') } },
+      prefill: { name: name.trim(), contact: phone.trim(), email: userEmail },
       theme: { color: '#C4663A' },
     })
 
     razorpay.open()
   }
 
-  return (
-    <section className="relative overflow-hidden rounded-[28px] border border-[#e7d8ca] bg-gradient-to-br from-[#fff7ef] via-white to-[#f4ede4]">
-      <div className="absolute -top-24 right-0 h-56 w-56 rounded-full bg-[#f5dfc5] blur-3xl opacity-70" />
-      <div className="absolute bottom-0 left-0 h-48 w-48 rounded-full bg-[#f2e8d9] blur-3xl opacity-70" />
-
-      <div className="relative space-y-6 p-6 lg:p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#e9c9a7] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-brand">
-              <Sparkles size={13} />
-              Appointment Booking
-            </span>
-            <h2 className="mt-4 text-2xl font-bold text-[#2d160b] sm:text-3xl">
-              Reserve a time with {listingName}
-            </h2>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-[#6f5748] sm:text-[15px]">
-              Choose a date, pick a live slot, and confirm instantly. The booking summary stays visible throughout
-              the flow so the customer always knows what is being booked and what will be charged.
-            </p>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              {['Choose date', 'Pick slot', bookingFee > 0 ? 'Pay & confirm' : 'Confirm instantly'].map((step, index) => (
-                <div
-                  key={step}
-                  className="inline-flex items-center gap-2 rounded-full bg-[#3D1A08] px-3 py-1.5 text-xs font-semibold text-bg"
-                >
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-[11px]">
-                    {index + 1}
-                  </span>
-                  {step}
-                </div>
-              ))}
+  if (status === 'success' && confirmation) {
+    return (
+      <div className="overflow-hidden rounded-2xl border border-green-100 bg-white shadow-sm">
+        <div className="bg-green-600 px-5 py-4 text-white">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+              <CheckCircle size={20} />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-green-100">Booking Confirmed</p>
+              <p className="text-base font-bold">{listingName}</p>
             </div>
           </div>
+        </div>
+        <div className="p-5">
+          <div className="rounded-xl border border-green-100 bg-green-50 p-4">
+            <p className="text-sm font-semibold text-green-900">{formatSelectedDate(confirmation.date)}</p>
+            <p className="mt-1 text-sm text-green-800">{formatSlotLabel(confirmation.slot)}</p>
+            <p className="mt-2 text-sm text-green-700">
+              {bookingFee > 0 ? `Payment: ${formatFee(bookingFee)}` : 'Free booking — no payment required.'}
+            </p>
+          </div>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <Link
+              href="/dashboard/appointments"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white"
+            >
+              View My Appointments <ArrowRight size={14} />
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmation(null)
+                setSelectedSlot(null)
+                setStep('date')
+                setStatus('idle')
+              }}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-green-200 px-4 py-3 text-sm font-semibold text-green-800"
+            >
+              Book Another Slot
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-          <div className="grid w-full gap-3 sm:grid-cols-2 lg:w-[360px]">
-            {bookingHighlights.map((item) => (
-              <div
-                key={item.label}
-                className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3 shadow-[0_10px_30px_rgba(61,26,8,0.05)] backdrop-blur"
-              >
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9b7a67]">{item.label}</p>
-                <p className={`mt-1 text-base font-bold ${item.tone}`}>{item.value}</p>
-              </div>
-            ))}
+  const stepIndex = STEPS.findIndex((s) => s.id === step)
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-[#eee2d7] bg-white shadow-sm">
+      {/* Header */}
+      <div className="border-b border-[#f0e6dc] bg-[#fff9f5] px-5 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f4ede4]">
+            <Calendar size={16} className="text-brand" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-[13px] font-bold text-[#2d160b]">{listingName}</p>
+            <p className="text-[11px] text-[#9b7c69]">
+              {appointmentSettings.slot_duration} min · {formatFee(bookingFee)}
+              {bookingFee <= 0 ? ' booking' : ' per slot'}
+            </p>
           </div>
         </div>
 
-        {status === 'success' && confirmation ? (
-          <div className="rounded-[24px] border border-green-200 bg-gradient-to-br from-green-50 to-white p-6 shadow-sm">
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-start gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-600 text-white">
-                  <CheckCircle size={20} />
+        {/* Step indicator */}
+        <div className="mt-4 flex items-center gap-0">
+          {STEPS.map((s, i) => {
+            const done = i < stepIndex
+            const active = i === stepIndex
+            return (
+              <div key={s.id} className="flex flex-1 items-center">
+                <button
+                  type="button"
+                  disabled={i > stepIndex || (i === 1 && !selectedDate) || (i === 2 && !selectedSlot)}
+                  onClick={() => {
+                    if (i < stepIndex) setStep(s.id)
+                  }}
+                  className="flex flex-col items-center gap-1 disabled:cursor-default"
+                >
+                  <div className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold transition-all ${
+                    done
+                      ? 'bg-green-500 text-white'
+                      : active
+                      ? 'bg-brand text-white'
+                      : 'bg-[#f0e6dc] text-[#9b7c69]'
+                  }`}>
+                    {done ? <CheckCircle size={13} /> : i + 1}
+                  </div>
+                  <span className={`text-[10px] font-semibold ${active ? 'text-brand' : done ? 'text-green-600' : 'text-[#9b7c69]'}`}>
+                    {s.label}
+                  </span>
+                </button>
+                {i < STEPS.length - 1 && (
+                  <div className={`mx-1 flex-1 border-t-2 ${i < stepIndex ? 'border-green-400' : 'border-[#e8ddd4]'}`} />
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Step content */}
+      <div className="p-5">
+        {/* Step 1: Date */}
+        {step === 'date' && (
+          <div className="space-y-4">
+            <div>
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-[#9b7c69]">Quick pick</p>
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
+                {quickDates.map((date) => {
+                  const { day, weekday, month } = formatShortDate(date)
+                  const isSelected = date === selectedDate
+                  const isToday = date === today
+                  return (
+                    <button
+                      key={date}
+                      type="button"
+                      onClick={() => setSelectedDate(date)}
+                      className={`flex flex-col items-center rounded-xl border py-2.5 transition-all ${
+                        isSelected
+                          ? 'border-brand bg-brand text-white'
+                          : 'border-[#e8ddd4] bg-white text-[#2d160b] hover:border-brand/50 hover:bg-[#fff5ec]'
+                      }`}
+                    >
+                      <span className={`text-[9px] font-semibold uppercase ${isSelected ? 'text-white/70' : 'text-[#9b7c69]'}`}>
+                        {weekday}
+                      </span>
+                      <span className="text-base font-bold leading-tight">{day}</span>
+                      <span className={`text-[9px] ${isSelected ? 'text-white/70' : 'text-[#9b7c69]'}`}>
+                        {isToday ? 'Today' : month}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {appointmentSettings.advance_days > 7 && (
+              <div>
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[#9b7c69]">Or pick a date</p>
+                <input
+                  type="date"
+                  min={today}
+                  max={maxDate}
+                  value={selectedDate}
+                  onChange={(event) => setSelectedDate(event.target.value)}
+                  className="w-full rounded-xl border border-[#e8ddd4] bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand focus:outline-none"
+                />
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setStep('time')}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white"
+            >
+              See Available Slots
+              <ArrowRight size={15} />
+            </button>
+          </div>
+        )}
+
+        {/* Step 2: Time slots */}
+        {step === 'time' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-bold text-[#2d160b]">{formatSelectedDate(selectedDate)}</p>
+                {status !== 'loading-slots' && (
+                  <p className="text-[12px] text-[#9b7c69]">
+                    {availableSlotsCount > 0
+                      ? `${availableSlotsCount} open slot${availableSlotsCount === 1 ? '' : 's'}`
+                      : 'No slots available'}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setStep('date')}
+                className="flex items-center gap-1 text-[12px] font-medium text-[#9b7c69]"
+              >
+                <ChevronLeft size={14} /> Change
+              </button>
+            </div>
+
+            {status === 'loading-slots' ? (
+              <div className="flex items-center justify-center gap-2 py-10 text-sm text-[#9b7c69]">
+                <Loader2 size={16} className="animate-spin" />
+                Loading slots…
+              </div>
+            ) : slots.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-[#e8ddd4] bg-[#fdfaf7] px-4 py-8 text-center text-sm text-[#9b7c69]">
+                {error || 'No slots available for this date.'}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {(['morning', 'afternoon', 'evening'] as const).map((period) => {
+                  const periodSlots = slots.filter((s) => getSlotPeriod(s) === period)
+                  if (periodSlots.length === 0) return null
+                  const meta = PERIOD_META[period]
+                  return (
+                    <div key={period}>
+                      <p className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-[#9b7c69]">
+                        <span>{meta.emoji}</span> {meta.label}
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {periodSlots.map((slot) => {
+                          const isSelected = selectedSlot?.start === slot.start
+                          return (
+                            <button
+                              key={slot.start}
+                              type="button"
+                              disabled={!slot.available}
+                              onClick={() => {
+                                setSelectedSlot(slot)
+                                setError('')
+                              }}
+                              className={`relative rounded-xl border py-2.5 text-center text-[12px] font-semibold transition-all ${
+                                !slot.available
+                                  ? 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300 line-through'
+                                  : isSelected
+                                  ? 'border-brand bg-brand text-white shadow-sm'
+                                  : 'border-[#e8ddd4] bg-white text-[#2d160b] hover:border-brand/50 hover:bg-[#fff5ec]'
+                              }`}
+                            >
+                              {formatTimeLabel(slot.start)}
+                              {slot.available &&
+                                slot.remaining <= Math.ceil(appointmentSettings.capacity / 2) &&
+                                appointmentSettings.capacity > 1 && (
+                                  <span className={`absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${
+                                    isSelected ? 'bg-white text-brand' : 'bg-orange-100 text-orange-600'
+                                  }`}>
+                                    {slot.remaining}
+                                  </span>
+                                )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {selectedSlot && (
+              <div className="rounded-xl border border-brand/20 bg-[#fff5ec] px-3 py-2.5">
+                <p className="text-[12px] font-semibold text-brand">
+                  {formatSlotLabel(selectedSlot)}
+                </p>
+                <p className="text-[11px] text-[#9b7c69]">
+                  {selectedSlot.remaining} spot{selectedSlot.remaining === 1 ? '' : 's'} remaining
+                </p>
+              </div>
+            )}
+
+            {!isLoggedIn ? (
+              <Link
+                href={`/login?next=${encodeURIComponent(pathname || `/listings/${listingId}`)}`}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white"
+              >
+                Sign In to Continue <ArrowRight size={15} />
+              </Link>
+            ) : (
+              <button
+                type="button"
+                disabled={!selectedSlot}
+                onClick={() => setStep('details')}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white disabled:opacity-40"
+              >
+                Continue <ArrowRight size={15} />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Step 3: Details + confirm */}
+        {step === 'details' && (
+          <div className="space-y-4">
+            {/* Booking summary pill */}
+            <div className="flex items-center justify-between rounded-xl border border-[#eee2d7] bg-[#fdfaf7] px-3 py-2.5">
+              <div>
+                <p className="text-[12px] font-bold text-[#2d160b]">{formatSelectedDate(selectedDate)}</p>
+                <p className="text-[11px] text-[#9b7c69]">{selectedSlot ? formatSlotLabel(selectedSlot) : '—'}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStep('time')}
+                className="flex items-center gap-1 text-[12px] font-medium text-[#9b7c69]"
+              >
+                <ChevronLeft size={14} /> Change
+              </button>
+            </div>
+
+            {/* Contact details */}
+            <div>
+              <div className="mb-3 flex items-center gap-1.5">
+                <User size={13} className="text-brand" />
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9b7c69]">Your details</p>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(event) => {
+                      setName(event.target.value)
+                      if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: undefined }))
+                    }}
+                    placeholder="Full name *"
+                    className={`w-full rounded-xl border px-4 py-3 text-sm text-gray-800 focus:outline-none ${
+                      fieldErrors.name
+                        ? 'border-red-400 bg-red-50 focus:border-red-500'
+                        : 'border-[#e8ddd4] bg-white focus:border-brand'
+                    }`}
+                  />
+                  {fieldErrors.name && <p className="mt-1 text-[11px] text-red-500">{fieldErrors.name}</p>}
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-green-900">Appointment confirmed</h3>
-                  <p className="mt-1 text-sm text-green-800">
-                    {formatSelectedDate(confirmation.date)} at {formatSlotLabel(confirmation.slot)}
-                  </p>
-                  <p className="mt-2 text-sm text-green-700">
-                    {bookingFee > 0
-                      ? `Payment received: ${formatFee(bookingFee)}`
-                      : 'No payment was required for this booking.'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/dashboard/appointments"
-                  className="inline-flex items-center gap-2 rounded-xl bg-green-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-800"
-                >
-                  View My Appointments
-                  <ArrowRight size={14} />
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setConfirmation(null)
-                    setSelectedSlot(null)
-                    setStatus('idle')
-                  }}
-                  className="inline-flex items-center rounded-xl border border-green-200 px-4 py-2.5 text-sm font-semibold text-green-800 transition-colors hover:border-green-300 hover:bg-green-50"
-                >
-                  Book Another Slot
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_360px]">
-            <div className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-[0_20px_50px_rgba(61,26,8,0.06)] backdrop-blur lg:p-6">
-              <div className="grid gap-5 xl:grid-cols-[minmax(240px,280px)_minmax(0,1fr)]">
-                <div className="rounded-2xl border border-[#efe2d6] bg-[#fffaf5] p-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-[#7d5a47]">
-                    <Calendar size={15} className="text-brand" />
-                    Step 1
-                  </div>
-                  <h3 className="mt-2 text-lg font-bold text-[#2d160b]">Choose a date</h3>
-                  <p className="mt-1 text-sm text-[#7c6253]">
-                    Booking window stays open for up to {appointmentSettings.advance_days} days ahead.
-                  </p>
-
                   <input
-                    type="date"
-                    min={today}
-                    max={maxDate}
-                    value={selectedDate}
-                    onChange={(event) => setSelectedDate(event.target.value)}
-                    className="mt-4 w-full rounded-2xl border border-[#decbbb] bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand focus:outline-none"
+                    type="tel"
+                    value={phone}
+                    onChange={(event) => {
+                      setPhone(event.target.value)
+                      if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }))
+                    }}
+                    placeholder="10-digit mobile number *"
+                    className={`w-full rounded-xl border px-4 py-3 text-sm text-gray-800 focus:outline-none ${
+                      fieldErrors.phone
+                        ? 'border-red-400 bg-red-50 focus:border-red-500'
+                        : 'border-[#e8ddd4] bg-white focus:border-brand'
+                    }`}
                   />
-
-                  <div className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-[#6b5547]">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9f806d]">Selected Date</p>
-                    <p className="mt-1 font-semibold text-[#2d160b]">{formatSelectedDate(selectedDate)}</p>
-                  </div>
+                  {fieldErrors.phone && <p className="mt-1 text-[11px] text-red-500">{fieldErrors.phone}</p>}
                 </div>
-
-                <div className="rounded-2xl border border-[#efe2d6] bg-white p-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 text-sm font-semibold text-[#7d5a47]">
-                        <Clock3 size={15} className="text-brand" />
-                        Step 2
-                      </div>
-                      <h3 className="mt-1 text-lg font-bold text-[#2d160b]">Pick a live time slot</h3>
-                      <p className="mt-1 text-sm text-[#7c6253]">
-                        {availableSlotsCount > 0
-                          ? `${availableSlotsCount} open slot${availableSlotsCount === 1 ? '' : 's'} for this date`
-                          : 'Live availability updates as bookings come in'}
-                      </p>
-                    </div>
-
-                    {status === 'loading-slots' && (
-                      <span className="inline-flex items-center gap-2 rounded-full bg-[#f8efe7] px-3 py-1 text-xs font-semibold text-[#8a6754]">
-                        <Loader2 size={12} className="animate-spin" />
-                        Loading slots
-                      </span>
-                    )}
-                  </div>
-
-                  {slots.length === 0 ? (
-                    <div className="mt-4 rounded-2xl border border-dashed border-[#ead9ca] bg-[#fcf7f2] px-4 py-8 text-center text-sm text-[#8c7364]">
-                      {error || 'No slots available for this date.'}
-                    </div>
-                  ) : (
-                    <div className="mt-4 space-y-4">
-                      {(['morning', 'afternoon', 'evening'] as const).map((period) => {
-                        const periodSlots = slots.filter((s) => getSlotPeriod(s) === period)
-                        if (periodSlots.length === 0) return null
-                        const meta = PERIOD_META[period]
-                        return (
-                          <div key={period}>
-                            <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.15em] text-[#9b7a67]">
-                              <span>{meta.icon}</span>
-                              {meta.label}
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {periodSlots.map((slot) => {
-                                const isSelected = selectedSlot?.start === slot.start
-                                return (
-                                  <button
-                                    key={slot.start}
-                                    type="button"
-                                    disabled={!slot.available}
-                                    onClick={() => {
-                                      setSelectedSlot(slot)
-                                      setError('')
-                                      if (fieldErrors.slot) setFieldErrors((prev) => ({ ...prev, slot: undefined }))
-                                    }}
-                                    className={`relative rounded-xl border px-3 py-2 text-center text-sm font-medium transition-all ${
-                                      !slot.available
-                                        ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 line-through'
-                                        : isSelected
-                                        ? 'border-brand bg-brand text-white shadow-md'
-                                        : 'border-[#e4d3c4] bg-white text-[#2d160b] hover:border-brand hover:bg-[#fff5ec]'
-                                    }`}
-                                    title={`${formatSlotLabel(slot)}${slot.available ? ` — ${slot.remaining} left` : ' — Full'}`}
-                                  >
-                                    {formatTimeLabel(slot.start)}
-                                    {slot.available && slot.remaining <= (appointmentSettings.capacity > 1 ? Math.ceil(appointmentSettings.capacity / 2) : 0) && (
-                                      <span className={`absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${
-                                        isSelected ? 'bg-white text-brand' : 'bg-orange-100 text-orange-600'
-                                      }`}>
-                                        {slot.remaining}
-                                      </span>
-                                    )}
-                                  </button>
-                                )
-                              })}
-                            </div>
-                          </div>
-                        )
-                      })}
-                      {selectedSlot && (
-                        <div className="rounded-xl border border-brand/20 bg-[#fff5ec] px-3 py-2 text-sm text-[#5a3825]">
-                          <span className="font-semibold text-brand">Selected:</span>{' '}
-                          {formatSlotLabel(selectedSlot)} — {selectedSlot.remaining} spot{selectedSlot.remaining === 1 ? '' : 's'} left
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <textarea
+                  value={notes}
+                  onChange={(event) => setNotes(event.target.value)}
+                  rows={3}
+                  placeholder="Notes for the business (optional)"
+                  className="w-full resize-none rounded-xl border border-[#e8ddd4] bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand focus:outline-none"
+                />
               </div>
-
-              {!isLoggedIn ? (
-                <div className="mt-5 rounded-[24px] border border-[#efdac8] bg-[#fff7f0] p-5">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-[#2d160b]">Sign in to complete the booking</p>
-                      <p className="mt-1 text-sm text-[#7c6253]">
-                        The booking will be attached to your account so you can track or cancel it later from your dashboard.
-                      </p>
-                    </div>
-                    <Link
-                      href={`/login?next=${encodeURIComponent(pathname || `/listings/${listingId}`)}`}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong"
-                    >
-                      Sign In to Book
-                      <ArrowRight size={15} />
-                    </Link>
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-5 grid gap-4 lg:grid-cols-2">
-                  <div className="rounded-2xl border border-[#efe2d6] bg-[#fffaf5] p-4">
-                    <p className="text-sm font-semibold text-[#2d160b]">Guest details</p>
-                    <p className="mt-1 text-sm text-[#7c6253]">
-                      These details are shared with the business after the booking is confirmed.
-                    </p>
-
-                    <div className="mt-4 space-y-4">
-                      <div>
-                        <label className="mb-1.5 block text-sm font-semibold text-gray-700">Your Name <span className="text-red-500">*</span></label>
-                        <input
-                          type="text"
-                          value={name}
-                          onChange={(event) => {
-                            setName(event.target.value)
-                            if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: undefined }))
-                          }}
-                          placeholder="Enter your full name"
-                          className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-gray-800 focus:outline-none ${
-                            fieldErrors.name
-                              ? 'border-red-400 focus:border-red-500'
-                              : 'border-[#decbbb] focus:border-brand'
-                          }`}
-                        />
-                        {fieldErrors.name && (
-                          <p className="mt-1 text-xs text-red-500">{fieldErrors.name}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="mb-1.5 block text-sm font-semibold text-gray-700">Phone Number <span className="text-red-500">*</span></label>
-                        <input
-                          type="tel"
-                          value={phone}
-                          onChange={(event) => {
-                            setPhone(event.target.value)
-                            if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }))
-                          }}
-                          placeholder="10-digit mobile number"
-                          className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-gray-800 focus:outline-none ${
-                            fieldErrors.phone
-                              ? 'border-red-400 focus:border-red-500'
-                              : 'border-[#decbbb] focus:border-brand'
-                          }`}
-                        />
-                        {fieldErrors.phone && (
-                          <p className="mt-1 text-xs text-red-500">{fieldErrors.phone}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-[#efe2d6] bg-white p-4">
-                    <p className="text-sm font-semibold text-[#2d160b]">Notes for the business</p>
-                    <p className="mt-1 text-sm text-[#7c6253]">
-                      Add context, questions, or anything the business should know before the appointment.
-                    </p>
-
-                    <textarea
-                      value={notes}
-                      onChange={(event) => setNotes(event.target.value)}
-                      rows={6}
-                      placeholder="Optional notes or questions"
-                      className="mt-4 w-full resize-none rounded-xl border border-[#decbbb] bg-[#fffdfb] px-4 py-3 text-sm text-gray-800 focus:border-brand focus:outline-none"
-                    />
-
-                    <div className="mt-4 rounded-xl bg-[#f8efe7] px-4 py-3 text-sm text-[#6a5447]">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9f806d]">Account Email</p>
-                      <p className="mt-1 font-medium text-[#2d160b]">{userEmail || 'Stored on your account'}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
-            <aside className="rounded-[28px] bg-[#3D1A08] p-5 text-bg shadow-[0_24px_60px_rgba(61,26,8,0.24)] lg:p-6">
-              <div className="flex items-center gap-2 text-sm font-semibold text-[#f4d8c0]">
-                <ShieldCheck size={15} />
-                Booking Summary
+            {/* Fee summary */}
+            <div className="flex items-center justify-between rounded-xl border border-[#eee2d7] bg-[#fdfaf7] px-4 py-3">
+              <div className="flex items-center gap-2 text-[#9b7c69]">
+                {bookingFee > 0 ? <CreditCard size={14} /> : <ShieldCheck size={14} />}
+                <span className="text-[12px] font-semibold">
+                  {bookingFee > 0 ? 'Booking fee' : 'Free booking'}
+                </span>
               </div>
+              <span className="text-sm font-bold text-[#2d160b]">{formatFee(bookingFee)}</span>
+            </div>
 
-              <div className="mt-4 rounded-2xl bg-white/8 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d9b79d]">Business</p>
-                <p className="mt-1 text-lg font-bold">{listingName}</p>
-                <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d9b79d]">Selected Slot</p>
-                <p className="mt-1 text-base font-semibold">{selectedSlotLabel}</p>
-                <p className="mt-1 text-sm text-[#f4d8c0]">{formatSelectedDate(selectedDate)}</p>
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
               </div>
+            )}
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <div className="flex items-center gap-2 text-[#f1cfb4]">
-                    <CreditCard size={14} />
-                    <span className="text-xs font-semibold uppercase tracking-[0.18em]">Amount</span>
-                  </div>
-                  <p className="mt-2 text-xl font-bold">{formatFee(bookingFee)}</p>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <div className="flex items-center gap-2 text-[#f1cfb4]">
-                    <Users size={14} />
-                    <span className="text-xs font-semibold uppercase tracking-[0.18em]">Capacity</span>
-                  </div>
-                  <p className="mt-2 text-xl font-bold">{appointmentSettings.capacity} per slot</p>
-                </div>
-              </div>
-
-              <div className="mt-5 space-y-2 rounded-2xl border border-white/10 bg-black/10 p-4 text-sm text-[#f0dbca]">
-                <div className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-[#f0b176]" />
-                  <p>Slots are generated from the business availability and update live as bookings happen.</p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-[#f0b176]" />
-                  <p>
-                    {bookingFee > 0
-                      ? 'Payment is handled securely through Razorpay before the appointment is confirmed.'
-                      : 'This listing currently offers free appointment booking with instant confirmation.'}
-                  </p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-[#f0b176]" />
-                  <p>After booking, the appointment will show up in your dashboard for tracking and cancellation.</p>
-                </div>
-              </div>
-
-              {error && (
-                <div className="mt-4 rounded-2xl border border-red-300/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
-                  {error}
-                </div>
-              )}
-
-              {isLoggedIn ? (
-                <button
-                  type="button"
-                  onClick={() => void handleConfirm()}
-                  disabled={!selectedSlot || status === 'processing' || status === 'loading-slots'}
-                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-bg px-5 py-3.5 text-sm font-semibold text-[#3D1A08] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {status === 'processing' ? (
-                    <>
-                      <Loader2 size={15} className="animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      {bookingFee > 0 ? <CreditCard size={15} /> : <CheckCircle size={15} />}
-                      {bookingFee > 0 ? 'Pay and Confirm' : 'Confirm Booking'}
-                    </>
-                  )}
-                </button>
+            <button
+              type="button"
+              onClick={() => void handleConfirm()}
+              disabled={status === 'processing' || status === 'loading-slots'}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#2d160b] px-4 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d1f10] disabled:opacity-50"
+            >
+              {status === 'processing' ? (
+                <>
+                  <Loader2 size={15} className="animate-spin" />
+                  Processing…
+                </>
               ) : (
-                <Link
-                  href={`/login?next=${encodeURIComponent(pathname || `/listings/${listingId}`)}`}
-                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-bg px-5 py-3.5 text-sm font-semibold text-[#3D1A08] transition-colors hover:bg-white"
-                >
-                  Sign In to Continue
-                  <ArrowRight size={15} />
-                </Link>
+                <>
+                  {bookingFee > 0 ? <CreditCard size={15} /> : <CheckCircle size={15} />}
+                  {bookingFee > 0 ? `Pay ${formatFee(bookingFee)} & Confirm` : 'Confirm Booking'}
+                </>
               )}
-            </aside>
+            </button>
           </div>
         )}
       </div>
-    </section>
+    </div>
   )
 }
