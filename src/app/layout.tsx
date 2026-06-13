@@ -11,6 +11,7 @@ import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import StructuredData from '@/components/StructuredData'
 import { buildAbsoluteUrl, SITE_URL } from '@/lib/site'
 import { Analytics } from '@vercel/analytics/next'
+import { AuthProvider } from '@/lib/auth-context'
 
 const METADATA_BASE_URL = 'https://ourdahanu.in'
 const LOGO_URL = 'https://ourdahanu.in/logo.png'
@@ -139,26 +140,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <StructuredData data={siteSchema} />
         <LoaderFontsReady />
-        <Suspense fallback={<EmergencyRibbonFallback />}>
-          <SiteEmergencyRibbon />
-        </Suspense>
-        <Suspense fallback={<NavbarFallback />}>
-          <SiteNavbar />
-        </Suspense>
-        {/* Navbar is sticky (not fixed), so <main> no longer needs top padding */}
-        <main className="pb-16 lg:pb-0 min-h-screen">
-          {children}
-        </main>
-        <Suspense fallback={null}>
-          <SiteFooter />
-        </Suspense>
-        <Suspense fallback={null}>
-          <SiteBottomTabBar />
-        </Suspense>
-        <ServiceWorkerRegistration />
-        <Suspense fallback={null}>
-          <PaymentRecoveryWatcher />
-        </Suspense>
+        <AuthProvider>
+          <Suspense fallback={<EmergencyRibbonFallback />}>
+            <SiteEmergencyRibbon />
+          </Suspense>
+          <Suspense fallback={<NavbarFallback />}>
+            <SiteNavbar />
+          </Suspense>
+          {/* Navbar is sticky (not fixed), so <main> no longer needs top padding */}
+          <main className="pb-16 lg:pb-0 min-h-screen">
+            {children}
+          </main>
+          <Suspense fallback={null}>
+            <SiteFooter />
+          </Suspense>
+          <Suspense fallback={null}>
+            <SiteBottomTabBar />
+          </Suspense>
+          <ServiceWorkerRegistration />
+          <Suspense fallback={null}>
+            <PaymentRecoveryWatcher />
+          </Suspense>
+        </AuthProvider>
         <Analytics />
       </body>
     </html>

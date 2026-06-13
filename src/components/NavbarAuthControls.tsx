@@ -1,11 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 
 import NotificationBell from '@/components/NotificationBell'
-import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/lib/auth-context'
 import { buildAbsoluteUrl } from '@/lib/site'
 
 interface NavbarAuthControlsProps {
@@ -24,32 +23,10 @@ function getAvatarUrl(user: User) {
 }
 
 export default function NavbarAuthControls({ mobile = false }: NavbarAuthControlsProps) {
-  const [supabase] = useState(() => createClient())
-  const [user, setUser] = useState<User | null>(null)
-
-  useEffect(() => {
-    let mounted = true
-
-    supabase.auth.getUser().then(({ data }) => {
-      if (mounted) {
-        setUser(data.user)
-      }
-    })
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null)
-    })
-
-    return () => {
-      mounted = false
-      subscription.unsubscribe()
-    }
-  }, [supabase])
+  const { user, signOut } = useAuth()
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    await signOut()
     window.location.href = buildAbsoluteUrl('/')
   }
 
