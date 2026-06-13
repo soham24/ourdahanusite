@@ -70,8 +70,8 @@ export default function ListingSidebar({
           {directionsUrl && (
             <a href={directionsUrl} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-3 text-sm text-ink-2 hover:text-brand transition-colors group">
-              <div className="w-9 h-9 bg-blue-50 group-hover:bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors">
-                <Navigation size={15} className="text-blue-600" />
+              <div className="w-9 h-9 bg-surface-soft group-hover:bg-border rounded-xl flex items-center justify-center flex-shrink-0 transition-colors">
+                <Navigation size={15} className="text-brand" />
               </div>
               <div>
                 <div className="text-xs text-ink-2/40">Directions</div>

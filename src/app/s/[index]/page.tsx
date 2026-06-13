@@ -67,7 +67,7 @@ export default function StandaloneServicePage({
   params: Promise<{ index: string }>
 }) {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+    <Suspense fallback={<div className="od-page min-h-screen" />}>
       <ServiceContent params={params} />
     </Suspense>
   )
@@ -101,22 +101,22 @@ async function ServiceContent({
     : null
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="od-page min-h-screen">
       <div className="mx-auto max-w-lg px-4 py-6">
         {/* Back to listing */}
         <Link
           href={businessUrl}
-          className="mb-5 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand transition-colors"
+          className="mb-5 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--od-muted)] hover:text-[var(--od-brand)] transition-colors"
         >
           <ArrowLeft size={14} />
           {String(listing.name)}
         </Link>
 
-        <div className="overflow-hidden rounded-2xl border border-border/50 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-[var(--od-radius)] border border-[var(--od-border)] bg-[var(--od-surface-3)] shadow-[var(--od-shadow-md)]">
           {/* Image */}
           {service.image && (
             <div
-              className={`relative overflow-hidden bg-gray-100 ${imageAspect.value === 'portrait' ? 'p-4' : ''}`}
+              className={`relative overflow-hidden bg-[var(--od-surface-soft)] ${imageAspect.value === 'portrait' ? 'p-4' : ''}`}
             >
               <div
                 className={`relative overflow-hidden ${imageAspect.value === 'portrait' ? 'mx-auto max-w-72 rounded-xl' : 'w-full'}`}
@@ -137,36 +137,36 @@ async function ServiceContent({
             </div>
           )}
 
-          <div className="p-5 space-y-3">
-            {/* Type badge */}
+          <div className="p-6 space-y-3.5">
+            {/* Type badge — on-brand warm tones */}
             <span
-              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold tracking-[0.02em] ${
                 service.type === 'product'
-                  ? 'bg-blue-100 text-blue-600'
-                  : 'border border-border bg-surface-soft text-brand'
+                  ? 'bg-[var(--od-gold)]/15 text-[var(--od-brand-strong)]'
+                  : 'border border-[var(--od-border)] bg-[var(--od-surface-soft)] text-[var(--od-brand)]'
               }`}
             >
               {service.type === 'product' ? '📦 Product' : '🛠 Service'}
             </span>
 
-            <h1 className="text-xl font-extrabold text-gray-900">{service.name}</h1>
+            <h1 className="font-display text-2xl leading-tight text-[var(--od-ink)]">{service.name}</h1>
 
             {service.desc && (
-              <p className="text-sm leading-relaxed text-gray-500">{service.desc}</p>
+              <p className="text-sm leading-relaxed text-[var(--od-muted)]">{service.desc}</p>
             )}
 
             {service.price && (
-              <p className="text-2xl font-extrabold text-gray-900">{service.price}</p>
+              <p className="font-display text-[28px] leading-none text-[var(--od-brand-strong)]">{service.price}</p>
             )}
 
             {/* CTA buttons */}
-            <div className="space-y-2 pt-1">
+            <div className="space-y-2.5 pt-2">
               {waLink && (
                 <a
                   href={waLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1FA855] px-4 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_rgba(31,168,85,0.22)] transition-all hover:bg-[#188F47] hover:-translate-y-0.5 active:scale-[0.98]"
                 >
                   {WA_ICON}
                   {service.type === 'product' ? 'Order on WhatsApp' : 'Book on WhatsApp'}
@@ -174,7 +174,7 @@ async function ServiceContent({
               )}
               <Link
                 href={businessUrl}
-                className="flex w-full items-center justify-center rounded-xl border border-border px-4 py-3 text-sm font-semibold text-gray-600 transition-colors hover:border-brand/40 hover:text-brand"
+                className="flex w-full items-center justify-center rounded-xl border border-[var(--od-border)] bg-[var(--od-surface-3)] px-4 py-3.5 text-sm font-semibold text-[var(--od-ink-2)] transition-colors hover:border-[var(--od-brand)]/40 hover:text-[var(--od-brand)]"
               >
                 View full business page
               </Link>
@@ -183,12 +183,15 @@ async function ServiceContent({
         </div>
 
         {/* Powered by */}
-        <p className="mt-6 text-center text-xs text-gray-400">
-          Listed on{' '}
-          <Link href="https://ourdahanu.in" className="hover:text-brand">
-            OurDahanu
-          </Link>
-        </p>
+        <div className="mt-7 flex items-center justify-center gap-2 text-xs text-[var(--od-muted)]">
+          <Image src="/logo.png" alt="OurDahanu" width={18} height={18} className="rounded-full opacity-80" />
+          <span>
+            Listed on{' '}
+            <Link href="https://ourdahanu.in" className="font-semibold text-[var(--od-ink-2)] hover:text-[var(--od-brand)] transition-colors">
+              OurDahanu
+            </Link>
+          </span>
+        </div>
       </div>
     </div>
   )
