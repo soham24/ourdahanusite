@@ -15,6 +15,17 @@ function LoginContent() {
   const handleGoogleSignIn = async () => {
     if (signingIn) return
     setSigningIn(true)
+
+    // Purge any stale code-verifier cookies (no-domain and domain-scoped)
+    // so the browser only sends the fresh one the OAuth flow is about to create.
+    document.cookie.split(';').forEach((c) => {
+      const name = c.split('=')[0].trim()
+      if (name.includes('code-verifier')) {
+        document.cookie = `${name}=; max-age=0; path=/`
+        document.cookie = `${name}=; max-age=0; path=/; domain=.ourdahanu.in`
+      }
+    })
+
     const hostname = window.location.hostname
     const isSubdomain = hostname !== 'ourdahanu.in' && hostname.endsWith('.ourdahanu.in')
     // Always callback via main domain so cookies get set with .ourdahanu.in domain
