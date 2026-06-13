@@ -18,7 +18,7 @@ export default async function AdminClassifiedsPage() {
     const supabase = await createClient()
     const { data } = await supabase
       .from('classifieds')
-      .select('*')
+      .select('id, title, type, urgent, seller_name, location, price, created_at')
       .eq('active', true)
       .order('created_at', { ascending: false })
       .limit(30)

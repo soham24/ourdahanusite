@@ -93,7 +93,7 @@ export async function getIntentByOrderId(
   if (!adminClient) return null
   const { data } = await adminClient
     .from('payment_intents')
-    .select('*')
+    .select('id, user_id, flow, razorpay_order_id, razorpay_payment_id, razorpay_signature, amount_paise, currency, payload, listing_id, status, entity_id, entity_table, last_error, retry_count, created_at, updated_at, captured_at, finalized_at')
     .eq('razorpay_order_id', razorpayOrderId)
     .maybeSingle()
   return (data ?? null) as PaymentIntentRow | null
@@ -112,7 +112,7 @@ export async function findFinalizedIntentByPaymentId(
   if (!adminClient) return null
   const { data } = await adminClient
     .from('payment_intents')
-    .select('*')
+    .select('id, user_id, flow, razorpay_order_id, razorpay_payment_id, razorpay_signature, amount_paise, currency, payload, listing_id, status, entity_id, entity_table, last_error, retry_count, created_at, updated_at, captured_at, finalized_at')
     .eq('razorpay_payment_id', razorpayPaymentId)
     .eq('status', 'finalized')
     .maybeSingle()

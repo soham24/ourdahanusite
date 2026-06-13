@@ -6,18 +6,18 @@ import { createClient } from '@/lib/supabase/client'
 import { Mail, Users, Send, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 
 export default function AdminNewsletterPage() {
+  const [supabase] = useState(() => createClient())
   const [state, formAction, pending] = useActionState(sendNewsletter, null)
   const [subscriberCount, setSubscriberCount] = useState<number | null>(null)
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
 
   useEffect(() => {
-    const supabase = createClient()
     supabase
       .from('newsletter_subscriptions')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .then(({ count }) => setSubscriberCount(count ?? 0))
-  }, [])
+  }, [supabase])
 
   // Reset form on successful send
   useEffect(() => {

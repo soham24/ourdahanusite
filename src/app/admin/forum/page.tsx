@@ -18,7 +18,7 @@ export default async function AdminForumPage() {
     const supabase = await createClient()
     const { data } = await supabase
       .from('forum_threads')
-      .select('*')
+      .select('id, title, category, author_name, reply_count, created_at')
       .order('created_at', { ascending: false })
       .limit(30)
     threads = data || []

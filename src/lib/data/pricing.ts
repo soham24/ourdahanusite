@@ -67,7 +67,7 @@ export async function getCachedActiveCoupons(): Promise<Coupon[]> {
     const supabase = createPublicClient()
     const { data } = await supabase
       .from('coupons')
-      .select('*')
+      .select('id, code, label, final_price, enabled, usage_count, created_at')
       .eq('enabled', true)
       .order('created_at', { ascending: false })
       .order('id', { ascending: true })

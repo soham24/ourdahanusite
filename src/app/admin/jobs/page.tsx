@@ -37,10 +37,11 @@ export default async function AdminJobsPage({
 
   try {
     const supabase = await createClient()
+    const JOB_COLS = 'id, title, company, type, category, status, approved, location, salary, positions, description, payment_status, amount_paid, coupon_used, created_at'
     const [pendingRes, liveRes, allRes] = await Promise.all([
-      supabase.from('jobs').select('*').eq('approved', false).neq('status', 'closed').order('created_at', { ascending: false }),
-      supabase.from('jobs').select('*').eq('approved', true).order('created_at', { ascending: false }),
-      supabase.from('jobs').select('*').order('created_at', { ascending: false }),
+      supabase.from('jobs').select(JOB_COLS).eq('approved', false).neq('status', 'closed').order('created_at', { ascending: false }).limit(300),
+      supabase.from('jobs').select(JOB_COLS).eq('approved', true).order('created_at', { ascending: false }).limit(300),
+      supabase.from('jobs').select(JOB_COLS).order('created_at', { ascending: false }).limit(300),
     ])
     pending = pendingRes.data ?? []
     live    = liveRes.data ?? []

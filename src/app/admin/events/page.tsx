@@ -18,9 +18,10 @@ export default async function AdminEventsPage() {
     const supabase = await createClient()
     const { data } = await supabase
       .from('events')
-      .select('*')
+      .select('id, title, category, date, location, is_free, price, description, created_at')
       .eq('approved', false)
       .order('created_at', { ascending: false })
+      .limit(200)
     events = data || []
   } catch {
     // DB error

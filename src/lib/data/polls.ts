@@ -101,7 +101,7 @@ export async function getActivePoll(): Promise<PollWithResults | null> {
 
   const { data: pollData } = await supabase
     .from('polls')
-    .select('*')
+    .select('id, title, options, ends_at, created_at, active')
     .eq('active', true)
     .order('created_at', { ascending: false })
     .order('id', { ascending: true })
@@ -129,7 +129,7 @@ export async function getPollById(id: string): Promise<PollWithResults | null> {
 
   const { data: pollData } = await supabase
     .from('polls')
-    .select('*')
+    .select('id, title, options, ends_at, created_at, active')
     .eq('id', id)
     .eq('active', true)
     .maybeSingle()
@@ -156,7 +156,7 @@ export async function getAllPolls(): Promise<PollWithResults[]> {
 
   const { data: pollsData } = await supabase
     .from('polls')
-    .select('*')
+    .select('id, title, options, ends_at, created_at, active')
     .eq('active', true)
     .order('created_at', { ascending: false })
     .order('id', { ascending: true })

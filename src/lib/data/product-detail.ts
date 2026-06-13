@@ -32,7 +32,7 @@ export async function fetchProductAndListing(productId: string) {
   const supabase = createPublicClient()
   const { data: productData } = await supabase
     .from('listing_products')
-    .select('*')
+    .select('id, listing_id, type, name, description, price_paise, quantity_in_stock, image_url, image_thumb_url, is_active, sort_order, created_at, updated_at')
     .eq('id', productId)
     .eq('is_active', true)
     .maybeSingle()
