@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useActionState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { User } from '@supabase/supabase-js'
+import { useAuth } from '@/lib/auth-context'
 import ImageUpload from '@/components/ImageUpload'
 import { updateProfileFull } from '@/app/actions/profile'
 import Link from 'next/link'
@@ -10,41 +10,41 @@ import Image from 'next/image'
 import { ArrowLeft, CheckCircle, Loader2, Camera } from 'lucide-react'
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null)
+  const { user, loading: authLoading } = useAuth()
+  const [supabase] = useState(() => createClient())
   const [profile, setProfile] = useState<Record<string, string> | null>(null)
   const [avatarUrl, setAvatarUrl] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [profileLoading, setProfileLoading] = useState(true)
 
   const [state, formAction, pending] = useActionState(updateProfileFull, null)
 
-  const supabase = createClient()
-
   useEffect(() => {
-    async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        window.location.href = '/login'
-        return
-      }
-      setUser(user)
+    if (authLoading) return
+    if (!user) {
+      window.location.href = '/login'
+      return
+    }
 
+    async function load() {
       const { data } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('id', user.id)
+        .select('full_name, bio, phone, address, avatar_url')
+        .eq('id', user!.id)
         .single()
 
       if (data) {
         setProfile(data)
-        setAvatarUrl(data.avatar_url || user.user_metadata?.avatar_url || '')
+        setAvatarUrl(data.avatar_url || user!.user_metadata?.avatar_url || '')
       } else {
-        setAvatarUrl(user.user_metadata?.avatar_url || '')
+        setAvatarUrl(user!.user_metadata?.avatar_url || '')
       }
 
-      setLoading(false)
+      setProfileLoading(false)
     }
     load()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, authLoading]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loading = authLoading || profileLoading
 
   if (loading) {
     return (

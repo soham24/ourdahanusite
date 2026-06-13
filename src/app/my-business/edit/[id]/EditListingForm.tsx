@@ -554,93 +554,119 @@ export default function EditListingForm({ listing }: Props) {
         </div>
 
         {/* ── SERVICES / PRICING ─────────────────────────────────────────── */}
-        <div className={activeTab === 'appointments' ? 'bg-white border border-gray-100 rounded-2xl p-6 space-y-6' : 'hidden'}>
-            <div className="text-xs text-blue-600 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
-              Appointments are enabled for this listing by the main admin. Set your weekly schedule, slot duration, and per-slot capacity here.
+        <div className={activeTab === 'appointments' ? 'bg-white border border-gray-100 rounded-2xl p-5 space-y-5' : 'hidden'}>
+            <p className="text-xs text-blue-600 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
+              Appointments are enabled. Configure your slot settings and weekly schedule below.
+            </p>
+
+            {/* Slot duration */}
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-3">Slot duration</p>
+              <div className="grid grid-cols-3 gap-2.5">
+                {[15, 30, 60].map((duration) => (
+                  <button
+                    key={duration}
+                    type="button"
+                    onClick={() => setAppointmentSettings((c) => ({ ...c, slot_duration: duration }))}
+                    className={`rounded-xl border-2 py-4 text-center transition-all ${
+                      appointmentSettings.slot_duration === duration
+                        ? 'border-brand bg-surface-soft'
+                        : 'border-gray-100 bg-gray-50 hover:border-brand/30'
+                    }`}
+                  >
+                    <div className={`text-2xl font-bold leading-none ${appointmentSettings.slot_duration === duration ? 'text-brand' : 'text-gray-800'}`}>
+                      {duration}
+                    </div>
+                    <div className={`text-[11px] mt-1 ${appointmentSettings.slot_duration === duration ? 'text-brand' : 'text-gray-400'}`}>
+                      min
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Slot Duration</label>
-                <div className="flex gap-2">
-                  {[15, 30, 60].map((duration) => (
+            {/* Capacity + Buffer */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-4">Capacity / slot</p>
+                <div className="flex items-center justify-between gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setAppointmentSettings((c) => ({ ...c, capacity: Math.max(1, c.capacity - 1) }))}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-lg font-bold text-gray-600 transition-colors hover:border-brand hover:text-brand"
+                  >
+                    −
+                  </button>
+                  <span className="text-3xl font-bold text-gray-900">{appointmentSettings.capacity}</span>
+                  <button
+                    type="button"
+                    onClick={() => setAppointmentSettings((c) => ({ ...c, capacity: Math.min(20, c.capacity + 1) }))}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-lg font-bold text-gray-600 transition-colors hover:border-brand hover:text-brand"
+                  >
+                    +
+                  </button>
+                </div>
+                <p className="mt-2 text-center text-[10px] text-gray-400">max 20 people</p>
+              </div>
+
+              <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-3">Buffer time</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[0, 5, 10, 15].map((m) => (
                     <button
-                      key={duration}
+                      key={m}
                       type="button"
-                      onClick={() => setAppointmentSettings((current) => ({ ...current, slot_duration: duration }))}
-                      className={`flex-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                        appointmentSettings.slot_duration === duration
+                      onClick={() => setAppointmentSettings((c) => ({ ...c, buffer_minutes: m }))}
+                      className={`rounded-lg border py-1.5 text-[11px] font-medium transition-colors ${
+                        appointmentSettings.buffer_minutes === m
                           ? 'border-brand bg-surface-soft text-brand'
-                          : 'border-gray-200 text-gray-600 hover:border-border'
+                          : 'border-gray-200 bg-white text-gray-500 hover:border-brand/40'
                       }`}
                     >
-                      {duration} min
+                      {m === 0 ? 'None' : `${m} min`}
                     </button>
                   ))}
                 </div>
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Capacity Per Slot</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={appointmentSettings.capacity}
-                  onChange={(event) =>
-                    setAppointmentSettings((current) => ({
-                      ...current,
-                      capacity: Math.max(1, Math.min(20, Number.parseInt(event.target.value || '1', 10) || 1)),
-                    }))
-                  }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
-                />
+            {/* Advance booking window */}
+            <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Advance booking window</p>
+                <span className="text-base font-bold text-gray-900">{appointmentSettings.advance_days} days</span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="90"
+                step="1"
+                value={appointmentSettings.advance_days}
+                onChange={(event) =>
+                  setAppointmentSettings((c) => ({
+                    ...c,
+                    advance_days: Math.max(1, Math.min(90, Number(event.target.value))),
+                  }))
+                }
+                className="w-full accent-brand"
+              />
+              <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                <span>1 day</span>
+                <span>30 days</span>
+                <span>90 days</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Buffer Time</label>
-                <select
-                  value={appointmentSettings.buffer_minutes}
-                  onChange={(event) =>
-                    setAppointmentSettings((current) => ({
-                      ...current,
-                      buffer_minutes: Number.parseInt(event.target.value, 10) || 0,
-                    }))
-                  }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white"
-                >
-                  {[0, 5, 10, 15].map((minutes) => (
-                    <option key={minutes} value={minutes}>
-                      {minutes} min
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Advance Booking Days</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="90"
-                  value={appointmentSettings.advance_days}
-                  onChange={(event) =>
-                    setAppointmentSettings((current) => ({
-                      ...current,
-                      advance_days: Math.max(1, Math.min(90, Number.parseInt(event.target.value || '30', 10) || 30)),
-                    }))
-                  }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
-                />
-              </div>
-            </div>
-
+            {/* Weekly schedule */}
             <div>
-              <div className="mb-3">
-                <h3 className="text-sm font-semibold text-gray-700">Weekly Availability</h3>
-                <p className="text-xs text-gray-400 mt-1">Open the days you want to accept bookings and set the booking window for each day.</p>
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Weekly schedule</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">Toggle each day and set open hours.</p>
+                </div>
+                <span className="text-[11px] text-gray-400">
+                  {APPOINTMENT_DAYS.filter(({ key }) => !!appointmentSettings.availability[key]).length} days open
+                </span>
               </div>
               <div className="space-y-2">
                 {APPOINTMENT_DAYS.map(({ key, label }) => {

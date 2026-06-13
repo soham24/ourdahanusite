@@ -41,7 +41,7 @@ export default async function MyJobsPage() {
   try {
     const { data } = await supabase
       .from('jobs')
-      .select('*')
+      .select('id, title, company, type, status, approved, location, positions, created_at, amount_paid')
       .eq('posted_by', user.id)
       .order('created_at', { ascending: false })
     jobs = data ?? []

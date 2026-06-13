@@ -148,84 +148,67 @@ function AppointmentRow({
   }
 
   return (
-    <div className="rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-lg font-bold text-[#2d160b]">{appointment.listing?.name ?? 'Listing'}</p>
+    <div className="overflow-hidden rounded-2xl border border-[#eee2d7] bg-white shadow-sm">
+      <div className="flex items-start gap-3 p-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
             {statusBadge(appointment.status)}
+            {appointment.booking_fee > 0 && (
+              <span className="text-xs font-semibold text-brand">{formatFee(appointment.booking_fee)}</span>
+            )}
           </div>
-          <p className="mt-2 text-sm text-[#6f584a]">
-            {formatDate(appointment.booking_date)}, {formatTimeRange(appointment.slot_start, appointment.slot_end)}
+          <p className="text-[13px] font-bold text-[#2d160b] leading-snug">{appointment.user_name}</p>
+          <p className="text-[12px] text-[#7b6254] mt-0.5">{appointment.user_phone}</p>
+          <p className="text-[12px] text-[#9b7c69] mt-1.5 flex items-center gap-1">
+            <Clock3 size={11} className="shrink-0" />
+            {formatDate(appointment.booking_date)} · {formatTimeRange(appointment.slot_start, appointment.slot_end)}
           </p>
-          <p className="mt-2 text-sm font-medium text-[#2d160b]">
-            {appointment.user_name}, {appointment.user_phone}
-          </p>
-          {appointment.user_email && (
-            <p className="mt-1 text-sm text-[#8c7364]">{appointment.user_email}</p>
+          {appointment.listing?.name && (
+            <p className="text-[11px] text-[#b0917e] mt-1">{appointment.listing.name}</p>
           )}
           {appointment.notes && (
-            <p className="mt-3 rounded-2xl bg-[#faf3eb] px-4 py-3 text-sm text-[#6b5547]">{appointment.notes}</p>
+            <p className="mt-2 rounded-xl bg-[#faf3eb] px-3 py-2 text-[12px] text-[#6b5547] line-clamp-2">{appointment.notes}</p>
           )}
           {appointment.cancellation_reason && (
-            <p className="mt-3 text-sm text-[#8a6656]">
-              Cancellation reason: {appointment.cancellation_reason}
-            </p>
+            <p className="mt-1.5 text-[11px] text-[#9a7060]">Cancelled: {appointment.cancellation_reason}</p>
           )}
-        </div>
-
-        <div className="min-w-[150px] rounded-2xl bg-[#fff7ef] px-4 py-3 text-left lg:text-right">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Booking Fee</p>
-          <p className="mt-1 text-lg font-bold text-brand">{formatFee(appointment.booking_fee)}</p>
         </div>
       </div>
 
       {(canMarkAttendance || canCancel) && (
-        <div className="mt-4 border-t border-[#f1e3d8] pt-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-sm text-[#7b6254]">
-              {canMarkAttendance
-                ? 'Attendance actions are now available for this appointment.'
-                : 'Attendance actions unlock after the scheduled appointment time.'}
-            </p>
-
-            <div className="flex flex-wrap gap-2">
-              {canMarkAttendance && (
-                <>
-                  <button
-                    type="button"
-                    disabled={isPending}
-                    onClick={() => runStatusUpdate('completed')}
-                    className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-60"
-                  >
-                    {isPending ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
-                    Mark Completed
-                  </button>
-
-                  <button
-                    type="button"
-                    disabled={isPending}
-                    onClick={() => runStatusUpdate('no_show')}
-                    className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-60"
-                  >
-                    <XCircle size={14} />
-                    Mark No Show
-                  </button>
-                </>
-              )}
-
-              {canCancel && (
-                <button
-                  type="button"
-                  disabled={isPending}
-                  onClick={runCancel}
-                  className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 transition-colors hover:border-red-200 hover:text-red-600 disabled:opacity-60"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </div>
+        <div className="flex items-center gap-2 border-t border-[#f5ece4] bg-[#fdfaf7] px-4 py-3">
+          {canMarkAttendance && (
+            <>
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={() => runStatusUpdate('completed')}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-green-600 py-2 text-xs font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-60"
+              >
+                {isPending ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={12} />}
+                Done
+              </button>
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={() => runStatusUpdate('no_show')}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-red-200 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+              >
+                <XCircle size={12} />
+                No-show
+              </button>
+            </>
+          )}
+          {canCancel && (
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={runCancel}
+              className="flex items-center gap-1 rounded-xl border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-500 transition-colors hover:border-red-200 hover:text-red-500 disabled:opacity-60"
+            >
+              Cancel
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -305,83 +288,55 @@ export default function MyBusinessAppointmentsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-4 py-10 sm:px-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-[#ecd8c5] bg-gradient-to-br from-[#fff7ef] via-white to-[#f4ede4] px-6 py-7 shadow-sm lg:px-8">
-        <div className="absolute -right-12 top-0 h-44 w-44 rounded-full bg-[#f4d8be] blur-3xl opacity-70" />
-        <div className="absolute left-0 top-16 h-32 w-32 rounded-full bg-[#efe1d0] blur-3xl opacity-80" />
-
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#ead8c8] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-brand">
-              <Store size={13} />
+      <section className="rounded-2xl border border-[#ecd8c5] bg-[#fff9f4] px-5 py-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#ead8c8] bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-brand">
+              <Store size={11} />
               Owner Inbox
             </span>
-            <h1 className="mt-4 text-3xl font-bold text-[#2d160b]">Incoming Appointments</h1>
-            <p className="mt-3 text-sm leading-6 text-[#6f584a] sm:text-[15px]">
-              Keep today under control, watch the next confirmed booking, and move finished visits into completed or
-              no-show without losing the context of who booked and what they requested.
-            </p>
+            <h1 className="mt-3 text-xl font-bold text-[#2d160b]">Appointments</h1>
           </div>
-
-          <div className="rounded-[24px] border border-white/80 bg-white/85 p-5 shadow-sm lg:w-[340px]">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Next Confirmed Appointment</p>
-            {nextAppointment ? (
-              <>
-                <p className="mt-2 text-lg font-bold text-[#2d160b]">{nextAppointment.listing?.name ?? 'Listing'}</p>
-                <p className="mt-1 text-sm text-[#6f584a]">
-                  {formatDate(nextAppointment.booking_date)}, {formatTimeRange(nextAppointment.slot_start, nextAppointment.slot_end)}
-                </p>
-                <p className="mt-3 text-sm font-medium text-[#2d160b]">{nextAppointment.user_name}</p>
-              </>
-            ) : (
-              <p className="mt-2 text-sm text-[#7c6253]">No future confirmed appointments yet.</p>
-            )}
-          </div>
+          {nextAppointment && (
+            <div className="shrink-0 rounded-xl border border-[#e8d5c4] bg-white px-3 py-2.5 max-w-[160px]">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9b7c69]">Next up</p>
+              <p className="mt-1 text-xs font-bold text-[#2d160b] leading-snug">{nextAppointment.user_name}</p>
+              <p className="text-[11px] text-[#7c6253] mt-0.5">
+                {formatTimeRange(nextAppointment.slot_start, nextAppointment.slot_end)}
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff3e7] text-brand">
-              <Calendar size={20} />
-            </span>
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Today</span>
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="rounded-2xl border border-[#eee2d7] bg-white p-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff3e7] text-brand mb-3">
+            <Calendar size={16} />
           </div>
-          <p className="mt-4 text-3xl font-bold text-[#2d160b]">{todayAppointments.length}</p>
-          <p className="mt-2 text-sm text-[#7c6253]">Appointments touching today's schedule.</p>
+          <p className="text-2xl font-bold text-[#2d160b]">{todayAppointments.length}</p>
+          <p className="text-[11px] text-[#9b7c69] mt-0.5 uppercase tracking-wide font-semibold">Today</p>
         </div>
-
-        <div className="rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#eef2ff] text-blue-700">
-              <Clock3 size={20} />
-            </span>
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Upcoming</span>
+        <div className="rounded-2xl border border-[#eee2d7] bg-white p-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 mb-3">
+            <Clock3 size={16} />
           </div>
-          <p className="mt-4 text-3xl font-bold text-[#2d160b]">{upcomingAppointments.length}</p>
-          <p className="mt-2 text-sm text-[#7c6253]">Future confirmed bookings after today.</p>
+          <p className="text-2xl font-bold text-[#2d160b]">{upcomingAppointments.length}</p>
+          <p className="text-[11px] text-[#9b7c69] mt-0.5 uppercase tracking-wide font-semibold">Upcoming</p>
         </div>
-
-        <div className="rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#eef8f0] text-green-700">
-              <CheckCircle size={20} />
-            </span>
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Completed</span>
+        <div className="rounded-2xl border border-[#eee2d7] bg-white p-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-50 text-green-600 mb-3">
+            <CheckCircle size={16} />
           </div>
-          <p className="mt-4 text-3xl font-bold text-[#2d160b]">{completedCount}</p>
-          <p className="mt-2 text-sm text-[#7c6253]">Visits already marked as completed.</p>
+          <p className="text-2xl font-bold text-[#2d160b]">{completedCount}</p>
+          <p className="text-[11px] text-[#9b7c69] mt-0.5 uppercase tracking-wide font-semibold">Done</p>
         </div>
-
-        <div className="rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff6e8] text-amber-700">
-              <IndianRupee size={20} />
-            </span>
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Booked Value</span>
+        <div className="rounded-2xl border border-[#eee2d7] bg-white p-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 mb-3">
+            <IndianRupee size={16} />
           </div>
-          <p className="mt-4 text-3xl font-bold text-[#2d160b]">{formatFee(bookedValue)}</p>
-          <p className="mt-2 text-sm text-[#7c6253]">{cancelledCount} cancelled bookings excluded.</p>
+          <p className="text-2xl font-bold text-[#2d160b]">{formatFee(bookedValue)}</p>
+          <p className="text-[11px] text-[#9b7c69] mt-0.5 uppercase tracking-wide font-semibold">Value</p>
         </div>
       </section>
 

@@ -51,7 +51,7 @@ export default async function DashboardPage() {
     const [jobsCountRes, jobsRes, profileRes] = await Promise.all([
       supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('posted_by', user.id),
       supabase.from('jobs').select('id, title, company, type, approved, created_at').eq('posted_by', user.id).order('created_at', { ascending: false }).limit(5),
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
+      supabase.from('profiles').select('full_name, phone, address').eq('id', user.id).single(),
     ])
     myJobsCount = jobsCountRes.count || 0
     myJobs = jobsRes.data || []
