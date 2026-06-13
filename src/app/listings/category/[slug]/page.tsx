@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 
 import ListingsDirectoryContent from '../../ListingsDirectoryContent'
 import {
+  LISTING_CATEGORIES,
   findCategoryBySlug,
   getCategoryPath,
   getCategoryUrl,
@@ -17,7 +18,8 @@ async function resolveCategory(slug: string): Promise<string | null> {
 
 export async function generateStaticParams() {
   const { categories } = await getListingCategories()
-  return categories.map((category) => ({
+  const source = categories.length > 0 ? categories : LISTING_CATEGORIES
+  return source.map((category) => ({
     slug: toCategorySlug(category),
   }))
 }

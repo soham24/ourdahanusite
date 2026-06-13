@@ -28,6 +28,7 @@ import { getListingHref } from '@/lib/listing-url'
 import {
   DEFAULT_SERVICE_IMAGE_ASPECT,
   NEW_SERVICE_IMAGE_ASPECT,
+  SERVICE_IMAGE_ASPECT_OPTIONS,
   normalizeServiceImageAspect,
   type ServiceImageAspect,
 } from '@/lib/service-image'
@@ -741,35 +742,50 @@ export default function EditListingForm({ listing }: Props) {
                         <Trash2 size={15} />
                       </button>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex items-start gap-2.5">
                       <CompactImageUpload
                         value={svc.image || ''}
                         aspect={svc.imageAspect}
                         onUpload={url => updateService(i, 'image', url)}
                         onClear={() => updateService(i, 'image', '')}
                         onAspectChange={(nextAspect) => updateService(i, 'imageAspect', nextAspect)}
+                        showAspect={false}
                       />
-                      <div className="flex-1 space-y-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div className="sm:col-span-2">
-                            <input type="text" value={svc.name}
-                              onChange={e => updateService(i, 'name', e.target.value)}
-                              placeholder={svc.type === 'product' ? 'Product name (e.g. Organic Chikoo)' : 'Service name (e.g. Home Delivery)'}
-                              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white" />
-                          </div>
-                          <div>
-                            <input type="text" value={svc.price}
-                              onChange={e => updateService(i, 'price', e.target.value)}
-                              placeholder="Price (e.g. ₹200)"
-                              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white" />
-                          </div>
-                        </div>
-                        <textarea value={svc.desc} rows={2}
-                          onChange={e => updateService(i, 'desc', e.target.value)}
-                          placeholder={svc.type === 'product' ? 'Short description (e.g. Fresh from the farm, 1kg pack)' : 'Short description of this service...'}
-                          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none bg-white" />
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <input type="text" value={svc.name}
+                          onChange={e => updateService(i, 'name', e.target.value)}
+                          placeholder={svc.type === 'product' ? 'Product name' : 'Service name'}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white" />
+                        <input type="text" value={svc.price}
+                          onChange={e => updateService(i, 'price', e.target.value)}
+                          placeholder="Price (e.g. ₹200)"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white" />
                       </div>
                     </div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {SERVICE_IMAGE_ASPECT_OPTIONS.map((option) => {
+                        const active = option.value === svc.imageAspect
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => updateService(i, 'imageAspect', option.value)}
+                            className={`rounded-lg border px-2 py-1.5 text-left transition-colors ${
+                              active
+                                ? 'border-border bg-surface-soft text-brand'
+                                : 'border-gray-200 bg-white text-gray-500 hover:border-border hover:text-gray-700'
+                            }`}
+                          >
+                            <span className="block text-[11px] font-semibold leading-tight">{option.label}</span>
+                            <span className="block text-[10px] opacity-75">{option.shortLabel}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <textarea value={svc.desc} rows={2}
+                      onChange={e => updateService(i, 'desc', e.target.value)}
+                      placeholder={svc.type === 'product' ? 'Short description (e.g. Fresh from the farm, 1kg pack)' : 'Short description of this service...'}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none bg-white" />
                   </div>
                 ))}
               </div>

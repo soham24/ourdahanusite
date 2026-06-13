@@ -16,6 +16,7 @@ interface Props {
   onUpload: (url: string) => void
   onClear: () => void
   onAspectChange: (aspect: ServiceImageAspect) => void
+  showAspect?: boolean
 }
 
 interface CropArea {
@@ -78,6 +79,7 @@ export default function CompactImageUpload({
   onUpload,
   onClear,
   onAspectChange,
+  showAspect = true,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [src, setSrc] = useState<string | null>(null)
@@ -309,7 +311,7 @@ export default function CompactImageUpload({
         </button>
       )}
 
-      {renderAspectSelector('light')}
+      {showAspect && renderAspectSelector('light')}
 
       <input
         ref={inputRef}
