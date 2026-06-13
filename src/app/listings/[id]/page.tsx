@@ -5,6 +5,9 @@ import { permanentRedirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import StructuredData from '@/components/StructuredData'
+import Button from '@/components/ui/Button'
+import Skeleton from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 import { getCategoryUrl } from '@/lib/listing-category'
 import { 
   buildDirectionsUrl, 
@@ -120,12 +123,12 @@ export async function generateMetadata({
 
 function ListingDetailFallback() {
   return (
-    <div className="min-h-screen bg-gray-50 animate-warli-fade-in">
+    <div className="od-page min-h-screen animate-warli-fade-in">
       <div className="relative w-full h-48 md:h-64 bg-gradient-to-br from-brand/30 to-ink/20 overflow-hidden">
         <div className="absolute inset-0 skeleton-shimmer opacity-40" />
       </div>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12">
-        <div className="bg-white rounded-2xl border border-border/30 h-64 w-full animate-pulse" />
+        <Skeleton className="h-64 w-full rounded-2xl" />
       </div>
     </div>
   )
@@ -209,23 +212,24 @@ async function ListingDetailContent({
 
   if (!listing) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <Link
-          href={buildAbsoluteUrl('/listings')}
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand mb-6 transition-colors"
-        >
-          <ArrowLeft size={15} /> Back to Listings
-        </Link>
-        <div className="text-center py-20">
-          <div className="text-6xl mb-4">🏪</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Listing Not Found</h2>
-          <p className="text-gray-500 mb-6">This business listing may have been removed or the link is incorrect.</p>
+      <div className="od-page min-h-screen">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <Link
             href={buildAbsoluteUrl('/listings')}
-            className="inline-block bg-brand hover:bg-brand-strong text-white font-semibold px-6 py-3 rounded-xl transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-[var(--od-muted)] hover:text-brand mb-6 transition-colors"
           >
-            Browse All Listings
+            <ArrowLeft size={15} /> Back to Listings
           </Link>
+          <EmptyState
+            icon="🏪"
+            title="Listing not found"
+            description="This business listing may have been removed or the link is incorrect."
+            action={
+              <Button href={buildAbsoluteUrl('/listings')} variant="primary" size="md">
+                Browse all listings
+              </Button>
+            }
+          />
         </div>
       </div>
     )

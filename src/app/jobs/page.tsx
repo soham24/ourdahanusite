@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Briefcase, MapPin, Clock, Users, Plus, CheckCircle } from 'lucide-react'
 
 import { getJobsBoardData } from '@/lib/data/jobs'
+import Skeleton from '@/components/ui/Skeleton'
 
 const TYPE_COLORS: Record<string, string> = {
   'Full-time': 'bg-blue-100 text-blue-700',
@@ -47,16 +48,16 @@ function formatPostedDate(dateStr: string) {
 function JobsPageFallback() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="h-10 w-52 rounded-xl bg-gray-100" />
-      <div className="mt-3 h-5 w-72 rounded-lg bg-gray-100" />
+      <Skeleton className="h-10 w-52" />
+      <Skeleton className="mt-3 h-5 w-72 rounded-lg" />
       <div className="mt-8 flex gap-3 flex-wrap">
         {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="h-9 w-24 rounded-full bg-gray-100" />
+          <Skeleton key={index} className="h-9 w-24 rounded-full" />
         ))}
       </div>
       <div className="mt-6 space-y-4">
         {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="h-36 rounded-2xl bg-gray-100" />
+          <Skeleton key={index} className="h-36 rounded-2xl" />
         ))}
       </div>
     </div>
