@@ -252,18 +252,18 @@ export default function EmergencyPage() {
 
         {/* Neighbourhood Watch */}
         <section className="mb-10">
-          <div className="bg-gradient-to-r from-blue-700 to-indigo-700 rounded-2xl p-6 md:p-8 text-white">
+          <div className="bg-gradient-to-r from-[#2E1205] to-[#7A4520] rounded-2xl p-6 md:p-8 text-white">
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="text-5xl">👀</div>
               <div className="flex-1">
                 <h2 className="text-xl font-bold mb-1">Dahanu Neighbourhood Watch</h2>
-                <p className="text-blue-200 text-sm leading-relaxed mb-4">
+                <p className="text-[#F8E9D5]/75 text-sm leading-relaxed mb-4">
                   Be the eyes and ears of your community. If you notice suspicious activity, do not confront anyone — report it. Our network coordinates with the Dahanu Police to keep our streets safe.
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <Link
                     href="/login"
-                    className="inline-flex items-center gap-2 bg-white text-blue-700 font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-blue-50 transition-colors"
+                    className="inline-flex items-center gap-2 bg-[#F0C87A] text-[#2E1205] font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-white transition-colors"
                   >
                     Join the Watch Network
                     <ChevronRight size={14} />

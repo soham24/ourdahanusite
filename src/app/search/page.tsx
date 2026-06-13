@@ -154,7 +154,7 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
             {listings.length > 0 && (
               <section>
                 <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
-                  <MapPin size={18} className="text-blue-500" />
+                  <MapPin size={18} className="text-brand" />
                   Business Listings
                   <span className="text-sm font-normal text-gray-400">({listings.length})</span>
                 </h2>

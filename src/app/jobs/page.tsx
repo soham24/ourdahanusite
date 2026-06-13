@@ -5,14 +5,17 @@ import { Briefcase, MapPin, Clock, Users, Plus, CheckCircle } from 'lucide-react
 import { getJobsBoardData } from '@/lib/data/jobs'
 import Skeleton from '@/components/ui/Skeleton'
 
+// Warm tonal ladder — stays within the coastal palette (terracotta/gold/amber/
+// neutral) instead of the previous cold blue/purple/indigo/teal mix. Volunteer
+// keeps a community green as a deliberate semantic accent.
 const TYPE_COLORS: Record<string, string> = {
-  'Full-time': 'bg-blue-100 text-blue-700',
-  'Part-time': 'bg-purple-100 text-purple-700',
-  Contract: 'bg-orange-100 text-orange-700',
-  'Daily Wage': 'bg-yellow-100 text-yellow-700',
-  Internship: 'bg-pink-100 text-pink-700',
-  Volunteer: 'bg-teal-100 text-teal-700',
-  Remote: 'bg-indigo-100 text-indigo-700',
+  'Full-time': 'bg-[rgba(192,88,46,0.10)] text-[var(--od-brand-strong)]',
+  'Part-time': 'bg-amber-100 text-amber-800',
+  Contract: 'bg-[rgba(200,136,30,0.16)] text-[#8A5A12]',
+  'Daily Wage': 'bg-[var(--od-surface-soft)] text-[var(--od-ink-2)]',
+  Internship: 'bg-orange-100 text-orange-800',
+  Volunteer: 'bg-green-50 text-green-700',
+  Remote: 'bg-[#EFE7DD] text-[var(--od-brown)]',
 }
 
 const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
