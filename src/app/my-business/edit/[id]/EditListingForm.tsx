@@ -741,7 +741,7 @@ export default function EditListingForm({ listing }: Props) {
                         <Trash2 size={15} />
                       </button>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                       <CompactImageUpload
                         value={svc.image || ''}
                         aspect={svc.imageAspect}
@@ -750,19 +750,15 @@ export default function EditListingForm({ listing }: Props) {
                         onAspectChange={(nextAspect) => updateService(i, 'imageAspect', nextAspect)}
                       />
                       <div className="flex-1 space-y-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div className="sm:col-span-2">
-                            <input type="text" value={svc.name}
-                              onChange={e => updateService(i, 'name', e.target.value)}
-                              placeholder={svc.type === 'product' ? 'Product name (e.g. Organic Chikoo)' : 'Service name (e.g. Home Delivery)'}
-                              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white" />
-                          </div>
-                          <div>
-                            <input type="text" value={svc.price}
-                              onChange={e => updateService(i, 'price', e.target.value)}
-                              placeholder="Price (e.g. ₹200)"
-                              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white" />
-                          </div>
+                        <div className="flex gap-2">
+                          <input type="text" value={svc.name}
+                            onChange={e => updateService(i, 'name', e.target.value)}
+                            placeholder={svc.type === 'product' ? 'Product name' : 'Service name'}
+                            className="flex-1 min-w-0 px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white" />
+                          <input type="text" value={svc.price}
+                            onChange={e => updateService(i, 'price', e.target.value)}
+                            placeholder="Price"
+                            className="w-24 px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white" />
                         </div>
                         <textarea value={svc.desc} rows={2}
                           onChange={e => updateService(i, 'desc', e.target.value)}

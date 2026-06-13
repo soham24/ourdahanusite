@@ -265,7 +265,8 @@ export default function CompactImageUpload({
   }
 
   return (
-    <div className="flex shrink-0 flex-col gap-1.5">
+    <div className="flex shrink-0 gap-2 sm:flex-col sm:gap-1.5">
+      <div className="shrink-0">
       {value ? (
         <div
           className="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
@@ -309,7 +310,10 @@ export default function CompactImageUpload({
         </button>
       )}
 
-      {renderAspectSelector('light')}
+      </div>
+      <div className="flex-1 min-w-0 sm:flex-none">
+        {renderAspectSelector('light')}
+      </div>
 
       <input
         ref={inputRef}
