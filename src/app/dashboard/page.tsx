@@ -238,10 +238,10 @@ export default async function DashboardPage() {
       </div>
 
       {/* Coming Soon sections */}
-      <ComingSoonSection title="My Events" icon={<span className="text-xl">📅</span>} color="text-orange-400" />
-      <ComingSoonSection title="My Business Listings" icon={<span className="text-xl">📍</span>} color="text-blue-400" />
-      <ComingSoonSection title="My News Articles" icon={<span className="text-xl">📰</span>} color="text-green-400" />
-      <ComingSoonSection title="My Classifieds" icon={<span className="text-xl">📦</span>} color="text-purple-400" />
+      <ComingSoonSection title="My Events" icon={<span className="text-xl">📅</span>} color="text-[var(--od-brand)]" />
+      <ComingSoonSection title="My Business Listings" icon={<span className="text-xl">📍</span>} color="text-[var(--od-gold)]" />
+      <ComingSoonSection title="My News Articles" icon={<span className="text-xl">📰</span>} color="text-[var(--od-success)]" />
+      <ComingSoonSection title="My Classifieds" icon={<span className="text-xl">📦</span>} color="text-[var(--od-brown)]" />
 
       {/* Edit Profile */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-6">
