@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
@@ -13,10 +14,16 @@ export async function GET(request: Request) {
   }
 
   if (code) {
+    const cookieStore = await cookies()
+    const allCookies = cookieStore.getAll()
+    const cookieNames = allCookies.map((c) => c.name)
+    const verifierCookie = cookieNames.find((n) => n.includes('code-verifier'))
+    console.log('[auth/callback] cookies present:', cookieNames.length, 'verifier:', verifierCookie ?? 'MISSING')
+
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (error) {
-      console.error('[auth/callback] exchangeCodeForSession failed:', error.message, error.status)
+      console.error('[auth/callback] exchangeCodeForSession failed:', error.message, error.status, (error as any).code)
     }
     if (!error) {
       // Auto-upsert profile with Google name so reviews/posts show real name
