@@ -1,7 +1,31 @@
 import type { NextConfig } from "next";
 
+// Baseline security headers applied to every route. A strict Content-Security-Policy
+// is intentionally omitted for now — it needs per-domain testing against Razorpay,
+// Supabase, Google OAuth and Vercel Analytics before it can be enabled safely.
+const securityHeaders = [
+  // Force HTTPS for 2 years, including subdomains (all *.ourdahanu.in are HTTPS).
+  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+  // Disallow the site being framed by other origins (clickjacking protection).
+  { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+  // Stop browsers MIME-sniffing responses away from the declared content-type.
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  // Send only the origin on cross-origin navigation; full URL same-origin.
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  // Lock down powerful APIs we don't use.
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
+];
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: securityHeaders,
+      },
+    ];
+  },
   cacheLife: {
     publicContent: {
       stale: 3600,

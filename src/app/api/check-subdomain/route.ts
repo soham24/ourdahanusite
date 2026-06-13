@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { createPublicClient } from '@/lib/supabase/public'
+import { rateLimit, getClientIp, tooManyRequests } from '@/lib/rate-limit'
 
 const RESERVED = new Set([
   'www', 'admin', 'api', 'app', 'mail', 'shop', 'news', 'events',
@@ -10,6 +11,11 @@ const RESERVED = new Set([
 ])
 
 export async function GET(request: NextRequest) {
+  // Cheap DB lookup; cap to 60 checks per IP per minute to deter enumeration.
+  const ip = getClientIp(request)
+  const limit = rateLimit(`check-subdomain:${ip}`, 60, 60 * 1000)
+  if (!limit.ok) return tooManyRequests(limit.resetAt)
+
   const subdomain = request.nextUrl.searchParams.get('s')?.trim().toLowerCase()
 
   if (!subdomain) {

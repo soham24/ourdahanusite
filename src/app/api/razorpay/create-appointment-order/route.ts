@@ -7,6 +7,7 @@ import {
 } from '@/lib/data/appointments'
 import { recordPaymentIntent } from '@/lib/payment-intents'
 import { createClient } from '@/lib/supabase/server'
+import { rateLimit, tooManyRequests } from '@/lib/rate-limit'
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/
@@ -35,6 +36,9 @@ export async function POST(request: Request) {
   if (!user) {
     return NextResponse.json({ error: 'Please sign in to book an appointment.' }, { status: 401 })
   }
+
+  const rl = rateLimit(`rzp-order:${user.id}`, 20, 10 * 60 * 1000)
+  if (!rl.ok) return tooManyRequests(rl.resetAt)
 
   const keyId = process.env.RAZORPAY_KEY_ID?.trim()
   const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim()

@@ -6,6 +6,7 @@ import { CACHE_TAGS } from '@/lib/cache-tags'
 import { recordPaymentIntent } from '@/lib/payment-intents'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
+import { rateLimit, tooManyRequests } from '@/lib/rate-limit'
 
 const MIN_AMOUNT_PAISE = 100 // ₹1
 
@@ -15,6 +16,9 @@ export async function POST(request: Request) {
   if (!user) {
     return NextResponse.json({ error: 'Please sign in to place an order.' }, { status: 401 })
   }
+
+  const rl = rateLimit(`rzp-order:${user.id}`, 20, 10 * 60 * 1000)
+  if (!rl.ok) return tooManyRequests(rl.resetAt)
 
   let productId = ''
   let quantity = 1

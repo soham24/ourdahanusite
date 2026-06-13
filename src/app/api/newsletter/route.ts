@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { rateLimit, getClientIp, tooManyRequests } from '@/lib/rate-limit'
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -7,6 +8,12 @@ function isValidEmail(email: string): boolean {
 
 export async function POST(request: NextRequest) {
   try {
+    // This endpoint sends a Resend welcome email per request, so it's an
+    // email-bombing / quota-burn vector. Cap to 5 subscribes per IP per hour.
+    const ip = getClientIp(request)
+    const limit = rateLimit(`newsletter:${ip}`, 5, 60 * 60 * 1000)
+    if (!limit.ok) return tooManyRequests(limit.resetAt)
+
     const body = await request.json()
     const email = (body.email as string)?.trim().toLowerCase()
 

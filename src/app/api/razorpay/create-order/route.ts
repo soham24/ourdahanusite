@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { rateLimit, tooManyRequests } from '@/lib/rate-limit'
 
 export async function POST() {
   // Must be logged in
@@ -8,6 +9,9 @@ export async function POST() {
   if (!user) {
     return NextResponse.json({ error: 'Please sign in to post a job.' }, { status: 401 })
   }
+
+  const rl = rateLimit(`rzp-order:${user.id}`, 20, 10 * 60 * 1000)
+  if (!rl.ok) return tooManyRequests(rl.resetAt)
 
   const keyId = process.env.RAZORPAY_KEY_ID?.trim()
   const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim()
