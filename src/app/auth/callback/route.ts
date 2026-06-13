@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
@@ -14,23 +13,10 @@ export async function GET(request: Request) {
   }
 
   if (code) {
-    const cookieStore = await cookies()
-    const allCookies = cookieStore.getAll()
-    const cookieNames = allCookies.map((c) => c.name)
-    const verifierCookies = cookieNames.filter((n) => n.includes('code-verifier'))
-    console.log('[auth/callback] cookies present:', cookieNames.length, 'verifiers:', verifierCookies.join(',') || 'MISSING')
-    // If there are duplicate verifier cookies (stale domain-scoped + new no-domain),
-    // delete the stale ones so the server client only sees the latest.
-    if (verifierCookies.length > 1) {
-      for (const name of verifierCookies.slice(1)) {
-        try { cookieStore.delete(name) } catch { /* ignore */ }
-      }
-    }
-
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (error) {
-      console.error('[auth/callback] exchangeCodeForSession failed:', error.message, error.status, (error as any).code)
+      console.error('[auth/callback] exchangeCodeForSession failed:', error.message, error.status)
     }
     if (!error) {
       // Auto-upsert profile with Google name so reviews/posts show real name
