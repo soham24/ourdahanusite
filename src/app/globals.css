@@ -216,6 +216,17 @@ body {
   }
 }
 
+/* Consistent keyboard-focus indicator for all interactive elements.
+   :where() keeps specificity at 0 so components can still override, and
+   :focus-visible means mouse clicks don't show the ring — only keyboard nav. */
+@layer base {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;

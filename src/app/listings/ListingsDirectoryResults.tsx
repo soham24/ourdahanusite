@@ -119,15 +119,18 @@ export default function ListingsDirectoryResults({
         >
           <Plus size={16} />
         </Link>
-        <Button
-          href="/listings/submit"
-          variant="primary"
-          size="md"
-          icon={<Plus size={16} />}
-          className="hidden sm:flex flex-shrink-0"
-        >
-          Add Business
-        </Button>
+        {/* Wrapper controls responsive visibility — `hidden` on <Button> itself
+            is overridden by the component's base `inline-flex` in the cascade. */}
+        <div className="hidden sm:block flex-shrink-0">
+          <Button
+            href="/listings/submit"
+            variant="primary"
+            size="md"
+            icon={<Plus size={16} />}
+          >
+            Add Business
+          </Button>
+        </div>
       </Card>
 
       <CategoryFilter
