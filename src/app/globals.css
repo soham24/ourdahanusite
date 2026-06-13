@@ -76,6 +76,8 @@
   --od-ink: var(--color-ink);
   --od-ink-2: var(--color-ink-2);
   --od-muted: var(--color-muted);
+  /* Alias for components that reference the muted text token by this name. */
+  --color-text-muted: var(--color-muted);
   --od-border: var(--color-border);
   --od-brand: var(--color-brand);
   --od-brand-strong: var(--color-brand-strong);

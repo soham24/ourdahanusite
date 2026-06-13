@@ -17,7 +17,7 @@ export default function PopularBusinesses({ listings }: PopularBusinessesProps) 
   const [lead, ...rest] = listings.slice(0, 6)
 
   return (
-    <section className="border-y border-[var(--od-border)] bg-[#f7efe4] py-12 md:py-16">
+    <section className="border-y border-[var(--od-border)] bg-[var(--od-surface-soft)] py-12 md:py-16">
       <div className="mx-auto max-w-[1160px] px-5 md:px-6">
         <SectionHeader
           label="Most trusted"
