@@ -14,7 +14,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL
 
-export type UserRole = 'admin' | 'moderator' | 'business_owner' | 'job_reviewer' | 'user'
+export type UserRole = 'admin' | 'moderator' | 'business_owner' | 'job_reviewer' | 'rider' | 'user'
 
 export async function getUserRole(supabase: SupabaseClient): Promise<{ user: import('@supabase/supabase-js').User | null; role: UserRole; verified: boolean }> {
   const { data: { user } } = await supabase.auth.getUser()

@@ -166,6 +166,48 @@ export type Database = {
           },
         ]
       }
+      cod_collections: {
+        Row: {
+          amount_paise: number
+          created_at: string
+          delivery_order_id: string
+          id: string
+          rider_id: string | null
+          settled: boolean
+        }
+        Insert: {
+          amount_paise: number
+          created_at?: string
+          delivery_order_id: string
+          id?: string
+          rider_id?: string | null
+          settled?: boolean
+        }
+        Update: {
+          amount_paise?: number
+          created_at?: string
+          delivery_order_id?: string
+          id?: string
+          rider_id?: string | null
+          settled?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cod_collections_delivery_order_id_fkey"
+            columns: ["delivery_order_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cod_collections_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupons: {
         Row: {
           code: string
@@ -195,6 +237,165 @@ export type Database = {
           usage_count?: number
         }
         Relationships: []
+      }
+      delivery_order_items: {
+        Row: {
+          delivery_order_id: string
+          id: string
+          line_total_paise: number
+          listing_product_id: string | null
+          name: string
+          price_paise: number
+          quantity: number
+        }
+        Insert: {
+          delivery_order_id: string
+          id?: string
+          line_total_paise: number
+          listing_product_id?: string | null
+          name: string
+          price_paise: number
+          quantity: number
+        }
+        Update: {
+          delivery_order_id?: string
+          id?: string
+          line_total_paise?: number
+          listing_product_id?: string | null
+          name?: string
+          price_paise?: number
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_order_items_delivery_order_id_fkey"
+            columns: ["delivery_order_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_order_items_listing_product_id_fkey"
+            columns: ["listing_product_id"]
+            isOneToOne: false
+            referencedRelation: "listing_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_orders: {
+        Row: {
+          assigned_at: string | null
+          cancel_reason: string | null
+          created_at: string
+          customer_id: string
+          customer_name: string
+          customer_phone: string
+          delivered_at: string | null
+          delivery_fee_paise: number
+          distance_km: number | null
+          drop_address: string
+          drop_lat: number | null
+          drop_lng: number | null
+          grand_total_paise: number
+          handoff_otp: string | null
+          id: string
+          items_total_paise: number
+          listing_id: string
+          notes: string | null
+          payment_mode: string
+          payment_status: string
+          picked_up_at: string | null
+          pickup_address: string | null
+          pickup_lat: number | null
+          pickup_lng: number | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          razorpay_signature: string | null
+          rider_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          cancel_reason?: string | null
+          created_at?: string
+          customer_id: string
+          customer_name: string
+          customer_phone: string
+          delivered_at?: string | null
+          delivery_fee_paise?: number
+          distance_km?: number | null
+          drop_address: string
+          drop_lat?: number | null
+          drop_lng?: number | null
+          grand_total_paise: number
+          handoff_otp?: string | null
+          id?: string
+          items_total_paise: number
+          listing_id: string
+          notes?: string | null
+          payment_mode: string
+          payment_status?: string
+          picked_up_at?: string | null
+          pickup_address?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          rider_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          cancel_reason?: string | null
+          created_at?: string
+          customer_id?: string
+          customer_name?: string
+          customer_phone?: string
+          delivered_at?: string | null
+          delivery_fee_paise?: number
+          distance_km?: number | null
+          drop_address?: string
+          drop_lat?: number | null
+          drop_lng?: number | null
+          grand_total_paise?: number
+          handoff_otp?: string | null
+          id?: string
+          items_total_paise?: number
+          listing_id?: string
+          notes?: string | null
+          payment_mode?: string
+          payment_status?: string
+          picked_up_at?: string | null
+          pickup_address?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          rider_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_orders_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_orders_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       device_tokens: {
         Row: {
@@ -543,6 +744,50 @@ export type Database = {
           type?: string
         }
         Relationships: []
+      }
+      listing_delivery_config: {
+        Row: {
+          base_fee_paise: number
+          delivery_enabled: boolean
+          free_above_paise: number | null
+          listing_id: string
+          min_order_paise: number
+          per_km_fee_paise: number
+          prep_time_min: number
+          radius_km: number
+          updated_at: string
+        }
+        Insert: {
+          base_fee_paise?: number
+          delivery_enabled?: boolean
+          free_above_paise?: number | null
+          listing_id: string
+          min_order_paise?: number
+          per_km_fee_paise?: number
+          prep_time_min?: number
+          radius_km?: number
+          updated_at?: string
+        }
+        Update: {
+          base_fee_paise?: number
+          delivery_enabled?: boolean
+          free_above_paise?: number | null
+          listing_id?: string
+          min_order_paise?: number
+          per_km_fee_paise?: number
+          prep_time_min?: number
+          radius_km?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_delivery_config_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       listing_favourites: {
         Row: {
@@ -1521,6 +1766,152 @@ export type Database = {
           },
         ]
       }
+      rider_assignments: {
+        Row: {
+          delivery_order_id: string
+          id: string
+          offered_at: string
+          responded_at: string | null
+          rider_id: string
+          status: string
+        }
+        Insert: {
+          delivery_order_id: string
+          id?: string
+          offered_at?: string
+          responded_at?: string | null
+          rider_id: string
+          status?: string
+        }
+        Update: {
+          delivery_order_id?: string
+          id?: string
+          offered_at?: string
+          responded_at?: string | null
+          rider_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_assignments_delivery_order_id_fkey"
+            columns: ["delivery_order_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rider_assignments_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rider_earnings: {
+        Row: {
+          amount_paise: number
+          created_at: string
+          delivery_order_id: string | null
+          id: string
+          rider_id: string
+          status: string
+        }
+        Insert: {
+          amount_paise: number
+          created_at?: string
+          delivery_order_id?: string | null
+          id?: string
+          rider_id: string
+          status?: string
+        }
+        Update: {
+          amount_paise?: number
+          created_at?: string
+          delivery_order_id?: string | null
+          id?: string
+          rider_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_earnings_delivery_order_id_fkey"
+            columns: ["delivery_order_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rider_earnings_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      riders: {
+        Row: {
+          created_at: string
+          current_lat: number | null
+          current_lng: number | null
+          full_name: string
+          home_business_id: string | null
+          id: string
+          is_online: boolean
+          last_ping_at: string | null
+          payout_upi: string | null
+          phone: string
+          rating: number | null
+          status: string
+          updated_at: string
+          user_id: string
+          vehicle_type: string
+        }
+        Insert: {
+          created_at?: string
+          current_lat?: number | null
+          current_lng?: number | null
+          full_name: string
+          home_business_id?: string | null
+          id?: string
+          is_online?: boolean
+          last_ping_at?: string | null
+          payout_upi?: string | null
+          phone: string
+          rating?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          vehicle_type?: string
+        }
+        Update: {
+          created_at?: string
+          current_lat?: number | null
+          current_lng?: number | null
+          full_name?: string
+          home_business_id?: string | null
+          id?: string
+          is_online?: boolean
+          last_ping_at?: string | null
+          payout_upi?: string | null
+          phone?: string
+          rating?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "riders_home_business_id_fkey"
+            columns: ["home_business_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_settings: {
         Row: {
           key: string
@@ -1576,6 +1967,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_delivery_offer: {
+        Args: { p_order_id: string; p_rider_id: string }
+        Returns: boolean
+      }
       create_appointment_booking: {
         Args: {
           p_booking_date: string
