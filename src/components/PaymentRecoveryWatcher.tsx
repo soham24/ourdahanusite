@@ -9,6 +9,7 @@ import {
   clearRecoveryDraft,
   listCapturedRecoveryDrafts,
   recoveryUrlFor,
+  RECOVERY_DRAFTS_CHANGED_EVENT,
   type PaymentRecoveryDraft,
 } from '@/lib/payment-retry'
 
@@ -74,9 +75,13 @@ export default function PaymentRecoveryWatcher() {
     const id = window.setInterval(tick, 30_000)
     const onFocus = () => tick()
     window.addEventListener('focus', onFocus)
+    // Re-scan the instant a draft is added/cleared (e.g. right after a payment
+    // succeeds and clearRecoveryDraft runs) so the banner never lingers.
+    window.addEventListener(RECOVERY_DRAFTS_CHANGED_EVENT, tick)
     return () => {
       window.clearInterval(id)
       window.removeEventListener('focus', onFocus)
+      window.removeEventListener(RECOVERY_DRAFTS_CHANGED_EVENT, tick)
     }
   }, [])
 
@@ -90,7 +95,7 @@ export default function PaymentRecoveryWatcher() {
   const amountRupees = Math.round(draft.amountPaise / 100)
 
   return (
-    <div className="fixed inset-x-3 bottom-3 z-[60] sm:left-auto sm:right-4 sm:max-w-sm">
+    <div className="fixed inset-x-3 z-[60] bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] sm:left-auto sm:right-4 sm:max-w-sm lg:bottom-4">
       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-lg">
         <div className="flex items-start gap-3">
           <ShieldAlert size={20} className="mt-0.5 flex-shrink-0 text-amber-700" />

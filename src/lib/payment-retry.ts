@@ -63,10 +63,17 @@ function readDrafts(): Record<string, PaymentRecoveryDraft> {
   }
 }
 
+/** Fired whenever the recovery-draft set changes, so the in-page watcher can
+ *  re-scan immediately instead of waiting for its 30s poll. Without this, the
+ *  recovery banner lingers on screen for up to 30s after a payment succeeds and
+ *  the draft is cleared. */
+export const RECOVERY_DRAFTS_CHANGED_EVENT = 'ourdahanu:recovery-drafts-changed'
+
 function writeDrafts(drafts: Record<string, PaymentRecoveryDraft>): void {
   if (typeof window === 'undefined') return
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(drafts))
+    window.dispatchEvent(new CustomEvent(RECOVERY_DRAFTS_CHANGED_EVENT))
   } catch {
     // localStorage full / disabled — best effort only.
   }
