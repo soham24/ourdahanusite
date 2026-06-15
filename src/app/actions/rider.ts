@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
+import { rateLimit } from '@/lib/rate-limit'
 
 export interface RiderProfile {
   id: string
@@ -86,6 +87,8 @@ export async function pingRiderLocation(lat: number, lng: number): Promise<{ ok?
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Please sign in.' }
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return { error: 'Invalid coordinates.' }
+  // Pings fire ~every 20s; cap abusive frequency.
+  if (!rateLimit(`rider-ping:${user.id}`, 30, 60 * 1000).ok) return { error: 'Slow down.' }
 
   const { error } = await supabase
     .from('riders')

@@ -8,6 +8,7 @@ import {
   markIntentFinalized,
 } from '@/lib/payment-intents'
 import { generateHandoffOtp, haversineKm, quoteDelivery, type DeliveryConfig, type FeeQuote } from '@/lib/delivery'
+import { rateLimit } from '@/lib/rate-limit'
 
 const DEFAULT_CONFIG: DeliveryConfig = {
   delivery_enabled: false,
@@ -200,6 +201,10 @@ export async function placeDeliveryOrder(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Please sign in to order.' }
 
+  if (!rateLimit(`delivery-order:${user.id}`, 15, 10 * 60 * 1000).ok) {
+    return { error: 'Too many attempts. Please wait a moment and try again.' }
+  }
+
   const listingId = String(formData.get('listing_id') ?? '').trim()
   const customerName = String(formData.get('customer_name') ?? '').trim()
   const customerPhone = String(formData.get('customer_phone') ?? '').trim()
@@ -325,6 +330,7 @@ export interface DeliveryTracking {
   handoff_otp: string | null
   listing_name: string
   drop_address: string
+  rated: boolean
   rider: { full_name: string; phone: string; lat: number | null; lng: number | null } | null
   riderToDropKm: number | null
 }
@@ -340,7 +346,7 @@ export async function getDeliveryTracking(orderId: string): Promise<{ error?: st
 
   const { data: order } = await admin
     .from('delivery_orders')
-    .select('id, customer_id, listing_id, status, payment_mode, grand_total_paise, handoff_otp, drop_address, drop_lat, drop_lng, rider_id')
+    .select('id, customer_id, listing_id, status, payment_mode, grand_total_paise, handoff_otp, drop_address, drop_lat, drop_lng, rider_id, rated')
     .eq('id', orderId)
     .maybeSingle()
   if (!order || order.customer_id !== user.id) return { error: 'Order not found.' }
@@ -374,10 +380,79 @@ export async function getDeliveryTracking(orderId: string): Promise<{ error?: st
       handoff_otp: order.handoff_otp,
       listing_name: listing?.name ?? 'Shop',
       drop_address: order.drop_address,
+      rated: order.rated ?? false,
       rider,
       riderToDropKm,
     },
   }
+}
+
+/** Customer rates the rider after delivery (1–5). Recomputes the rider average. */
+export async function rateDelivery(orderId: string, rating: number): Promise<{ error?: string; ok?: true }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Please sign in.' }
+  const stars = Math.round(Number(rating))
+  if (stars < 1 || stars > 5) return { error: 'Pick 1 to 5 stars.' }
+
+  const admin = createAdminClient()
+  if (!admin) return { error: 'Server configuration error.' }
+
+  const { data: order } = await admin
+    .from('delivery_orders')
+    .select('id, customer_id, status, rated, rider_id')
+    .eq('id', orderId)
+    .maybeSingle()
+  if (!order || order.customer_id !== user.id) return { error: 'Order not found.' }
+  if (order.status !== 'delivered') return { error: 'You can rate after delivery.' }
+  if (order.rated) return { error: 'Already rated.' }
+
+  await admin.from('delivery_orders').update({ rider_rating: stars, rated: true }).eq('id', orderId)
+
+  // Recompute the rider's running average from all rated deliveries.
+  if (order.rider_id) {
+    const { data: rated } = await admin
+      .from('delivery_orders')
+      .select('rider_rating')
+      .eq('rider_id', order.rider_id)
+      .eq('rated', true)
+      .not('rider_rating', 'is', null)
+    const vals = (rated ?? []).map((r) => r.rider_rating as number)
+    if (vals.length > 0) {
+      const avg = Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10
+      await admin.from('riders').update({ rating: avg }).eq('id', order.rider_id)
+    }
+  }
+  return { ok: true }
+}
+
+/**
+ * Customer cancels their own order. Only allowed for COD orders that the shop
+ * hasn't accepted yet (no money moved, no rider committed). Online/paid orders
+ * route to the business for a refund.
+ */
+export async function cancelMyDeliveryOrder(orderId: string): Promise<{ error?: string; ok?: true }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Please sign in.' }
+  const admin = createAdminClient()
+  if (!admin) return { error: 'Server configuration error.' }
+
+  const { data: order } = await admin
+    .from('delivery_orders')
+    .select('id, customer_id, status, payment_mode')
+    .eq('id', orderId)
+    .maybeSingle()
+  if (!order || order.customer_id !== user.id) return { error: 'Order not found.' }
+  if (order.status !== 'placed') return { error: 'This order can no longer be cancelled here — please contact the shop.' }
+  if (order.payment_mode !== 'cod') return { error: 'Paid orders are cancelled by the shop. Please contact them for a refund.' }
+
+  const { error } = await admin
+    .from('delivery_orders')
+    .update({ status: 'cancelled', cancel_reason: 'Cancelled by customer', updated_at: new Date().toISOString() })
+    .eq('id', orderId)
+  if (error) return { error: 'Could not cancel.' }
+  return { ok: true }
 }
 
 // ── Business-side order ops ────────────────────────────────────────────────

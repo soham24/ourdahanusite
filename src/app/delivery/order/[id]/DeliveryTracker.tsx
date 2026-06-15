@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Check, MapPin, Navigation, Phone } from 'lucide-react'
+import { Check, MapPin, Navigation, Phone, Star, X } from 'lucide-react'
 
-import { getDeliveryTracking, type DeliveryTracking } from '@/app/actions/delivery'
+import { cancelMyDeliveryOrder, getDeliveryTracking, rateDelivery, type DeliveryTracking } from '@/app/actions/delivery'
 
 const rupees = (paise: number) => `₹${(paise / 100).toLocaleString('en-IN')}`
 
@@ -32,6 +32,27 @@ export function DeliveryTracker({ orderId, initial }: { orderId: string; initial
 
   const cancelled = t.status === 'cancelled' || t.status === 'delivery_failed'
   const currentIdx = STEPS.findIndex((s) => s.key === t.status)
+
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+  const [rating, setRating] = useState(0)
+
+  const submitRating = async (stars: number) => {
+    setRating(stars); setBusy(true); setMsg('')
+    const res = await rateDelivery(t.id, stars)
+    setBusy(false)
+    if (res.error) setMsg(res.error)
+    else setT((p) => ({ ...p, rated: true }))
+  }
+
+  const cancel = async () => {
+    setBusy(true); setMsg('')
+    const res = await cancelMyDeliveryOrder(t.id)
+    setBusy(false)
+    if (res.error) { setMsg(res.error); return }
+    const fresh = await getDeliveryTracking(t.id)
+    if (fresh.tracking) setT(fresh.tracking)
+  }
 
   return (
     <div className="mt-4 space-y-5">
@@ -95,6 +116,32 @@ export function DeliveryTracker({ orderId, initial }: { orderId: string; initial
       ) : (
         <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">This order was cancelled.</p>
       )}
+
+      {/* Rate the rider after delivery */}
+      {t.status === 'delivered' && !t.rated && (
+        <div className="rounded-2xl border border-[var(--od-border)] bg-white p-4 text-center">
+          <p className="text-sm font-semibold text-[var(--od-ink)]">How was your delivery?</p>
+          <div className="mt-2 flex justify-center gap-1">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button key={n} onClick={() => submitRating(n)} disabled={busy} className="p-1 disabled:opacity-50">
+                <Star size={28} className={n <= rating ? 'fill-amber-400 text-amber-400' : 'text-[var(--od-border)]'} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {t.status === 'delivered' && t.rated && (
+        <p className="text-center text-sm text-[var(--od-muted)]">Thanks for rating your delivery! ⭐</p>
+      )}
+
+      {/* Cancel (COD, not yet accepted) */}
+      {t.status === 'placed' && t.payment_mode === 'cod' && (
+        <button onClick={cancel} disabled={busy} className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[var(--od-border)] py-2.5 text-sm font-semibold text-[var(--od-ink-2)] hover:border-red-300 hover:text-red-600 disabled:opacity-60">
+          <X size={15} /> Cancel order
+        </button>
+      )}
+
+      {msg && <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">{msg}</p>}
 
       <div className="rounded-xl bg-[var(--od-surface-soft)] px-4 py-3 text-sm">
         <div className="flex justify-between"><span className="text-[var(--od-muted)]">Deliver to</span><span className="max-w-[60%] text-right font-medium text-[var(--od-ink)]">{t.drop_address}</span></div>
