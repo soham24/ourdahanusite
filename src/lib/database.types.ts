@@ -309,10 +309,12 @@ export type Database = {
           pickup_address: string | null
           pickup_lat: number | null
           pickup_lng: number | null
+          rated: boolean
           razorpay_order_id: string | null
           razorpay_payment_id: string | null
           razorpay_signature: string | null
           rider_id: string | null
+          rider_rating: number | null
           status: string
           updated_at: string
         }
@@ -341,10 +343,12 @@ export type Database = {
           pickup_address?: string | null
           pickup_lat?: number | null
           pickup_lng?: number | null
+          rated?: boolean
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
           razorpay_signature?: string | null
           rider_id?: string | null
+          rider_rating?: number | null
           status?: string
           updated_at?: string
         }
@@ -373,10 +377,12 @@ export type Database = {
           pickup_address?: string | null
           pickup_lat?: number | null
           pickup_lng?: number | null
+          rated?: boolean
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
           razorpay_signature?: string | null
           rider_id?: string | null
+          rider_rating?: number | null
           status?: string
           updated_at?: string
         }
