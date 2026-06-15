@@ -314,3 +314,110 @@ export async function placeDeliveryOrder(
 
   return { orderId: order.id, otp }
 }
+
+// ── Business-side order ops ────────────────────────────────────────────────
+
+export type DeliveryStatus =
+  | 'placed' | 'accepted' | 'preparing' | 'ready_for_pickup' | 'rider_assigned'
+  | 'picked_up' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'delivery_failed'
+
+// Allowed business-driven transitions. Rider-driven ones (picked_up …) live in
+// the dispatch/rider actions; this guards what a shop owner can do.
+const OWNER_TRANSITIONS: Record<string, DeliveryStatus[]> = {
+  placed: ['accepted', 'cancelled'],
+  accepted: ['preparing', 'cancelled'],
+  preparing: ['ready_for_pickup', 'cancelled'],
+  ready_for_pickup: ['cancelled'],
+}
+
+export interface OwnerDeliveryOrder {
+  id: string
+  listing_id: string
+  status: DeliveryStatus
+  payment_mode: 'cod' | 'online'
+  payment_status: string
+  items_total_paise: number
+  delivery_fee_paise: number
+  grand_total_paise: number
+  customer_name: string
+  customer_phone: string
+  drop_address: string
+  distance_km: number | null
+  notes: string | null
+  created_at: string
+  items: Array<{ name: string; quantity: number; line_total_paise: number }>
+}
+
+/** Orders for the signed-in owner's listings (optionally one listing). */
+export async function getOwnerDeliveryOrders(listingId?: string): Promise<OwnerDeliveryOrder[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data: listings } = await supabase
+    .from('listings').select('id').eq('owner_id', user.id)
+  const ownedIds = (listings ?? []).map((l) => l.id)
+  const scope = listingId ? ownedIds.filter((id) => id === listingId) : ownedIds
+  if (scope.length === 0) return []
+
+  const { data: orders } = await supabase
+    .from('delivery_orders')
+    .select('id, listing_id, status, payment_mode, payment_status, items_total_paise, delivery_fee_paise, grand_total_paise, customer_name, customer_phone, drop_address, distance_km, notes, created_at')
+    .in('listing_id', scope)
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  const list = (orders ?? []) as Omit<OwnerDeliveryOrder, 'items'>[]
+  if (list.length === 0) return []
+
+  const { data: items } = await supabase
+    .from('delivery_order_items')
+    .select('delivery_order_id, name, quantity, line_total_paise')
+    .in('delivery_order_id', list.map((o) => o.id))
+
+  const byOrder = new Map<string, OwnerDeliveryOrder['items']>()
+  for (const it of (items ?? []) as Array<{ delivery_order_id: string; name: string; quantity: number; line_total_paise: number }>) {
+    const arr = byOrder.get(it.delivery_order_id) ?? []
+    arr.push({ name: it.name, quantity: it.quantity, line_total_paise: it.line_total_paise })
+    byOrder.set(it.delivery_order_id, arr)
+  }
+
+  return list.map((o) => ({ ...o, items: byOrder.get(o.id) ?? [] }))
+}
+
+/** Owner moves an order through its lifecycle (accept/prepare/ready/cancel). */
+export async function updateDeliveryOrderStatus(
+  orderId: string,
+  next: DeliveryStatus,
+  reason?: string,
+): Promise<{ error?: string; ok?: true }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Please sign in.' }
+
+  const admin = createAdminClient()
+  if (!admin) return { error: 'Server configuration error.' }
+
+  const { data: order } = await admin
+    .from('delivery_orders')
+    .select('id, status, listing_id')
+    .eq('id', orderId)
+    .maybeSingle()
+  if (!order) return { error: 'Order not found.' }
+
+  const { data: listing } = await admin
+    .from('listings').select('owner_id').eq('id', order.listing_id).maybeSingle()
+  if (!listing || listing.owner_id !== user.id) return { error: 'Not your order.' }
+
+  const allowed = OWNER_TRANSITIONS[order.status] ?? []
+  if (!allowed.includes(next)) {
+    return { error: `Cannot change a ${order.status} order to ${next}.` }
+  }
+
+  const patch: Record<string, unknown> = { status: next, updated_at: new Date().toISOString() }
+  if (next === 'cancelled') patch.cancel_reason = (reason ?? 'Cancelled by business').slice(0, 300)
+
+  const { error } = await admin.from('delivery_orders').update(patch).eq('id', orderId)
+  if (error) return { error: 'Could not update the order.' }
+  return { ok: true }
+}

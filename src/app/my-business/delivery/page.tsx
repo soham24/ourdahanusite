@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowLeft, ArrowRight, Bike, Store } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bike, Store, ClipboardList } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/server'
 
@@ -32,13 +32,22 @@ export default async function MyBusinessDeliveryIndex() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-10 sm:px-6">
-      <Link
-        href="/my-business"
-        className="inline-flex items-center gap-1.5 text-sm text-[var(--od-muted)] hover:text-brand transition-colors"
-      >
-        <ArrowLeft size={14} />
-        Back to My Business
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href="/my-business"
+          className="inline-flex items-center gap-1.5 text-sm text-[var(--od-muted)] hover:text-brand transition-colors"
+        >
+          <ArrowLeft size={14} />
+          Back to My Business
+        </Link>
+        <Link
+          href="/my-business/delivery/orders"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-strong"
+        >
+          <ClipboardList size={15} />
+          Delivery orders
+        </Link>
+      </div>
 
       <header className="rounded-[30px] border border-[var(--od-border)] bg-gradient-to-br from-[#fff7ef] via-white to-[#f4ede4] px-6 py-7 shadow-sm sm:px-8">
         <div className="flex items-start gap-3">
