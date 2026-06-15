@@ -2,6 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
+import {
+  findFinalizedIntentByPaymentId,
+  markIntentCaptured,
+  markIntentFinalized,
+} from '@/lib/payment-intents'
 import { generateHandoffOtp, quoteDelivery, type DeliveryConfig, type FeeQuote } from '@/lib/delivery'
 
 const DEFAULT_CONFIG: DeliveryConfig = {
@@ -183,9 +188,10 @@ export async function validateDeliveryCart(
 }
 
 /**
- * Place a CASH-ON-DELIVERY delivery order. Validates the cart server-side,
- * inserts the order + items, decrements stock, and returns the order id.
- * Online (Razorpay) placement is finalized via the dedicated payment route.
+ * Place a delivery order — Cash on Delivery or online (Razorpay, finalized after
+ * payment). Validates the cart server-side, verifies the payment signature for
+ * online orders (idempotent on payment id), inserts the order + items,
+ * decrements stock, and returns the order id + handoff OTP.
  */
 export async function placeDeliveryOrder(
   formData: FormData,
@@ -201,6 +207,7 @@ export async function placeDeliveryOrder(
   const dropLat = Number(formData.get('drop_lat'))
   const dropLng = Number(formData.get('drop_lng'))
   const notes = String(formData.get('notes') ?? '').trim() || null
+  const paymentMode = String(formData.get('payment_mode') ?? 'cod').trim() === 'online' ? 'online' : 'cod'
 
   if (!listingId || !customerName || !customerPhone || !dropAddress) {
     return { error: 'Please fill name, phone, and delivery address.' }
@@ -216,11 +223,44 @@ export async function placeDeliveryOrder(
     return { error: 'Invalid cart.' }
   }
 
+  // ── Online: verify the Razorpay signature before trusting the payment ──
+  let razorpay: { orderId: string; paymentId: string; signature: string } | null = null
+  if (paymentMode === 'online') {
+    const orderId = String(formData.get('razorpay_order_id') ?? '').trim()
+    const paymentId = String(formData.get('razorpay_payment_id') ?? '').trim()
+    const signature = String(formData.get('razorpay_signature') ?? '').trim()
+    if (!orderId || !paymentId || !signature) return { error: 'Payment details missing.' }
+
+    // Idempotency: if this payment already finalized a delivery order, return it.
+    const finalized = await findFinalizedIntentByPaymentId(paymentId)
+    if (finalized && finalized.user_id === user.id && finalized.entity_table === 'delivery_orders') {
+      return { orderId: finalized.entity_id ?? undefined }
+    }
+
+    const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim()
+    const { createHmac } = await import('crypto')
+    const expected = createHmac('sha256', keySecret ?? '')
+      .update(`${orderId}|${paymentId}`)
+      .digest('hex')
+    if (!keySecret || expected !== signature) {
+      return { error: 'Payment verification failed. Please contact support.' }
+    }
+    razorpay = { orderId, paymentId, signature }
+  }
+
   const { error, cart } = await validateDeliveryCart(listingId, items, { lat: dropLat, lng: dropLng })
   if (error || !cart) return { error: error ?? 'Could not validate your cart.' }
 
   const admin = createAdminClient()
   if (!admin) return { error: 'Server configuration error.' }
+
+  if (razorpay) {
+    await markIntentCaptured({
+      razorpayOrderId: razorpay.orderId,
+      razorpayPaymentId: razorpay.paymentId,
+      razorpaySignature: razorpay.signature,
+    })
+  }
 
   const otp = generateHandoffOtp()
   const { data: order, error: insertError } = await admin
@@ -229,8 +269,8 @@ export async function placeDeliveryOrder(
       listing_id: cart.listing.id,
       customer_id: user.id,
       status: 'placed',
-      payment_mode: 'cod',
-      payment_status: 'pending',
+      payment_mode: paymentMode,
+      payment_status: paymentMode === 'online' ? 'paid' : 'pending',
       items_total_paise: cart.itemsTotalPaise,
       delivery_fee_paise: cart.quote.deliveryFeePaise,
       grand_total_paise: cart.quote.grandTotalPaise,
@@ -244,6 +284,11 @@ export async function placeDeliveryOrder(
       distance_km: cart.quote.distanceKm,
       handoff_otp: otp,
       notes,
+      ...(razorpay ? {
+        razorpay_order_id: razorpay.orderId,
+        razorpay_payment_id: razorpay.paymentId,
+        razorpay_signature: razorpay.signature,
+      } : {}),
     })
     .select('id')
     .single()
@@ -257,6 +302,14 @@ export async function placeDeliveryOrder(
   // Best-effort stock decrement per line (RPC clamps at zero).
   for (const li of cart.lineItems) {
     await admin.rpc('decrement_product_stock', { p_product_id: li.listing_product_id, p_quantity: li.quantity })
+  }
+
+  if (razorpay) {
+    await markIntentFinalized({
+      razorpayOrderId: razorpay.orderId,
+      entityId: order.id,
+      entityTable: 'delivery_orders',
+    })
   }
 
   return { orderId: order.id, otp }

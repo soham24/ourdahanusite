@@ -9,6 +9,7 @@ export type PaymentIntentFlow =
   | 'order'
   | 'marketplace'
   | 'appointment'
+  | 'delivery'
 
 export type PaymentIntentStatus =
   | 'created'
