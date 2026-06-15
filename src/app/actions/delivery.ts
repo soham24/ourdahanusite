@@ -7,7 +7,7 @@ import {
   markIntentCaptured,
   markIntentFinalized,
 } from '@/lib/payment-intents'
-import { generateHandoffOtp, quoteDelivery, type DeliveryConfig, type FeeQuote } from '@/lib/delivery'
+import { generateHandoffOtp, haversineKm, quoteDelivery, type DeliveryConfig, type FeeQuote } from '@/lib/delivery'
 
 const DEFAULT_CONFIG: DeliveryConfig = {
   delivery_enabled: false,
@@ -313,6 +313,71 @@ export async function placeDeliveryOrder(
   }
 
   return { orderId: order.id, otp }
+}
+
+// ── Customer order tracking ────────────────────────────────────────────────
+
+export interface DeliveryTracking {
+  id: string
+  status: string
+  payment_mode: 'cod' | 'online'
+  grand_total_paise: number
+  handoff_otp: string | null
+  listing_name: string
+  drop_address: string
+  rider: { full_name: string; phone: string; lat: number | null; lng: number | null } | null
+  riderToDropKm: number | null
+}
+
+/** Live tracking for a customer's own delivery order (status + rider location). */
+export async function getDeliveryTracking(orderId: string): Promise<{ error?: string; tracking?: DeliveryTracking }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Please sign in.' }
+
+  const admin = createAdminClient()
+  if (!admin) return { error: 'Server configuration error.' }
+
+  const { data: order } = await admin
+    .from('delivery_orders')
+    .select('id, customer_id, listing_id, status, payment_mode, grand_total_paise, handoff_otp, drop_address, drop_lat, drop_lng, rider_id')
+    .eq('id', orderId)
+    .maybeSingle()
+  if (!order || order.customer_id !== user.id) return { error: 'Order not found.' }
+
+  const { data: listing } = await admin.from('listings').select('name').eq('id', order.listing_id).maybeSingle()
+
+  let rider: DeliveryTracking['rider'] = null
+  let riderToDropKm: number | null = null
+  // Only expose rider location once the order is out for the customer to track.
+  if (order.rider_id && ['rider_assigned', 'picked_up', 'out_for_delivery'].includes(order.status)) {
+    const { data: r } = await admin
+      .from('riders').select('full_name, phone, current_lat, current_lng').eq('id', order.rider_id).maybeSingle()
+    if (r) {
+      rider = { full_name: r.full_name, phone: r.phone, lat: r.current_lat, lng: r.current_lng }
+      const rLat = r.current_lat as number | null
+      const rLng = r.current_lng as number | null
+      const dLat = order.drop_lat as number | null
+      const dLng = order.drop_lng as number | null
+      if (rLat != null && rLng != null && dLat != null && dLng != null) {
+        riderToDropKm = Math.round(haversineKm({ lat: rLat, lng: rLng }, { lat: dLat, lng: dLng }) * 10) / 10
+      }
+    }
+  }
+
+  return {
+    tracking: {
+      id: order.id,
+      status: order.status,
+      payment_mode: order.payment_mode,
+      grand_total_paise: order.grand_total_paise,
+      handoff_otp: order.handoff_otp,
+      listing_name: listing?.name ?? 'Shop',
+      drop_address: order.drop_address,
+      rider,
+      riderToDropKm,
+    },
+  }
 }
 
 // ── Business-side order ops ────────────────────────────────────────────────

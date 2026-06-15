@@ -128,7 +128,7 @@ function CheckoutSheet({
   const [mode, setMode] = useState<'cod' | 'online'>('cod')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [done, setDone] = useState<{ otp?: string } | null>(null)
+  const [done, setDone] = useState<{ orderId?: string; otp?: string } | null>(null)
 
   const items = useMemo(
     () => Object.entries(cart).map(([productId, quantity]) => ({ productId, quantity })),
@@ -186,7 +186,7 @@ function CheckoutSheet({
   const placeCod = async () => {
     const res = await placeDeliveryOrder(buildForm())
     if (res.error) { setError(res.error); return }
-    setDone({ otp: res.otp })
+    setDone({ orderId: res.orderId, otp: res.otp })
   }
 
   const placeOnline = async () => {
@@ -213,7 +213,7 @@ function CheckoutSheet({
             razorpay_signature: r.razorpay_signature,
           }))
           if (fin.error) setError(fin.error)
-          else setDone({ otp: fin.otp })
+          else setDone({ orderId: fin.orderId, otp: fin.otp })
           resolve()
         },
         modal: { ondismiss: () => resolve() },
@@ -254,7 +254,9 @@ function CheckoutSheet({
                 <p className="font-display text-2xl tracking-[0.2em] text-[var(--od-ink)]">{done.otp}</p>
               </div>
             )}
-            <Link href="/account/orders" className="text-sm font-semibold text-[var(--od-brand)]">View my orders</Link>
+            {done.orderId
+              ? <Link href={`/delivery/order/${done.orderId}`} className="rounded-xl bg-[var(--od-brand)] px-5 py-2.5 text-sm font-semibold text-white">Track order</Link>
+              : <Link href="/account/orders" className="text-sm font-semibold text-[var(--od-brand)]">View my orders</Link>}
           </div>
         ) : (
           <div className="space-y-4 px-5 py-5">
