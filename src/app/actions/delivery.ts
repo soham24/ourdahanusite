@@ -419,5 +419,11 @@ export async function updateDeliveryOrderStatus(
 
   const { error } = await admin.from('delivery_orders').update(patch).eq('id', orderId)
   if (error) return { error: 'Could not update the order.' }
+
+  // When an order is marked ready, kick off sequential rider dispatch.
+  if (next === 'ready_for_pickup') {
+    const { findAndOfferRider } = await import('@/app/actions/dispatch')
+    await findAndOfferRider(orderId)
+  }
   return { ok: true }
 }
