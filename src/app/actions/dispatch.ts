@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { haversineKm } from '@/lib/delivery'
+import { sendNotification } from '@/lib/notifications'
 
 /**
  * Sequential auto-dispatch: offer a ready order to the single nearest eligible
@@ -16,7 +17,7 @@ export async function findAndOfferRider(orderId: string): Promise<{ offeredRider
 
   const { data: order } = await admin
     .from('delivery_orders')
-    .select('id, listing_id, status, rider_id, pickup_lat, pickup_lng')
+    .select('id, listing_id, status, rider_id, pickup_lat, pickup_lng, drop_address, delivery_fee_paise')
     .eq('id', orderId)
     .maybeSingle()
   // Only dispatch an unassigned, ready order.
@@ -57,7 +58,31 @@ export async function findAndOfferRider(orderId: string): Promise<{ offeredRider
     rider_id: next.id,
     status: 'offered',
   })
+
+  // Notify the offered rider.
+  const [{ data: riderRow }, { data: listingRow }] = await Promise.all([
+    admin.from('riders').select('user_id').eq('id', next.id).maybeSingle(),
+    admin.from('listings').select('name').eq('id', order.listing_id).maybeSingle(),
+  ])
+  if (riderRow?.user_id) {
+    void sendNotification(riderRow.user_id, 'delivery.offer', {
+      orderId,
+      listingName: listingRow?.name ?? 'Shop',
+      dropAddress: order.drop_address,
+      deliveryFeePaise: order.delivery_fee_paise,
+    })
+  }
   return { offeredRiderId: next.id }
+}
+
+/** Notify the customer of a rider-driven status change. */
+async function notifyCustomer(orderId: string, status: string) {
+  const admin = createAdminClient()
+  if (!admin) return
+  const { data: o } = await admin.from('delivery_orders').select('customer_id, listing_id').eq('id', orderId).maybeSingle()
+  if (!o) return
+  const { data: l } = await admin.from('listings').select('name').eq('id', o.listing_id).maybeSingle()
+  void sendNotification(o.customer_id, 'delivery.update', { orderId, listingName: l?.name ?? 'Shop', status })
 }
 
 async function myRiderId(): Promise<string | null> {
@@ -182,6 +207,7 @@ export async function acceptDeliveryOffer(orderId: string): Promise<{ error?: st
   const { data, error } = await supabase.rpc('accept_delivery_offer', { p_order_id: orderId, p_rider_id: riderId })
   if (error) return { error: 'Could not accept the offer.' }
   if (data !== true) return { error: 'This order was already taken.' }
+  void notifyCustomer(orderId, 'rider_assigned')
   return { ok: true }
 }
 
@@ -204,12 +230,16 @@ export async function declineDeliveryOffer(orderId: string): Promise<{ ok?: true
 
 /** Rider marks the order picked up from the shop. */
 export async function riderMarkPickedUp(orderId: string): Promise<{ error?: string; ok?: true }> {
-  return riderTransition(orderId, ['rider_assigned'], { status: 'picked_up', picked_up_at: new Date().toISOString() })
+  const res = await riderTransition(orderId, ['rider_assigned'], { status: 'picked_up', picked_up_at: new Date().toISOString() })
+  if (res.ok) void notifyCustomer(orderId, 'picked_up')
+  return res
 }
 
 /** Rider marks themselves en route. */
 export async function riderMarkOutForDelivery(orderId: string): Promise<{ error?: string; ok?: true }> {
-  return riderTransition(orderId, ['picked_up'], { status: 'out_for_delivery' })
+  const res = await riderTransition(orderId, ['picked_up'], { status: 'out_for_delivery' })
+  if (res.ok) void notifyCustomer(orderId, 'out_for_delivery')
+  return res
 }
 
 /** Rider completes delivery — verifies the customer handoff OTP, then settles ledgers. */
@@ -243,6 +273,7 @@ export async function riderMarkDelivered(orderId: string, otp: string): Promise<
   if (order.payment_mode === 'cod') {
     await admin.from('cod_collections').insert({ delivery_order_id: orderId, rider_id: riderId, amount_paise: order.grand_total_paise, settled: false })
   }
+  void notifyCustomer(orderId, 'delivered')
   return { ok: true }
 }
 

@@ -23,6 +23,10 @@ export const NOTIFICATION_TYPES = [
   // Reviews
   'review.new',
   'review.reply_posted',
+  // Delivery (quick commerce)
+  'delivery.new',
+  'delivery.offer',
+  'delivery.update',
   // Admin
   'admin.new_submission',
 ] as const
@@ -122,6 +126,27 @@ interface ReviewReplyPostedPayload {
   recipient: 'reviewer' | 'admin'
 }
 
+interface DeliveryNewPayload {
+  orderId: string
+  listingName: string
+  itemCount: number
+  amountTotalPaise: number
+  customerName: string
+}
+
+interface DeliveryOfferPayload {
+  orderId: string
+  listingName: string
+  dropAddress: string
+  deliveryFeePaise: number
+}
+
+interface DeliveryUpdatePayload {
+  orderId: string
+  listingName: string
+  status: string
+}
+
 interface AdminSubmissionPayload {
   kind: 'listing' | 'classified' | 'event' | 'news' | 'forum' | 'job'
   title: string
@@ -141,6 +166,9 @@ export interface NotificationPayloadMap {
   'listing.expiring': ListingExpiringPayload
   'review.new': ReviewNewPayload
   'review.reply_posted': ReviewReplyPostedPayload
+  'delivery.new': DeliveryNewPayload
+  'delivery.offer': DeliveryOfferPayload
+  'delivery.update': DeliveryUpdatePayload
   'admin.new_submission': AdminSubmissionPayload
 }
 

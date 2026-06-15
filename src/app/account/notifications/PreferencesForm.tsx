@@ -44,6 +44,9 @@ const TYPE_LABELS: Record<NotificationType, { label: string; hint: string }> = {
   'listing.expiring': { label: 'Listing expiring', hint: 'Renewal reminders' },
   'review.new': { label: 'New reviews', hint: 'When someone reviews your listing' },
   'review.reply_posted': { label: 'Review replies', hint: 'When an owner replies to your review (or, for admins, any reply)' },
+  'delivery.new': { label: 'New delivery orders', hint: 'Shops — when a delivery order comes in' },
+  'delivery.offer': { label: 'Delivery offers', hint: 'Riders — when a delivery near you is available' },
+  'delivery.update': { label: 'Delivery updates', hint: 'Status of your delivery orders' },
   'admin.new_submission': { label: 'New admin submissions', hint: 'Admins only — new pending items' },
 }
 

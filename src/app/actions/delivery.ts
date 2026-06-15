@@ -9,6 +9,7 @@ import {
 } from '@/lib/payment-intents'
 import { generateHandoffOtp, haversineKm, quoteDelivery, type DeliveryConfig, type FeeQuote } from '@/lib/delivery'
 import { rateLimit } from '@/lib/rate-limit'
+import { sendNotification } from '@/lib/notifications'
 
 const DEFAULT_CONFIG: DeliveryConfig = {
   delivery_enabled: false,
@@ -317,6 +318,20 @@ export async function placeDeliveryOrder(
     })
   }
 
+  // Alert the shop owner; confirm to the buyer. (Dispatcher handles channels.)
+  void sendNotification(cart.listing.owner_id, 'delivery.new', {
+    orderId: order.id,
+    listingName: cart.listing.name,
+    itemCount: cart.lineItems.length,
+    amountTotalPaise: cart.quote.grandTotalPaise,
+    customerName,
+  })
+  void sendNotification(user.id, 'delivery.update', {
+    orderId: order.id,
+    listingName: cart.listing.name,
+    status: 'placed',
+  })
+
   return { orderId: order.id, otp }
 }
 
@@ -540,13 +555,13 @@ export async function updateDeliveryOrderStatus(
 
   const { data: order } = await admin
     .from('delivery_orders')
-    .select('id, status, listing_id')
+    .select('id, status, listing_id, customer_id')
     .eq('id', orderId)
     .maybeSingle()
   if (!order) return { error: 'Order not found.' }
 
   const { data: listing } = await admin
-    .from('listings').select('owner_id').eq('id', order.listing_id).maybeSingle()
+    .from('listings').select('owner_id, name').eq('id', order.listing_id).maybeSingle()
   if (!listing || listing.owner_id !== user.id) return { error: 'Not your order.' }
 
   const allowed = OWNER_TRANSITIONS[order.status] ?? []
@@ -559,6 +574,11 @@ export async function updateDeliveryOrderStatus(
 
   const { error } = await admin.from('delivery_orders').update(patch).eq('id', orderId)
   if (error) return { error: 'Could not update the order.' }
+
+  // Tell the customer about the change.
+  void sendNotification(order.customer_id, 'delivery.update', {
+    orderId, listingName: listing.name, status: next,
+  })
 
   // When an order is marked ready, kick off sequential rider dispatch.
   if (next === 'ready_for_pickup') {

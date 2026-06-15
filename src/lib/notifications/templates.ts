@@ -573,6 +573,60 @@ function renderAdminSubmission(
 // Dispatch to the right renderer
 // ─────────────────────────────────────────────────────────────────────────────
 
+const DELIVERY_STATUS_LABEL: Record<string, string> = {
+  placed: 'Order placed',
+  accepted: 'Accepted by the shop',
+  preparing: 'Being prepared',
+  ready_for_pickup: 'Ready for pickup',
+  rider_assigned: 'Rider assigned',
+  picked_up: 'Picked up',
+  out_for_delivery: 'On the way',
+  delivered: 'Delivered',
+  cancelled: 'Cancelled',
+  delivery_failed: 'Delivery failed',
+}
+
+function rupeesFromPaise(paise: number): string {
+  return `₹${(paise / 100).toLocaleString('en-IN')}`
+}
+
+function renderDeliveryNew(p: NotificationPayload<'delivery.new'>): RenderedNotification {
+  const title = `New delivery order · ${p.listingName}`
+  const body = `${p.customerName} ordered ${p.itemCount} item${p.itemCount === 1 ? '' : 's'} (${rupeesFromPaise(p.amountTotalPaise)}). Accept it to start preparing.`
+  return {
+    title, body,
+    link: '/my-business/delivery/orders',
+    icon: 'Bike',
+    metadata: { orderId: p.orderId },
+    telegram: { text: `🛵 <b>New delivery order</b>\n${escapeHtml(p.listingName)} — ${escapeHtml(p.customerName)}, ${p.itemCount} item(s), ${rupeesFromPaise(p.amountTotalPaise)}.` },
+  }
+}
+
+function renderDeliveryOffer(p: NotificationPayload<'delivery.offer'>): RenderedNotification {
+  const title = 'New delivery offer near you'
+  const body = `${p.listingName} → ${p.dropAddress}. You earn ${rupeesFromPaise(p.deliveryFeePaise)}. Open the app to accept.`
+  return {
+    title, body,
+    link: '/rider',
+    icon: 'Bike',
+    metadata: { orderId: p.orderId },
+    telegram: { text: `📦 <b>New delivery offer</b>\n${escapeHtml(p.listingName)} → ${escapeHtml(p.dropAddress)}\nYou earn ${rupeesFromPaise(p.deliveryFeePaise)}.` },
+  }
+}
+
+function renderDeliveryUpdate(p: NotificationPayload<'delivery.update'>): RenderedNotification {
+  const label = DELIVERY_STATUS_LABEL[p.status] ?? p.status
+  const title = `${label} · ${p.listingName}`
+  const body = `Your order from ${p.listingName}: ${label.toLowerCase()}.`
+  return {
+    title, body,
+    link: `/delivery/order/${p.orderId}`,
+    icon: p.status === 'delivered' ? 'CheckCircle' : p.status === 'cancelled' ? 'XCircle' : 'Bike',
+    metadata: { orderId: p.orderId, status: p.status },
+    telegram: { text: `🛵 <b>${escapeHtml(label)}</b>\nYour order from ${escapeHtml(p.listingName)}.` },
+  }
+}
+
 export function renderNotification<T extends NotificationType>(
   type: T,
   payload: NotificationPayload<T>,
@@ -608,6 +662,12 @@ export function renderNotification<T extends NotificationType>(
       return renderReviewReplyPosted(
         payload as NotificationPayload<'review.reply_posted'>,
       )
+    case 'delivery.new':
+      return renderDeliveryNew(payload as NotificationPayload<'delivery.new'>)
+    case 'delivery.offer':
+      return renderDeliveryOffer(payload as NotificationPayload<'delivery.offer'>)
+    case 'delivery.update':
+      return renderDeliveryUpdate(payload as NotificationPayload<'delivery.update'>)
     case 'admin.new_submission':
       return renderAdminSubmission(payload as NotificationPayload<'admin.new_submission'>)
     default: {
