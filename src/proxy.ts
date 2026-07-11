@@ -8,6 +8,16 @@ export function proxy(request: NextRequest) {
   // find.ourdahanu.in → /find/* (standalone directory, own layout)
   const findHost = host.split(':')[0].toLowerCase()
   if (findHost === 'find.ourdahanu.in' || findHost === 'find.localhost') {
+    const pathname = request.nextUrl.pathname
+    // Let Next serve framework internals, API routes, and static files
+    // directly — only page paths get rewritten under /find.
+    const isInternalOrAsset =
+      pathname.startsWith('/_next') ||
+      pathname.startsWith('/api') ||
+      /\.[^/]+$/.test(pathname) // any path with a file extension (favicon.ico, *.png, *.css, ...)
+    if (isInternalOrAsset) {
+      return NextResponse.next()
+    }
     const url = request.nextUrl.clone()
     if (!url.pathname.startsWith('/find')) {
       url.pathname = url.pathname === '/' ? '/find' : `/find${url.pathname}`

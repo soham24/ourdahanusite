@@ -14,28 +14,38 @@ import { getBusinessSubdomain } from '@/lib/subdomain'
 // chrome accordingly. They access headers(), so each must be rendered inside
 // a <Suspense> boundary (cacheComponents requirement).
 
-async function getRequestBusinessSubdomain(): Promise<string | null> {
+function isFindHost(host: string | null | undefined): boolean {
+  const h = (host ?? '').split(',')[0].trim().split(':')[0].toLowerCase()
+  return h === 'find.ourdahanu.in' || h === 'find.localhost'
+}
+
+async function getRequestHost(): Promise<string | null> {
   const headersList = await headers()
-  return getBusinessSubdomain(headersList.get('x-forwarded-host') ?? headersList.get('host'))
+  return headersList.get('x-forwarded-host') ?? headersList.get('host')
 }
 
 export async function SiteNavbar() {
-  if (await getRequestBusinessSubdomain()) return null
+  const host = await getRequestHost()
+  if (getBusinessSubdomain(host) || isFindHost(host)) return null
   return <Navbar />
 }
 
 export async function SiteEmergencyRibbon() {
-  if (await getRequestBusinessSubdomain()) return null
+  const host = await getRequestHost()
+  if (getBusinessSubdomain(host) || isFindHost(host)) return null
   return <EmergencyRibbon />
 }
 
 export async function SiteBottomTabBar() {
-  if (await getRequestBusinessSubdomain()) return null
+  const host = await getRequestHost()
+  if (getBusinessSubdomain(host) || isFindHost(host)) return null
   return <BottomTabBar />
 }
 
 export async function SiteFooter() {
-  const subdomain = await getRequestBusinessSubdomain()
+  const host = await getRequestHost()
+  if (isFindHost(host)) return null
+  const subdomain = getBusinessSubdomain(host)
   if (subdomain) return <BusinessFooter subdomain={subdomain} />
   return <Footer />
 }
