@@ -34,6 +34,7 @@ import {
   validateRazorpayOrder,
 } from '@/lib/payment-security'
 import { normalizeOptionalUrlOrNull } from '@/lib/url'
+import { RESERVED_SUBDOMAINS } from '@/lib/subdomain'
 import { redirect } from 'next/navigation'
 
 export async function submitPaidListing(formData: FormData): Promise<{ error?: string }> {
@@ -126,12 +127,7 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
   }
 
   // 3. Validate subdomain
-  const RESERVED = new Set([
-    'www', 'admin', 'api', 'app', 'mail', 'shop', 'news', 'events',
-    'jobs', 'forum', 'classifieds', 'emergency', 'dashboard', 'login',
-    'profile', 'search', 'about', 'listings', 'my-business', 'offline',
-    'auth', 'static', 'assets', 'media', 'cdn',
-  ])
+  const RESERVED = RESERVED_SUBDOMAINS
 
   if (!rawSubdomain) {
     return { error: 'Subdomain is required.' }
@@ -374,12 +370,7 @@ export async function submitListing(formData: FormData) {
   const image_thumb_url = normalizeOptionalUrlOrNull(formData.get('image_thumb_url') as string)
   const rawSubdomain = ((formData.get('subdomain') as string) || '').trim().toLowerCase()
 
-  const RESERVED = new Set([
-    'www', 'admin', 'api', 'app', 'mail', 'shop', 'news', 'events',
-    'jobs', 'forum', 'classifieds', 'emergency', 'dashboard', 'login',
-    'profile', 'search', 'about', 'listings', 'my-business', 'offline',
-    'auth', 'static', 'assets', 'media', 'cdn',
-  ])
+  const RESERVED = RESERVED_SUBDOMAINS
 
   if (!name || !category) {
     throw new Error('Business name and category are required.')
