@@ -4,6 +4,27 @@ import { getBusinessSubdomain } from '@/lib/subdomain'
 
 export function proxy(request: NextRequest) {
   const host = request.headers.get('host') || ''
+
+  // find.ourdahanu.in → /find/* (standalone directory, own layout)
+  const findHost = host.split(':')[0].toLowerCase()
+  if (findHost === 'find.ourdahanu.in' || findHost === 'find.localhost') {
+    const pathname = request.nextUrl.pathname
+    // Let Next serve framework internals, API routes, and static files
+    // directly — only page paths get rewritten under /find.
+    const isInternalOrAsset =
+      pathname.startsWith('/_next') ||
+      pathname.startsWith('/api') ||
+      /\.[^/]+$/.test(pathname) // any path with a file extension (favicon.ico, *.png, *.css, ...)
+    if (isInternalOrAsset) {
+      return NextResponse.next()
+    }
+    const url = request.nextUrl.clone()
+    if (!url.pathname.startsWith('/find')) {
+      url.pathname = url.pathname === '/' ? '/find' : `/find${url.pathname}`
+    }
+    return NextResponse.rewrite(url)
+  }
+
   const subdomain = getBusinessSubdomain(host)
 
   const pathname = request.nextUrl.pathname
@@ -59,7 +80,7 @@ export const config = {
           type: 'header',
           key: 'host',
           value:
-            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
         },
       ],
     },
@@ -70,7 +91,7 @@ export const config = {
           type: 'header',
           key: 'host',
           value:
-            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
         },
       ],
     },
@@ -82,7 +103,7 @@ export const config = {
           type: 'header',
           key: 'host',
           value:
-            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
         },
       ],
     },
@@ -94,7 +115,18 @@ export const config = {
           type: 'header',
           key: 'host',
           value:
-            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+        },
+      ],
+    },
+    {
+      // find.ourdahanu.in — standalone professionals directory
+      source: '/:path*',
+      has: [
+        {
+          type: 'header',
+          key: 'host',
+          value: '(?:find\\.ourdahanu\\.in|find\\.localhost(?::\\d+)?)',
         },
       ],
     },

@@ -7,7 +7,7 @@ const RESERVED = new Set([
   'www', 'admin', 'api', 'app', 'mail', 'shop', 'news', 'events',
   'jobs', 'forum', 'classifieds', 'emergency', 'dashboard', 'login',
   'profile', 'search', 'about', 'listings', 'my-business', 'offline',
-  'auth', 'static', 'assets', 'media', 'cdn',
+  'auth', 'static', 'assets', 'media', 'cdn', 'find',
 ])
 
 export async function GET(request: NextRequest) {
