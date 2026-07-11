@@ -38,8 +38,13 @@ export async function getApprovedProfessionals(
     query = query.eq('profession', opts.profession)
   }
   if (opts.q && opts.q.trim()) {
-    const term = `%${opts.q.trim()}%`
-    query = query.or(`name.ilike.${term},note.ilike.${term},locality.ilike.${term}`)
+    // Strip PostgREST or()-grammar special chars so a term with commas or
+    // parentheses can't break the filter expression.
+    const cleaned = opts.q.trim().replace(/[,()%]/g, ' ').trim()
+    if (cleaned) {
+      const term = `%${cleaned}%`
+      query = query.or(`name.ilike.${term},note.ilike.${term},locality.ilike.${term}`)
+    }
   }
 
   const { data } = await query
