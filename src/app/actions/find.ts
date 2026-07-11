@@ -28,9 +28,13 @@ export async function submitProfessional(
   const phone = input.phone?.trim()
   if (!name) return { error: 'Name is required.' }
   if (!phone || phone.replace(/\D/g, '').length < 7) return { error: 'A valid phone number is required.' }
-  const professions = Array.isArray(input.professions)
-    ? input.professions.map((p) => p.trim()).filter(Boolean)
-    : []
+  const professions = Array.from(
+    new Set(
+      (Array.isArray(input.professions) ? input.professions : [])
+        .map((p) => p.trim())
+        .filter(Boolean),
+    ),
+  )
   if (professions.length === 0) return { error: 'Please select at least one profession.' }
   if (professions.some((p) => !isValidProfession(p))) return { error: 'Please select valid professions.' }
   const professionOther = professions.includes('Other') ? (input.professionOther?.trim() || null) : null
