@@ -33,24 +33,6 @@ in/out, CORS enabled.
 | POST/DELETE | `/api/v1/devices` | Register / unregister a push token |
 | POST | `/api/razorpay/create-*-order` | Create a Razorpay order (bearer-aware) |
 
-### Quick-commerce delivery
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `/api/v1/delivery/shops` | Delivery-enabled shops (public) |
-| POST | `/api/v1/delivery/quote` | Serviceability + fee for a drop pin `{ listingId, lat, lng, itemsTotalPaise }` |
-| POST | `/api/v1/delivery/orders` | Place order (COD or online finalize) |
-| GET | `/api/v1/delivery/orders/[id]` | Live tracking (status + rider location) |
-| PATCH | `/api/v1/delivery/orders/[id]` | `{ action: 'rate'|'cancel', rating? }` |
-| POST | `/api/razorpay/create-delivery-order` | Create Razorpay order for an online delivery cart |
-
-### Rider
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `/api/v1/rider` | Rider profile + current offers/active delivery |
-| POST | `/api/v1/rider` | `{ action }`: `apply` / `online` / `ping` / `accept` / `decline` / `picked_up` / `out` / `delivered` |
-
-Store catalogs (products) are read directly from Supabase via RLS — no endpoint needed.
-
 Unauthenticated → `401 {"error":"Unauthorized"}`. Validation → `400`.
 
 ## Payment flow (orders & appointments)
