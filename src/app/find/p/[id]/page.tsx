@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { Star, MapPin, Phone, MessageCircle, ArrowLeft } from 'lucide-react'
 import { getProfessionalById, getApprovedRatings } from '@/lib/data/find'
 import type { ProfessionalWithStats } from '@/lib/find/types'
+import { createClient } from '@/lib/supabase/server'
+import RatingForm from './RatingForm'
 
 function Stars({ value, size = 16 }: { value: number; size?: number }) {
   const rounded = Math.round(value)
@@ -29,6 +31,19 @@ export default async function ProfessionalDetailPage({
   const pro = await getProfessionalById(id)
   if (!pro) notFound()
   const ratings = await getApprovedRatings(id)
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let alreadyRated = false
+  if (user) {
+    const { data: mine } = await supabase
+      .from('find_ratings')
+      .select('id')
+      .eq('professional_id', id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    alreadyRated = !!mine
+  }
 
   return (
     <div>
@@ -64,8 +79,16 @@ export default async function ProfessionalDetailPage({
         {pro.note && <p className="mt-3 text-sm text-gray-600">{pro.note}</p>}
       </div>
 
-      {/* RATING FORM SLOT — replaced in Task 7 with <RatingForm professionalId={pro.id} /> */}
-      <div id="rating-form-slot" className="mt-6" />
+      <div className="mt-6">
+        {user ? (
+          <RatingForm professionalId={pro.id} alreadyRated={alreadyRated} />
+        ) : (
+          <div className="rounded-lg border border-gray-200 bg-white p-4 text-center text-sm">
+            <p className="mb-2 text-gray-700">Log in to rate this professional.</p>
+            <Link href="/login" className="rounded-md bg-[var(--od-brand,#c0582e)] px-4 py-2 font-semibold text-white">Log in</Link>
+          </div>
+        )}
+      </div>
 
       <section className="mt-8">
         <h2 className="mb-3 text-lg font-bold">Ratings</h2>
