@@ -35,7 +35,7 @@ export async function getApprovedProfessionals(
     .order('created_at', { ascending: false })
 
   if (opts.profession && opts.profession !== 'All') {
-    query = query.eq('profession', opts.profession)
+    query = query.contains('professions', [opts.profession])
   }
   if (opts.q && opts.q.trim()) {
     // Strip PostgREST or()-grammar special chars so a term with commas or

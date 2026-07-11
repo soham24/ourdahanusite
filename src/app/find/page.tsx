@@ -17,8 +17,8 @@ function Stars({ value }: { value: number }) {
   )
 }
 
-function professionLabel(p: ProfessionalWithStats) {
-  return p.profession === 'Other' && p.profession_other ? p.profession_other : p.profession
+function professionLabels(p: ProfessionalWithStats): string[] {
+  return p.professions.map((x) => (x === 'Other' && p.profession_other ? p.profession_other! : x))
 }
 
 function Card({ p }: { p: ProfessionalWithStats }) {
@@ -28,7 +28,13 @@ function Card({ p }: { p: ProfessionalWithStats }) {
       <div className="flex items-start justify-between gap-2">
         <div>
           <h2 className="font-bold text-gray-950">{p.name}</h2>
-          <p className="text-sm text-[var(--od-brand,#c0582e)] font-medium">{professionLabel(p)}</p>
+          <div className="mt-0.5 flex flex-wrap gap-1">
+            {professionLabels(p).map((label) => (
+              <span key={label} className="rounded-full bg-[var(--od-brand,#c0582e)]/10 px-2 py-0.5 text-xs font-medium text-[var(--od-brand,#c0582e)]">
+                {label}
+              </span>
+            ))}
+          </div>
         </div>
         <div className="text-right">
           <Stars value={p.avg_rating} />

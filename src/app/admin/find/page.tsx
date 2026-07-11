@@ -35,6 +35,25 @@ export default async function AdminFindPage({
     .order('created_at', { ascending: false })
   const ratings = (ratingRows ?? []) as (FindRating & { find_professionals: { name: string } | null })[]
 
+  // Collect distinct user ids needed for name lookups (admin-only display).
+  const userIds = new Set<string>()
+  for (const p of professionals) {
+    if (p.submitted_by) userIds.add(p.submitted_by)
+  }
+  for (const r of ratings) {
+    if (r.user_id) userIds.add(r.user_id)
+  }
+  const nameById = new Map<string, string>()
+  if (userIds.size > 0) {
+    const { data: profileRows } = await db
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', Array.from(userIds))
+    for (const row of profileRows ?? []) {
+      nameById.set(row.id, row.full_name || row.email || 'Unknown user')
+    }
+  }
+
   const tabCls = (t: string) =>
     `rounded-md px-3 py-1.5 text-sm font-semibold ${tab === t ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700'}`
 
@@ -66,6 +85,7 @@ export default async function AdminFindPage({
                     ))}
                   </span>
                 </div>
+                <p className="text-xs text-gray-500">by {nameById.get(r.user_id) ?? 'Unknown user'}</p>
                 <p className="mt-2 text-sm text-gray-700">{r.comment}</p>
                 <RatingModerationButtons ratingId={r.id} />
               </li>
@@ -82,6 +102,9 @@ export default async function AdminFindPage({
                   : p.status === 'approved' ? 'bg-green-100 text-green-800'
                   : 'bg-red-100 text-red-800'}`}>{p.status}</span>
                 {!p.is_active && <span className="rounded bg-gray-200 px-2 py-0.5 text-gray-700">inactive</span>}
+                <span className="text-gray-500">
+                  {p.submitted_by ? `Submitted by ${nameById.get(p.submitted_by) ?? 'Unknown user'}` : 'Added by admin'}
+                </span>
               </div>
               <EditProfessionalForm pro={p} />
             </li>
