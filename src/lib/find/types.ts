@@ -5,7 +5,7 @@ export interface FindProfessional {
   name: string
   phone: string
   whatsapp: boolean
-  profession: string
+  professions: string[]
   profession_other: string | null
   locality: string | null
   note: string | null

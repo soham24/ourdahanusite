@@ -7,10 +7,14 @@ import { submitProfessional } from '@/app/actions/find'
 
 export default function SubmitProfessionalForm() {
   const router = useRouter()
-  const [profession, setProfession] = useState('')
+  const [professions, setProfessions] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
   const [pending, setPending] = useState(false)
+
+  function toggle(p: string) {
+    setProfessions((cur) => cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p])
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -21,7 +25,7 @@ export default function SubmitProfessionalForm() {
       name: String(fd.get('name') || ''),
       phone: String(fd.get('phone') || ''),
       whatsapp: fd.get('whatsapp') === 'on',
-      profession: String(fd.get('profession') || ''),
+      professions,
       professionOther: String(fd.get('professionOther') || ''),
       locality: String(fd.get('locality') || ''),
       note: String(fd.get('note') || ''),
@@ -49,11 +53,18 @@ export default function SubmitProfessionalForm() {
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" name="whatsapp" /> This number is on WhatsApp
       </label>
-      <select name="profession" value={profession} onChange={(e) => setProfession(e.target.value)} className={inputCls} required>
-        <option value="">Select profession *</option>
-        {PROFESSIONS.map((p) => <option key={p} value={p}>{p}</option>)}
-      </select>
-      {profession === 'Other' && (
+      <fieldset className="rounded-md border border-gray-300 p-3">
+        <legend className="px-1 text-sm font-medium">Professions * (pick one or more)</legend>
+        <div className="grid grid-cols-2 gap-1">
+          {PROFESSIONS.map((p) => (
+            <label key={p} className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={professions.includes(p)} onChange={() => toggle(p)} />
+              {p}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      {professions.includes('Other') && (
         <input name="professionOther" placeholder="Describe the profession *" className={inputCls} />
       )}
       <input name="locality" placeholder="Area / locality in Dahanu" className={inputCls} />

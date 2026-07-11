@@ -18,8 +18,8 @@ function Stars({ value, size = 16 }: { value: number; size?: number }) {
   )
 }
 
-function professionLabel(p: ProfessionalWithStats) {
-  return p.profession === 'Other' && p.profession_other ? p.profession_other : p.profession
+function professionLabels(p: ProfessionalWithStats): string[] {
+  return p.professions.map((x) => (x === 'Other' && p.profession_other ? p.profession_other! : x))
 }
 
 export default async function ProfessionalDetailPage({
@@ -55,7 +55,13 @@ export default async function ProfessionalDetailPage({
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold">{pro.name}</h1>
-            <p className="text-[var(--od-brand,#c0582e)] font-medium">{professionLabel(pro)}</p>
+            <div className="mt-0.5 flex flex-wrap gap-1">
+              {professionLabels(pro).map((label) => (
+                <span key={label} className="rounded-full bg-[var(--od-brand,#c0582e)]/10 px-2 py-0.5 text-xs font-medium text-[var(--od-brand,#c0582e)]">
+                  {label}
+                </span>
+              ))}
+            </div>
           </div>
           <div className="text-right">
             <Stars value={pro.avg_rating} />

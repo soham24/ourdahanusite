@@ -10,7 +10,7 @@ export interface AdminProfessionalFields {
   name: string
   phone: string
   whatsapp: boolean
-  profession: string
+  professions: string[]
   professionOther?: string
   locality?: string
   note?: string
@@ -21,19 +21,21 @@ type Result = { error?: string; ok?: boolean }
 function validateFields(f: AdminProfessionalFields): string | null {
   if (!f.name?.trim()) return 'Name is required.'
   if (!f.phone?.trim()) return 'Phone is required.'
-  if (!isValidProfession(f.profession?.trim())) return 'Invalid profession.'
-  if (f.profession.trim() === 'Other' && !f.professionOther?.trim()) return 'Describe the profession.'
+  const professions = (f.professions ?? []).map((p) => p.trim()).filter(Boolean)
+  if (professions.length === 0) return 'Select at least one profession.'
+  if (professions.some((p) => !isValidProfession(p))) return 'Invalid profession.'
+  if (professions.includes('Other') && !f.professionOther?.trim()) return 'Describe the profession.'
   return null
 }
 
 function toRow(f: AdminProfessionalFields) {
-  const profession = f.profession.trim()
+  const professions = (f.professions ?? []).map((p) => p.trim()).filter(Boolean)
   return {
     name: f.name.trim(),
     phone: f.phone.trim(),
     whatsapp: !!f.whatsapp,
-    profession,
-    profession_other: profession === 'Other' ? (f.professionOther?.trim() || null) : null,
+    professions,
+    profession_other: professions.includes('Other') ? (f.professionOther?.trim() || null) : null,
     locality: f.locality?.trim() || null,
     note: f.note?.trim() || null,
   }

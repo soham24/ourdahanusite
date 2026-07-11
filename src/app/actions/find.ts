@@ -8,7 +8,7 @@ export interface SubmitProfessionalInput {
   name: string
   phone: string
   whatsapp: boolean
-  profession: string
+  professions: string[]
   professionOther?: string
   locality?: string
   note?: string
@@ -26,18 +26,21 @@ export async function submitProfessional(
 
   const name = input.name?.trim()
   const phone = input.phone?.trim()
-  const profession = input.profession?.trim()
   if (!name) return { error: 'Name is required.' }
   if (!phone || phone.replace(/\D/g, '').length < 7) return { error: 'A valid phone number is required.' }
-  if (!profession || !isValidProfession(profession)) return { error: 'Please select a valid profession.' }
-  const professionOther = profession === 'Other' ? (input.professionOther?.trim() || null) : null
-  if (profession === 'Other' && !professionOther) return { error: 'Please describe the profession.' }
+  const professions = Array.isArray(input.professions)
+    ? input.professions.map((p) => p.trim()).filter(Boolean)
+    : []
+  if (professions.length === 0) return { error: 'Please select at least one profession.' }
+  if (professions.some((p) => !isValidProfession(p))) return { error: 'Please select valid professions.' }
+  const professionOther = professions.includes('Other') ? (input.professionOther?.trim() || null) : null
+  if (professions.includes('Other') && !professionOther) return { error: 'Please describe the profession.' }
 
   const { error } = await supabase.from('find_professionals').insert({
     name,
     phone,
     whatsapp: !!input.whatsapp,
-    profession,
+    professions,
     profession_other: professionOther,
     locality: input.locality?.trim() || null,
     note: input.note?.trim() || null,

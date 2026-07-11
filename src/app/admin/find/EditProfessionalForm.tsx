@@ -6,17 +6,21 @@ import { updateProfessional, setProfessionalStatus, type AdminProfessionalFields
 import type { FindProfessional } from '@/lib/find/types'
 
 export default function EditProfessionalForm({ pro }: { pro: FindProfessional }) {
-  const [profession, setProfession] = useState(pro.profession)
+  const [professions, setProfessions] = useState<string[]>(pro.professions ?? [])
   const [error, setError] = useState<string | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+
+  function toggle(p: string) {
+    setProfessions((cur) => cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p])
+  }
 
   function fields(fd: FormData): AdminProfessionalFields {
     return {
       name: String(fd.get('name') || ''),
       phone: String(fd.get('phone') || ''),
       whatsapp: fd.get('whatsapp') === 'on',
-      profession: String(fd.get('profession') || ''),
+      professions,
       professionOther: String(fd.get('professionOther') || ''),
       locality: String(fd.get('locality') || ''),
       note: String(fd.get('note') || ''),
@@ -48,17 +52,25 @@ export default function EditProfessionalForm({ pro }: { pro: FindProfessional })
       <div className="grid grid-cols-2 gap-2">
         <input name="name" defaultValue={pro.name} placeholder="Name" className={cls} />
         <input name="phone" defaultValue={pro.phone} placeholder="Phone" className={cls} />
-        <select name="profession" defaultValue={pro.profession} onChange={(e) => setProfession(e.target.value)} className={cls}>
-          {PROFESSIONS.map((p) => <option key={p} value={p}>{p}</option>)}
-        </select>
-        {profession === 'Other' && (
-          <input name="professionOther" defaultValue={pro.profession_other ?? ''} placeholder="Other profession" className={cls} />
-        )}
         <input name="locality" defaultValue={pro.locality ?? ''} placeholder="Locality" className={cls} />
         <label className="flex items-center gap-2 text-xs">
           <input type="checkbox" name="whatsapp" defaultChecked={pro.whatsapp} /> WhatsApp
         </label>
       </div>
+      <fieldset className="rounded border border-gray-300 p-2">
+        <legend className="px-1 text-xs font-medium">Professions * (pick one or more)</legend>
+        <div className="grid grid-cols-2 gap-1">
+          {PROFESSIONS.map((p) => (
+            <label key={p} className="flex items-center gap-2 text-xs">
+              <input type="checkbox" checked={professions.includes(p)} onChange={() => toggle(p)} />
+              {p}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      {professions.includes('Other') && (
+        <input name="professionOther" defaultValue={pro.profession_other ?? ''} placeholder="Other profession" className={cls} />
+      )}
       <textarea name="note" defaultValue={pro.note ?? ''} placeholder="Note" rows={2} className={cls} />
       <div className="flex flex-wrap gap-2">
         <button type="submit" disabled={pending} className="rounded bg-gray-800 px-3 py-1 text-xs font-semibold text-white disabled:opacity-60">Save changes</button>
