@@ -14,6 +14,7 @@ import {
   Newspaper,
   Package,
   Plus,
+  Search,
   Shield,
   ShoppingBag,
   Users,
@@ -301,6 +302,12 @@ export default async function AdminOverviewPage() {
             detail: 'Manage staff access',
             href: '/admin/roles',
             icon: Users,
+          },
+          {
+            label: 'Find Directory',
+            detail: 'Approve professionals & ratings',
+            href: '/admin/find',
+            icon: Search,
           },
         ]
       : []),
