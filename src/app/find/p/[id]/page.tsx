@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ArrowLeft, LogIn, MapPin, MessageCircle, Phone, ShieldCheck } from 'lucide-react'
 import { getProfessionalById, getApprovedRatings } from '@/lib/data/find'
 import { createClient } from '@/lib/supabase/server'
-import { GoldStars, Monogram, professionLabels, telHref, waHref } from '../../find-ui'
+import { GoldStars, Monogram, Mr, professionLabels, telHref, waHref } from '../../find-ui'
 import { findLoginHref } from '../../find-server'
 import RatingForm from './RatingForm'
 
@@ -47,12 +47,12 @@ export default async function ProfessionalDetailPage({
               {pro.name}
             </h1>
             <div className="mt-1.5 flex flex-wrap gap-1">
-              {professionLabels(pro).map((label) => (
+              {professionLabels(pro).map(({ label, mr }) => (
                 <span
                   key={label}
                   className="rounded-full bg-[rgba(192,88,46,0.09)] px-2 py-0.5 text-[11px] font-bold text-[var(--od-brand-strong)]"
                 >
-                  {label}
+                  {label} <Mr text={mr} />
                 </span>
               ))}
             </div>

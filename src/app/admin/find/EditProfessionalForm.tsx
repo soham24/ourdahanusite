@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { PROFESSIONS } from '@/lib/find/professions'
+import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
 import { updateProfessional, setProfessionalStatus, type AdminProfessionalFields } from '@/app/actions/admin-find'
 import type { FindProfessional } from '@/lib/find/types'
 
@@ -63,7 +63,10 @@ export default function EditProfessionalForm({ pro }: { pro: FindProfessional })
           {PROFESSIONS.map((p) => (
             <label key={p} className="flex items-center gap-2 text-xs">
               <input type="checkbox" checked={professions.includes(p)} onChange={() => toggle(p)} />
-              {p}
+              {p}{' '}
+              <span lang="mr" className="font-[family-name:var(--font-devanagari)] text-gray-500">
+                {professionMarathi(p)}
+              </span>
             </label>
           ))}
         </div>
