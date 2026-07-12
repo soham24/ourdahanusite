@@ -4,6 +4,7 @@ import { ArrowLeft, LogIn, MapPin, MessageCircle, Phone, ShieldCheck } from 'luc
 import { getProfessionalById, getApprovedRatings } from '@/lib/data/find'
 import { createClient } from '@/lib/supabase/server'
 import { GoldStars, Monogram, professionLabels, telHref, waHref } from '../../find-ui'
+import { findLoginHref } from '../../find-server'
 import RatingForm from './RatingForm'
 
 export default async function ProfessionalDetailPage({
@@ -123,9 +124,12 @@ export default async function ProfessionalDetailPage({
             <p className="mt-1 max-w-sm text-sm text-[var(--od-muted)]">
               Log in to leave a rating. Your rating appears after a moderator checks it.
             </p>
-            <Link href="/login" className="od-button-primary mt-4 px-5 py-2 text-sm">
-              Log in to rate
-            </Link>
+            <a
+              href={await findLoginHref(`/p/${pro.id}`)}
+              className="od-button-primary mt-4 px-5 py-2 text-sm"
+            >
+              Log in with Google
+            </a>
           </div>
         )}
       </div>
