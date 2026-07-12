@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle2, MessageCircle } from 'lucide-react'
 import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
+import { safelySubmit } from '@/lib/find/safe-submission'
 import { submitProfessional } from '@/app/actions/find'
 import { chipBase, chipOff, chipOn, Mr } from '../find-ui'
 
@@ -26,15 +27,17 @@ export default function SubmitProfessionalForm() {
     setError(null)
     setPending(true)
     const fd = new FormData(e.currentTarget)
-    const res = await submitProfessional({
-      name: String(fd.get('name') || ''),
-      phone: String(fd.get('phone') || ''),
-      whatsapp: fd.get('whatsapp') === 'on',
-      professions,
-      professionOther: String(fd.get('professionOther') || ''),
-      locality: String(fd.get('locality') || ''),
-      note: String(fd.get('note') || ''),
-    })
+    const res = await safelySubmit(() =>
+      submitProfessional({
+        name: String(fd.get('name') || ''),
+        phone: String(fd.get('phone') || ''),
+        whatsapp: fd.get('whatsapp') === 'on',
+        professions,
+        professionOther: String(fd.get('professionOther') || ''),
+        locality: String(fd.get('locality') || ''),
+        note: String(fd.get('note') || ''),
+      }),
+    )
     setPending(false)
     if (res.error) {
       setError(res.error)

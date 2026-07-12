@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import type { User } from '@supabase/supabase-js'
 import { createFindActions, type FindActionDependencies } from './find-core'
-import { createInsertProfessional } from './find-adapters'
+import { createInsertProfessional, createRequestScopedFindActions } from './find-adapters'
 
 const user = { id: 'user-1', email: 'soham@example.com', user_metadata: { full_name: 'Soham' } } as unknown as User
 
@@ -62,9 +62,9 @@ test('notification throws and rejections remain best-effort after a successful w
   }
 })
 
-test('production professional insert adapter does not chain a select', async () => {
+test('production professional insert adapter reuses its request client and does not chain a select', async () => {
   const calls: string[] = []
-  const insertProfessional = createInsertProfessional(async () => ({
+  const insertProfessional = createInsertProfessional({
     from(table: 'find_professionals') {
       calls.push(`from:${table}`)
       return {
@@ -74,8 +74,39 @@ test('production professional insert adapter does not chain a select', async () 
         },
       }
     },
-  }))
+  })
 
   assert.deepEqual(await insertProfessional({ name: 'Asha' }), { error: null })
   assert.deepEqual(calls, ['from:find_professionals', 'insert:Asha'])
+})
+
+test('request-scoped Find entrypoints create exactly one client per action invocation', async () => {
+  const clientIds: number[] = []
+  let clientCount = 0
+  const actions = createRequestScopedFindActions<
+    { id: number },
+    { name: string },
+    { professionalId: string }
+  >(
+    async () => ({ id: ++clientCount }),
+    (client) => ({
+      async submitProfessional() {
+        clientIds.push(client.id, client.id)
+        return { ok: true }
+      },
+      async submitRating() {
+        clientIds.push(client.id, client.id, client.id)
+        return { ok: true }
+      },
+    }),
+  )
+
+  assert.deepEqual(await actions.submitProfessional({ name: 'Asha' }), { ok: true })
+  assert.equal(clientCount, 1)
+  assert.deepEqual(clientIds, [1, 1])
+
+  clientIds.length = 0
+  assert.deepEqual(await actions.submitRating({ professionalId: 'pro-1' }), { ok: true })
+  assert.equal(clientCount, 2)
+  assert.deepEqual(clientIds, [2, 2, 2])
 })
