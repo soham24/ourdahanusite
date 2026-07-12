@@ -36,7 +36,7 @@ export default function FindLayout({ children }: { children: React.ReactNode }) 
         </div>
       </header>
 
-      <main id="find-content" className="mx-auto w-full max-w-5xl flex-1 px-4 pb-16 pt-6">
+      <main id="find-content" className="mx-auto w-full max-w-5xl flex-1 scroll-mt-14 px-4 pb-16 pt-6">
         {children}
       </main>
 

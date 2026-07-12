@@ -90,9 +90,9 @@ export default async function ProfessionalDetailPage({
               href={waHref(pro.phone)}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[rgba(19,138,75,0.3)] bg-[rgba(19,138,75,0.06)] text-[15px] font-bold text-[var(--od-success)] transition-colors duration-150 hover:bg-[rgba(19,138,75,0.12)] active:scale-[0.98]"
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[rgba(19,138,75,0.3)] bg-[rgba(19,138,75,0.06)] text-[15px] font-bold text-[var(--color-success-strong)] transition-colors duration-150 hover:bg-[rgba(19,138,75,0.12)] active:scale-[0.98]"
             >
-              <MessageCircle size={16} aria-hidden /> WhatsApp
+              <MessageCircle size={16} className="text-[var(--od-success)]" aria-hidden /> WhatsApp
             </a>
           )}
         </div>
@@ -116,7 +116,7 @@ export default async function ProfessionalDetailPage({
           <RatingForm professionalId={pro.id} alreadyRated={alreadyRated} />
         ) : (
           <div className="od-card flex flex-col items-center px-6 py-8 text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-surface-soft)] text-[var(--od-brand)]">
+            <span className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[var(--color-surface-soft)] text-[var(--od-brand)]">
               <LogIn size={22} aria-hidden />
             </span>
             <h2 className="mt-3 font-display text-xl">Used {pro.name}’s service?</h2>
@@ -149,11 +149,13 @@ export default async function ProfessionalDetailPage({
                 className="rounded-[var(--od-radius)] border border-[var(--od-border)] bg-[var(--color-surface-2)] p-4"
               >
                 <GoldStars value={r.rating} size={13} />
+                <span className="sr-only">Rated {r.rating} out of 5</span>
                 <p className="mt-2 text-[15px] leading-relaxed text-[var(--od-ink-2)]">
                   {r.comment}
                 </p>
-                <p className="mt-2.5 flex items-center gap-1 text-[11px] font-bold text-[var(--od-success)]">
-                  <ShieldCheck size={12} aria-hidden /> Verified — used this service
+                <p className="mt-2.5 flex items-center gap-1 text-[11px] font-bold text-[var(--color-success-strong)]">
+                  <ShieldCheck size={12} className="text-[var(--od-success)]" aria-hidden /> Verified
+                  — used this service
                 </p>
               </li>
             ))}

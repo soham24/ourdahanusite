@@ -23,6 +23,10 @@ export default function RatingForm({
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
+    if (rating < 1) {
+      setError('Please choose a star rating.')
+      return
+    }
     setPending(true)
     const fd = new FormData(e.currentTarget)
     const res = await submitRating({
@@ -66,22 +70,29 @@ export default function RatingForm({
           it to review.
         </p>
       )}
-      {error && (
-        <p className="mt-3 rounded-[12px] border border-[rgba(180,35,24,0.25)] bg-[rgba(180,35,24,0.06)] px-3 py-2 text-sm font-semibold text-[var(--od-danger)]">
-          {error}
-        </p>
-      )}
+      <p role="alert" aria-live="assertive">
+        {error && (
+          <span className="mt-3 block rounded-[12px] border border-[rgba(180,35,24,0.25)] bg-[rgba(180,35,24,0.06)] px-3 py-2 text-sm font-semibold text-[var(--od-danger)]">
+            {error}
+          </span>
+        )}
+      </p>
 
-      <div className="mt-3 flex items-center gap-1">
+      <span id="rating-label" className="mt-3 block text-[13px] font-bold text-[var(--od-ink-2)]">
+        Your rating <span className="text-[var(--od-brand)]">*</span>
+      </span>
+      <div role="radiogroup" aria-labelledby="rating-label" className="mt-1 flex items-center gap-1">
         {[1, 2, 3, 4, 5].map((n) => (
           <button
             type="button"
             key={n}
+            role="radio"
+            aria-checked={rating === n}
             disabled={pending}
             onClick={() => setRating(n)}
             onMouseEnter={() => setHover(n)}
             onMouseLeave={() => setHover(0)}
-            aria-label={`${n} star${n > 1 ? 's' : ''}`}
+            aria-label={`${n} star${n > 1 ? 's' : ''}${n === 1 ? ' — Poor' : ''}${n === 5 ? ' — Excellent' : ''}`}
             className="flex h-10 w-10 items-center justify-center rounded-xl transition-transform duration-100 hover:scale-110 active:scale-95 disabled:opacity-50"
           >
             <Star
@@ -94,11 +105,9 @@ export default function RatingForm({
             />
           </button>
         ))}
-        {shown > 0 && (
-          <span className="ml-2 text-sm font-bold text-[var(--od-ink-2)]">
-            {RATING_WORDS[shown]}
-          </span>
-        )}
+        <span aria-live="polite" className="ml-2 text-sm font-bold text-[var(--od-ink-2)]">
+          {shown > 0 ? RATING_WORDS[shown] : ''}
+        </span>
       </div>
 
       <label className="mt-4 block">

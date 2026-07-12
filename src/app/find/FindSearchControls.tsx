@@ -1,13 +1,20 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Search, X } from 'lucide-react'
 
 export default function FindSearchControls() {
   const router = useRouter()
   const params = useSearchParams()
-  const [q, setQ] = useState(params.get('q') ?? '')
+  const urlQ = params.get('q') ?? ''
+  const [q, setQ] = useState(urlQ)
+
+  // Keep the box in sync when the URL changes without a remount
+  // (e.g. the empty state's "Clear filters" link or the header logo).
+  useEffect(() => {
+    setQ(urlQ)
+  }, [urlQ])
 
   function submit(value: string) {
     const sp = new URLSearchParams(params.toString())
@@ -37,7 +44,9 @@ export default function FindSearchControls() {
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search by name, area, or keyword…"
         aria-label="Search professionals"
-        className="od-input h-12 w-full pl-10 pr-[6.5rem] text-[15px] [&::-webkit-search-cancel-button]:hidden"
+        className={`od-input h-12 w-full pl-10 text-[15px] [&::-webkit-search-cancel-button]:hidden ${
+          q ? 'pr-[7.75rem]' : 'pr-[6.5rem]'
+        }`}
       />
       {q && (
         <button
@@ -47,7 +56,7 @@ export default function FindSearchControls() {
             setQ('')
             submit('')
           }}
-          className="absolute right-[5.4rem] top-1/2 -translate-y-1/2 rounded-full p-1 text-[var(--od-muted)] transition-colors hover:bg-[var(--color-gray-100)]"
+          className="absolute right-[5rem] top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-[var(--od-muted)] transition-colors hover:bg-[var(--color-gray-100)]"
         >
           <X size={14} aria-hidden />
         </button>

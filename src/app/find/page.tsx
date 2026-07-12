@@ -5,7 +5,16 @@ import { getApprovedProfessionals } from '@/lib/data/find'
 import { PROFESSIONS } from '@/lib/find/professions'
 import type { ProfessionalWithStats } from '@/lib/find/types'
 import FindSearchControls from './FindSearchControls'
-import { GoldStars, Monogram, professionLabels, telHref, waHref } from './find-ui'
+import {
+  chipBase,
+  chipOff,
+  chipOn,
+  GoldStars,
+  Monogram,
+  professionLabels,
+  telHref,
+  waHref,
+} from './find-ui'
 
 function chipHref(profession: string | null, q?: string) {
   const sp = new URLSearchParams()
@@ -16,17 +25,16 @@ function chipHref(profession: string | null, q?: string) {
 }
 
 function CategoryChips({ active, q }: { active?: string; q?: string }) {
-  const base =
-    'whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors duration-150 active:scale-[0.97]'
-  const on = 'border-[var(--od-brand)] bg-[var(--od-brand)] text-[#FFFAF3]'
-  const off =
-    'border-[var(--od-border)] bg-white/70 text-[var(--od-ink-2)] hover:border-[rgba(192,88,46,0.4)] hover:text-[var(--od-brand-strong)]'
   return (
     <nav
       aria-label="Filter by profession"
       className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide"
     >
-      <Link href={chipHref(null, q)} className={`${base} ${!active ? on : off}`}>
+      <Link
+        href={chipHref(null, q)}
+        aria-current={!active ? 'page' : undefined}
+        className={`${chipBase} ${!active ? chipOn : chipOff}`}
+      >
         All
       </Link>
       {PROFESSIONS.map((p) => (
@@ -34,7 +42,7 @@ function CategoryChips({ active, q }: { active?: string; q?: string }) {
           key={p}
           href={chipHref(p, q)}
           aria-current={active === p ? 'page' : undefined}
-          className={`${base} ${active === p ? on : off}`}
+          className={`${chipBase} ${active === p ? chipOn : chipOff}`}
         >
           {p}
         </Link>
@@ -111,9 +119,9 @@ function Card({ p }: { p: ProfessionalWithStats }) {
             href={waHref(p.phone)}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[rgba(19,138,75,0.3)] bg-[rgba(19,138,75,0.06)] py-2 text-sm font-bold text-[var(--od-success)] transition-colors duration-150 hover:bg-[rgba(19,138,75,0.12)] active:scale-[0.98]"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[rgba(19,138,75,0.3)] bg-[rgba(19,138,75,0.06)] py-2 text-sm font-bold text-[var(--color-success-strong)] transition-colors duration-150 hover:bg-[rgba(19,138,75,0.12)] active:scale-[0.98]"
           >
-            <MessageCircle size={14} aria-hidden /> WhatsApp
+            <MessageCircle size={14} className="text-[var(--od-success)]" aria-hidden /> WhatsApp
           </a>
         )}
       </div>
@@ -124,10 +132,12 @@ function Card({ p }: { p: ProfessionalWithStats }) {
 function EmptyState({ filtered }: { filtered: boolean }) {
   return (
     <div className="od-card flex flex-col items-center px-6 py-14 text-center">
-      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-surface-soft)] text-[var(--od-brand)]">
+      <span className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-[var(--color-surface-soft)] text-[var(--od-brand)]">
         <SearchX size={26} aria-hidden />
       </span>
-      <h2 className="mt-4 font-display text-2xl">Nobody here yet</h2>
+      <h2 className="mt-4 font-display text-2xl">
+        {filtered ? 'No matches' : 'Nobody here yet'}
+      </h2>
       <p className="mt-1 max-w-sm text-sm leading-relaxed text-[var(--od-muted)]">
         {filtered
           ? 'No one matches this search. Try a different profession, or clear the filters.'
@@ -177,10 +187,10 @@ async function ProfessionalList({ q, profession }: { q?: string; profession?: st
         {profession ? (
           <>
             {' '}
-            in <span className="text-[var(--od-brand-strong)]">{profession}</span>
+            · <span className="text-[var(--od-brand-strong)]">{profession}</span>
           </>
         ) : null}
-        {q ? <> matching “{q}”</> : null}
+        {q ? <> · “{q}”</> : null}
       </p>
       <div className="grid gap-3 md:grid-cols-2">
         {pros.map((p) => (

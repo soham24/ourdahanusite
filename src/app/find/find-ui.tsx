@@ -19,12 +19,21 @@ export function Monogram({ name, size = 'md' }: { name: string; size?: 'md' | 'l
   return (
     <span
       aria-hidden
-      className={`flex shrink-0 select-none items-center justify-center bg-gradient-to-br from-[#F6E3D3] to-[#EDCDB2] font-display text-[var(--od-brand-strong)] ${cls}`}
+      className={`flex shrink-0 select-none items-center justify-center bg-gradient-to-br from-[var(--color-cream)] to-[var(--color-sand)] font-display text-[var(--od-brand-strong)] ${cls}`}
     >
       {letter}
     </span>
   )
 }
+
+/** Shared filter/toggle chip styling — one source so the category rail and
+ *  the submit form's profession toggles can't drift apart. */
+export const chipBase =
+  'whitespace-nowrap rounded-full border px-3.5 py-2 text-[13px] font-semibold transition-colors duration-150 active:scale-[0.97]'
+export const chipOn =
+  'border-[var(--od-brand-strong)] bg-[var(--od-brand-strong)] text-[#FFFAF3]'
+export const chipOff =
+  'border-[var(--od-border)] bg-white/70 text-[var(--od-ink-2)] hover:border-[rgba(192,88,46,0.4)] hover:text-[var(--od-brand-strong)]'
 
 /** Gold star row, matched to the site's gold token. */
 export function GoldStars({ value, size = 14 }: { value: number; size?: number }) {
@@ -51,9 +60,10 @@ export function telHref(phone: string): string {
   return `tel:${phone.replace(/[^+\d]/g, '')}`
 }
 
-/** wa.me needs a country code — local 10-digit Indian numbers get 91 prefixed. */
+/** wa.me needs a country code — local Indian numbers (with or without the
+ *  leading trunk zero) get 91 prefixed. */
 export function waHref(phone: string): string {
-  const digits = phone.replace(/\D/g, '')
+  const digits = phone.replace(/\D/g, '').replace(/^0+/, '')
   const full = digits.length === 10 ? `91${digits}` : digits
   return `https://wa.me/${full}`
 }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { CheckCircle2, MessageCircle } from 'lucide-react'
 import { PROFESSIONS } from '@/lib/find/professions'
 import { submitProfessional } from '@/app/actions/find'
+import { chipBase, chipOff, chipOn } from '../find-ui'
 
 const labelCls = 'mb-1 block text-[13px] font-bold text-[var(--od-ink-2)]'
 const inputCls = 'od-input h-11 w-full px-3.5 text-[15px] disabled:opacity-60'
@@ -63,11 +64,13 @@ export default function SubmitProfessionalForm() {
 
   return (
     <form onSubmit={onSubmit} className="od-card space-y-4 p-5">
-      {error && (
-        <p className="rounded-[12px] border border-[rgba(180,35,24,0.25)] bg-[rgba(180,35,24,0.06)] px-3 py-2 text-sm font-semibold text-[var(--od-danger)]">
-          {error}
-        </p>
-      )}
+      <p role="alert" aria-live="assertive">
+        {error && (
+          <span className="block rounded-[12px] border border-[rgba(180,35,24,0.25)] bg-[rgba(180,35,24,0.06)] px-3 py-2 text-sm font-semibold text-[var(--od-danger)]">
+            {error}
+          </span>
+        )}
+      </p>
 
       <label className="block">
         <span className={labelCls}>
@@ -113,11 +116,7 @@ export default function SubmitProfessionalForm() {
                 aria-pressed={on}
                 disabled={pending}
                 onClick={() => toggle(p)}
-                className={`rounded-full border px-3 py-1.5 text-[13px] font-semibold transition-colors duration-150 active:scale-[0.97] disabled:opacity-60 ${
-                  on
-                    ? 'border-[var(--od-brand)] bg-[var(--od-brand)] text-[#FFFAF3]'
-                    : 'border-[var(--od-border)] bg-white/80 text-[var(--od-ink-2)] hover:border-[rgba(192,88,46,0.4)]'
-                }`}
+                className={`${chipBase} disabled:opacity-60 ${on ? chipOn : chipOff}`}
               >
                 {p}
               </button>
@@ -131,7 +130,7 @@ export default function SubmitProfessionalForm() {
           <span className={labelCls}>
             Describe the profession <span className="text-[var(--od-brand)]">*</span>
           </span>
-          <input name="professionOther" disabled={pending} className={inputCls} />
+          <input name="professionOther" required disabled={pending} className={inputCls} />
         </label>
       )}
 

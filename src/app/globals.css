@@ -20,6 +20,8 @@
   
   /* Functional Colors */
   --color-success: #138A4B;
+  /* Darker success for small text on tinted/cream surfaces (AA contrast). */
+  --color-success-strong: #0E6B3A;
   --color-danger: #B42318;
 
   /* Specific Palette (used for gradients/accents) */

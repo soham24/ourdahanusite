@@ -40,7 +40,7 @@ export default async function SubmitPage() {
           <SubmitProfessionalForm />
         ) : (
           <div className="od-card flex flex-col items-center px-6 py-8 text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-surface-soft)] text-[var(--od-brand)]">
+            <span className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[var(--color-surface-soft)] text-[var(--od-brand)]">
               <LogIn size={22} aria-hidden />
             </span>
             <h2 className="mt-3 font-display text-xl">Log in to continue</h2>
