@@ -5,11 +5,14 @@ export type AuthCookieOptions = {
   domain?: string
 }
 
-export function getAuthCookieOptions(siteUrl?: string): AuthCookieOptions {
-  if (!siteUrl) return {}
+export function getAuthCookieOptions(hostOrUrl?: string): AuthCookieOptions {
+  if (!hostOrUrl) return {}
 
   try {
-    const hostname = new URL(siteUrl).hostname.toLowerCase()
+    const value = hostOrUrl.split(',')[0].trim()
+    const hostname = new URL(
+      value.includes('://') ? value : `https://${value}`,
+    ).hostname.toLowerCase()
     if (hostname === 'ourdahanu.in' || hostname.endsWith('.ourdahanu.in')) {
       return { domain: SHARED_AUTH_COOKIE_DOMAIN }
     }

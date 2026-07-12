@@ -28,7 +28,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const authPlan = getBrowserAuthPlan(
       window.location.hostname,
-      process.env.NEXT_PUBLIC_SITE_URL,
       document.cookie,
     )
 

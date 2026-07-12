@@ -8,7 +8,9 @@ let client: ReturnType<typeof createBrowserClient> | null = null
 
 export function createClient() {
   if (!client) {
-    const cookieOptions = getAuthCookieOptions(process.env.NEXT_PUBLIC_SITE_URL)
+    const cookieOptions = getAuthCookieOptions(
+      typeof window === 'undefined' ? undefined : window.location.hostname,
+    )
 
     if (cookieOptions.domain && typeof document !== 'undefined') {
       for (const removal of getLegacyHostOnlyAuthCookieRemovals(document.cookie)) {
