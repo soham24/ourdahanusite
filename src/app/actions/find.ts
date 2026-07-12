@@ -1,5 +1,7 @@
 'use server'
 
+import { after } from 'next/server'
+
 import { createClient } from '@/lib/supabase/server'
 import { isValidProfession } from '@/lib/find/professions'
 import { sendNotificationToAdmins } from '@/lib/notifications'
@@ -22,7 +24,14 @@ const actions = createRequestScopedFindActions(createClient, (supabase) =>
     insertProfessional: createInsertProfessional(supabase),
     async findProfessional(id) { const { data } = await supabase.from('find_professionals').select('id, name').eq('id', id).eq('status', 'approved').eq('is_active', true).maybeSingle(); return data },
     async upsertRating(row) { return supabase.from('find_ratings').upsert(row, { onConflict: 'professional_id,user_id' }) },
-    notify: sendNotificationToAdmins,
+    // Deliver admin notifications AFTER the response via `after()`, and await
+    // every channel (awaitDelivery) so the serverless function stays alive
+    // until the Telegram/email fetches actually complete. The find submit
+    // action returns almost immediately, so a plain fire-and-forget was frozen
+    // before delivery finished — no in-app row and no Telegram were sent.
+    notify: (type, payload) => {
+      after(() => sendNotificationToAdmins(type, payload, { awaitDelivery: true }))
+    },
   }),
 )
 

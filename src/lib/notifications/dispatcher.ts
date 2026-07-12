@@ -50,36 +50,57 @@ export async function sendNotification<T extends NotificationType>(
       (override.telegram ?? prefs.telegram_enabled) && Boolean(prefs.telegram_chat_id)
     const useWhatsApp = override.whatsapp ?? prefs.whatsapp_enabled
 
-    // In-app is awaited so Realtime INSERT fires before we return.
+    // When awaitDelivery is set (caller runs inside `after()`), the channel
+    // promises are collected and awaited before returning so the serverless
+    // function stays alive until delivery completes. Otherwise each channel is
+    // fire-and-forget (best-effort within the request lifetime).
+    const awaitDelivery = options.awaitDelivery ?? false
+    const pending: Promise<unknown>[] = []
+    const track = (p: Promise<unknown>) => {
+      if (awaitDelivery) pending.push(p)
+      else void p
+    }
+
+    // In-app is always awaited so the Realtime INSERT fires before we return.
     if (useInApp) {
       await deliverInApp({ userId, type, rendered })
     }
 
-    // Email — fire-and-forget.
+    // Email.
     if (useEmail) {
-      void resolveEmail(userId)
-        .then((email) => {
-          if (!email) return
-          return deliverEmail({ to: email, rendered })
-        })
-        .catch((err) => console.error('[notifications:dispatch:email]', err))
+      track(
+        resolveEmail(userId)
+          .then((email) => {
+            if (!email) return
+            return deliverEmail({ to: email, rendered })
+          })
+          .catch((err) => console.error('[notifications:dispatch:email]', err)),
+      )
     }
 
-    // Telegram — fire-and-forget.
+    // Telegram.
     if (useTelegram && prefs.telegram_chat_id) {
-      void deliverTelegram({ chatId: prefs.telegram_chat_id, rendered }).catch((err) =>
-        console.error('[notifications:dispatch:telegram]', err),
+      track(
+        deliverTelegram({ chatId: prefs.telegram_chat_id, rendered }).catch((err) =>
+          console.error('[notifications:dispatch:telegram]', err),
+        ),
       )
     }
 
     // WhatsApp — only if the rendered notification provided a template AND we have a phone.
     if (useWhatsApp && rendered.whatsappTemplate) {
-      void resolveWhatsAppPhone(userId)
-        .then((phone) => {
-          if (!phone) return
-          return deliverWhatsApp({ phone, rendered })
-        })
-        .catch((err) => console.error('[notifications:dispatch:whatsapp]', err))
+      track(
+        resolveWhatsAppPhone(userId)
+          .then((phone) => {
+            if (!phone) return
+            return deliverWhatsApp({ phone, rendered })
+          })
+          .catch((err) => console.error('[notifications:dispatch:whatsapp]', err)),
+      )
+    }
+
+    if (awaitDelivery && pending.length) {
+      await Promise.allSettled(pending)
     }
 
     return useInApp
