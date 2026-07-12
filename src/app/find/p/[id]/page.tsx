@@ -1,26 +1,10 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Star, MapPin, Phone, MessageCircle, ArrowLeft } from 'lucide-react'
+import { ArrowLeft, LogIn, MapPin, MessageCircle, Phone, ShieldCheck } from 'lucide-react'
 import { getProfessionalById, getApprovedRatings } from '@/lib/data/find'
-import type { ProfessionalWithStats } from '@/lib/find/types'
 import { createClient } from '@/lib/supabase/server'
+import { GoldStars, Monogram, professionLabels, telHref, waHref } from '../../find-ui'
 import RatingForm from './RatingForm'
-
-function Stars({ value, size = 16 }: { value: number; size?: number }) {
-  const rounded = Math.round(value)
-  return (
-    <span className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <Star key={n} size={size}
-          className={n <= rounded ? 'text-amber-400 fill-amber-400' : 'text-gray-200 fill-gray-200'} />
-      ))}
-    </span>
-  )
-}
-
-function professionLabels(p: ProfessionalWithStats): string[] {
-  return p.professions.map((x) => (x === 'Other' && p.profession_other ? p.profession_other! : x))
-}
 
 export default async function ProfessionalDetailPage({
   params,
@@ -46,66 +30,133 @@ export default async function ProfessionalDetailPage({
   }
 
   return (
-    <div>
-      <Link href="/find" className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800">
-        <ArrowLeft size={14} /> Back to directory
+    <div className="mx-auto max-w-2xl">
+      <Link
+        href="/find"
+        className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-[var(--od-border)] bg-white/70 px-3 py-1.5 text-[13px] font-semibold text-[var(--od-ink-2)] transition-colors hover:border-[rgba(192,88,46,0.4)] hover:text-[var(--od-brand-strong)]"
+      >
+        <ArrowLeft size={13} aria-hidden /> Back to directory
       </Link>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold">{pro.name}</h1>
-            <div className="mt-0.5 flex flex-wrap gap-1">
+      <div className="od-card p-5 sm:p-6">
+        <div className="flex items-start gap-4">
+          <Monogram name={pro.name} size="lg" />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-balance font-display text-3xl leading-tight sm:text-4xl">
+              {pro.name}
+            </h1>
+            <div className="mt-1.5 flex flex-wrap gap-1">
               {professionLabels(pro).map((label) => (
-                <span key={label} className="rounded-full bg-[var(--od-brand,#c0582e)]/10 px-2 py-0.5 text-xs font-medium text-[var(--od-brand,#c0582e)]">
+                <span
+                  key={label}
+                  className="rounded-full bg-[rgba(192,88,46,0.09)] px-2 py-0.5 text-[11px] font-bold text-[var(--od-brand-strong)]"
+                >
                   {label}
                 </span>
               ))}
             </div>
           </div>
-          <div className="text-right">
-            <Stars value={pro.avg_rating} />
-            <p className="mt-1 text-xs text-gray-500">
-              {pro.rating_count > 0 ? `${pro.avg_rating.toFixed(1)} from ${pro.rating_count} rating${pro.rating_count > 1 ? 's' : ''}` : 'No ratings yet'}
-            </p>
-          </div>
         </div>
-        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-700">
-          <a href={`tel:${pro.phone}`} className="flex items-center gap-1 hover:underline">
-            <Phone size={14} /> {pro.phone}
+
+        <div className="mt-4 flex items-center gap-3 rounded-[14px] bg-[var(--color-surface-soft)] px-4 py-3">
+          {pro.rating_count > 0 ? (
+            <>
+              <span className="font-display text-3xl tabular-nums leading-none">
+                {pro.avg_rating.toFixed(1)}
+              </span>
+              <span>
+                <GoldStars value={pro.avg_rating} size={15} />
+                <span className="mt-0.5 block text-xs text-[var(--od-muted)]">
+                  {pro.rating_count} verified rating{pro.rating_count > 1 ? 's' : ''}
+                </span>
+              </span>
+            </>
+          ) : (
+            <span className="text-sm text-[var(--od-muted)]">
+              No ratings yet — be the first to rate.
+            </span>
+          )}
+        </div>
+
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+          <a
+            href={telHref(pro.phone)}
+            className="od-button-primary h-11 flex-1 text-[15px] active:scale-[0.98]"
+          >
+            <Phone size={16} aria-hidden /> Call <span className="tabular-nums">{pro.phone}</span>
           </a>
           {pro.whatsapp && (
-            <a href={`https://wa.me/${pro.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1 text-green-600 hover:underline">
-              <MessageCircle size={14} /> WhatsApp
+            <a
+              href={waHref(pro.phone)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[rgba(19,138,75,0.3)] bg-[rgba(19,138,75,0.06)] text-[15px] font-bold text-[var(--color-success-strong)] transition-colors duration-150 hover:bg-[rgba(19,138,75,0.12)] active:scale-[0.98]"
+            >
+              <MessageCircle size={16} className="text-[var(--od-success)]" aria-hidden /> WhatsApp
             </a>
           )}
-          {pro.locality && <span className="flex items-center gap-1"><MapPin size={14} /> {pro.locality}</span>}
         </div>
-        {pro.note && <p className="mt-3 text-sm text-gray-600">{pro.note}</p>}
+
+        {(pro.locality || pro.note) && (
+          <div className="mt-4 space-y-1.5 border-t border-[var(--od-border)] pt-4">
+            {pro.locality && (
+              <p className="flex items-center gap-1.5 text-sm text-[var(--od-ink-2)]">
+                <MapPin size={14} className="text-[var(--od-muted)]" aria-hidden /> {pro.locality}
+              </p>
+            )}
+            {pro.note && (
+              <p className="text-sm leading-relaxed text-[var(--od-ink-2)]">{pro.note}</p>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="mt-6">
         {user ? (
           <RatingForm professionalId={pro.id} alreadyRated={alreadyRated} />
         ) : (
-          <div className="rounded-lg border border-gray-200 bg-white p-4 text-center text-sm">
-            <p className="mb-2 text-gray-700">Log in to rate this professional.</p>
-            <Link href="/login" className="rounded-md bg-[var(--od-brand,#c0582e)] px-4 py-2 font-semibold text-white">Log in</Link>
+          <div className="od-card flex flex-col items-center px-6 py-8 text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[var(--color-surface-soft)] text-[var(--od-brand)]">
+              <LogIn size={22} aria-hidden />
+            </span>
+            <h2 className="mt-3 font-display text-xl">Used {pro.name}’s service?</h2>
+            <p className="mt-1 max-w-sm text-sm text-[var(--od-muted)]">
+              Log in to leave a rating. Your rating appears after a moderator checks it.
+            </p>
+            <Link href="/login" className="od-button-primary mt-4 px-5 py-2 text-sm">
+              Log in to rate
+            </Link>
           </div>
         )}
       </div>
 
       <section className="mt-8">
-        <h2 className="mb-3 text-lg font-bold">Ratings</h2>
+        <h2 className="mb-3 flex items-baseline gap-2 font-display text-2xl">
+          Ratings
+          {ratings.length > 0 && (
+            <span className="text-sm font-sans font-semibold tabular-nums text-[var(--od-muted)]">
+              {ratings.length}
+            </span>
+          )}
+        </h2>
         {ratings.length === 0 ? (
-          <p className="text-sm text-gray-500">No approved ratings yet. Be the first to rate.</p>
+          <p className="text-sm text-[var(--od-muted)]">No approved ratings yet.</p>
         ) : (
           <ul className="space-y-3">
             {ratings.map((r) => (
-              <li key={r.id} className="rounded-lg border border-gray-200 bg-white p-4">
-                <Stars value={r.rating} size={13} />
-                <p className="mt-2 text-sm text-gray-700">{r.comment}</p>
+              <li
+                key={r.id}
+                className="rounded-[var(--od-radius)] border border-[var(--od-border)] bg-[var(--color-surface-2)] p-4"
+              >
+                <GoldStars value={r.rating} size={13} />
+                <span className="sr-only">Rated {r.rating} out of 5</span>
+                <p className="mt-2 text-[15px] leading-relaxed text-[var(--od-ink-2)]">
+                  {r.comment}
+                </p>
+                <p className="mt-2.5 flex items-center gap-1 text-[11px] font-bold text-[var(--color-success-strong)]">
+                  <ShieldCheck size={12} className="text-[var(--od-success)]" aria-hidden /> Verified
+                  — used this service
+                </p>
               </li>
             ))}
           </ul>
