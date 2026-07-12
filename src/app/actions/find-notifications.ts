@@ -14,7 +14,7 @@ export function completeFindWrite(
 ): { error: string } | { ok: true } {
   if (error) return { error: error.message }
 
-  Promise.resolve(notify('admin.new_submission', payload)).catch((err) =>
+  Promise.resolve().then(() => notify('admin.new_submission', payload)).catch((err) =>
     console.error(logContext, err),
   )
 
