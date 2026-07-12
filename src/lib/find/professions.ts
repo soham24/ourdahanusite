@@ -19,6 +19,11 @@ export const PROFESSIONS = [
   'AC/Appliance Repair',
   'Photographer',
   'Priest/Pujari',
+  'Astrologer',
+  'Vastu Consultant',
+  'Stone Fabricator',
+  'Modular Kitchen',
+  'EV Sales & Service',
   'Other',
 ] as const
 
@@ -50,6 +55,11 @@ export const PROFESSION_MR: Record<Profession, string> = {
   'AC/Appliance Repair': 'एसी/उपकरण दुरुस्ती',
   Photographer: 'फोटोग्राफर',
   'Priest/Pujari': 'पुजारी',
+  Astrologer: 'ज्योतिषी',
+  'Vastu Consultant': 'वास्तु सल्लागार',
+  'Stone Fabricator': 'दगड कारागीर',
+  'Modular Kitchen': 'मॉड्युलर किचन',
+  'EV Sales & Service': 'इलेक्ट्रिक वाहन विक्री व सेवा',
   Other: 'इतर',
 }
 
