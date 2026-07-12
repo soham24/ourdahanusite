@@ -10,10 +10,9 @@ export function shouldInitializeBrowserAuth(hostname: string): boolean {
 
 export function getBrowserAuthPlan(
   hostname: string,
-  siteUrl: string | undefined,
   cookieHeader: string,
 ): { shouldInitialize: boolean; legacyCookieRemovals: string[] } {
-  const sharesProductionCookies = Boolean(getAuthCookieOptions(siteUrl).domain)
+  const sharesProductionCookies = Boolean(getAuthCookieOptions(hostname).domain)
 
   return {
     shouldInitialize: shouldInitializeBrowserAuth(hostname),

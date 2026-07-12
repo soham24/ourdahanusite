@@ -21,9 +21,10 @@ function bearerToken(headerValue: string | null): string | null {
  */
 export async function createClient() {
   const cookieStore = await cookies()
-  const cookieOptions = getAuthCookieOptions(process.env.NEXT_PUBLIC_SITE_URL)
-
   const headerStore = await headers()
+  const cookieOptions = getAuthCookieOptions(
+    headerStore.get('x-forwarded-host') ?? headerStore.get('host') ?? undefined,
+  )
   const token = bearerToken(headerStore.get('authorization'))
 
   const client = createServerClient(

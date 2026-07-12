@@ -7,7 +7,12 @@ import { rateLimit } from '@/lib/rate-limit'
 import { createFindActions, type SubmitProfessionalInput, type SubmitRatingInput } from './find-core'
 import { createInsertProfessional, createRequestScopedFindActions } from './find-adapters'
 
-export type { SubmitProfessionalInput, SubmitRatingInput }
+// NOTE: this is a 'use server' module — it may export ONLY async functions.
+// The SubmitProfessionalInput / SubmitRatingInput types are imported above for
+// the signatures below; import them from './find-core' elsewhere. Re-exporting
+// them here (even as `export type`) makes Next's server-action transform emit a
+// runtime reference to a type that doesn't exist → "SubmitProfessionalInput is
+// not defined" at module evaluation → every submit/rating POST 500s.
 
 const actions = createRequestScopedFindActions(createClient, (supabase) =>
   createFindActions({

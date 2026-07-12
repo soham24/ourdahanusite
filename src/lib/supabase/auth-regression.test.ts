@@ -11,16 +11,43 @@ import {
   getLegacyHostOnlyAuthCookieRemovals,
 } from './auth-cookie'
 
-test('pins the newest Supabase client compatible with the Node 20 runtime', async () => {
+test('pins the lockless Supabase client and its Node 20-compatible engine metadata', async () => {
   const packageJson = JSON.parse(
     await readFile(new URL('../../../package.json', import.meta.url), 'utf8'),
   ) as { dependencies: Record<string, string> }
+  const packageLock = JSON.parse(
+    await readFile(new URL('../../../package-lock.json', import.meta.url), 'utf8'),
+  ) as {
+    packages: Record<string, { version?: string; engines?: { node?: string } }>
+  }
 
   assert.equal(packageJson.dependencies['@supabase/supabase-js'], '2.109.0')
+  assert.equal(
+    packageLock.packages['node_modules/@supabase/supabase-js']?.version,
+    '2.109.0',
+  )
+  assert.equal(
+    packageLock.packages['node_modules/@supabase/supabase-js']?.engines?.node,
+    '>=20.0.0',
+  )
+  assert.equal(
+    packageLock.packages['node_modules/@supabase/auth-js']?.version,
+    '2.109.0',
+  )
+  assert.equal(
+    packageLock.packages['node_modules/@supabase/auth-js']?.engines?.node,
+    '>=20.0.0',
+  )
 })
 
 test('shares production auth cookies across OurDahanu subdomains only', async () => {
   assert.deepEqual(getAuthCookieOptions('https://ourdahanu.in'), {
+    domain: '.ourdahanu.in',
+  })
+  assert.deepEqual(getAuthCookieOptions('ourdahanu.in'), {
+    domain: '.ourdahanu.in',
+  })
+  assert.deepEqual(getAuthCookieOptions('find.ourdahanu.in'), {
     domain: '.ourdahanu.in',
   })
   assert.deepEqual(getAuthCookieOptions('https://find.ourdahanu.in'), {
@@ -79,11 +106,9 @@ test('Find auth planning clears legacy host cookies without initializing a clien
   assert.deepEqual(
     (getBrowserAuthPlan as (
       hostname: string,
-      siteUrl: string,
       cookieHeader: string,
     ) => unknown)(
       'find.ourdahanu.in',
-      'https://ourdahanu.in',
       [
         'sb-project-auth-token.0=stale-host-token',
         'sb-project-auth-token-code-verifier=keep-pkce',
