@@ -1,8 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies, headers } from 'next/headers'
-
-const isProduction = process.env.NEXT_PUBLIC_SITE_URL?.includes('ourdahanu.in')
-const cookieDomain = isProduction ? '.ourdahanu.in' : undefined
+import { getAuthCookieOptions } from './auth-cookie'
 
 function bearerToken(headerValue: string | null): string | null {
   if (!headerValue) return null
@@ -23,6 +21,7 @@ function bearerToken(headerValue: string | null): string | null {
  */
 export async function createClient() {
   const cookieStore = await cookies()
+  const cookieOptions = getAuthCookieOptions(process.env.NEXT_PUBLIC_SITE_URL)
 
   const headerStore = await headers()
   const token = bearerToken(headerStore.get('authorization'))
@@ -32,6 +31,7 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       ...(token ? { global: { headers: { Authorization: `Bearer ${token}` } } } : {}),
+      cookieOptions,
       cookies: {
         getAll() {
           return cookieStore.getAll()
@@ -41,7 +41,7 @@ export async function createClient() {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, {
                 ...options,
-                ...(cookieDomain ? { domain: cookieDomain } : {}),
+                ...cookieOptions,
               })
             )
           } catch {

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { CheckCircle2, Star } from 'lucide-react'
 import { submitRating } from '@/app/actions/find'
+import { safelySubmit } from '@/lib/find/safe-submission'
 
 const RATING_WORDS = ['', 'Poor', 'Okay', 'Good', 'Very good', 'Excellent']
 
@@ -29,12 +30,14 @@ export default function RatingForm({
     }
     setPending(true)
     const fd = new FormData(e.currentTarget)
-    const res = await submitRating({
-      professionalId,
-      rating,
-      comment: String(fd.get('comment') || ''),
-      usedService: used,
-    })
+    const res = await safelySubmit(() =>
+      submitRating({
+        professionalId,
+        rating,
+        comment: String(fd.get('comment') || ''),
+        usedService: used,
+      }),
+    )
     setPending(false)
     if (res.error) {
       setError(res.error)
