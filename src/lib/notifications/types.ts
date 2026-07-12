@@ -123,7 +123,15 @@ interface ReviewReplyPostedPayload {
 }
 
 interface AdminSubmissionPayload {
-  kind: 'listing' | 'classified' | 'event' | 'news' | 'forum' | 'job'
+  kind:
+    | 'listing'
+    | 'classified'
+    | 'event'
+    | 'news'
+    | 'forum'
+    | 'job'
+    | 'professional'
+    | 'professional_review'
   title: string
   submitterName?: string | null
   reviewPath: string
