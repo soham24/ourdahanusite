@@ -1,66 +1,193 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { Star, MapPin, Phone } from 'lucide-react'
+import { MapPin, MessageCircle, Phone, SearchX, ShieldCheck } from 'lucide-react'
 import { getApprovedProfessionals } from '@/lib/data/find'
+import { PROFESSIONS } from '@/lib/find/professions'
 import type { ProfessionalWithStats } from '@/lib/find/types'
 import FindSearchControls from './FindSearchControls'
+import { GoldStars, Monogram, professionLabels, telHref, waHref } from './find-ui'
 
-function Stars({ value }: { value: number }) {
-  const rounded = Math.round(value)
-  return (
-    <span className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <Star key={n} size={14}
-          className={n <= rounded ? 'text-amber-400 fill-amber-400' : 'text-gray-200 fill-gray-200'} />
-      ))}
-    </span>
-  )
+function chipHref(profession: string | null, q?: string) {
+  const sp = new URLSearchParams()
+  if (q) sp.set('q', q)
+  if (profession) sp.set('profession', profession)
+  const s = sp.toString()
+  return s ? `/find?${s}` : '/find'
 }
 
-function professionLabels(p: ProfessionalWithStats): string[] {
-  return p.professions.map((x) => (x === 'Other' && p.profession_other ? p.profession_other! : x))
+function CategoryChips({ active, q }: { active?: string; q?: string }) {
+  const base =
+    'whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors duration-150 active:scale-[0.97]'
+  const on = 'border-[var(--od-brand)] bg-[var(--od-brand)] text-[#FFFAF3]'
+  const off =
+    'border-[var(--od-border)] bg-white/70 text-[var(--od-ink-2)] hover:border-[rgba(192,88,46,0.4)] hover:text-[var(--od-brand-strong)]'
+  return (
+    <nav
+      aria-label="Filter by profession"
+      className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide"
+    >
+      <Link href={chipHref(null, q)} className={`${base} ${!active ? on : off}`}>
+        All
+      </Link>
+      {PROFESSIONS.map((p) => (
+        <Link
+          key={p}
+          href={chipHref(p, q)}
+          aria-current={active === p ? 'page' : undefined}
+          className={`${base} ${active === p ? on : off}`}
+        >
+          {p}
+        </Link>
+      ))}
+    </nav>
+  )
 }
 
 function Card({ p }: { p: ProfessionalWithStats }) {
   return (
-    <Link href={`/find/p/${p.id}`}
-      className="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h2 className="font-bold text-gray-950">{p.name}</h2>
-          <div className="mt-0.5 flex flex-wrap gap-1">
+    <article className="od-card od-card-hover relative flex flex-col p-4 sm:p-5">
+      <Link
+        href={`/find/p/${p.id}`}
+        className="absolute inset-0 z-0 rounded-[inherit]"
+        aria-label={`View ${p.name}’s profile and ratings`}
+      />
+      <div className="flex items-start gap-3">
+        <Monogram name={p.name} />
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-[1.05rem] font-bold tracking-[-0.01em]">{p.name}</h2>
+          <div className="mt-1 flex flex-wrap gap-1">
             {professionLabels(p).map((label) => (
-              <span key={label} className="rounded-full bg-[var(--od-brand,#c0582e)]/10 px-2 py-0.5 text-xs font-medium text-[var(--od-brand,#c0582e)]">
+              <span
+                key={label}
+                className="rounded-full bg-[rgba(192,88,46,0.09)] px-2 py-0.5 text-[11px] font-bold text-[var(--od-brand-strong)]"
+              >
                 {label}
               </span>
             ))}
           </div>
         </div>
-        <div className="text-right">
-          <Stars value={p.avg_rating} />
-          <p className="mt-0.5 text-xs text-gray-500">
-            {p.rating_count > 0 ? `${p.avg_rating.toFixed(1)} · ${p.rating_count} rating${p.rating_count > 1 ? 's' : ''}` : 'No ratings yet'}
-          </p>
+        <div className="shrink-0 text-right">
+          {p.rating_count > 0 ? (
+            <>
+              <span className="flex justify-end">
+                <GoldStars value={p.avg_rating} size={13} />
+              </span>
+              <p className="mt-1 text-xs font-bold tabular-nums text-[var(--od-ink-2)]">
+                {p.avg_rating.toFixed(1)}{' '}
+                <span className="font-normal text-[var(--od-muted)]">· {p.rating_count}</span>
+              </p>
+            </>
+          ) : (
+            <span className="rounded-full bg-[var(--color-surface-soft)] px-2 py-1 text-[11px] font-semibold text-[var(--od-muted)]">
+              No ratings yet
+            </span>
+          )}
         </div>
       </div>
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
-        {p.locality && <span className="flex items-center gap-1"><MapPin size={12} />{p.locality}</span>}
-        <span className="flex items-center gap-1"><Phone size={12} />{p.phone}</span>
+
+      <div className="mt-3 space-y-1">
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--od-muted)]">
+          {p.locality && (
+            <span className="flex items-center gap-1">
+              <MapPin size={12} aria-hidden /> {p.locality}
+            </span>
+          )}
+          <span className="tabular-nums">{p.phone}</span>
+        </p>
+        {p.note && (
+          <p className="line-clamp-2 text-sm leading-relaxed text-[var(--od-ink-2)]">{p.note}</p>
+        )}
       </div>
-      {p.note && <p className="mt-2 line-clamp-2 text-sm text-gray-600">{p.note}</p>}
-    </Link>
+
+      <div className="relative z-10 mt-4 flex gap-2 border-t border-[var(--od-border)] pt-3">
+        <a
+          href={telHref(p.phone)}
+          className="od-button-primary flex-1 py-2 text-sm active:scale-[0.98]"
+        >
+          <Phone size={14} aria-hidden /> Call
+        </a>
+        {p.whatsapp && (
+          <a
+            href={waHref(p.phone)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[rgba(19,138,75,0.3)] bg-[rgba(19,138,75,0.06)] py-2 text-sm font-bold text-[var(--od-success)] transition-colors duration-150 hover:bg-[rgba(19,138,75,0.12)] active:scale-[0.98]"
+          >
+            <MessageCircle size={14} aria-hidden /> WhatsApp
+          </a>
+        )}
+      </div>
+    </article>
+  )
+}
+
+function EmptyState({ filtered }: { filtered: boolean }) {
+  return (
+    <div className="od-card flex flex-col items-center px-6 py-14 text-center">
+      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-surface-soft)] text-[var(--od-brand)]">
+        <SearchX size={26} aria-hidden />
+      </span>
+      <h2 className="mt-4 font-display text-2xl">Nobody here yet</h2>
+      <p className="mt-1 max-w-sm text-sm leading-relaxed text-[var(--od-muted)]">
+        {filtered
+          ? 'No one matches this search. Try a different profession, or clear the filters.'
+          : 'Be the first to add a professional you trust.'}
+      </p>
+      <div className="mt-5 flex gap-2">
+        {filtered && (
+          <Link href="/find" className="od-button-secondary px-4 py-2 text-sm">
+            Clear filters
+          </Link>
+        )}
+        <Link href="/find/submit" className="od-button-primary px-4 py-2 text-sm">
+          Add a professional
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+function ListSkeleton() {
+  return (
+    <div className="grid gap-3 md:grid-cols-2" aria-hidden>
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="od-card animate-pulse p-5">
+          <div className="flex items-start gap-3">
+            <div className="h-11 w-11 rounded-[14px] bg-[var(--color-gray-100)]" />
+            <div className="flex-1 space-y-2 pt-1">
+              <div className="h-4 w-2/5 rounded bg-[var(--color-gray-100)]" />
+              <div className="h-3 w-3/5 rounded bg-[var(--color-gray-100)]" />
+            </div>
+          </div>
+          <div className="mt-5 h-9 rounded-xl bg-[var(--color-gray-100)]" />
+        </div>
+      ))}
+    </div>
   )
 }
 
 async function ProfessionalList({ q, profession }: { q?: string; profession?: string }) {
   const pros = await getApprovedProfessionals({ q, profession })
-  if (pros.length === 0) {
-    return <p className="py-12 text-center text-gray-500">No professionals found. Try a different search, or add one.</p>
-  }
+  if (pros.length === 0) return <EmptyState filtered={!!(q || profession)} />
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {pros.map((p) => <Card key={p.id} p={p} />)}
-    </div>
+    <>
+      <p className="mb-3 text-[13px] font-semibold text-[var(--od-muted)]">
+        <span className="tabular-nums">{pros.length}</span> professional
+        {pros.length !== 1 ? 's' : ''}
+        {profession ? (
+          <>
+            {' '}
+            in <span className="text-[var(--od-brand-strong)]">{profession}</span>
+          </>
+        ) : null}
+        {q ? <> matching “{q}”</> : null}
+      </p>
+      <div className="grid gap-3 md:grid-cols-2">
+        {pros.map((p) => (
+          <Card key={p.id} p={p} />
+        ))}
+      </div>
+    </>
   )
 }
 
@@ -72,14 +199,36 @@ export default async function FindHomePage({
   const { q, profession } = await searchParams
   return (
     <div>
-      <h1 className="mb-1 text-2xl font-bold">Trusted local professionals in Dahanu</h1>
-      <p className="mb-5 text-sm text-gray-600">Browse and rate — every rating is verified by a moderator.</p>
-      <Suspense fallback={null}>
-        <FindSearchControls />
-      </Suspense>
-      <Suspense fallback={<p className="py-12 text-center text-gray-500">Loading…</p>}>
-        <ProfessionalList q={q} profession={profession} />
-      </Suspense>
+      <section className="relative -mx-4 -mt-6 overflow-hidden border-b border-[var(--od-border)] bg-[var(--color-surface-2)] px-4 pb-7 pt-9 sm:pb-9 sm:pt-11">
+        <div className="warli-bg absolute inset-0 opacity-60" aria-hidden />
+        <div className="relative mx-auto max-w-2xl text-center">
+          <p className="od-eyebrow">Dahanu’s people directory</p>
+          <h1 className="mt-2 text-balance font-display text-4xl leading-[1.08] sm:text-5xl">
+            Every name here is <em className="text-[var(--od-brand)]">vouched for</em>.
+          </h1>
+          <p className="mx-auto mt-3 max-w-md text-balance text-sm leading-relaxed text-[var(--od-muted)] sm:text-[15px]">
+            Electricians, plumbers, doctors, tutors — added by neighbours, rated only by people
+            who actually used them.
+          </p>
+          <div className="mx-auto mt-5 max-w-xl">
+            <Suspense fallback={<div className="h-12 rounded-[14px] bg-white/60" />}>
+              <FindSearchControls />
+            </Suspense>
+          </div>
+          <p className="mt-3 flex items-center justify-center gap-1.5 text-xs font-bold text-[var(--od-ink-2)]">
+            <ShieldCheck size={13} className="text-[var(--od-success)]" aria-hidden />
+            Every rating checked by a moderator
+          </p>
+        </div>
+      </section>
+
+      <CategoryChips active={profession} q={q} />
+
+      <div className="mt-5">
+        <Suspense fallback={<ListSkeleton />}>
+          <ProfessionalList q={q} profession={profession} />
+        </Suspense>
+      </div>
     </div>
   )
 }
