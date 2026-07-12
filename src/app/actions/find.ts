@@ -2,7 +2,16 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { isValidProfession } from '@/lib/find/professions'
+import { sendNotificationToAdmins } from '@/lib/notifications'
 import { rateLimit } from '@/lib/rate-limit'
+import type { User } from '@supabase/supabase-js'
+
+function getUserDisplayName(user: User): string | null {
+  const fullName = user.user_metadata.full_name
+  return typeof fullName === 'string' && fullName.trim()
+    ? fullName.trim()
+    : user.email ?? null
+}
 
 export interface SubmitProfessionalInput {
   name: string
@@ -40,18 +49,29 @@ export async function submitProfessional(
   const professionOther = professions.includes('Other') ? (input.professionOther?.trim() || null) : null
   if (professions.includes('Other') && !professionOther) return { error: 'Please describe the profession.' }
 
-  const { error } = await supabase.from('find_professionals').insert({
-    name,
-    phone,
-    whatsapp: !!input.whatsapp,
-    professions,
-    profession_other: professionOther,
-    locality: input.locality?.trim() || null,
-    note: input.note?.trim() || null,
-    status: 'pending',
-    submitted_by: user.id,
-  })
+  const { error } = await supabase
+    .from('find_professionals')
+    .insert({
+      name,
+      phone,
+      whatsapp: !!input.whatsapp,
+      professions,
+      profession_other: professionOther,
+      locality: input.locality?.trim() || null,
+      note: input.note?.trim() || null,
+      status: 'pending',
+      submitted_by: user.id,
+    })
+    .select('id')
   if (error) return { error: error.message }
+
+  void sendNotificationToAdmins('admin.new_submission', {
+    kind: 'professional',
+    title: name,
+    submitterName: getUserDisplayName(user),
+    reviewPath: '/admin/find',
+  }).catch((err) => console.error('[find:submitProfessional:notify]', err))
+
   return { ok: true }
 }
 
@@ -81,7 +101,7 @@ export async function submitRating(
   // Verify the professional exists and is live.
   const { data: pro } = await supabase
     .from('find_professionals')
-    .select('id')
+    .select('id, name')
     .eq('id', input.professionalId)
     .eq('status', 'approved')
     .eq('is_active', true)
@@ -101,5 +121,13 @@ export async function submitRating(
     { onConflict: 'professional_id,user_id' },
   )
   if (error) return { error: error.message }
+
+  void sendNotificationToAdmins('admin.new_submission', {
+    kind: 'professional_review',
+    title: `${pro.name} · ${rating}/5`,
+    submitterName: getUserDisplayName(user),
+    reviewPath: '/admin/find',
+  }).catch((err) => console.error('[find:submitRating:notify]', err))
+
   return { ok: true }
 }
