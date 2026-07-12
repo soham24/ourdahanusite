@@ -1,7 +1,7 @@
-import Link from 'next/link'
 import { BadgeCheck, LogIn, PencilLine, ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import SubmitProfessionalForm from './SubmitProfessionalForm'
+import { findLoginHref } from '../find-server'
 
 const STEPS = [
   { icon: PencilLine, label: 'You suggest someone' },
@@ -12,6 +12,7 @@ const STEPS = [
 export default async function SubmitPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const loginHref = user ? null : await findLoginHref('/submit')
 
   return (
     <div className="mx-auto max-w-lg">
@@ -47,9 +48,9 @@ export default async function SubmitPage() {
             <p className="mt-1 max-w-sm text-sm text-[var(--od-muted)]">
               We ask for a login so every suggestion can be traced to a real neighbour.
             </p>
-            <Link href="/login" className="od-button-primary mt-4 px-5 py-2 text-sm">
-              Log in
-            </Link>
+            <a href={loginHref!} className="od-button-primary mt-4 px-5 py-2 text-sm">
+              Log in with Google
+            </a>
           </div>
         )}
       </div>
