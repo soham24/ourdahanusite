@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import type { User } from '@supabase/supabase-js'
 import { createFindActions, type FindActionDependencies } from './find-core'
+import { createInsertProfessional } from './find-adapters'
 
 const user = { id: 'user-1', email: 'soham@example.com', user_metadata: { full_name: 'Soham' } } as unknown as User
 
@@ -59,4 +60,22 @@ test('notification throws and rejections remain best-effort after a successful w
       assert.equal(errors.length, 1)
     } finally { console.error = original }
   }
+})
+
+test('production professional insert adapter does not chain a select', async () => {
+  const calls: string[] = []
+  const insertProfessional = createInsertProfessional(async () => ({
+    from(table: 'find_professionals') {
+      calls.push(`from:${table}`)
+      return {
+        insert(row: Record<string, unknown>) {
+          calls.push(`insert:${String(row.name)}`)
+          return Promise.resolve({ error: null })
+        },
+      }
+    },
+  }))
+
+  assert.deepEqual(await insertProfessional({ name: 'Asha' }), { error: null })
+  assert.deepEqual(calls, ['from:find_professionals', 'insert:Asha'])
 })
