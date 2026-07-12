@@ -5,6 +5,7 @@ import { isValidProfession } from '@/lib/find/professions'
 import { sendNotificationToAdmins } from '@/lib/notifications'
 import { rateLimit } from '@/lib/rate-limit'
 import type { User } from '@supabase/supabase-js'
+import { completeFindWrite } from './find-notifications'
 
 function getUserDisplayName(user: User): string | null {
   const fullName = user.user_metadata.full_name
@@ -63,16 +64,12 @@ export async function submitProfessional(
       submitted_by: user.id,
     })
     .select('id')
-  if (error) return { error: error.message }
-
-  void sendNotificationToAdmins('admin.new_submission', {
+  return completeFindWrite(error, {
     kind: 'professional',
     title: name,
     submitterName: getUserDisplayName(user),
     reviewPath: '/admin/find',
-  }).catch((err) => console.error('[find:submitProfessional:notify]', err))
-
-  return { ok: true }
+  }, sendNotificationToAdmins, '[find:submitProfessional:notify]')
 }
 
 export interface SubmitRatingInput {
@@ -120,14 +117,10 @@ export async function submitRating(
     },
     { onConflict: 'professional_id,user_id' },
   )
-  if (error) return { error: error.message }
-
-  void sendNotificationToAdmins('admin.new_submission', {
+  return completeFindWrite(error, {
     kind: 'professional_review',
     title: `${pro.name} · ${rating}/5`,
     submitterName: getUserDisplayName(user),
     reviewPath: '/admin/find',
-  }).catch((err) => console.error('[find:submitRating:notify]', err))
-
-  return { ok: true }
+  }, sendNotificationToAdmins, '[find:submitRating:notify]')
 }
