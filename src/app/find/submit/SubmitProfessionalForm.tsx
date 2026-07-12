@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle2, MessageCircle } from 'lucide-react'
-import { PROFESSIONS } from '@/lib/find/professions'
+import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
 import { submitProfessional } from '@/app/actions/find'
-import { chipBase, chipOff, chipOn } from '../find-ui'
+import { chipBase, chipOff, chipOn, Mr } from '../find-ui'
 
 const labelCls = 'mb-1 block text-[13px] font-bold text-[var(--od-ink-2)]'
 const inputCls = 'od-input h-11 w-full px-3.5 text-[15px] disabled:opacity-60'
@@ -118,7 +118,7 @@ export default function SubmitProfessionalForm() {
                 onClick={() => toggle(p)}
                 className={`${chipBase} disabled:opacity-60 ${on ? chipOn : chipOff}`}
               >
-                {p}
+                {p} <Mr text={professionMarathi(p)} />
               </button>
             )
           })}

@@ -1,12 +1,31 @@
 import { Star } from 'lucide-react'
 import type { ProfessionalWithStats } from '@/lib/find/types'
+import { professionMarathi } from '@/lib/find/professions'
 
-/** Resolve the display labels for a professional's categories, substituting
- *  the free-text description when 'Other' is among them. */
+/** Marathi label rendered in the loaded Devanagari font, muted, beside the
+ *  English name. Returns null so callers can `{mr(x)}` unconditionally. */
+export function Mr({ text, className = '' }: { text: string | null; className?: string }) {
+  if (!text) return null
+  return (
+    <span
+      lang="mr"
+      className={`font-[family-name:var(--font-devanagari)] opacity-70 ${className}`}
+    >
+      {text}
+    </span>
+  )
+}
+
+/** Resolve the display labels for a professional's categories: the English (or
+ *  free-text for 'Other') plus the Marathi label when it is a known category. */
 export function professionLabels(
   p: Pick<ProfessionalWithStats, 'professions' | 'profession_other'>,
-): string[] {
-  return p.professions.map((x) => (x === 'Other' && p.profession_other ? p.profession_other : x))
+): { label: string; mr: string | null }[] {
+  return p.professions.map((x) =>
+    x === 'Other' && p.profession_other
+      ? { label: p.profession_other, mr: null }
+      : { label: x, mr: professionMarathi(x) },
+  )
 }
 
 /** Warm monogram squircle — gives each person a visual anchor without photos. */

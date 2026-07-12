@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { MapPin, MessageCircle, Phone, SearchX, ShieldCheck } from 'lucide-react'
 import { getApprovedProfessionals } from '@/lib/data/find'
-import { PROFESSIONS } from '@/lib/find/professions'
+import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
 import type { ProfessionalWithStats } from '@/lib/find/types'
 import FindSearchControls from './FindSearchControls'
 import {
@@ -11,6 +11,7 @@ import {
   chipOn,
   GoldStars,
   Monogram,
+  Mr,
   professionLabels,
   telHref,
   waHref,
@@ -44,7 +45,7 @@ function CategoryChips({ active, q }: { active?: string; q?: string }) {
           aria-current={active === p ? 'page' : undefined}
           className={`${chipBase} ${active === p ? chipOn : chipOff}`}
         >
-          {p}
+          {p} <Mr text={professionMarathi(p)} />
         </Link>
       ))}
     </nav>
@@ -64,12 +65,12 @@ function Card({ p }: { p: ProfessionalWithStats }) {
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-[1.05rem] font-bold tracking-[-0.01em]">{p.name}</h2>
           <div className="mt-1 flex flex-wrap gap-1">
-            {professionLabels(p).map((label) => (
+            {professionLabels(p).map(({ label, mr }) => (
               <span
                 key={label}
                 className="rounded-full bg-[rgba(192,88,46,0.09)] px-2 py-0.5 text-[11px] font-bold text-[var(--od-brand-strong)]"
               >
-                {label}
+                {label} <Mr text={mr} />
               </span>
             ))}
           </div>
@@ -187,7 +188,8 @@ async function ProfessionalList({ q, profession }: { q?: string; profession?: st
         {profession ? (
           <>
             {' '}
-            · <span className="text-[var(--od-brand-strong)]">{profession}</span>
+            · <span className="text-[var(--od-brand-strong)]">{profession}</span>{' '}
+            <Mr text={professionMarathi(profession)} />
           </>
         ) : null}
         {q ? <> · “{q}”</> : null}
