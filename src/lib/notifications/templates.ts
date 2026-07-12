@@ -543,6 +543,8 @@ function renderAdminSubmission(
     news: 'News post',
     forum: 'Forum post',
     job: 'Job',
+    professional: 'Professional',
+    professional_review: 'Professional review',
   }
   const label = labels[p.kind]
   return {
