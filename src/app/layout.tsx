@@ -11,7 +11,12 @@ import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import StructuredData from '@/components/StructuredData'
 import { buildAbsoluteUrl, SITE_URL } from '@/lib/site'
 import { Analytics } from '@vercel/analytics/next'
+import { GoogleAnalytics } from '@next/third-parties/google'
 import { AuthProvider } from '@/lib/auth-context'
+
+// Only set in Vercel's Production environment (see .env.local.example) so
+// dev/preview traffic never gets sent to the real GA4 property.
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID
 
 const METADATA_BASE_URL = 'https://ourdahanu.in'
 const LOGO_URL = 'https://ourdahanu.in/logo.png'
@@ -165,6 +170,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </AuthProvider>
         <Analytics />
       </body>
+      {GA_MEASUREMENT_ID && <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />}
     </html>
   )
 }
