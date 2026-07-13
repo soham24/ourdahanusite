@@ -1,12 +1,11 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { MapPin, MessageCircle, Phone, SearchX, ShieldCheck } from 'lucide-react'
-import { getApprovedProfessionals } from '@/lib/data/find'
+import { getApprovedProfessionals, getProfessionCounts } from '@/lib/data/find'
 import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
 import type { ProfessionalWithStats } from '@/lib/find/types'
 import FindSearchControls from './FindSearchControls'
 import {
-  chipBase,
   chipOff,
   chipOn,
   GoldStars,
@@ -25,29 +24,61 @@ function chipHref(profession: string | null, q?: string) {
   return s ? `/find?${s}` : '/find'
 }
 
-function CategoryChips({ active, q }: { active?: string; q?: string }) {
+const gridTileBase =
+  'flex items-center justify-between gap-2 rounded-[14px] border px-3.5 py-2.5 text-sm font-semibold transition-colors duration-150 active:scale-[0.98]'
+
+function CategoryGridSkeleton() {
+  return (
+    <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4" aria-hidden>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="h-11 animate-pulse rounded-[14px] bg-[var(--color-gray-100)]" />
+      ))}
+    </div>
+  )
+}
+
+// Only categories with at least one approved+active professional are shown —
+// with 35+ possible categories, listing every one regardless of data made the
+// filter mostly empty tiles. Ordered by count (busiest categories first).
+async function CategoryGrid({ active, q }: { active?: string; q?: string }) {
+  const { counts, total } = await getProfessionCounts()
+  if (total === 0) return null
+
+  const present = PROFESSIONS
+    .filter((p) => (counts.get(p) ?? 0) > 0)
+    .sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0))
+
   return (
     <nav
       aria-label="Filter by profession"
-      className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide"
+      className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4"
     >
       <Link
         href={chipHref(null, q)}
         aria-current={!active ? 'page' : undefined}
-        className={`${chipBase} ${!active ? chipOn : chipOff}`}
+        className={`${gridTileBase} ${!active ? chipOn : chipOff}`}
       >
-        All
+        <span>All</span>
+        <span className="shrink-0 text-xs font-bold tabular-nums opacity-70">{total}</span>
       </Link>
-      {PROFESSIONS.map((p) => (
-        <Link
-          key={p}
-          href={chipHref(p, q)}
-          aria-current={active === p ? 'page' : undefined}
-          className={`${chipBase} ${active === p ? chipOn : chipOff}`}
-        >
-          {p} <Mr text={professionMarathi(p)} />
-        </Link>
-      ))}
+      {present.map((p) => {
+        const on = active === p
+        return (
+          <Link
+            key={p}
+            href={chipHref(p, q)}
+            aria-current={on ? 'page' : undefined}
+            className={`${gridTileBase} ${on ? chipOn : chipOff}`}
+          >
+            <span className="min-w-0 truncate">
+              {p} <Mr text={professionMarathi(p)} />
+            </span>
+            <span className="shrink-0 text-xs font-bold tabular-nums opacity-70">
+              {counts.get(p)}
+            </span>
+          </Link>
+        )
+      })}
     </nav>
   )
 }
@@ -234,7 +265,9 @@ export default async function FindHomePage({
         </div>
       </section>
 
-      <CategoryChips active={profession} q={q} />
+      <Suspense fallback={<CategoryGridSkeleton />}>
+        <CategoryGrid active={profession} q={q} />
+      </Suspense>
 
       <div className="mt-5">
         <Suspense fallback={<ListSkeleton />}>
