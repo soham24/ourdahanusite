@@ -65,6 +65,10 @@ export default function FindDirectory({
   const [queryInput, setQueryInput] = useState(initialFilters.q)
   const [loading, setLoading] = useState(false)   // filter/search change
   const [appending, setAppending] = useState(false)
+  // Category grid collapses while the search is engaged so results stay above
+  // the fold; starts collapsed on a deep-linked search. See the search
+  // focus/blur/change handlers below and CategoryGridClient's header toggle.
+  const [categoriesOpen, setCategoriesOpen] = useState(initialFilters.q.trim() === '')
   const reqId = useRef(0)
 
   // Run a fresh query (offset 0) or append (offset = items.length).
@@ -136,7 +140,12 @@ export default function FindDirectory({
   return (
     <div>
       <div className="mx-auto mt-5 max-w-xl">
-        <FindSearchControls value={queryInput} onChange={setQueryInput} />
+        <FindSearchControls
+          value={queryInput}
+          onChange={(v) => { setQueryInput(v); setCategoriesOpen(v.trim() === '') }}
+          onFocus={() => setCategoriesOpen(false)}
+          onBlur={() => { if (queryInput.trim() === '') setCategoriesOpen(true) }}
+        />
       </div>
 
       {categoriesTotal > 0 && (
@@ -145,6 +154,8 @@ export default function FindDirectory({
           total={categoriesTotal}
           active={filters.profession}
           onSelect={(profession) => applyFilters({ ...filters, profession })}
+          open={categoriesOpen}
+          onOpenChange={setCategoriesOpen}
         />
       )}
 
