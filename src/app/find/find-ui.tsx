@@ -86,9 +86,10 @@ export function VisitBusinessLink({ business, className = '' }: { business: Link
       href={businessHref(business)}
       target="_blank"
       rel="noopener noreferrer"
-      className={`flex items-center justify-center gap-1.5 rounded-xl border border-[var(--od-gold)] bg-[var(--od-gold)]/10 py-2 text-sm font-bold text-[var(--od-brand-strong)] transition-colors hover:bg-[var(--od-gold)]/20 active:scale-[0.98] ${className}`}
+      className={`flex min-w-0 items-center justify-center gap-1.5 rounded-xl border border-[var(--od-gold)] bg-[var(--od-gold)]/10 py-2 text-sm font-bold text-[var(--od-brand-strong)] transition-colors hover:bg-[var(--od-gold)]/20 active:scale-[0.98] ${className}`}
     >
-      <ExternalLink size={14} aria-hidden /> Visit {business.name}
+      <ExternalLink size={14} className="shrink-0" aria-hidden />
+      <span className="truncate">Visit {business.name}</span>
     </a>
   )
 }
@@ -98,7 +99,7 @@ export function VisitBusinessLink({ business, className = '' }: { business: Link
 export const premiumSurfaceClass =
   'relative rounded-[var(--od-radius)] border border-[var(--od-gold)] bg-gradient-to-br from-[var(--color-cream)]/50 to-white shadow-[0_10px_30px_rgba(200,136,30,0.12)]'
 /** Premium card for the landing grid. */
-export const premiumCardClass = `${premiumSurfaceClass} flex flex-col p-4 sm:p-5`
+export const premiumCardClass = `${premiumSurfaceClass} flex flex-col p-4 sm:p-5 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(200,136,30,0.18)]`
 
 /** Shared filter/toggle chip styling — one source so the category rail and
  *  the submit form's profession toggles can't drift apart. */

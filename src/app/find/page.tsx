@@ -157,8 +157,12 @@ function Card({ p }: { p: ProfessionalWithStats }) {
             <MessageCircle size={14} className="text-[var(--od-success)]" aria-hidden /> WhatsApp
           </TrackedContactLink>
         )}
-        {p.business && <VisitBusinessLink business={p.business} className="flex-1" />}
       </div>
+      {p.business && (
+        <div className="relative z-10 mt-2">
+          <VisitBusinessLink business={p.business} className="w-full" />
+        </div>
+      )}
     </article>
   )
 }

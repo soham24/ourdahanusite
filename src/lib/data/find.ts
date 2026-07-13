@@ -11,6 +11,16 @@ import type { FindRating, ProfessionalWithStats } from '@/lib/find/types'
 
 export type FindSort = 'top' | 'new'
 
+type RawLinkedBusiness = { id: string; name: string; subdomain: string | null; image_url: string | null; approved: boolean } | null
+
+// Surface the linked business ONLY when the listing is approved (live) —
+// this is the single gate that decides premium rendering.
+function normalizeLinkedBusiness(raw: RawLinkedBusiness) {
+  return raw && raw.approved
+    ? { id: raw.id, name: raw.name, subdomain: raw.subdomain, image_url: raw.image_url }
+    : null
+}
+
 // Explicit column lists (rather than `*`) so future columns don't silently
 // leak into cached public payloads.
 const PROFESSIONAL_COLUMNS =
@@ -41,13 +51,9 @@ async function getFindDirectory(): Promise<ProfessionalWithStats[]> {
     .eq('is_active', true)
     .order('created_at', { ascending: false })
 
-  type RawBusiness = { id: string; name: string; subdomain: string | null; image_url: string | null; approved: boolean } | null
-  const rows = ((data ?? []) as unknown as (ProfessionalWithStats & { business: RawBusiness })[]).map((r) => ({
+  const rows = ((data ?? []) as unknown as (ProfessionalWithStats & { business: RawLinkedBusiness })[]).map((r) => ({
     ...r,
-    // Only surface the link when the listing is approved (live); otherwise basic.
-    business: r.business && r.business.approved
-      ? { id: r.business.id, name: r.business.name, subdomain: r.business.subdomain, image_url: r.business.image_url }
-      : null,
+    business: normalizeLinkedBusiness(r.business),
   }))
   if (rows.length === 0) return []
 
@@ -155,11 +161,8 @@ export async function getProfessionalById(
     .maybeSingle()
   if (!data) return null
 
-  type RawBusiness = { id: string; name: string; subdomain: string | null; image_url: string | null; approved: boolean } | null
-  const raw = data as unknown as ProfessionalWithStats & { business: RawBusiness }
-  const business = raw.business && raw.business.approved
-    ? { id: raw.business.id, name: raw.business.name, subdomain: raw.business.subdomain, image_url: raw.business.image_url }
-    : null
+  const raw = data as unknown as ProfessionalWithStats & { business: RawLinkedBusiness }
+  const business = normalizeLinkedBusiness(raw.business)
 
   const { data: ratingRows } = await supabase
     .from('find_ratings')
