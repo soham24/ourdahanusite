@@ -9,6 +9,7 @@ import { sendNotificationToAdmins } from '@/lib/notifications'
 import { rateLimit } from '@/lib/rate-limit'
 import { createFindActions, type SubmitProfessionalInput, type SubmitRatingInput } from './find-core'
 import { createInsertProfessional, createRequestScopedFindActions } from './find-adapters'
+import { getApprovedProfessionals, FIND_PAGE_SIZE, type FindPage, type FindSort } from '@/lib/data/find'
 
 // NOTE: this is a 'use server' module — it may export ONLY async functions.
 // The SubmitProfessionalInput / SubmitRatingInput types are imported above for
@@ -47,4 +48,26 @@ export async function submitRating(input: SubmitRatingInput) {
   // submitProfessional needs no invalidation.
   if (result.ok) revalidateFindCache()
   return result
+}
+
+// Public paginated read for the find directory's client-side filtering +
+// infinite scroll. Reads the cached directory (no DB) and returns one page.
+// Never throws to the client — an empty page keeps the UI stable.
+export async function fetchFindPage(input: {
+  q?: string
+  profession?: string
+  sort?: FindSort
+  offset?: number
+}): Promise<FindPage> {
+  try {
+    return await getApprovedProfessionals({
+      q: input.q,
+      profession: input.profession,
+      sort: input.sort,
+      offset: input.offset ?? 0,
+      limit: FIND_PAGE_SIZE,
+    })
+  } catch {
+    return { items: [], total: 0 }
+  }
 }

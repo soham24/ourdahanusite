@@ -1,38 +1,16 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import { Search, X } from 'lucide-react'
 
-export default function FindSearchControls() {
-  const router = useRouter()
-  const params = useSearchParams()
-  const urlQ = params.get('q') ?? ''
-  const [q, setQ] = useState(urlQ)
-
-  // Keep the box in sync when the URL changes without a remount
-  // (e.g. the empty state's "Clear filters" link or the header logo).
-  useEffect(() => {
-    setQ(urlQ)
-  }, [urlQ])
-
-  function submit(value: string) {
-    const sp = new URLSearchParams(params.toString())
-    if (value.trim()) sp.set('q', value.trim())
-    else sp.delete('q')
-    const s = sp.toString()
-    router.push(s ? `/find?${s}` : '/find')
-  }
-
+export default function FindSearchControls({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (q: string) => void
+}) {
   return (
-    <form
-      role="search"
-      onSubmit={(e) => {
-        e.preventDefault()
-        submit(q)
-      }}
-      className="relative"
-    >
+    <div role="search" className="relative">
       <Search
         size={16}
         aria-hidden
@@ -40,33 +18,22 @@ export default function FindSearchControls() {
       />
       <input
         type="search"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         placeholder="Search by name, area, or keyword…"
         aria-label="Search professionals"
-        className={`od-input h-12 w-full pl-10 text-[15px] [&::-webkit-search-cancel-button]:hidden ${
-          q ? 'pr-[7.75rem]' : 'pr-[6.5rem]'
-        }`}
+        className="od-input h-12 w-full pl-10 pr-10 text-[15px] [&::-webkit-search-cancel-button]:hidden"
       />
-      {q && (
+      {value && (
         <button
           type="button"
           aria-label="Clear search"
-          onClick={() => {
-            setQ('')
-            submit('')
-          }}
-          className="absolute right-[5rem] top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-[var(--od-muted)] transition-colors hover:bg-[var(--color-gray-100)]"
+          onClick={() => onChange('')}
+          className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-[var(--od-muted)] transition-colors hover:bg-[var(--color-gray-100)]"
         >
-          <X size={14} aria-hidden />
+          <X size={16} aria-hidden />
         </button>
       )}
-      <button
-        type="submit"
-        className="od-button-primary absolute right-1.5 top-1/2 h-9 -translate-y-1/2 px-4 text-sm active:scale-[0.98]"
-      >
-        Search
-      </button>
-    </form>
+    </div>
   )
 }
