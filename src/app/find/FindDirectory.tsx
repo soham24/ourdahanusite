@@ -66,10 +66,19 @@ export default function FindDirectory({
   const [loading, setLoading] = useState(false)   // filter/search change
   const [appending, setAppending] = useState(false)
   const reqId = useRef(0)
+  // Synchronous "a request is in flight" flag. React's `loading`/`appending`
+  // state lags a render behind, so the scroll observer could read a stale
+  // `loading === false` in the split-second after a search starts and fire an
+  // unfiltered append — which then got a newer reqId and clobbered the search
+  // (searching only worked once everything was already loaded). This ref is
+  // set the instant a fetch begins, so loadMore never starts an append while
+  // any query is pending.
+  const busy = useRef(false)
 
   // Run a fresh query (offset 0) or append (offset = items.length).
   const runQuery = useCallback(async (f: Filters, offset: number) => {
     const id = ++reqId.current
+    busy.current = true
     if (offset > 0) setAppending(true)
     else setLoading(true)
     const res = await fetchFindPage({
@@ -78,7 +87,8 @@ export default function FindDirectory({
       sort: f.sort,
       offset,
     })
-    if (id !== reqId.current) return // a newer request superseded this one
+    if (id !== reqId.current) return // a newer request superseded this one; it owns `busy`
+    busy.current = false
     // Append that came back empty = end-of-list race or an error fallback
     // ({ items: [], total: 0 }). Treat it as a no-op so a transient failure
     // mid-scroll never wipes the already-loaded cards or resets total to 0.
@@ -113,7 +123,7 @@ export default function FindDirectory({
   const loadMoreRef = useRef<() => void>(() => {})
   useEffect(() => {
     loadMoreRef.current = () => {
-      if (loading || appending) return
+      if (busy.current) return // a query is already in flight (synchronous guard)
       if (items.length >= total) return
       runQuery(filters, items.length)
     }
