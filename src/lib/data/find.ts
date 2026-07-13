@@ -77,6 +77,31 @@ export async function getProfessionalById(
   }
 }
 
+// Count of approved+active professionals per profession — used to hide empty
+// categories from the public filter. Dataset is small enough (dozens of rows)
+// to aggregate in JS rather than needing a DB-side unnest/RPC.
+//
+// `total` is the distinct professional count (for the "All" tile) — NOT the
+// sum of the per-profession counts, which double-counts anyone tagged with
+// more than one category.
+export async function getProfessionCounts(): Promise<{ counts: Map<string, number>; total: number }> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('find_professionals')
+    .select('professions')
+    .eq('status', 'approved')
+    .eq('is_active', true)
+
+  const rows = data ?? []
+  const counts = new Map<string, number>()
+  for (const row of rows) {
+    for (const p of row.professions ?? []) {
+      counts.set(p, (counts.get(p) ?? 0) + 1)
+    }
+  }
+  return { counts, total: rows.length }
+}
+
 export async function getApprovedRatings(
   professionalId: string,
 ): Promise<FindRating[]> {
