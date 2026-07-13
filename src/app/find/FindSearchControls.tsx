@@ -5,9 +5,13 @@ import { Search, X } from 'lucide-react'
 export default function FindSearchControls({
   value,
   onChange,
+  onFocus,
+  onBlur,
 }: {
   value: string
   onChange: (q: string) => void
+  onFocus?: () => void
+  onBlur?: () => void
 }) {
   return (
     <div role="search" className="relative">
@@ -20,6 +24,8 @@ export default function FindSearchControls({
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onFocus={onFocus}
+        onBlur={onBlur}
         placeholder="Search by name, area, or keyword…"
         aria-label="Search professionals"
         className="od-input h-12 w-full pl-10 pr-10 text-[15px] [&::-webkit-search-cancel-button]:hidden"
