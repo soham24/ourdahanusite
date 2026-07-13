@@ -248,14 +248,14 @@ async function ProfessionalList({
   profession?: string
   sort: FindSort
 }) {
-  const pros = await getApprovedProfessionals({ q, profession, sort })
-  if (pros.length === 0) return <EmptyState filtered={!!(q || profession)} />
+  const { items: pros, total } = await getApprovedProfessionals({ q, profession, sort })
+  if (total === 0) return <EmptyState filtered={!!(q || profession)} />
   return (
     <>
       <div className="mb-3 flex items-center justify-between gap-3">
         <p className="min-w-0 text-[13px] font-semibold text-[var(--od-muted)]">
-          <span className="tabular-nums">{pros.length}</span> professional
-          {pros.length !== 1 ? 's' : ''}
+          <span className="tabular-nums">{total}</span> professional
+          {total !== 1 ? 's' : ''}
           {profession ? (
             <>
               {' '}

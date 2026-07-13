@@ -11,6 +11,13 @@ import type { FindRating, ProfessionalWithStats } from '@/lib/find/types'
 
 export type FindSort = 'top' | 'new'
 
+export const FIND_PAGE_SIZE = 24
+
+export interface FindPage {
+  items: ProfessionalWithStats[]
+  total: number
+}
+
 type RawLinkedBusiness = { id: string; name: string; subdomain: string | null; image_url: string | null; approved: boolean } | null
 
 // Surface the linked business ONLY when the listing is approved (live) —
@@ -98,8 +105,8 @@ function matchesQuery(p: ProfessionalWithStats, cleaned: string): boolean {
 }
 
 export async function getApprovedProfessionals(
-  opts: { q?: string; profession?: string; sort?: FindSort } = {},
-): Promise<ProfessionalWithStats[]> {
+  opts: { q?: string; profession?: string; sort?: FindSort; offset?: number; limit?: number } = {},
+): Promise<FindPage> {
   let pros = await getFindDirectory()
 
   if (opts.profession && opts.profession !== 'All') {
@@ -114,7 +121,7 @@ export async function getApprovedProfessionals(
   // 'top' (default): rated professionals first (best average, then most
   // ratings); unrated ones follow newest-first. 'new': strictly newest-first.
   const sort: FindSort = opts.sort === 'new' ? 'new' : 'top'
-  return [...pros].sort((a, b) => {
+  const sorted = [...pros].sort((a, b) => {
     // Premium (business-linked) professionals always rank first.
     const ap = a.business ? 0 : 1
     const bp = b.business ? 0 : 1
@@ -125,6 +132,10 @@ export async function getApprovedProfessionals(
     }
     return b.created_at.localeCompare(a.created_at)
   })
+
+  const offset = opts.offset ?? 0
+  const items = opts.limit != null ? sorted.slice(offset, offset + opts.limit) : sorted.slice(offset)
+  return { items, total: sorted.length }
 }
 
 // Count of approved+active professionals per profession — used to hide empty
