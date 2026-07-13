@@ -1,6 +1,7 @@
 import { Star } from 'lucide-react'
-import type { ProfessionalWithStats } from '@/lib/find/types'
+import type { ProfessionalWithStats, LinkedBusiness } from '@/lib/find/types'
 import { professionMarathi } from '@/lib/find/professions'
+import { getCanonicalListingUrl } from '@/lib/listing-url'
 
 /** Marathi label rendered in the loaded Devanagari font, muted, beside the
  *  English name. Returns null so callers can `{mr(x)}` unconditionally. */
@@ -93,6 +94,12 @@ export function timeAgo(dateStr: string): string {
 /** tel: href with only dial-safe characters. */
 export function telHref(phone: string): string {
   return `tel:${phone.replace(/[^+\d]/g, '')}`
+}
+
+/** Canonical URL of a linked business page (its subdomain, or the /listings
+ *  fallback) — reuses the same helper the listings feature uses. */
+export function businessHref(b: LinkedBusiness): string {
+  return getCanonicalListingUrl(b.id, b.subdomain)
 }
 
 /** wa.me needs a country code — local Indian numbers (with or without the
