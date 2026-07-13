@@ -5,10 +5,13 @@ import { useRouter } from 'next/navigation'
 import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
 import { updateProfessional, setProfessionalStatus, deleteProfessional, type AdminProfessionalFields } from '@/app/actions/admin-find'
 import type { FindProfessional } from '@/lib/find/types'
+import BusinessPicker from './BusinessPicker'
 
-export default function EditProfessionalForm({ pro }: { pro: FindProfessional }) {
+export default function EditProfessionalForm({ pro, businessLabel }: { pro: FindProfessional; businessLabel?: string | null }) {
   const router = useRouter()
   const [professions, setProfessions] = useState<string[]>(pro.professions ?? [])
+  const [businessId, setBusinessId] = useState<string | null>(pro.business_listing_id ?? null)
+  const [hasBusiness, setHasBusiness] = useState<boolean>(!!pro.business_listing_id)
   const [error, setError] = useState<string | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
@@ -35,6 +38,7 @@ export default function EditProfessionalForm({ pro }: { pro: FindProfessional })
       professionOther: String(fd.get('professionOther') || ''),
       locality: String(fd.get('locality') || ''),
       note: String(fd.get('note') || ''),
+      businessListingId: hasBusiness ? businessId : null,
     }
   }
 
@@ -85,6 +89,25 @@ export default function EditProfessionalForm({ pro }: { pro: FindProfessional })
       {professions.includes('Other') && (
         <input name="professionOther" defaultValue={pro.profession_other ?? ''} placeholder="Other profession" className={cls} />
       )}
+      <div className="rounded border border-gray-300 p-2">
+        <label className="flex items-center gap-2 text-xs font-medium">
+          <input
+            type="checkbox"
+            checked={hasBusiness}
+            onChange={(e) => { setHasBusiness(e.target.checked); if (!e.target.checked) setBusinessId(null) }}
+          />
+          Has an OurDahanu business page (premium + verified)
+        </label>
+        {hasBusiness && (
+          <div className="mt-2">
+            <BusinessPicker
+              value={businessId}
+              initialLabel={businessLabel ?? null}
+              onChange={(id) => setBusinessId(id)}
+            />
+          </div>
+        )}
+      </div>
       <textarea name="note" defaultValue={pro.note ?? ''} placeholder="Note" rows={2} className={cls} />
       <div className="flex flex-wrap gap-2">
         <button type="submit" disabled={pending} className="rounded bg-gray-800 px-3 py-1 text-xs font-semibold text-white disabled:opacity-60">Save changes</button>

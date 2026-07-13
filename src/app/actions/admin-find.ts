@@ -15,6 +15,7 @@ export interface AdminProfessionalFields {
   professionOther?: string
   locality?: string
   note?: string
+  businessListingId?: string | null
 }
 
 type Result = { error?: string; ok?: boolean }
@@ -39,6 +40,7 @@ function toRow(f: AdminProfessionalFields) {
     profession_other: professions.includes('Other') ? (f.professionOther?.trim() || null) : null,
     locality: f.locality?.trim() || null,
     note: f.note?.trim() || null,
+    business_listing_id: f.businessListingId ?? null,
   }
 }
 
@@ -48,6 +50,19 @@ async function admin() {
   const db = createAdminClient()
   if (!db) throw new Error('Service role not configured')
   return db
+}
+
+// Returns an error string if the businessListingId is set but not a real,
+// approved listing; null when valid or unset.
+async function validateBusinessListing(
+  db: NonNullable<ReturnType<typeof createAdminClient>>,
+  businessListingId: string | null | undefined,
+): Promise<string | null> {
+  if (!businessListingId) return null
+  const { data } = await db.from('listings').select('id, approved').eq('id', businessListingId).maybeSingle()
+  if (!data) return 'The selected business page was not found.'
+  if (!(data as { approved: boolean }).approved) return 'The selected business page is not approved yet.'
+  return null
 }
 
 export async function setProfessionalStatus(id: string, status: 'approved' | 'rejected'): Promise<Result> {
@@ -64,6 +79,8 @@ export async function updateProfessional(id: string, fields: AdminProfessionalFi
   const invalid = validateFields(fields)
   if (invalid) return { error: invalid }
   const db = await admin()
+  const invalidBusiness = await validateBusinessListing(db, fields.businessListingId)
+  if (invalidBusiness) return { error: invalidBusiness }
   const { error } = await db.from('find_professionals')
     .update({ ...toRow(fields), updated_at: new Date().toISOString() }).eq('id', id)
   if (error) return { error: error.message }
@@ -76,12 +93,31 @@ export async function createProfessionalAsAdmin(fields: AdminProfessionalFields)
   const invalid = validateFields(fields)
   if (invalid) return { error: invalid }
   const db = await admin()
+  const invalidBusiness = await validateBusinessListing(db, fields.businessListingId)
+  if (invalidBusiness) return { error: invalidBusiness }
   const { error } = await db.from('find_professionals')
     .insert({ ...toRow(fields), status: 'approved', is_active: true })
   if (error) return { error: error.message }
   revalidatePath('/admin/find')
   revalidateFindCache()
   return { ok: true }
+}
+
+export async function searchBusinessListings(
+  query: string,
+): Promise<{ id: string; name: string; subdomain: string | null }[]> {
+  const q = query.trim()
+  if (q.length < 2) return []
+  const db = await admin()
+  const term = `%${q.replace(/[%_,()]/g, ' ').trim()}%`
+  const { data } = await db
+    .from('listings')
+    .select('id, name, subdomain')
+    .eq('approved', true)
+    .ilike('name', term)
+    .order('name', { ascending: true })
+    .limit(10)
+  return (data ?? []) as { id: string; name: string; subdomain: string | null }[]
 }
 
 export async function setProfessionalActive(id: string, isActive: boolean): Promise<Result> {

@@ -12,6 +12,7 @@ export interface FindProfessional {
   status: ModerationStatus
   is_active: boolean
   submitted_by: string | null
+  business_listing_id: string | null
   created_at: string
   updated_at: string
 }
@@ -28,8 +29,18 @@ export interface FindRating {
   updated_at: string
 }
 
-// Public-facing professional plus computed rating aggregates.
+// Minimal shape of the linked business page, resolved at read time.
+export interface LinkedBusiness {
+  id: string
+  name: string
+  subdomain: string | null
+  image_url: string | null
+}
+
+// Public-facing professional plus computed rating aggregates and the linked
+// business (null unless linked to an APPROVED listing).
 export interface ProfessionalWithStats extends FindProfessional {
   avg_rating: number // 0 when no approved ratings
   rating_count: number
+  business: LinkedBusiness | null
 }

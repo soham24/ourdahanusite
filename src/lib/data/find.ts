@@ -11,10 +11,20 @@ import type { FindRating, ProfessionalWithStats } from '@/lib/find/types'
 
 export type FindSort = 'top' | 'new'
 
+type RawLinkedBusiness = { id: string; name: string; subdomain: string | null; image_url: string | null; approved: boolean } | null
+
+// Surface the linked business ONLY when the listing is approved (live) —
+// this is the single gate that decides premium rendering.
+function normalizeLinkedBusiness(raw: RawLinkedBusiness) {
+  return raw && raw.approved
+    ? { id: raw.id, name: raw.name, subdomain: raw.subdomain, image_url: raw.image_url }
+    : null
+}
+
 // Explicit column lists (rather than `*`) so future columns don't silently
 // leak into cached public payloads.
 const PROFESSIONAL_COLUMNS =
-  'id, name, phone, whatsapp, professions, profession_other, locality, note, status, is_active, submitted_by, created_at, updated_at'
+  'id, name, phone, whatsapp, professions, profession_other, locality, note, status, is_active, submitted_by, business_listing_id, created_at, updated_at'
 const RATING_COLUMNS =
   'id, professional_id, user_id, rating, comment, used_service, status, created_at, updated_at'
 
@@ -36,12 +46,15 @@ async function getFindDirectory(): Promise<ProfessionalWithStats[]> {
   const supabase = createPublicClient()
   const { data } = await supabase
     .from('find_professionals')
-    .select(PROFESSIONAL_COLUMNS)
+    .select(`${PROFESSIONAL_COLUMNS}, business:listings(id, name, subdomain, image_url, approved)`)
     .eq('status', 'approved')
     .eq('is_active', true)
     .order('created_at', { ascending: false })
 
-  const rows = (data ?? []) as unknown as ProfessionalWithStats[]
+  const rows = ((data ?? []) as unknown as (ProfessionalWithStats & { business: RawLinkedBusiness })[]).map((r) => ({
+    ...r,
+    business: normalizeLinkedBusiness(r.business),
+  }))
   if (rows.length === 0) return []
 
   const { data: ratingRows } = await supabase
@@ -102,6 +115,10 @@ export async function getApprovedProfessionals(
   // ratings); unrated ones follow newest-first. 'new': strictly newest-first.
   const sort: FindSort = opts.sort === 'new' ? 'new' : 'top'
   return [...pros].sort((a, b) => {
+    // Premium (business-linked) professionals always rank first.
+    const ap = a.business ? 0 : 1
+    const bp = b.business ? 0 : 1
+    if (ap !== bp) return ap - bp
     if (sort === 'top') {
       if (b.avg_rating !== a.avg_rating) return b.avg_rating - a.avg_rating
       if (b.rating_count !== a.rating_count) return b.rating_count - a.rating_count
@@ -137,14 +154,16 @@ export async function getProfessionalById(
   const supabase = createPublicClient()
   const { data } = await supabase
     .from('find_professionals')
-    .select(PROFESSIONAL_COLUMNS)
+    .select(`${PROFESSIONAL_COLUMNS}, business:listings(id, name, subdomain, image_url, approved)`)
     .eq('id', id)
     .eq('status', 'approved')
     .eq('is_active', true)
     .maybeSingle()
   if (!data) return null
 
-  const pro = data as unknown as ProfessionalWithStats
+  const raw = data as unknown as ProfessionalWithStats & { business: RawLinkedBusiness }
+  const business = normalizeLinkedBusiness(raw.business)
+
   const { data: ratingRows } = await supabase
     .from('find_ratings')
     .select('rating')
@@ -154,7 +173,7 @@ export async function getProfessionalById(
   const ratings = (ratingRows ?? []) as { rating: number }[]
   const count = ratings.length
   const sum = ratings.reduce((acc, r) => acc + r.rating, 0)
-  return { ...pro, avg_rating: count ? sum / count : 0, rating_count: count }
+  return { ...raw, business, avg_rating: count ? sum / count : 0, rating_count: count }
 }
 
 export async function getApprovedRatings(

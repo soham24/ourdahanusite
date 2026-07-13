@@ -64,7 +64,7 @@ export default async function AdminFindPage({
     await loadNames(new Set(ratings.map((r) => r.user_id).filter(Boolean)))
   } else {
     const [prosRes, countRes] = await Promise.all([
-      db.from('find_professionals').select(PROFESSIONAL_COLUMNS).order('created_at', { ascending: false }),
+      db.from('find_professionals').select(`${PROFESSIONAL_COLUMNS}, business:listings(name, subdomain)`).order('created_at', { ascending: false }),
       db.from('find_ratings').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     ])
     // Pending first regardless of alpha order:
@@ -73,6 +73,12 @@ export default async function AdminFindPage({
     )
     pendingRatingsCount = countRes.count ?? 0
     await loadNames(new Set(professionals.map((p) => p.submitted_by).filter((v): v is string => !!v)))
+  }
+
+  function businessLabelOf(p: FindProfessional & { business?: { name: string; subdomain: string | null } | null }): string | null {
+    const b = p.business
+    if (!b) return null
+    return b.subdomain ? `${b.name} · ${b.subdomain}.ourdahanu.in` : b.name
   }
 
   const tabCls = (t: string) =>
@@ -127,7 +133,10 @@ export default async function AdminFindPage({
                   {p.submitted_by ? `Submitted by ${nameById.get(p.submitted_by) ?? 'Unknown user'}` : 'Added by admin'}
                 </span>
               </div>
-              <EditProfessionalForm pro={p} />
+              <EditProfessionalForm
+                pro={p}
+                businessLabel={businessLabelOf(p as FindProfessional & { business?: { name: string; subdomain: string | null } | null })}
+              />
             </li>
           ))}
         </ul>

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, LogIn, MapPin, MessageCircle, Phone, Share2, ShieldCheck } from 'lucide-react'
 import { getProfessionalById, getApprovedRatings } from '@/lib/data/find'
 import { createClient } from '@/lib/supabase/server'
-import { GoldStars, Monogram, Mr, professionLabels, telHref, timeAgo, waHref } from '../../find-ui'
+import { BusinessAvatar, GoldStars, Monogram, Mr, premiumSurfaceClass, PremiumBadge, professionLabels, telHref, timeAgo, VisitBusinessLink, waHref } from '../../find-ui'
 import { findLoginHref } from '../../find-server'
 import TrackedContactLink from '../../TrackedContactLink'
 import RatingForm from './RatingForm'
@@ -76,7 +76,7 @@ export default async function ProfessionalDetailPage({
         <ArrowLeft size={13} aria-hidden /> Back to directory
       </Link>
 
-      <div className="od-card relative p-5 sm:p-6">
+      <div className={`relative p-5 sm:p-6 ${pro.business ? premiumSurfaceClass : 'od-card'}`}>
         <a
           href={`https://wa.me/?text=${encodeURIComponent(
             `${pro.name} — ${professionLabels(pro).map((l) => l.label).join(', ')} in Dahanu\n${FIND_URL}/p/${pro.id}`,
@@ -90,11 +90,12 @@ export default async function ProfessionalDetailPage({
           <Share2 size={15} aria-hidden />
         </a>
         <div className="flex items-start gap-4 pr-10">
-          <Monogram name={pro.name} size="lg" />
+          {pro.business ? <BusinessAvatar business={pro.business} name={pro.name} size="lg" /> : <Monogram name={pro.name} size="lg" />}
           <div className="min-w-0 flex-1">
             <h1 className="text-balance font-display text-3xl leading-tight sm:text-4xl">
               {pro.name}
             </h1>
+            {pro.business && <div className="mt-1"><PremiumBadge /></div>}
             <div className="mt-1.5 flex flex-wrap gap-1">
               {professionLabels(pro).map(({ label, mr }) => (
                 <span
@@ -151,6 +152,7 @@ export default async function ProfessionalDetailPage({
               <MessageCircle size={16} className="text-[var(--od-success)]" aria-hidden /> WhatsApp
             </TrackedContactLink>
           )}
+          {pro.business && <VisitBusinessLink business={pro.business} className="h-11 flex-1" />}
         </div>
 
         {(pro.locality || pro.note) && (

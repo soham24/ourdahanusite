@@ -1,6 +1,7 @@
-import { Star } from 'lucide-react'
-import type { ProfessionalWithStats } from '@/lib/find/types'
+import { ShieldCheck, ExternalLink, Star } from 'lucide-react'
+import type { ProfessionalWithStats, LinkedBusiness } from '@/lib/find/types'
 import { professionMarathi } from '@/lib/find/professions'
+import { getCanonicalListingUrl } from '@/lib/listing-url'
 
 /** Marathi label rendered in the loaded Devanagari font, muted, beside the
  *  English name. Returns null so callers can `{mr(x)}` unconditionally. */
@@ -44,6 +45,61 @@ export function Monogram({ name, size = 'md' }: { name: string; size?: 'md' | 'l
     </span>
   )
 }
+
+/** Business logo avatar for premium cards; falls back to the monogram. */
+export function BusinessAvatar({
+  business,
+  name,
+  size = 'md',
+}: {
+  business: LinkedBusiness
+  name: string
+  size?: 'md' | 'lg'
+}) {
+  const cls = size === 'lg' ? 'h-16 w-16 rounded-[20px]' : 'h-11 w-11 rounded-[14px]'
+  if (!business.image_url) return <Monogram name={name} size={size} />
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={business.image_url}
+      alt=""
+      aria-hidden
+      className={`${cls} shrink-0 object-cover ring-1 ring-[var(--od-gold)]`}
+    />
+  )
+}
+
+/** "Verified by OurDahanu" pill for premium (business-linked) professionals. */
+export function PremiumBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-[var(--od-gold)]/15 px-2 py-0.5 text-[11px] font-bold text-[var(--od-brand-strong)]">
+      <ShieldCheck size={12} className="text-[var(--od-gold)]" aria-hidden />
+      Verified by OurDahanu
+    </span>
+  )
+}
+
+/** Link out to the linked business page. */
+export function VisitBusinessLink({ business, className = '' }: { business: LinkedBusiness; className?: string }) {
+  return (
+    <a
+      href={businessHref(business)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`flex min-w-0 items-center justify-center gap-1.5 rounded-xl border border-[var(--od-gold)] bg-[var(--od-gold)]/10 py-2 text-sm font-bold text-[var(--od-brand-strong)] transition-colors hover:bg-[var(--od-gold)]/20 active:scale-[0.98] ${className}`}
+    >
+      <ExternalLink size={14} className="shrink-0" aria-hidden />
+      <span className="truncate">Visit {business.name}</span>
+    </a>
+  )
+}
+
+/** Premium surface visuals (border + warm sheen), no layout/padding — compose
+ *  with per-card layout so landing and detail can size themselves. */
+export const premiumSurfaceClass =
+  'relative rounded-[var(--od-radius)] border border-[var(--od-gold)] bg-gradient-to-br from-[var(--color-cream)]/50 to-white shadow-[0_10px_30px_rgba(200,136,30,0.12)]'
+/** Premium card for the landing grid. */
+export const premiumCardClass = `${premiumSurfaceClass} flex flex-col p-4 sm:p-5 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(200,136,30,0.18)]`
 
 /** Shared filter/toggle chip styling — one source so the category rail and
  *  the submit form's profession toggles can't drift apart. */
@@ -93,6 +149,12 @@ export function timeAgo(dateStr: string): string {
 /** tel: href with only dial-safe characters. */
 export function telHref(phone: string): string {
   return `tel:${phone.replace(/[^+\d]/g, '')}`
+}
+
+/** Canonical URL of a linked business page (its subdomain, or the /listings
+ *  fallback) — reuses the same helper the listings feature uses. */
+export function businessHref(b: LinkedBusiness): string {
+  return getCanonicalListingUrl(b.id, b.subdomain)
 }
 
 /** wa.me needs a country code — local Indian numbers (with or without the
