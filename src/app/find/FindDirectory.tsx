@@ -113,10 +113,15 @@ export default function FindDirectory({
     runQuery(next, 0)
   }, [runQuery])
 
-  // Debounce the search input → applied query.
+  // Debounce the search input → applied query. A search is always global: a
+  // non-empty query clears any active category so matches in other professions
+  // aren't hidden by the category filter.
   useEffect(() => {
     if (queryInput === filters.q) return
-    const t = setTimeout(() => applyFilters({ ...filters, q: queryInput }), 250)
+    const t = setTimeout(() => {
+      const q = queryInput
+      applyFilters({ ...filters, q, profession: q.trim() ? null : filters.profession })
+    }, 250)
     return () => clearTimeout(t)
   }, [queryInput, filters, applyFilters])
 
@@ -163,7 +168,12 @@ export default function FindDirectory({
           tiles={categories}
           total={categoriesTotal}
           active={filters.profession}
-          onSelect={(profession) => applyFilters({ ...filters, profession })}
+          onSelect={(profession) => {
+            // Picking a category is browse mode — clear any search so the two
+            // filters never combine (keeps search strictly global).
+            setQueryInput('')
+            applyFilters({ q: '', profession, sort: filters.sort })
+          }}
           open={categoriesOpen}
           onOpenChange={setCategoriesOpen}
         />
