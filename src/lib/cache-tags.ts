@@ -16,6 +16,7 @@ export const CACHE_TAGS = {
   polls: 'polls',
   appointments: 'appointments',
   listing: (listingId: string) => `listing:${listingId}`,
+  find: 'find-directory',
 } as const
 
 // All helpers below use `updateTag`, not `revalidateTag(..., 'max')`.
@@ -83,4 +84,12 @@ export function revalidatePollsCache() {
 export function revalidateAppointmentsCache(listingId: string) {
   updatePublicTag('appointments', CACHE_TAGS.appointments)
   revalidatePublicListingDetail(listingId)
+}
+
+// One broad tag covers the whole find directory (landing list, category
+// counts, professional pages, ratings). Admin moderation is the only thing
+// that changes public find content, and it is rare — coarse invalidation is
+// simpler and safe at this scale.
+export function revalidateFindCache() {
+  updatePublicTag('find', CACHE_TAGS.find)
 }

@@ -74,6 +74,22 @@ export function GoldStars({ value, size = 14 }: { value: number; size?: number }
   )
 }
 
+/** Coarse relative time ("2 weeks ago") — deliberately no finer than hours,
+ *  since rating lists are cached and may be up to a day stale. */
+export function timeAgo(dateStr: string): string {
+  const ms = Date.now() - new Date(dateStr).getTime()
+  const hours = Math.floor(ms / 3_600_000)
+  if (hours < 24) return 'today'
+  const days = Math.floor(hours / 24)
+  if (days < 7) return days === 1 ? 'yesterday' : `${days} days ago`
+  const weeks = Math.floor(days / 7)
+  if (weeks < 5) return weeks === 1 ? 'last week' : `${weeks} weeks ago`
+  const months = Math.floor(days / 30)
+  if (months < 12) return months <= 1 ? 'last month' : `${months} months ago`
+  const years = Math.floor(days / 365)
+  return years <= 1 ? 'last year' : `${years} years ago`
+}
+
 /** tel: href with only dial-safe characters. */
 export function telHref(phone: string): string {
   return `tel:${phone.replace(/[^+\d]/g, '')}`

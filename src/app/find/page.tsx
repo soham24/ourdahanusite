@@ -1,31 +1,28 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { MapPin, MessageCircle, Phone, SearchX, ShieldCheck } from 'lucide-react'
-import { getApprovedProfessionals, getProfessionCounts } from '@/lib/data/find'
+import { getApprovedProfessionals, getProfessionCounts, type FindSort } from '@/lib/data/find'
 import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
 import type { ProfessionalWithStats } from '@/lib/find/types'
 import FindSearchControls from './FindSearchControls'
-import {
-  chipOff,
-  chipOn,
-  GoldStars,
-  Monogram,
-  Mr,
-  professionLabels,
-  telHref,
-  waHref,
-} from './find-ui'
+import CategoryGridClient from './CategoryGridClient'
+import TrackedContactLink from './TrackedContactLink'
+import { GoldStars, Monogram, Mr, professionLabels, telHref, waHref } from './find-ui'
 
-function chipHref(profession: string | null, q?: string) {
+interface FindParams {
+  q?: string
+  profession?: string
+  sort?: string
+}
+
+function findHref(next: { profession?: string | null; q?: string; sort?: FindSort }) {
   const sp = new URLSearchParams()
-  if (q) sp.set('q', q)
-  if (profession) sp.set('profession', profession)
+  if (next.q) sp.set('q', next.q)
+  if (next.profession) sp.set('profession', next.profession)
+  if (next.sort === 'new') sp.set('sort', 'new')
   const s = sp.toString()
   return s ? `/find?${s}` : '/find'
 }
-
-const gridTileBase =
-  'flex items-center justify-between gap-2 rounded-[14px] border px-3.5 py-2.5 text-sm font-semibold transition-colors duration-150 active:scale-[0.98]'
 
 function CategoryGridSkeleton() {
   return (
@@ -39,8 +36,9 @@ function CategoryGridSkeleton() {
 
 // Only categories with at least one approved+active professional are shown —
 // with 35+ possible categories, listing every one regardless of data made the
-// filter mostly empty tiles. Ordered by count (busiest categories first).
-async function CategoryGrid({ active, q }: { active?: string; q?: string }) {
+// filter mostly empty tiles. Ordered by count (busiest categories first);
+// collapses past the first rows on phones (see CategoryGridClient).
+async function CategoryGrid({ active, q, sort }: { active?: string; q?: string; sort?: FindSort }) {
   const { counts, total } = await getProfessionCounts()
   if (total === 0) return null
 
@@ -49,37 +47,18 @@ async function CategoryGrid({ active, q }: { active?: string; q?: string }) {
     .sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0))
 
   return (
-    <nav
-      aria-label="Filter by profession"
-      className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4"
-    >
-      <Link
-        href={chipHref(null, q)}
-        aria-current={!active ? 'page' : undefined}
-        className={`${gridTileBase} ${!active ? chipOn : chipOff}`}
-      >
-        <span>All</span>
-        <span className="shrink-0 text-xs font-bold tabular-nums opacity-70">{total}</span>
-      </Link>
-      {present.map((p) => {
-        const on = active === p
-        return (
-          <Link
-            key={p}
-            href={chipHref(p, q)}
-            aria-current={on ? 'page' : undefined}
-            className={`${gridTileBase} ${on ? chipOn : chipOff}`}
-          >
-            <span className="min-w-0 truncate">
-              {p} <Mr text={professionMarathi(p)} />
-            </span>
-            <span className="shrink-0 text-xs font-bold tabular-nums opacity-70">
-              {counts.get(p)}
-            </span>
-          </Link>
-        )
-      })}
-    </nav>
+    <CategoryGridClient
+      tiles={present.map((p) => ({
+        href: findHref({ profession: p, q, sort }),
+        label: p,
+        mr: professionMarathi(p),
+        count: counts.get(p) ?? 0,
+        active: active === p,
+      }))}
+      allHref={findHref({ q, sort })}
+      allActive={!active}
+      total={total}
+    />
   )
 }
 
@@ -140,21 +119,27 @@ function Card({ p }: { p: ProfessionalWithStats }) {
       </div>
 
       <div className="relative z-10 mt-4 flex gap-2 border-t border-[var(--od-border)] pt-3">
-        <a
+        <TrackedContactLink
           href={telHref(p.phone)}
+          method="call"
+          professionalId={p.id}
+          professionalName={p.name}
           className="od-button-primary flex-1 py-2 text-sm active:scale-[0.98]"
         >
           <Phone size={14} aria-hidden /> Call
-        </a>
+        </TrackedContactLink>
         {p.whatsapp && (
-          <a
+          <TrackedContactLink
             href={waHref(p.phone)}
+            method="whatsapp"
+            professionalId={p.id}
+            professionalName={p.name}
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[rgba(19,138,75,0.3)] bg-[rgba(19,138,75,0.06)] py-2 text-sm font-bold text-[var(--color-success-strong)] transition-colors duration-150 hover:bg-[rgba(19,138,75,0.12)] active:scale-[0.98]"
           >
             <MessageCircle size={14} className="text-[var(--od-success)]" aria-hidden /> WhatsApp
-          </a>
+          </TrackedContactLink>
         )}
       </div>
     </article>
@@ -208,23 +193,59 @@ function ListSkeleton() {
   )
 }
 
-async function ProfessionalList({ q, profession }: { q?: string; profession?: string }) {
-  const pros = await getApprovedProfessionals({ q, profession })
+function SortToggle({ sort, q, profession }: { sort: FindSort; q?: string; profession?: string }) {
+  const opt = (value: FindSort, label: string) => {
+    const on = sort === value
+    return (
+      <Link
+        href={findHref({ q, profession, sort: value })}
+        aria-current={on ? 'page' : undefined}
+        className={`rounded-full px-3 py-1 font-semibold transition-colors ${
+          on
+            ? 'bg-[var(--od-brand-strong)] text-[#FFFAF3]'
+            : 'text-[var(--od-muted)] hover:text-[var(--od-brand-strong)]'
+        }`}
+      >
+        {label}
+      </Link>
+    )
+  }
+  return (
+    <span className="flex shrink-0 items-center gap-1 rounded-full border border-[var(--od-border)] bg-white/70 p-0.5 text-[12px]">
+      {opt('top', 'Top rated')}
+      {opt('new', 'Newest')}
+    </span>
+  )
+}
+
+async function ProfessionalList({
+  q,
+  profession,
+  sort,
+}: {
+  q?: string
+  profession?: string
+  sort: FindSort
+}) {
+  const pros = await getApprovedProfessionals({ q, profession, sort })
   if (pros.length === 0) return <EmptyState filtered={!!(q || profession)} />
   return (
     <>
-      <p className="mb-3 text-[13px] font-semibold text-[var(--od-muted)]">
-        <span className="tabular-nums">{pros.length}</span> professional
-        {pros.length !== 1 ? 's' : ''}
-        {profession ? (
-          <>
-            {' '}
-            · <span className="text-[var(--od-brand-strong)]">{profession}</span>{' '}
-            <Mr text={professionMarathi(profession)} />
-          </>
-        ) : null}
-        {q ? <> · “{q}”</> : null}
-      </p>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <p className="min-w-0 text-[13px] font-semibold text-[var(--od-muted)]">
+          <span className="tabular-nums">{pros.length}</span> professional
+          {pros.length !== 1 ? 's' : ''}
+          {profession ? (
+            <>
+              {' '}
+              · <span className="text-[var(--od-brand-strong)]">{profession}</span>{' '}
+              <Mr text={professionMarathi(profession)} />
+            </>
+          ) : null}
+          {q ? <> · “{q}”</> : null}
+        </p>
+        <SortToggle sort={sort} q={q} profession={profession} />
+      </div>
       <div className="grid gap-3 md:grid-cols-2">
         {pros.map((p) => (
           <Card key={p.id} p={p} />
@@ -237,9 +258,10 @@ async function ProfessionalList({ q, profession }: { q?: string; profession?: st
 export default async function FindHomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; profession?: string }>
+  searchParams: Promise<FindParams>
 }) {
-  const { q, profession } = await searchParams
+  const { q, profession, sort: rawSort } = await searchParams
+  const sort: FindSort = rawSort === 'new' ? 'new' : 'top'
   return (
     <div>
       <section className="relative -mx-4 -mt-6 overflow-hidden border-b border-[var(--od-border)] bg-[var(--color-surface-2)] px-4 pb-7 pt-9 sm:pb-9 sm:pt-11">
@@ -266,12 +288,12 @@ export default async function FindHomePage({
       </section>
 
       <Suspense fallback={<CategoryGridSkeleton />}>
-        <CategoryGrid active={profession} q={q} />
+        <CategoryGrid active={profession} q={q} sort={sort} />
       </Suspense>
 
       <div className="mt-5">
         <Suspense fallback={<ListSkeleton />}>
-          <ProfessionalList q={q} profession={profession} />
+          <ProfessionalList q={q} profession={profession} sort={sort} />
         </Suspense>
       </div>
     </div>
