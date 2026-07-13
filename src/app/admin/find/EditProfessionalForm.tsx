@@ -1,15 +1,26 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
-import { updateProfessional, setProfessionalStatus, type AdminProfessionalFields } from '@/app/actions/admin-find'
+import { updateProfessional, setProfessionalStatus, deleteProfessional, type AdminProfessionalFields } from '@/app/actions/admin-find'
 import type { FindProfessional } from '@/lib/find/types'
 
 export default function EditProfessionalForm({ pro }: { pro: FindProfessional }) {
+  const router = useRouter()
   const [professions, setProfessions] = useState<string[]>(pro.professions ?? [])
   const [error, setError] = useState<string | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+
+  async function remove() {
+    if (!window.confirm(`Permanently delete "${pro.name}" and all their ratings? This cannot be undone.`)) return
+    setError(null); setMsg(null); setPending(true)
+    const res = await deleteProfessional(pro.id)
+    setPending(false)
+    if (res.error) { setError(res.error); return }
+    router.refresh()
+  }
 
   function toggle(p: string) {
     setProfessions((cur) => cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p])
@@ -91,6 +102,10 @@ export default function EditProfessionalForm({ pro }: { pro: FindProfessional })
             Reject
           </button>
         )}
+        <button type="button" disabled={pending} onClick={remove}
+          className="ml-auto rounded border border-red-300 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">
+          Delete
+        </button>
       </div>
     </form>
   )

@@ -97,3 +97,21 @@ export async function setRatingStatus(id: string, status: 'approved' | 'rejected
   revalidatePath('/admin/find')
   return { ok: true }
 }
+
+// Permanently deletes a professional. find_ratings.professional_id has
+// ON DELETE CASCADE, so their ratings are removed with them.
+export async function deleteProfessional(id: string): Promise<Result> {
+  const db = await admin()
+  const { error } = await db.from('find_professionals').delete().eq('id', id)
+  if (error) return { error: error.message }
+  revalidatePath('/admin/find')
+  return { ok: true }
+}
+
+export async function deleteRating(id: string): Promise<Result> {
+  const db = await admin()
+  const { error } = await db.from('find_ratings').delete().eq('id', id)
+  if (error) return { error: error.message }
+  revalidatePath('/admin/find')
+  return { ok: true }
+}
