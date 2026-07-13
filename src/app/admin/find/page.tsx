@@ -3,9 +3,19 @@ import { ArrowLeft, Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { requireAdmin } from '@/app/actions/admin'
-import type { FindProfessional, FindRating } from '@/lib/find/types'
+import type { FindProfessional } from '@/lib/find/types'
 import EditProfessionalForm from './EditProfessionalForm'
 import RatingModerationButtons from './RatingModerationButtons'
+
+// Only the fields the ratings tab renders — narrower than the full FindRating
+// row, so we can select just these columns.
+type PendingRating = {
+  id: string
+  user_id: string
+  rating: number
+  comment: string
+  find_professionals: { name: string } | null
+}
 
 export default async function AdminFindPage({
   searchParams,
@@ -18,40 +28,51 @@ export default async function AdminFindPage({
   if (!db) return <p className="p-6 text-red-600">Service role key not configured.</p>
 
   const { tab = 'professionals' } = await searchParams
+  const isRatings = tab === 'ratings'
 
-  const { data: pros } = await db
-    .from('find_professionals')
-    .select('*')
-    .order('created_at', { ascending: false })
-  // Pending first regardless of alpha order:
-  const professionals = (pros ?? []).sort((a, b) =>
-    (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1),
-  ) as FindProfessional[]
+  const PROFESSIONAL_COLUMNS =
+    'id, name, phone, whatsapp, professions, profession_other, locality, note, status, is_active, submitted_by, created_at, updated_at'
 
-  const { data: ratingRows } = await db
-    .from('find_ratings')
-    .select('*, find_professionals(name)')
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false })
-  const ratings = (ratingRows ?? []) as (FindRating & { find_professionals: { name: string } | null })[]
-
-  // Collect distinct user ids needed for name lookups (admin-only display).
-  const userIds = new Set<string>()
-  for (const p of professionals) {
-    if (p.submitted_by) userIds.add(p.submitted_by)
-  }
-  for (const r of ratings) {
-    if (r.user_id) userIds.add(r.user_id)
-  }
+  // Resolve profile display names (admin-only) for the given ids in one query.
   const nameById = new Map<string, string>()
-  if (userIds.size > 0) {
-    const { data: profileRows } = await db
+  async function loadNames(ids: Set<string>) {
+    if (ids.size === 0) return
+    const { data } = await db!
       .from('profiles')
       .select('id, full_name, email')
-      .in('id', Array.from(userIds))
-    for (const row of profileRows ?? []) {
+      .in('id', Array.from(ids))
+    for (const row of data ?? []) {
       nameById.set(row.id, row.full_name || row.email || 'Unknown user')
     }
+  }
+
+  // Only the active tab's rows are fetched. The pending-ratings badge shows on
+  // both tabs, so the professionals tab pulls just a HEAD count (no rows/join)
+  // instead of every pending rating.
+  let professionals: FindProfessional[] = []
+  let ratings: PendingRating[] = []
+  let pendingRatingsCount = 0
+
+  if (isRatings) {
+    const { data } = await db
+      .from('find_ratings')
+      .select('id, user_id, rating, comment, created_at, find_professionals(name)')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+    ratings = (data ?? []) as unknown as PendingRating[]
+    pendingRatingsCount = ratings.length
+    await loadNames(new Set(ratings.map((r) => r.user_id).filter(Boolean)))
+  } else {
+    const [prosRes, countRes] = await Promise.all([
+      db.from('find_professionals').select(PROFESSIONAL_COLUMNS).order('created_at', { ascending: false }),
+      db.from('find_ratings').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    ])
+    // Pending first regardless of alpha order:
+    professionals = ((prosRes.data ?? []) as unknown as FindProfessional[]).sort((a, b) =>
+      (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1),
+    )
+    pendingRatingsCount = countRes.count ?? 0
+    await loadNames(new Set(professionals.map((p) => p.submitted_by).filter((v): v is string => !!v)))
   }
 
   const tabCls = (t: string) =>
@@ -66,7 +87,7 @@ export default async function AdminFindPage({
       <div className="mb-4 flex gap-2">
         <Link href="/admin/find?tab=professionals" className={tabCls('professionals')}>Professionals</Link>
         <Link href="/admin/find?tab=ratings" className={tabCls('ratings')}>
-          Pending ratings{ratings.length ? ` (${ratings.length})` : ''}
+          Pending ratings{pendingRatingsCount ? ` (${pendingRatingsCount})` : ''}
         </Link>
       </div>
 
