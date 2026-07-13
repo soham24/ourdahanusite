@@ -9,6 +9,8 @@ import {
   getHomeStats,
 } from '@/lib/data/home'
 import { getCachedPricingConfig } from '@/lib/data/pricing'
+import { getProfessionCounts } from '@/lib/data/find'
+import { PROFESSIONS } from '@/lib/find/professions'
 
 import HeroSection from './page-components/HeroSection'
 import QuickCategories from './page-components/QuickCategories'
@@ -17,6 +19,7 @@ import FeaturedSpotlight from './page-components/FeaturedSpotlight'
 import CategoryGrid from './page-components/CategoryGrid'
 import NewListingsSection from './page-components/NewListingsSection'
 import PopularBusinesses from './page-components/PopularBusinesses'
+import FindDahanuSection from './page-components/FindDahanuSection'
 import BusinessOwnerCTA from './page-components/BusinessOwnerCTA'
 import JobsSection from './page-components/JobsSection'
 import RecentReviewsSection from './page-components/RecentReviewsSection'
@@ -78,6 +81,10 @@ export default function HomePage() {
         <NewListingsAsync />
       </Suspense>
 
+      <Suspense fallback={<HomeSectionSkeleton variant="card" label="Find trusted people" />}>
+        <FindDahanuAsync />
+      </Suspense>
+
       <Suspense fallback={<HomeSectionSkeleton variant="row" label="Popular in Dahanu" />}>
         <PopularBusinessesAsync />
       </Suspense>
@@ -122,6 +129,17 @@ async function NewListingsAsync() {
   const newListings = await getHomeNewListings()
   if (newListings.length === 0) return null
   return <NewListingsSection newListings={newListings} />
+}
+
+async function FindDahanuAsync() {
+  const { counts, total } = await getProfessionCounts()
+  if (total === 0) return null
+  const categories = PROFESSIONS
+    .filter((p) => (counts.get(p) ?? 0) > 0)
+    .sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0))
+    .slice(0, 8)
+    .map((p) => ({ label: p, count: counts.get(p) ?? 0 }))
+  return <FindDahanuSection categories={categories} total={total} />
 }
 
 async function PopularBusinessesAsync() {
