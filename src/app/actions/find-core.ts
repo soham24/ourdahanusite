@@ -24,7 +24,7 @@ export function createFindActions(deps: FindActionDependencies) {
   async function submitProfessional(input: SubmitProfessionalInput): Promise<{ error?: string; ok?: boolean }> {
     const user = await deps.getUser()
     if (!user) return { error: 'Please log in to add a professional.' }
-    if (!deps.rateLimit(`find-submit:${user.id}`, 10, 60 * 60 * 1000).ok) return { error: 'Too many submissions. Please try again later.' }
+    if (!deps.rateLimit(`find-submit:${user.id}`, 10, 24 * 60 * 60 * 1000).ok) return { error: 'You’ve added 10 professionals today — that’s the daily limit. Please come back tomorrow to add more.' }
     const name = input.name?.trim(); const phone = input.phone?.trim()
     if (!name) return { error: 'Name is required.' }
     if (!phone || phone.replace(/\D/g, '').length < 7) return { error: 'A valid phone number is required.' }
