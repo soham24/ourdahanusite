@@ -2,6 +2,7 @@
 
 import { after } from 'next/server'
 
+import { revalidateFindCache } from '@/lib/cache-tags'
 import { createClient } from '@/lib/supabase/server'
 import { isValidProfession } from '@/lib/find/professions'
 import { sendNotificationToAdmins } from '@/lib/notifications'
@@ -36,4 +37,14 @@ const actions = createRequestScopedFindActions(createClient, (supabase) =>
 )
 
 export async function submitProfessional(input: SubmitProfessionalInput) { return actions.submitProfessional(input) }
-export async function submitRating(input: SubmitRatingInput) { return actions.submitRating(input) }
+
+export async function submitRating(input: SubmitRatingInput) {
+  const result = await actions.submitRating(input)
+  // A re-rating resets the user's previously APPROVED rating back to pending,
+  // which changes the public page (it drops out of the average) with no admin
+  // action involved — so the cached find pages must refresh here too. New
+  // professional submissions stay pending and never affect public pages, so
+  // submitProfessional needs no invalidation.
+  if (result.ok) revalidateFindCache()
+  return result
+}

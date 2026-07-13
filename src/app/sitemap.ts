@@ -24,7 +24,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   cacheLife(PUBLIC_SITEMAP_CACHE)
   cacheTag(CACHE_TAGS.listings)
-  logCacheRegeneration({ scope: 'sitemap', tags: [CACHE_TAGS.listings] })
+  cacheTag(CACHE_TAGS.find)
+  logCacheRegeneration({ scope: 'sitemap', tags: [CACHE_TAGS.listings, CACHE_TAGS.find] })
 
   const base = SITE_URL
 
@@ -76,7 +77,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
       }))
 
-    return [...staticRoutes, ...categoryRoutes, ...listingRoutes]
+    // find.ourdahanu.in — cross-host entries are valid here because the find
+    // subdomain's robots.txt declares this sitemap (same mechanism the
+    // business-subdomain URLs above rely on).
+    const { data: professionals } = await supabase
+      .from('find_professionals')
+      .select('id, updated_at')
+      .eq('status', 'approved')
+      .eq('is_active', true)
+
+    const findRoutes: MetadataRoute.Sitemap = [
+      {
+        url: 'https://find.ourdahanu.in/',
+        lastModified: STATIC_LAST_MODIFIED,
+        changeFrequency: 'daily',
+        priority: 0.8,
+      },
+      ...((professionals ?? []) as { id: string; updated_at: string | null }[]).map((p) => ({
+        url: `https://find.ourdahanu.in/p/${p.id}`,
+        lastModified: p.updated_at ? new Date(p.updated_at) : STATIC_LAST_MODIFIED,
+        changeFrequency: 'weekly' as const,
+        priority: 0.6,
+      })),
+    ]
+
+    return [...staticRoutes, ...categoryRoutes, ...listingRoutes, ...findRoutes]
   } catch {
     return staticRoutes
   }

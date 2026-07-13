@@ -1,116 +1,177 @@
-import { createClient } from '@/lib/supabase/server'
+import 'server-only'
+
+import { cacheLife, cacheTag } from 'next/cache'
+
+import { CACHE_TAGS } from '@/lib/cache-tags'
+import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
+import { logCacheRegeneration } from '@/lib/isr-debug'
+import { professionMarathi } from '@/lib/find/professions'
+import { createPublicClient } from '@/lib/supabase/public'
 import type { FindRating, ProfessionalWithStats } from '@/lib/find/types'
 
-// Aggregate approved ratings into avg + count per professional id.
-async function statsFor(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  ids: string[],
-): Promise<Map<string, { avg: number; count: number }>> {
-  const map = new Map<string, { avg: number; count: number }>()
-  if (ids.length === 0) return map
-  const { data } = await supabase
-    .from('find_ratings')
-    .select('professional_id, rating')
-    .eq('status', 'approved')
-    .in('professional_id', ids)
-  for (const row of data ?? []) {
-    const cur = map.get(row.professional_id) ?? { avg: 0, count: 0 }
-    cur.avg += row.rating
-    cur.count += 1
-    map.set(row.professional_id, cur)
-  }
-  for (const [, v] of map) v.avg = v.count ? v.avg / v.count : 0
-  return map
-}
+export type FindSort = 'top' | 'new'
 
-export async function getApprovedProfessionals(
-  opts: { q?: string; profession?: string } = {},
-): Promise<ProfessionalWithStats[]> {
-  const supabase = await createClient()
-  let query = supabase
+// Explicit column lists (rather than `*`) so future columns don't silently
+// leak into cached public payloads.
+const PROFESSIONAL_COLUMNS =
+  'id, name, phone, whatsapp, professions, profession_other, locality, note, status, is_active, submitted_by, created_at, updated_at'
+const RATING_COLUMNS =
+  'id, professional_id, user_id, rating, comment, used_service, status, created_at, updated_at'
+
+/**
+ * The whole public directory — every approved+active professional with
+ * rating stats — as ONE cached unit. All public reads (list, search,
+ * category counts) derive from this in JS: the dataset is a few dozen rows,
+ * so per-request DB round-trips and per-search-term cache entries would both
+ * cost more than filtering in memory. Invalidated via the `find` tag by
+ * admin moderation actions.
+ */
+async function getFindDirectory(): Promise<ProfessionalWithStats[]> {
+  'use cache'
+
+  cacheLife(PUBLIC_CONTENT_CACHE)
+  cacheTag(CACHE_TAGS.find)
+  logCacheRegeneration({ scope: 'find:directory', tags: [CACHE_TAGS.find] })
+
+  const supabase = createPublicClient()
+  const { data } = await supabase
     .from('find_professionals')
-    .select('*')
+    .select(PROFESSIONAL_COLUMNS)
     .eq('status', 'approved')
     .eq('is_active', true)
     .order('created_at', { ascending: false })
 
-  if (opts.profession && opts.profession !== 'All') {
-    query = query.contains('professions', [opts.profession])
-  }
-  if (opts.q && opts.q.trim()) {
-    // Strip PostgREST or()-grammar special chars so a term with commas or
-    // parentheses can't break the filter expression.
-    const cleaned = opts.q.trim().replace(/[,()%]/g, ' ').trim()
-    if (cleaned) {
-      const term = `%${cleaned}%`
-      query = query.or(`name.ilike.${term},note.ilike.${term},locality.ilike.${term}`)
-    }
+  const rows = (data ?? []) as unknown as ProfessionalWithStats[]
+  if (rows.length === 0) return []
+
+  const { data: ratingRows } = await supabase
+    .from('find_ratings')
+    .select('professional_id, rating')
+    .eq('status', 'approved')
+    .in('professional_id', rows.map((r) => r.id))
+
+  const stats = new Map<string, { sum: number; count: number }>()
+  for (const row of (ratingRows ?? []) as { professional_id: string; rating: number }[]) {
+    const cur = stats.get(row.professional_id) ?? { sum: 0, count: 0 }
+    cur.sum += row.rating
+    cur.count += 1
+    stats.set(row.professional_id, cur)
   }
 
-  const { data } = await query
-  const rows = data ?? []
-  const stats = await statsFor(supabase, rows.map((r) => r.id))
-  return rows.map((r) => ({
-    ...r,
-    avg_rating: stats.get(r.id)?.avg ?? 0,
-    rating_count: stats.get(r.id)?.count ?? 0,
-  }))
+  return rows.map((r) => {
+    const s = stats.get(r.id)
+    return {
+      ...r,
+      avg_rating: s ? s.sum / s.count : 0,
+      rating_count: s?.count ?? 0,
+    }
+  })
+}
+
+function matchesQuery(p: ProfessionalWithStats, cleaned: string): boolean {
+  const haystack = [
+    p.name,
+    p.locality ?? '',
+    p.note ?? '',
+    p.profession_other ?? '',
+    // Professions match in both languages, so "electrician" and
+    // "इलेक्ट्रिशियन" both find the right people.
+    ...p.professions,
+    ...p.professions.map((x) => professionMarathi(x) ?? ''),
+  ]
+    .join(' ')
+    .toLowerCase()
+  return cleaned.split(/\s+/).every((term) => haystack.includes(term))
+}
+
+export async function getApprovedProfessionals(
+  opts: { q?: string; profession?: string; sort?: FindSort } = {},
+): Promise<ProfessionalWithStats[]> {
+  let pros = await getFindDirectory()
+
+  if (opts.profession && opts.profession !== 'All') {
+    pros = pros.filter((p) => p.professions.includes(opts.profession!))
+  }
+
+  const cleaned = opts.q?.trim().toLowerCase()
+  if (cleaned) {
+    pros = pros.filter((p) => matchesQuery(p, cleaned))
+  }
+
+  // 'top' (default): rated professionals first (best average, then most
+  // ratings); unrated ones follow newest-first. 'new': strictly newest-first.
+  const sort: FindSort = opts.sort === 'new' ? 'new' : 'top'
+  return [...pros].sort((a, b) => {
+    if (sort === 'top') {
+      if (b.avg_rating !== a.avg_rating) return b.avg_rating - a.avg_rating
+      if (b.rating_count !== a.rating_count) return b.rating_count - a.rating_count
+    }
+    return b.created_at.localeCompare(a.created_at)
+  })
+}
+
+// Count of approved+active professionals per profession — used to hide empty
+// categories from the public filter. `total` is the distinct professional
+// count (for the "All" tile), NOT the sum of per-profession counts, which
+// double-counts anyone tagged with more than one category.
+export async function getProfessionCounts(): Promise<{ counts: Map<string, number>; total: number }> {
+  const pros = await getFindDirectory()
+  const counts = new Map<string, number>()
+  for (const p of pros) {
+    for (const profession of p.professions ?? []) {
+      counts.set(profession, (counts.get(profession) ?? 0) + 1)
+    }
+  }
+  return { counts, total: pros.length }
 }
 
 export async function getProfessionalById(
   id: string,
 ): Promise<ProfessionalWithStats | null> {
-  const supabase = await createClient()
+  'use cache'
+
+  cacheLife(PUBLIC_CONTENT_CACHE)
+  cacheTag(CACHE_TAGS.find)
+  logCacheRegeneration({ scope: 'find:professional', tags: [CACHE_TAGS.find] })
+
+  const supabase = createPublicClient()
   const { data } = await supabase
     .from('find_professionals')
-    .select('*')
+    .select(PROFESSIONAL_COLUMNS)
     .eq('id', id)
     .eq('status', 'approved')
     .eq('is_active', true)
     .maybeSingle()
   if (!data) return null
-  const stats = await statsFor(supabase, [id])
-  return {
-    ...data,
-    avg_rating: stats.get(id)?.avg ?? 0,
-    rating_count: stats.get(id)?.count ?? 0,
-  }
-}
 
-// Count of approved+active professionals per profession — used to hide empty
-// categories from the public filter. Dataset is small enough (dozens of rows)
-// to aggregate in JS rather than needing a DB-side unnest/RPC.
-//
-// `total` is the distinct professional count (for the "All" tile) — NOT the
-// sum of the per-profession counts, which double-counts anyone tagged with
-// more than one category.
-export async function getProfessionCounts(): Promise<{ counts: Map<string, number>; total: number }> {
-  const supabase = await createClient()
-  const { data } = await supabase
-    .from('find_professionals')
-    .select('professions')
+  const pro = data as unknown as ProfessionalWithStats
+  const { data: ratingRows } = await supabase
+    .from('find_ratings')
+    .select('rating')
+    .eq('professional_id', id)
     .eq('status', 'approved')
-    .eq('is_active', true)
 
-  const rows = data ?? []
-  const counts = new Map<string, number>()
-  for (const row of rows) {
-    for (const p of row.professions ?? []) {
-      counts.set(p, (counts.get(p) ?? 0) + 1)
-    }
-  }
-  return { counts, total: rows.length }
+  const ratings = (ratingRows ?? []) as { rating: number }[]
+  const count = ratings.length
+  const sum = ratings.reduce((acc, r) => acc + r.rating, 0)
+  return { ...pro, avg_rating: count ? sum / count : 0, rating_count: count }
 }
 
 export async function getApprovedRatings(
   professionalId: string,
 ): Promise<FindRating[]> {
-  const supabase = await createClient()
+  'use cache'
+
+  cacheLife(PUBLIC_CONTENT_CACHE)
+  cacheTag(CACHE_TAGS.find)
+  logCacheRegeneration({ scope: 'find:ratings', tags: [CACHE_TAGS.find] })
+
+  const supabase = createPublicClient()
   const { data } = await supabase
     .from('find_ratings')
-    .select('*')
+    .select(RATING_COLUMNS)
     .eq('professional_id', professionalId)
     .eq('status', 'approved')
     .order('created_at', { ascending: false })
-  return data ?? []
+  return (data ?? []) as unknown as FindRating[]
 }

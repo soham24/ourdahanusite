@@ -1,11 +1,48 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, LogIn, MapPin, MessageCircle, Phone, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, LogIn, MapPin, MessageCircle, Phone, Share2, ShieldCheck } from 'lucide-react'
 import { getProfessionalById, getApprovedRatings } from '@/lib/data/find'
 import { createClient } from '@/lib/supabase/server'
-import { GoldStars, Monogram, Mr, professionLabels, telHref, waHref } from '../../find-ui'
+import { GoldStars, Monogram, Mr, professionLabels, telHref, timeAgo, waHref } from '../../find-ui'
 import { findLoginHref } from '../../find-server'
+import TrackedContactLink from '../../TrackedContactLink'
 import RatingForm from './RatingForm'
+
+const FIND_URL = 'https://find.ourdahanu.in'
+
+// Per-professional SEO: "Jayprakash Jaiswal — Electrician in Dahanu" is
+// exactly what people search for. getProfessionalById is cached, so the
+// page render reuses this fetch.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const pro = await getProfessionalById(id)
+  if (!pro) return {}
+  const professions = professionLabels(pro).map((l) => l.label).join(', ')
+  const title = `${pro.name} — ${professions} in Dahanu`
+  const description = [
+    pro.rating_count > 0
+      ? `Rated ${pro.avg_rating.toFixed(1)}/5 by ${pro.rating_count} verified customer${pro.rating_count > 1 ? 's' : ''}.`
+      : 'Vouched for by neighbours on FindDahanu.',
+    pro.locality ? `Serves ${pro.locality}.` : null,
+    pro.note,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .slice(0, 160)
+  const url = `${FIND_URL}/p/${pro.id}`
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, type: 'profile', siteName: 'FindDahanu' },
+    twitter: { card: 'summary', title, description },
+  }
+}
 
 export default async function ProfessionalDetailPage({
   params,
@@ -39,8 +76,20 @@ export default async function ProfessionalDetailPage({
         <ArrowLeft size={13} aria-hidden /> Back to directory
       </Link>
 
-      <div className="od-card p-5 sm:p-6">
-        <div className="flex items-start gap-4">
+      <div className="od-card relative p-5 sm:p-6">
+        <a
+          href={`https://wa.me/?text=${encodeURIComponent(
+            `${pro.name} — ${professionLabels(pro).map((l) => l.label).join(', ')} in Dahanu\n${FIND_URL}/p/${pro.id}`,
+          )}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Share ${pro.name}’s profile on WhatsApp`}
+          title="Share on WhatsApp"
+          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-[var(--od-border)] bg-white/70 text-[var(--od-muted)] transition-colors hover:border-[rgba(192,88,46,0.4)] hover:text-[var(--od-brand-strong)]"
+        >
+          <Share2 size={15} aria-hidden />
+        </a>
+        <div className="flex items-start gap-4 pr-10">
           <Monogram name={pro.name} size="lg" />
           <div className="min-w-0 flex-1">
             <h1 className="text-balance font-display text-3xl leading-tight sm:text-4xl">
@@ -80,21 +129,27 @@ export default async function ProfessionalDetailPage({
         </div>
 
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-          <a
+          <TrackedContactLink
             href={telHref(pro.phone)}
+            method="call"
+            professionalId={pro.id}
+            professionalName={pro.name}
             className="od-button-primary h-11 flex-1 text-[15px] active:scale-[0.98]"
           >
             <Phone size={16} aria-hidden /> Call <span className="tabular-nums">{pro.phone}</span>
-          </a>
+          </TrackedContactLink>
           {pro.whatsapp && (
-            <a
+            <TrackedContactLink
               href={waHref(pro.phone)}
+              method="whatsapp"
+              professionalId={pro.id}
+              professionalName={pro.name}
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[rgba(19,138,75,0.3)] bg-[rgba(19,138,75,0.06)] text-[15px] font-bold text-[var(--color-success-strong)] transition-colors duration-150 hover:bg-[rgba(19,138,75,0.12)] active:scale-[0.98]"
             >
               <MessageCircle size={16} className="text-[var(--od-success)]" aria-hidden /> WhatsApp
-            </a>
+            </TrackedContactLink>
           )}
         </div>
 
@@ -152,7 +207,12 @@ export default async function ProfessionalDetailPage({
                 key={r.id}
                 className="rounded-[var(--od-radius)] border border-[var(--od-border)] bg-[var(--color-surface-2)] p-4"
               >
-                <GoldStars value={r.rating} size={13} />
+                <span className="flex items-center justify-between gap-2">
+                  <GoldStars value={r.rating} size={13} />
+                  <span className="text-[11px] text-[var(--od-muted)]">
+                    {timeAgo(r.created_at)}
+                  </span>
+                </span>
                 <span className="sr-only">Rated {r.rating} out of 5</span>
                 <p className="mt-2 text-[15px] leading-relaxed text-[var(--od-ink-2)]">
                   {r.comment}
