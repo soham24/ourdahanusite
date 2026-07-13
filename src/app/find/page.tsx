@@ -9,8 +9,6 @@ import CategoryGridClient from './CategoryGridClient'
 import TrackedContactLink from './TrackedContactLink'
 import {
   BusinessAvatar,
-  chipOff,
-  chipOn,
   GoldStars,
   Monogram,
   Mr,

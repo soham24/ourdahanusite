@@ -7,7 +7,7 @@ import { updateProfessional, setProfessionalStatus, deleteProfessional, type Adm
 import type { FindProfessional } from '@/lib/find/types'
 import BusinessPicker from './BusinessPicker'
 
-export default function EditProfessionalForm({ pro }: { pro: FindProfessional }) {
+export default function EditProfessionalForm({ pro, businessLabel }: { pro: FindProfessional; businessLabel?: string | null }) {
   const router = useRouter()
   const [professions, setProfessions] = useState<string[]>(pro.professions ?? [])
   const [businessId, setBusinessId] = useState<string | null>(pro.business_listing_id ?? null)
@@ -102,6 +102,7 @@ export default function EditProfessionalForm({ pro }: { pro: FindProfessional })
           <div className="mt-2">
             <BusinessPicker
               value={businessId}
+              initialLabel={businessLabel ?? null}
               onChange={(id) => setBusinessId(id)}
             />
           </div>

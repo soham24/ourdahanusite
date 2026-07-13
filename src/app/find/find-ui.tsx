@@ -93,9 +93,12 @@ export function VisitBusinessLink({ business, className = '' }: { business: Link
   )
 }
 
-/** Premium card surface — gold border + warm sheen, distinct from od-card. */
-export const premiumCardClass =
-  'relative flex flex-col rounded-[var(--od-radius)] border border-[var(--od-gold)] bg-gradient-to-br from-[var(--color-cream)]/50 to-white p-4 shadow-[0_10px_30px_rgba(200,136,30,0.12)] sm:p-5'
+/** Premium surface visuals (border + warm sheen), no layout/padding — compose
+ *  with per-card layout so landing and detail can size themselves. */
+export const premiumSurfaceClass =
+  'relative rounded-[var(--od-radius)] border border-[var(--od-gold)] bg-gradient-to-br from-[var(--color-cream)]/50 to-white shadow-[0_10px_30px_rgba(200,136,30,0.12)]'
+/** Premium card for the landing grid. */
+export const premiumCardClass = `${premiumSurfaceClass} flex flex-col p-4 sm:p-5`
 
 /** Shared filter/toggle chip styling — one source so the category rail and
  *  the submit form's profession toggles can't drift apart. */

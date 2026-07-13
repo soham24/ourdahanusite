@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, LogIn, MapPin, MessageCircle, Phone, Share2, ShieldCheck } from 'lucide-react'
 import { getProfessionalById, getApprovedRatings } from '@/lib/data/find'
 import { createClient } from '@/lib/supabase/server'
-import { BusinessAvatar, GoldStars, Monogram, Mr, premiumCardClass, PremiumBadge, professionLabels, telHref, timeAgo, VisitBusinessLink, waHref } from '../../find-ui'
+import { BusinessAvatar, GoldStars, Monogram, Mr, premiumSurfaceClass, PremiumBadge, professionLabels, telHref, timeAgo, VisitBusinessLink, waHref } from '../../find-ui'
 import { findLoginHref } from '../../find-server'
 import TrackedContactLink from '../../TrackedContactLink'
 import RatingForm from './RatingForm'
@@ -76,7 +76,7 @@ export default async function ProfessionalDetailPage({
         <ArrowLeft size={13} aria-hidden /> Back to directory
       </Link>
 
-      <div className={`relative p-5 sm:p-6 ${pro.business ? premiumCardClass.replace('flex flex-col ', '') : 'od-card'}`}>
+      <div className={`relative p-5 sm:p-6 ${pro.business ? premiumSurfaceClass : 'od-card'}`}>
         <a
           href={`https://wa.me/?text=${encodeURIComponent(
             `${pro.name} — ${professionLabels(pro).map((l) => l.label).join(', ')} in Dahanu\n${FIND_URL}/p/${pro.id}`,
