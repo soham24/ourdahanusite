@@ -7,7 +7,20 @@ import type { ProfessionalWithStats } from '@/lib/find/types'
 import FindSearchControls from './FindSearchControls'
 import CategoryGridClient from './CategoryGridClient'
 import TrackedContactLink from './TrackedContactLink'
-import { GoldStars, Monogram, Mr, professionLabels, telHref, waHref } from './find-ui'
+import {
+  BusinessAvatar,
+  chipOff,
+  chipOn,
+  GoldStars,
+  Monogram,
+  Mr,
+  premiumCardClass,
+  PremiumBadge,
+  professionLabels,
+  telHref,
+  VisitBusinessLink,
+  waHref,
+} from './find-ui'
 
 interface FindParams {
   q?: string
@@ -64,14 +77,19 @@ async function CategoryGrid({ active, q, sort }: { active?: string; q?: string; 
 
 function Card({ p }: { p: ProfessionalWithStats }) {
   return (
-    <article className="od-card od-card-hover relative flex flex-col p-4 sm:p-5">
+    <article className={p.business ? premiumCardClass : 'od-card od-card-hover relative flex flex-col p-4 sm:p-5'}>
       <Link
         href={`/find/p/${p.id}`}
         className="absolute inset-0 z-0 rounded-[inherit]"
         aria-label={`View ${p.name}’s profile and ratings`}
       />
+      {p.business && (
+        <div className="relative z-10 mb-2">
+          <PremiumBadge />
+        </div>
+      )}
       <div className="flex items-start gap-3">
-        <Monogram name={p.name} />
+        {p.business ? <BusinessAvatar business={p.business} name={p.name} /> : <Monogram name={p.name} />}
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-[1.05rem] font-bold tracking-[-0.01em]">{p.name}</h2>
           <div className="mt-1 flex flex-wrap gap-1">
@@ -141,6 +159,7 @@ function Card({ p }: { p: ProfessionalWithStats }) {
             <MessageCircle size={14} className="text-[var(--od-success)]" aria-hidden /> WhatsApp
           </TrackedContactLink>
         )}
+        {p.business && <VisitBusinessLink business={p.business} className="flex-1" />}
       </div>
     </article>
   )
