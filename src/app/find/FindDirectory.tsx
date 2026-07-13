@@ -79,6 +79,13 @@ export default function FindDirectory({
       offset,
     })
     if (id !== reqId.current) return // a newer request superseded this one
+    // Append that came back empty = end-of-list race or an error fallback
+    // ({ items: [], total: 0 }). Treat it as a no-op so a transient failure
+    // mid-scroll never wipes the already-loaded cards or resets total to 0.
+    if (offset > 0 && res.items.length === 0) {
+      setAppending(false)
+      return
+    }
     setTotal(res.total)
     setItems((prev) => (offset > 0 ? [...prev, ...res.items] : res.items))
     setLoading(false)
@@ -203,12 +210,17 @@ export default function FindDirectory({
               {items.map((p) => <FindCard key={p.id} p={p} />)}
               {appending && <CardSkeletons count={2} />}
             </div>
-            <div ref={sentinelRef} aria-hidden className="h-1" />
             {!hasMore && (
               <p className="mt-6 text-center text-xs text-[var(--od-muted)]">You’ve reached the end · {total} in all</p>
             )}
           </>
         )}
+
+        {/* Sentinel rendered unconditionally (outside the loading/empty/results
+            ternary) so it stays a stable node across loading toggles — the
+            once-created observer keeps observing it after a filter/search/sort
+            instead of a detached, unmounted node. loadMore guards loading/empty. */}
+        <div ref={sentinelRef} aria-hidden className="h-1" />
       </div>
     </div>
   )
