@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, MessageCircle } from 'lucide-react'
+import { CheckCircle2, MessageCircle, Plus } from 'lucide-react'
 import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
 import { safelySubmit } from '@/lib/find/safe-submission'
 import { submitProfessional } from '@/app/actions/find'
@@ -46,6 +46,12 @@ export default function SubmitProfessionalForm() {
     setDone(true)
   }
 
+  function addAnother() {
+    setProfessions([])
+    setError(null)
+    setDone(false)
+  }
+
   if (done) {
     return (
       <div className="od-card flex flex-col items-center px-6 py-10 text-center">
@@ -55,12 +61,17 @@ export default function SubmitProfessionalForm() {
           A moderator will check the details. Once approved, the listing appears in the
           directory.
         </p>
-        <button
-          onClick={() => router.push('/find')}
-          className="od-button-primary mt-5 px-5 py-2 text-sm"
-        >
-          Back to directory
-        </button>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+          <button onClick={addAnother} className="od-button-primary px-5 py-2 text-sm">
+            <Plus size={15} aria-hidden /> Add another
+          </button>
+          <button
+            onClick={() => router.push('/find')}
+            className="od-button-secondary px-5 py-2 text-sm"
+          >
+            Back to directory
+          </button>
+        </div>
       </div>
     )
   }
