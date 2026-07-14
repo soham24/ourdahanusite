@@ -1,5 +1,11 @@
-import { Search, MapPin, Store, Plus } from 'lucide-react'
+import { Suspense } from 'react'
+import { MapPin, Store, Plus, ArrowRight, Users } from 'lucide-react'
 import Button from '@/components/ui/Button'
+import { getProfessionCounts } from '@/lib/data/find'
+import { PROFESSIONS } from '@/lib/find/professions'
+
+// People directory lives on its own subdomain — links are absolute.
+const FIND_URL = 'https://find.ourdahanu.in'
 
 export default function HeroSection() {
   return (
@@ -147,26 +153,16 @@ export default function HeroSection() {
             Businesses, food, jobs, services — your whole local community, right here.
           </p>
 
-          {/* Search bar — pill style */}
-          <form action="/search" method="get" className="mb-5 max-w-[560px]">
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--od-muted)]">
-                <Search size={18} />
-              </div>
-              <input
-                type="text"
-                name="q"
-                placeholder="Explore dining, stays, services, secrets…"
-                className="w-full h-14 pl-12 pr-32 bg-white/95 backdrop-blur-sm border-none rounded-2xl text-[15px] text-[var(--od-ink)] placeholder-[var(--od-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-gold-light)] shadow-search transition-all"
-              />
-              <button
-                type="submit"
-                className="absolute right-[6px] top-[6px] bottom-[6px] px-5 bg-[var(--od-brand)] hover:bg-[var(--od-brand-strong)] text-white font-semibold text-sm rounded-xl transition-all"
-              >
-                Search
-              </button>
-            </div>
-          </form>
+          {/* People directory — find a trusted local professional */}
+          <div className="mb-6 max-w-[600px]">
+            <p className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-white">
+              <Users size={16} className="text-[var(--color-gold-light)]" aria-hidden />
+              Find a trusted local professional
+            </p>
+            <Suspense fallback={<HeroProChipsSkeleton />}>
+              <HeroProChips />
+            </Suspense>
+          </div>
 
           {/* CTA buttons */}
           <div className="flex flex-wrap gap-3">
@@ -180,5 +176,56 @@ export default function HeroSection() {
         </div>
       </div>
     </section>
+  )
+}
+
+// Streamed inside the hero's Suspense boundary so the hero shell still paints
+// instantly. Reads the cached profession counts (no extra DB round-trip) and
+// surfaces only categories that actually have people, deep-linking each into
+// the directory. Renders nothing when the directory is empty.
+async function HeroProChips() {
+  const { counts, total } = await getProfessionCounts()
+  if (total === 0) return null
+
+  const top = PROFESSIONS
+    .filter((p) => (counts.get(p) ?? 0) > 0)
+    .sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0))
+    .slice(0, 6)
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {top.map((p) => (
+        <a
+          key={p}
+          href={`${FIND_URL}/?profession=${encodeURIComponent(p)}`}
+          className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/[0.12] px-3.5 py-2 text-[13px] font-semibold text-white backdrop-blur-sm transition-colors hover:border-white/40 hover:bg-white/20"
+        >
+          {p}
+          <span className="rounded-full bg-[var(--od-gold)] px-1.5 py-[3px] text-[10px] font-bold leading-none tabular-nums text-[var(--od-ink)]">
+            {counts.get(p)}
+          </span>
+        </a>
+      ))}
+      <a
+        href={FIND_URL}
+        className="inline-flex items-center gap-1 px-2 py-2 text-[13px] font-bold text-[var(--color-gold-light)] transition-colors hover:text-white"
+      >
+        Browse all {total} <ArrowRight size={14} aria-hidden />
+      </a>
+    </div>
+  )
+}
+
+function HeroProChipsSkeleton() {
+  return (
+    <div className="flex flex-wrap gap-2" aria-hidden>
+      {[88, 74, 96, 80, 70, 92].map((w, i) => (
+        <div
+          key={i}
+          className="h-9 animate-pulse rounded-full bg-white/[0.12]"
+          style={{ width: w }}
+        />
+      ))}
+    </div>
   )
 }
