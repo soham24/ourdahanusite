@@ -13,7 +13,6 @@ import { getProfessionCounts } from '@/lib/data/find'
 import { PROFESSIONS } from '@/lib/find/professions'
 
 import HeroSection from './page-components/HeroSection'
-import QuickCategories from './page-components/QuickCategories'
 import StatsBar from './page-components/StatsBar'
 import FeaturedSpotlight from './page-components/FeaturedSpotlight'
 import CategoryGrid from './page-components/CategoryGrid'
@@ -52,7 +51,7 @@ export const metadata: Metadata = {
   },
 }
 
-// Hero + QuickCategories form a static shell so this route can prefetch
+// The Hero forms a static shell so this route can prefetch
 // instantly on client navigation; data-driven sections sit behind their
 // own Suspense boundaries below. Validation is disabled because the root
 // layout's auth-aware Navbar/EmergencyRibbon trip the static-shell check
@@ -71,7 +70,6 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
-      <QuickCategories />
 
       <Suspense fallback={<HomeSectionSkeleton variant="bar" />}>
         <StatsAndCategoriesAsync />
