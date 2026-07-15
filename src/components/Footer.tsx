@@ -69,7 +69,15 @@ export default function Footer() {
 
         <div className="border-t border-white/[0.06] pt-6 flex flex-col md:flex-row items-center justify-between text-xs gap-2">
           <p className="text-[rgba(251,240,220,0.45)]">© 2026 OurDahanu. All rights reserved.</p>
-          <p className="text-[rgba(251,240,220,0.45)]">Made in Dahanu</p>
+          <div className="flex items-center gap-4">
+            <Link
+              href={buildAbsoluteUrl('/privacy')}
+              className="text-[rgba(251,240,220,0.45)] hover:text-[#FBF0DC] transition-colors"
+            >
+              Privacy Policy
+            </Link>
+            <p className="text-[rgba(251,240,220,0.45)]">Made in Dahanu</p>
+          </div>
         </div>
       </div>
     </footer>
