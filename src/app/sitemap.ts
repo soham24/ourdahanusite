@@ -7,6 +7,7 @@ import { logCacheRegeneration } from '@/lib/isr-debug'
 import { compareStableText, getCategoryUrl } from '@/lib/listing-category'
 import { SITE_URL } from '@/lib/site'
 import { createPublicClient } from '@/lib/supabase/public'
+import { isValidProfession, professionSlug } from '@/lib/find/professions'
 
 const STATIC_LAST_MODIFIED = new Date('2026-01-01T00:00:00.000Z')
 
@@ -82,9 +83,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // business-subdomain URLs above rely on).
     const { data: professionals } = await supabase
       .from('find_professionals')
-      .select('id, updated_at')
+      .select('id, updated_at, professions')
       .eq('status', 'approved')
       .eq('is_active', true)
+
+    const findRows = (professionals ?? []) as {
+      id: string
+      updated_at: string | null
+      professions: string[] | null
+    }[]
+
+    // One category landing page per profession that actually has professionals.
+    const categorySet = new Set<string>()
+    for (const row of findRows) {
+      for (const prof of row.professions ?? []) {
+        if (prof !== 'Other' && isValidProfession(prof)) categorySet.add(prof)
+      }
+    }
 
     const findRoutes: MetadataRoute.Sitemap = [
       {
@@ -93,7 +108,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'daily',
         priority: 0.8,
       },
-      ...((professionals ?? []) as { id: string; updated_at: string | null }[]).map((p) => ({
+      ...[...categorySet].map((prof) => ({
+        url: `https://find.ourdahanu.in/c/${professionSlug(prof)}`,
+        lastModified: STATIC_LAST_MODIFIED,
+        changeFrequency: 'daily' as const,
+        priority: 0.7,
+      })),
+      ...findRows.map((p) => ({
         url: `https://find.ourdahanu.in/p/${p.id}`,
         lastModified: p.updated_at ? new Date(p.updated_at) : STATIC_LAST_MODIFIED,
         changeFrequency: 'weekly' as const,
