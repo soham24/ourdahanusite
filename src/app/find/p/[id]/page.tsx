@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, LogIn, MapPin, MessageCircle, Phone, Share2, ShieldCheck } from 'lucide-react'
 import { getProfessionalById, getApprovedRatings } from '@/lib/data/find'
 import { createClient } from '@/lib/supabase/server'
+import StructuredData from '@/components/StructuredData'
 import { BusinessAvatar, GoldStars, Monogram, Mr, premiumSurfaceClass, PremiumBadge, professionLabels, telHref, timeAgo, VisitBusinessLink, waHref } from '../../find-ui'
 import { findLoginHref } from '../../find-server'
 import TrackedContactLink from '../../TrackedContactLink'
@@ -67,8 +68,71 @@ export default async function ProfessionalDetailPage({
     alreadyRated = !!mine
   }
 
+  const profileUrl = `${FIND_URL}/p/${pro.id}`
+  const proLabels = professionLabels(pro).map((l) => l.label)
+  const professionsText = proLabels.join(', ')
+  const primaryProfession = proLabels[0] ?? 'Professional'
+
+  // JSON-LD: a rated local service provider + breadcrumb. The rating/review
+  // data shown on this page is what earns ★ rich snippets in search results.
+  const proSchema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfessionalService',
+    '@id': profileUrl,
+    name: pro.name,
+    description: `${professionsText} in Dahanu${pro.locality ? `, ${pro.locality}` : ''}.`,
+    url: profileUrl,
+    telephone: pro.phone,
+    areaServed: ['Dahanu', 'Bordi', 'Gholvad', 'Palghar'],
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: pro.locality || 'Dahanu',
+      addressRegion: 'Maharashtra',
+      addressCountry: 'IN',
+    },
+    ...(pro.business?.image_url ? { image: pro.business.image_url } : {}),
+    ...(pro.rating_count > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: pro.avg_rating.toFixed(1),
+            reviewCount: pro.rating_count,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
+  }
+  const reviewNodes = ratings
+    .filter((r) => r.comment && r.comment.trim())
+    .slice(0, 5)
+    .map((r) => ({
+      '@type': 'Review',
+      reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5, worstRating: 1 },
+      author: { '@type': 'Person', name: 'Verified customer' },
+      reviewBody: r.comment,
+      datePublished: r.created_at.slice(0, 10),
+    }))
+  if (reviewNodes.length) proSchema.review = reviewNodes
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'FindDahanu', item: `${FIND_URL}/` },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: primaryProfession,
+        item: `${FIND_URL}/?profession=${encodeURIComponent(primaryProfession)}`,
+      },
+      { '@type': 'ListItem', position: 3, name: pro.name, item: profileUrl },
+    ],
+  }
+
   return (
     <div className="mx-auto max-w-2xl">
+      <StructuredData data={[proSchema, breadcrumbSchema]} />
       <Link
         href="/find"
         className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-[var(--od-border)] bg-white/70 px-3 py-1.5 text-[13px] font-semibold text-[var(--od-ink-2)] transition-colors hover:border-[rgba(192,88,46,0.4)] hover:text-[var(--od-brand-strong)]"
