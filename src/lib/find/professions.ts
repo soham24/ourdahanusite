@@ -103,3 +103,19 @@ export const PROFESSION_MR: Record<Profession, string> = {
 export function professionMarathi(en: string): string | null {
   return (PROFESSION_MR as Record<string, string>)[en] ?? null
 }
+
+// URL slug for category landing pages, e.g. 'AC/Appliance Repair' →
+// 'ac-appliance-repair', 'CA / Company Secretary' → 'ca-company-secretary'.
+export function professionSlug(profession: string): string {
+  return profession
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+const SLUG_TO_PROFESSION = new Map(PROFESSIONS.map((p) => [professionSlug(p), p]))
+
+/** Resolve a URL slug back to its stored profession, or null if unknown. */
+export function professionFromSlug(slug: string): Profession | null {
+  return SLUG_TO_PROFESSION.get(slug) ?? null
+}
