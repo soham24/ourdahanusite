@@ -10,9 +10,11 @@ import PaymentRecoveryWatcher from '@/components/PaymentRecoveryWatcher'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import StructuredData from '@/components/StructuredData'
 import { buildAbsoluteUrl, SITE_URL } from '@/lib/site'
+import Script from 'next/script'
 import { Analytics } from '@vercel/analytics/next'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { AuthProvider } from '@/lib/auth-context'
+import { ADSENSE_CLIENT_ID, adsEnabled } from '@/lib/ads'
 
 // Only set in Vercel's Production environment (see .env.local.example) so
 // dev/preview traffic never gets sent to the real GA4 property.
@@ -108,6 +110,10 @@ export const metadata: Metadata = {
     title: 'OurDahanu',
     statusBarStyle: 'default',
   },
+  // AdSense site-ownership verification. Rendered as
+  // <meta name="google-adsense-account" content="ca-pub-…"> in <head>, and
+  // only when a real publisher ID is configured (prod).
+  ...(adsEnabled() && { other: { 'google-adsense-account': ADSENSE_CLIENT_ID } }),
 }
 
 export const viewport: Viewport = {
@@ -169,6 +175,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </Suspense>
         </AuthProvider>
         <Analytics />
+        {/* AdSense loader — injected into <head> (beforeInteractive), gated on
+            a configured publisher ID. Doubles as ownership verification. */}
+        {adsEnabled() && (
+          <Script
+            id="adsbygoogle-init"
+            strategy="beforeInteractive"
+            crossOrigin="anonymous"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
+          />
+        )}
       </body>
       {GA_MEASUREMENT_ID && <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />}
     </html>
