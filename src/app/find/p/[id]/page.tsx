@@ -2,13 +2,17 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, LogIn, MapPin, MessageCircle, Phone, Share2, ShieldCheck } from 'lucide-react'
-import { getProfessionalById, getApprovedRatings } from '@/lib/data/find'
+import { getProfessionalById, getApprovedRatings, getApprovedProfessionals } from '@/lib/data/find'
 import { createClient } from '@/lib/supabase/server'
+import { professionSlug } from '@/lib/find/professions'
 import StructuredData from '@/components/StructuredData'
 import { BusinessAvatar, GoldStars, Monogram, Mr, premiumSurfaceClass, PremiumBadge, professionLabels, telHref, timeAgo, VisitBusinessLink, waHref } from '../../find-ui'
 import { findLoginHref } from '../../find-server'
 import TrackedContactLink from '../../TrackedContactLink'
+import FindCard from '../../FindCard'
 import RatingForm from './RatingForm'
+
+const NEARBY_AREAS = ['Dahanu', 'Bordi', 'Gholvad', 'Palghar']
 
 const FIND_URL = 'https://find.ourdahanu.in'
 
@@ -72,6 +76,17 @@ export default async function ProfessionalDetailPage({
   const proLabels = professionLabels(pro).map((l) => l.label)
   const professionsText = proLabels.join(', ')
   const primaryProfession = proLabels[0] ?? 'Professional'
+  const primarySlug = professionSlug(primaryProfession)
+  const categoryUrl = `${FIND_URL}/c/${primarySlug}`
+
+  // "More {profession} in Dahanu" — internal links out to related profiles,
+  // so crawlers keep moving between pages instead of dead-ending here.
+  const { items: sameProfession } = await getApprovedProfessionals({
+    profession: primaryProfession,
+    sort: 'top',
+  })
+  const related = sameProfession.filter((p) => p.id !== pro.id).slice(0, 4)
+  const otherAreas = NEARBY_AREAS.filter((a) => a !== pro.locality)
 
   // JSON-LD: a rated local service provider + breadcrumb. The rating/review
   // data shown on this page is what earns ★ rich snippets in search results.
@@ -120,12 +135,7 @@ export default async function ProfessionalDetailPage({
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'FindDahanu', item: `${FIND_URL}/` },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: primaryProfession,
-        item: `${FIND_URL}/?profession=${encodeURIComponent(primaryProfession)}`,
-      },
+      { '@type': 'ListItem', position: 2, name: primaryProfession, item: categoryUrl },
       { '@type': 'ListItem', position: 3, name: pro.name, item: profileUrl },
     ],
   }
@@ -133,12 +143,22 @@ export default async function ProfessionalDetailPage({
   return (
     <div className="mx-auto max-w-2xl">
       <StructuredData data={[proSchema, breadcrumbSchema]} />
-      <Link
-        href="/find"
-        className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-[var(--od-border)] bg-white/70 px-3 py-1.5 text-[13px] font-semibold text-[var(--od-ink-2)] transition-colors hover:border-[rgba(192,88,46,0.4)] hover:text-[var(--od-brand-strong)]"
-      >
-        <ArrowLeft size={13} aria-hidden /> Back to directory
-      </Link>
+
+      <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1.5">
+        <Link
+          href="/find"
+          className="inline-flex items-center gap-1.5 rounded-full border border-[var(--od-border)] bg-white/70 px-3 py-1.5 text-[13px] font-semibold text-[var(--od-ink-2)] transition-colors hover:border-[rgba(192,88,46,0.4)] hover:text-[var(--od-brand-strong)]"
+        >
+          <ArrowLeft size={13} aria-hidden /> FindDahanu
+        </Link>
+        <span className="text-[var(--od-muted)]" aria-hidden>/</span>
+        <Link
+          href={`/find/c/${primarySlug}`}
+          className="rounded-full border border-[var(--od-border)] bg-white/70 px-3 py-1.5 text-[13px] font-semibold text-[var(--od-ink-2)] transition-colors hover:border-[rgba(192,88,46,0.4)] hover:text-[var(--od-brand-strong)]"
+        >
+          {primaryProfession}
+        </Link>
+      </nav>
 
       <div className={`relative p-5 sm:p-6 ${pro.business ? premiumSurfaceClass : 'od-card'}`}>
         <a
@@ -219,18 +239,17 @@ export default async function ProfessionalDetailPage({
           {pro.business && <VisitBusinessLink business={pro.business} className="h-11 flex-1" />}
         </div>
 
-        {(pro.locality || pro.note) && (
-          <div className="mt-4 space-y-1.5 border-t border-[var(--od-border)] pt-4">
-            {pro.locality && (
-              <p className="flex items-center gap-1.5 text-sm text-[var(--od-ink-2)]">
-                <MapPin size={14} className="text-[var(--od-muted)]" aria-hidden /> {pro.locality}
-              </p>
-            )}
-            {pro.note && (
-              <p className="text-sm leading-relaxed text-[var(--od-ink-2)]">{pro.note}</p>
-            )}
-          </div>
-        )}
+        <div className="mt-4 space-y-1.5 border-t border-[var(--od-border)] pt-4">
+          {pro.locality && (
+            <p className="flex items-center gap-1.5 text-sm text-[var(--od-ink-2)]">
+              <MapPin size={14} className="text-[var(--od-muted)]" aria-hidden /> {pro.locality}
+            </p>
+          )}
+          <p className="text-xs text-[var(--od-muted)]">Also serves {otherAreas.join(', ')}</p>
+          {pro.note && (
+            <p className="text-sm leading-relaxed text-[var(--od-ink-2)]">{pro.note}</p>
+          )}
+        </div>
       </div>
 
       <div className="mt-6">
@@ -292,6 +311,25 @@ export default async function ProfessionalDetailPage({
           </ul>
         )}
       </section>
+
+      {related.length > 0 && (
+        <section className="mt-10 border-t border-[var(--od-border)] pt-8">
+          <h2 className="mb-3 font-display text-2xl">
+            More {primaryProfession.toLowerCase()}s in Dahanu
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {related.map((p) => (
+              <FindCard key={p.id} p={p} />
+            ))}
+          </div>
+          <Link
+            href={`/find/c/${primarySlug}`}
+            className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-bold text-[var(--od-brand)] hover:text-[var(--od-brand-strong)]"
+          >
+            View all {primaryProfession.toLowerCase()}s in Dahanu →
+          </Link>
+        </section>
+      )}
     </div>
   )
 }
