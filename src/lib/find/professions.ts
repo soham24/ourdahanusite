@@ -43,6 +43,7 @@ export const PROFESSIONS = [
   'Building Materials',
   'CA / Company Secretary',
   'Car Rental / Travel',
+  'Bag Seller',
   'Other',
 ] as const
 
@@ -98,6 +99,7 @@ export const PROFESSION_MR: Record<Profession, string> = {
   'Building Materials': 'बांधकाम साहित्य',
   'CA / Company Secretary': 'सीए / कंपनी सेक्रेटरी',
   'Car Rental / Travel': 'कार भाडे व प्रवास',
+  'Bag Seller': 'बॅग विक्रेता',
   Other: 'इतर',
 }
 
