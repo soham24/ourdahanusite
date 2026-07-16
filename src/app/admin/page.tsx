@@ -8,11 +8,9 @@ import {
   Mail,
   MapPin,
   Megaphone,
-  Package,
   Plus,
   Search,
   Shield,
-  ShoppingBag,
   Users,
 } from 'lucide-react'
 
@@ -61,7 +59,6 @@ export default async function AdminOverviewPage() {
   let pendingEvents = 0
   let pendingListings = 0
   let activeAlerts = 0
-  let activeClassifieds = 0
 
   const supabase = await createClient()
   const { role } = await getUserRole(supabase)
@@ -71,18 +68,15 @@ export default async function AdminOverviewPage() {
       eventsRes,
       listingsRes,
       alertsRes,
-      classifiedsRes,
     ] = await Promise.all([
       supabase.from('events').select('id', { count: 'exact', head: true }).eq('approved', false),
       supabase.from('listings').select('id', { count: 'exact', head: true }).eq('approved', false),
       supabase.from('emergency_alerts').select('id', { count: 'exact', head: true }).eq('active', true),
-      supabase.from('classifieds').select('id', { count: 'exact', head: true }).eq('active', true),
     ])
 
     pendingEvents = eventsRes.count ?? 0
     pendingListings = listingsRes.count ?? 0
     activeAlerts = alertsRes.count ?? 0
-    activeClassifieds = classifiedsRes.count ?? 0
   } catch {
     // Keep the dashboard usable if local DB/env setup is incomplete.
   }
@@ -108,14 +102,6 @@ export default async function AdminOverviewPage() {
             href: '/admin/events',
             icon: Calendar,
             tone: 'amber' as Tone,
-          },
-          {
-            label: 'Classifieds',
-            description: 'Active marketplace posts to monitor',
-            count: activeClassifieds,
-            href: '/admin/classifieds',
-            icon: Package,
-            tone: 'slate' as Tone,
           },
         ]
       : []),
@@ -144,19 +130,6 @@ export default async function AdminOverviewPage() {
             icon: Megaphone,
             tone: activeAlerts > 0 ? ('red' as Tone) : ('slate' as Tone),
             badge: activeAlerts > 0 ? 'Live now' : 'Quiet',
-          },
-        ]
-      : []),
-    ...(canModerateContent
-      ? [
-          {
-            label: 'Classifieds',
-            value: activeClassifieds,
-            detail: 'Active posts visible in the marketplace',
-            href: '/admin/classifieds',
-            icon: ShoppingBag,
-            tone: 'purple' as Tone,
-            badge: 'Active',
           },
         ]
       : []),

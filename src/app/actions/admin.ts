@@ -54,26 +54,23 @@ export async function requireAdminOrMod(supabase: SupabaseClient) {
 const TABLE_PATH_MAP: Record<string, string> = {
   events: '/events',
   listings: '/listings',
-  classifieds: '/classifieds',
 }
 
 // Maps each table to the field that holds the submitter's user ID
 const SUBMITTER_FIELD: Record<string, string> = {
   events: 'organizer_id',
   listings: 'owner_id',
-  classifieds: 'seller_id',
 }
 
 // Maps each table to a human-readable content label
 const CONTENT_LABEL: Record<string, string> = {
   events: 'event',
   listings: 'business listing',
-  classifieds: 'classified ad',
 }
 
 /**
  * Send an approval notification to the submitter of non-listing content
- * (events, classifieds).
+ * (events).
  *
  * Listings go through the unified `sendNotification('listing.approved')` path
  * instead, since that also fires WhatsApp + Telegram + in-app in one shot.
