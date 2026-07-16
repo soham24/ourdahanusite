@@ -5,7 +5,7 @@
  */
 
 interface HomeSectionSkeletonProps {
-  variant: 'bar' | 'row' | 'cta' | 'jobs' | 'card'
+  variant: 'bar' | 'row' | 'cta' | 'card'
   label?: string
 }
 
@@ -83,36 +83,6 @@ export default function HomeSectionSkeleton({ variant, label }: HomeSectionSkele
             <div className="mx-auto h-8 w-72 rounded skeleton-shimmer mb-3" />
             <div className="mx-auto h-3 w-96 rounded skeleton-shimmer mb-6" />
             <div className="mx-auto h-11 w-40 rounded-xl skeleton-shimmer" />
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  if (variant === 'jobs') {
-    return (
-      <section className="py-16 border-y border-[var(--color-border)] bg-[#FBF5EC]">
-        <div className="mx-auto max-w-[1160px] px-6">
-          <div className="mb-8">
-            <div className="h-3 w-24 rounded skeleton-shimmer mb-2" />
-            <div className="h-8 w-56 rounded skeleton-shimmer" />
-          </div>
-          <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
-            <div className="flex flex-col gap-2.5">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="rounded-[var(--od-radius)] border border-[var(--color-border)] bg-white p-5">
-                  <div className="flex gap-4">
-                    <div className="h-11 w-11 flex-shrink-0 rounded-xl skeleton-shimmer" />
-                    <div className="flex-1">
-                      <div className="h-4 w-2/3 rounded skeleton-shimmer mb-2" />
-                      <div className="h-3 w-1/3 rounded skeleton-shimmer mb-2" />
-                      <div className="h-2 w-3/4 rounded skeleton-shimmer" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="rounded-3xl skeleton-shimmer h-[320px]" />
           </div>
         </div>
       </section>

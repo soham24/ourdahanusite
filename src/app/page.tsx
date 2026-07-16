@@ -4,7 +4,6 @@ import { Suspense } from 'react'
 import {
   getHomeNewListings,
   getHomePopularListings,
-  getHomeRecentJobs,
   getHomeRecentReviews,
   getHomeStats,
 } from '@/lib/data/home'
@@ -17,7 +16,6 @@ import CategoryGrid from './page-components/CategoryGrid'
 import NewListingsSection from './page-components/NewListingsSection'
 import PopularBusinesses from './page-components/PopularBusinesses'
 import BusinessOwnerCTA from './page-components/BusinessOwnerCTA'
-import JobsSection from './page-components/JobsSection'
 import RecentReviewsSection from './page-components/RecentReviewsSection'
 import HeritageSection from './page-components/HeritageSection'
 import AboutDahanu from './page-components/AboutDahanu'
@@ -25,25 +23,25 @@ import BottomCTABanner from './page-components/BottomCTABanner'
 import HomeSectionSkeleton from './page-components/HomeSectionSkeleton'
 
 export const metadata: Metadata = {
-  title: 'Dahanu Business Directory, Local Jobs & Community',
+  title: 'Dahanu Business Directory & Community',
   description:
-    'Discover Dahanu businesses, restaurants, hotels, services, local jobs, and community updates on OurDahanu.',
+    'Discover Dahanu businesses, restaurants, hotels, services, and community updates on OurDahanu.',
   alternates: {
     canonical: 'https://ourdahanu.in/',
   },
   openGraph: {
-    title: 'Dahanu Business Directory, Local Jobs & Community',
+    title: 'Dahanu Business Directory & Community',
     description:
-      'Discover Dahanu businesses, restaurants, hotels, services, local jobs, and community updates on OurDahanu.',
+      'Discover Dahanu businesses, restaurants, hotels, services, and community updates on OurDahanu.',
     url: 'https://ourdahanu.in/',
     type: 'website',
     images: [{ url: 'https://ourdahanu.in/logo.png' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Dahanu Business Directory, Local Jobs & Community',
+    title: 'Dahanu Business Directory & Community',
     description:
-      'Discover Dahanu businesses, restaurants, hotels, services, local jobs, and community updates on OurDahanu.',
+      'Discover Dahanu businesses, restaurants, hotels, services, and community updates on OurDahanu.',
     images: ['https://ourdahanu.in/logo.png'],
   },
 }
@@ -82,10 +80,6 @@ export default function HomePage() {
 
       <Suspense fallback={<HomeSectionSkeleton variant="cta" />}>
         <BusinessOwnerCTAAsync />
-      </Suspense>
-
-      <Suspense fallback={<HomeSectionSkeleton variant="jobs" />}>
-        <JobsSectionAsync />
       </Suspense>
 
       <Suspense fallback={<HomeSectionSkeleton variant="row" label="What people are saying" />}>
@@ -134,25 +128,6 @@ async function BusinessOwnerCTAAsync() {
     <BusinessOwnerCTA
       currentPrice={pricing.current_price}
       basePrice={pricing.base_price}
-    />
-  )
-}
-
-async function JobsSectionAsync() {
-  // Three independent cached fetches; with `'use cache'` Next dedupes any
-  // overlap and runs them in parallel. JobsSection needs totalJobs from
-  // the stats RPC plus the recent-jobs query plus pricing.
-  const [recentJobs, stats, pricing] = await Promise.all([
-    getHomeRecentJobs(),
-    getHomeStats(),
-    getCachedPricingConfig(),
-  ])
-  return (
-    <JobsSection
-      recentJobs={recentJobs}
-      totalJobs={stats.totalJobs}
-      jobCurrentPrice={pricing.job_current_price}
-      jobBasePrice={pricing.job_base_price}
     />
   )
 }

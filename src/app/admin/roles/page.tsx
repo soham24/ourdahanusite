@@ -12,7 +12,6 @@ const ROLE_OPTIONS = [
   { value: 'user', label: 'User', color: 'bg-gray-100 text-gray-600', icon: '👤', desc: 'Standard community member' },
   { value: 'verified', label: 'Verified', color: 'bg-green-100 text-green-700', icon: '✅', desc: 'Trusted verified member' },
   { value: 'business_owner', label: 'Business Owner', color: 'bg-amber-100 text-amber-700', icon: '🏪', desc: 'Can manage own listings' },
-  { value: 'job_reviewer', label: 'Job Reviewer', color: 'bg-purple-100 text-purple-700', icon: '💼', desc: 'Can approve/reject job postings only' },
   { value: 'moderator', label: 'Moderator', color: 'bg-blue-100 text-blue-700', icon: '🛡️', desc: 'Can approve/reject all content' },
   { value: 'admin', label: 'Admin', color: 'bg-red-100 text-red-700', icon: '⚡', desc: 'Full access including emergency & newsletter' },
 ]
@@ -22,7 +21,7 @@ type RolesSearchParams = {
   q?: string
 }
 
-type RoleCountKey = 'admin' | 'moderator' | 'business_owner' | 'job_reviewer' | 'user' | 'verified'
+type RoleCountKey = 'admin' | 'moderator' | 'business_owner' | 'user' | 'verified'
 
 type MemberRow = {
   id: string
@@ -68,27 +67,23 @@ async function getRoleCounts(
     adminResult,
     moderatorResult,
     businessOwnerResult,
-    reviewerResult,
     verifiedResult,
   ] = await Promise.all([
     supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'admin'),
     supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'moderator'),
     supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'business_owner'),
-    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'job_reviewer'),
     supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('verified', true),
   ])
 
   const adminCount = adminResult.count ?? 0
   const moderatorCount = moderatorResult.count ?? 0
   const businessOwnerCount = businessOwnerResult.count ?? 0
-  const reviewerCount = reviewerResult.count ?? 0
 
   return {
     admin: adminCount,
     moderator: moderatorCount,
     business_owner: businessOwnerCount,
-    job_reviewer: reviewerCount,
-    user: Math.max(totalUsers - adminCount - moderatorCount - businessOwnerCount - reviewerCount, 0),
+    user: Math.max(totalUsers - adminCount - moderatorCount - businessOwnerCount, 0),
     verified: verifiedResult.count ?? 0,
   }
 }
@@ -374,7 +369,6 @@ export default async function RolesPage({
                 >
                   <option value="user">👤 User</option>
                   <option value="business_owner">🏪 Business Owner</option>
-                  <option value="job_reviewer">💼 Job Reviewer</option>
                   <option value="moderator">🛡️ Moderator</option>
                   <option value="admin">⚡ Admin</option>
                 </select>

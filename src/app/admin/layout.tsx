@@ -10,14 +10,13 @@ export const unstable_instant = false
 const ROLE_BADGE: Record<string, { label: string; color: string }> = {
   admin: { label: 'Admin', color: 'border-red-200 bg-red-50 text-red-700' },
   moderator: { label: 'Moderator', color: 'border-blue-200 bg-blue-50 text-blue-700' },
-  job_reviewer: { label: 'Job Reviewer', color: 'border-purple-200 bg-purple-50 text-purple-700' },
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { user, role } = await getUserRole(supabase)
 
-  if (!user || (role !== 'admin' && role !== 'moderator' && role !== 'job_reviewer')) {
+  if (!user || (role !== 'admin' && role !== 'moderator')) {
     redirect('/')
   }
 

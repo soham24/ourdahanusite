@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Store, Search, Briefcase, UserRound } from 'lucide-react'
+import { Home, Store, Search, UserRound } from 'lucide-react'
 
 import { buildAbsoluteUrl } from '@/lib/site'
 
@@ -10,7 +10,6 @@ const TABS = [
   { href: buildAbsoluteUrl('/'), matchPath: '/', label: 'Home', icon: Home },
   { href: buildAbsoluteUrl('/listings'), matchPath: '/listings', label: 'Listings', icon: Store },
   { href: buildAbsoluteUrl('/search'), matchPath: '/search', label: 'Search', icon: Search },
-  { href: buildAbsoluteUrl('/jobs'), matchPath: '/jobs', label: 'Jobs', icon: Briefcase },
   { href: buildAbsoluteUrl('/dashboard'), matchPath: '/dashboard', label: 'Profile', icon: UserRound },
 ]
 
@@ -22,7 +21,7 @@ export default function BottomTabBar() {
       className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--od-border)] bg-[rgba(250,250,247,0.96)] shadow-[0_-10px_30px_rgba(46,18,5,0.08)] backdrop-blur-xl"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      <div className="grid grid-cols-5">
+      <div className="grid grid-cols-4">
         {TABS.map(({ href, matchPath, label, icon: Icon }) => {
           const active = matchPath === '/' ? pathname === '/' : pathname.startsWith(matchPath)
           return (

@@ -127,9 +127,6 @@ interface AdminSubmissionPayload {
     | 'listing'
     | 'classified'
     | 'event'
-    | 'news'
-    | 'forum'
-    | 'job'
     | 'professional'
     | 'professional_review'
   title: string

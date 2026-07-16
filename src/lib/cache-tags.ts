@@ -11,7 +11,6 @@ export const CACHE_TAGS = {
   emergency: 'emergency',
   listings: 'listings',
   listingCategories: 'listing-categories',
-  jobs: 'jobs',
   settings: 'settings',
   polls: 'polls',
   appointments: 'appointments',
@@ -55,10 +54,6 @@ export function revalidatePublicListingDetail(listingId: string) {
 export function revalidatePublicListingContent(listingId: string) {
   revalidatePublicListingCollections()
   revalidatePublicListingDetail(listingId)
-}
-
-export function revalidatePublicJobs() {
-  updatePublicTags('public-jobs', [CACHE_TAGS.home, CACHE_TAGS.jobs])
 }
 
 export function revalidatePricingCache() {

@@ -122,7 +122,7 @@ export default function AboutPage() {
             </h1>
             <p className="mx-auto mt-7 max-w-[640px] text-base leading-8 text-[#F8E9D5]/80 md:text-lg">
               Founded by <strong className="font-semibold text-white">Soham Railkar</strong> as a Facebook, Instagram
-              and WhatsApp community — now becoming the digital home for Dahanu&apos;s businesses, services, jobs and
+              and WhatsApp community — now becoming the digital home for Dahanu&apos;s businesses, services and
               everyday discoveries.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-3">
@@ -312,7 +312,7 @@ export default function AboutPage() {
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[#F8E9D5]/82 md:text-lg">
               Not a generic marketplace — a Dahanu-first one. The mission is moving from posts and groups into a
-              structured platform: listings, services, local products, jobs, recommendations and trusted discovery.
+              structured platform: listings, services, local products, recommendations and trusted discovery.
             </p>
           </div>
 

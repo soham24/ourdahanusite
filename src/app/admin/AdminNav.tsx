@@ -6,15 +6,12 @@ import type { LucideIcon } from 'lucide-react'
 import {
   BadgePercent,
   BarChart3,
-  Briefcase,
   Calendar,
   CreditCard,
   LayoutDashboard,
   Mail,
   MapPin,
   Megaphone,
-  MessageCircle,
-  Newspaper,
   Package,
   ShieldAlert,
   ShoppingBag,
@@ -23,7 +20,7 @@ import {
   Users,
 } from 'lucide-react'
 
-type AdminRole = 'admin' | 'moderator' | 'job_reviewer'
+type AdminRole = 'admin' | 'moderator'
 
 type NavItem = {
   href: string
@@ -36,13 +33,10 @@ const MOD_ROLES: AdminRole[] = ['admin', 'moderator']
 const ADMIN_ONLY: AdminRole[] = ['admin']
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/admin', label: 'Overview', icon: LayoutDashboard, roles: ['admin', 'moderator', 'job_reviewer'] },
-  { href: '/admin/jobs', label: 'Jobs', icon: Briefcase, roles: ['admin', 'moderator', 'job_reviewer'] },
-  { href: '/admin/news', label: 'News', icon: Newspaper, roles: MOD_ROLES },
+  { href: '/admin', label: 'Overview', icon: LayoutDashboard, roles: MOD_ROLES },
   { href: '/admin/events', label: 'Events', icon: Calendar, roles: MOD_ROLES },
   { href: '/admin/listings', label: 'Listings', icon: MapPin, roles: MOD_ROLES },
   { href: '/admin/classifieds', label: 'Classifieds', icon: Package, roles: MOD_ROLES },
-  { href: '/admin/forum', label: 'Forum', icon: MessageCircle, roles: MOD_ROLES },
   { href: '/admin/reviews', label: 'Reviews', icon: Star, roles: MOD_ROLES },
   { href: '/admin/featured', label: 'Featured', icon: Sparkles, roles: ADMIN_ONLY },
   { href: '/admin/polls', label: 'Polls', icon: BarChart3, roles: ADMIN_ONLY },

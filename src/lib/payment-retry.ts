@@ -23,7 +23,6 @@ export const RECOVERY_PATH_PREFIX = '/payments/recover'
 
 export type PaymentRecoveryFlow =
   | 'listing'
-  | 'job'
   | 'renew'
   | 'order'
   | 'marketplace'

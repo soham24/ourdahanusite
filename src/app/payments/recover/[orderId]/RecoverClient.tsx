@@ -6,7 +6,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { CheckCircle, Loader2, RefreshCw, ShieldAlert, ShieldCheck } from 'lucide-react'
 
 import { bookAppointment } from '@/app/actions/appointments'
-import { submitPaidJob } from '@/app/actions/jobs'
 import { renewListing, submitPaidListing } from '@/app/actions/listings'
 import { placeMarketplaceOrder } from '@/app/actions/marketplace-orders'
 import { placeOrder } from '@/app/actions/orders'
@@ -49,7 +48,6 @@ interface ServerIntent {
 const FLOW_LABEL: Record<PaymentRecoveryFlow, string> = {
   listing: 'Business Listing',
   renew: 'Listing Renewal',
-  job: 'Job Posting',
   order: 'Service Order',
   marketplace: 'Marketplace Order',
   appointment: 'Appointment Booking',
@@ -58,7 +56,6 @@ const FLOW_LABEL: Record<PaymentRecoveryFlow, string> = {
 const successHomeFor: Record<PaymentRecoveryFlow, string> = {
   listing: '/listings?submitted=1',
   renew: '/my-business?renewed=1',
-  job: '/jobs?submitted=1',
   order: '/account/orders',
   marketplace: '/account/orders',
   appointment: '/dashboard/appointments',
@@ -95,8 +92,6 @@ export default function RecoverClient({ orderId }: { orderId: string }) {
               }
               return renewListing(listingId, fd)
             }
-            case 'job':
-              return submitPaidJob(fd)
             case 'order':
               return placeOrder(fd)
             case 'marketplace':

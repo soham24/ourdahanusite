@@ -69,27 +69,6 @@ export async function updatePricing(formData: FormData): Promise<{ error?: strin
   }
 }
 
-export async function updateJobPricing(formData: FormData): Promise<{ error?: string }> {
-  try {
-    const db = await checkAdmin()
-    const job_base_price = parseInt(formData.get('job_base_price') as string)
-    const job_current_price = parseInt(formData.get('job_current_price') as string)
-    if (isNaN(job_base_price) || isNaN(job_current_price)) return { error: 'Invalid prices.' }
-    if (job_current_price > job_base_price) return { error: 'Current price cannot exceed base price.' }
-
-    const { error } = await db
-      .from('pricing_config')
-      .update({ job_base_price, job_current_price, updated_at: new Date().toISOString() })
-      .eq('id', 1)
-
-    if (error) return { error: error.message }
-    revalidatePricingCache()
-    return {}
-  } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : 'Failed to update job pricing.' }
-  }
-}
-
 // ── Coupon CRUD ──────────────────────────────────────────────────────────────
 
 export async function createCoupon(formData: FormData): Promise<{ error?: string }> {

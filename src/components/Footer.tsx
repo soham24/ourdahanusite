@@ -8,7 +8,6 @@ import { buildAbsoluteUrl } from '@/lib/site'
 const EXPLORE_LINKS = [
   { href: '/listings', label: 'Business Listings' },
   { href: '/listings/submit', label: 'List Your Business' },
-  { href: '/jobs', label: 'Jobs in Dahanu' },
   { href: '/emergency', label: 'Emergency & Safety' },
   { href: '/search', label: 'Search' },
   { href: '/about', label: 'About OurDahanu' },

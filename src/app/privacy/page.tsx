@@ -47,7 +47,7 @@ export default function PrivacyPolicyPage() {
 
         <Section title="Information we collect">
           <p><strong className="font-semibold text-[#2E1205]">Information you provide.</strong> When you create an
-            account, list a business, submit a professional to the directory, post a job, leave a rating or review, or
+            account, list a business, submit a professional to the directory, leave a rating or review, or
             contact us, we collect the details you enter — such as your name, phone number, email address, business
             information, and any content you submit.</p>
           <p><strong className="font-semibold text-[#2E1205]">Information collected automatically.</strong> When you

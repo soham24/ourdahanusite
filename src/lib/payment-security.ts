@@ -4,9 +4,7 @@ import { getCachedPricingConfig } from '@/lib/data/pricing'
 import { normalizeInlineText, normalizeServiceItems } from '@/lib/listing-content'
 import { createPublicClient } from '@/lib/supabase/public'
 
-type FlowKind = 'job' | 'listing' | 'order' | 'appointment'
-
-type PricingKind = 'job' | 'listing'
+type FlowKind = 'listing' | 'order' | 'appointment'
 
 export type SubmissionCharge = {
   couponCode: string | null
@@ -56,14 +54,10 @@ async function getEnabledCouponFinalPrice(code: string): Promise<number | null> 
 }
 
 async function getSubmissionCharge(
-  kind: PricingKind,
   couponCode: string | null | undefined,
 ): Promise<SubmissionCharge> {
   const pricing = await getCachedPricingConfig()
-  const basePrice =
-    kind === 'job'
-      ? pricing.job_current_price
-      : pricing.current_price
+  const basePrice = pricing.current_price
 
   const normalizedCode = normalizeCouponCode(couponCode)
   if (!normalizedCode) {
@@ -96,16 +90,10 @@ async function getSubmissionCharge(
   }
 }
 
-export async function getJobSubmissionCharge(
-  couponCode: string | null | undefined,
-): Promise<SubmissionCharge> {
-  return getSubmissionCharge('job', couponCode)
-}
-
 export async function getListingSubmissionCharge(
   couponCode: string | null | undefined,
 ): Promise<SubmissionCharge> {
-  return getSubmissionCharge('listing', couponCode)
+  return getSubmissionCharge(couponCode)
 }
 
 function parseServicePrice(price: string | undefined): number | null {
