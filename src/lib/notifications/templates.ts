@@ -538,7 +538,6 @@ function renderAdminSubmission(
 ): RenderedNotification {
   const labels: Record<NotificationPayload<'admin.new_submission'>['kind'], string> = {
     listing: 'Listing',
-    classified: 'Classified',
     event: 'Event',
     professional: 'Professional',
     professional_review: 'Professional review',

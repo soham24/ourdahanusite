@@ -98,7 +98,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 gap-4 mb-8">
         {/* My Business — live */}
         <Link href="/my-business"
           className="bg-white border border-gray-100 hover:border-border hover:shadow-md rounded-2xl p-4 text-center transition-all group">
@@ -117,16 +117,6 @@ export default async function DashboardPage() {
           <div className="text-2xl font-bold text-gray-900 group-hover:text-brand transition-colors">↗</div>
           <div className="text-xs text-gray-500">Appointments</div>
         </Link>
-
-        {[
-          { label: 'Classifieds', emoji: '📦' },
-        ].map(s => (
-          <div key={s.label} className="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-4 text-center opacity-50 cursor-not-allowed">
-            <div className="text-2xl mb-2">{s.emoji}</div>
-            <div className="text-2xl font-bold text-gray-300">—</div>
-            <div className="text-xs text-gray-300">{s.label}<ComingSoonBadge /></div>
-          </div>
-        ))}
       </div>
 
       {/* Quick Actions */}
@@ -161,7 +151,6 @@ export default async function DashboardPage() {
         {/* Coming soon quick actions */}
         {[
           { label: 'Post Event', emoji: '📅' },
-          { label: 'Post Ad', emoji: '📦' },
         ].map(a => (
           <div key={a.label} className="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-4 text-center opacity-50 cursor-not-allowed">
             <div className="text-2xl mb-2">{a.emoji}</div>
@@ -173,7 +162,6 @@ export default async function DashboardPage() {
       {/* Coming Soon sections */}
       <ComingSoonSection title="My Events" icon={<span className="text-xl">📅</span>} color="text-[var(--od-brand)]" />
       <ComingSoonSection title="My Business Listings" icon={<span className="text-xl">📍</span>} color="text-[var(--od-gold)]" />
-      <ComingSoonSection title="My Classifieds" icon={<span className="text-xl">📦</span>} color="text-[var(--od-brown)]" />
 
       {/* Edit Profile */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-6">

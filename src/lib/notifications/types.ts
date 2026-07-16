@@ -125,7 +125,6 @@ interface ReviewReplyPostedPayload {
 interface AdminSubmissionPayload {
   kind:
     | 'listing'
-    | 'classified'
     | 'event'
     | 'professional'
     | 'professional_review'

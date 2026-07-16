@@ -32,7 +32,7 @@ function SearchBar({ query }: { query: string }) {
         type="text"
         name="q"
         defaultValue={query}
-        placeholder="Search events, businesses, classifieds in Dahanu..."
+        placeholder="Search events, businesses in Dahanu..."
         autoFocus
         className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:border-brand bg-white text-base shadow-sm"
       />
@@ -67,14 +67,13 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
 
   let events: Record<string, unknown>[] = []
   let listings: Record<string, unknown>[] = []
-  let classifieds: Record<string, unknown>[] = []
 
   if (query) {
     try {
       const supabase = createPublicClient()
       const pattern = `%${query}%`
 
-      const [eventsRes, listingsRes, classifiedsRes] = await Promise.all([
+      const [eventsRes, listingsRes] = await Promise.all([
         Promise.resolve({ data: [] }), // events coming soon
         supabase
           .from('listings')
@@ -82,12 +81,10 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
           .eq('approved', true)
           .ilike('name', pattern)
           .limit(5),
-        Promise.resolve({ data: [] }), // classifieds coming soon
       ])
 
       events = eventsRes.data || []
       listings = listingsRes.data || []
-      classifieds = classifiedsRes.data || []
     } catch {
       // DB error — show no results
     }
@@ -99,7 +96,7 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Search OurDahanu</h1>
-        <p className="text-gray-500">Find events, businesses, and classifieds</p>
+        <p className="text-gray-500">Find events and businesses</p>
       </div>
 
       <SearchBar query={query} />
