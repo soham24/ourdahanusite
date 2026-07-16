@@ -1,6 +1,5 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
 import { revalidateFindCache } from '@/lib/cache-tags'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
@@ -70,7 +69,6 @@ export async function setProfessionalStatus(id: string, status: 'approved' | 're
   const { error } = await db.from('find_professionals')
     .update({ status, updated_at: new Date().toISOString() }).eq('id', id)
   if (error) return { error: error.message }
-  revalidatePath('/admin/find')
   revalidateFindCache()
   return { ok: true }
 }
@@ -84,7 +82,6 @@ export async function updateProfessional(id: string, fields: AdminProfessionalFi
   const { error } = await db.from('find_professionals')
     .update({ ...toRow(fields), updated_at: new Date().toISOString() }).eq('id', id)
   if (error) return { error: error.message }
-  revalidatePath('/admin/find')
   revalidateFindCache()
   return { ok: true }
 }
@@ -98,7 +95,6 @@ export async function createProfessionalAsAdmin(fields: AdminProfessionalFields)
   const { error } = await db.from('find_professionals')
     .insert({ ...toRow(fields), status: 'approved', is_active: true })
   if (error) return { error: error.message }
-  revalidatePath('/admin/find')
   revalidateFindCache()
   return { ok: true }
 }
@@ -125,7 +121,6 @@ export async function setProfessionalActive(id: string, isActive: boolean): Prom
   const { error } = await db.from('find_professionals')
     .update({ is_active: isActive, updated_at: new Date().toISOString() }).eq('id', id)
   if (error) return { error: error.message }
-  revalidatePath('/admin/find')
   revalidateFindCache()
   return { ok: true }
 }
@@ -135,7 +130,6 @@ export async function setRatingStatus(id: string, status: 'approved' | 'rejected
   const { error } = await db.from('find_ratings')
     .update({ status, updated_at: new Date().toISOString() }).eq('id', id)
   if (error) return { error: error.message }
-  revalidatePath('/admin/find')
   revalidateFindCache()
   return { ok: true }
 }
@@ -146,7 +140,6 @@ export async function deleteProfessional(id: string): Promise<Result> {
   const db = await admin()
   const { error } = await db.from('find_professionals').delete().eq('id', id)
   if (error) return { error: error.message }
-  revalidatePath('/admin/find')
   revalidateFindCache()
   return { ok: true }
 }
@@ -155,7 +148,6 @@ export async function deleteRating(id: string): Promise<Result> {
   const db = await admin()
   const { error } = await db.from('find_ratings').delete().eq('id', id)
   if (error) return { error: error.message }
-  revalidatePath('/admin/find')
   revalidateFindCache()
   return { ok: true }
 }
