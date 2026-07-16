@@ -141,6 +141,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       name: 'OurDahanu',
       url: SITE_URL,
       inLanguage: 'en-IN',
+      // Enables Google's sitelinks search box under the site's main result.
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
+        },
+        'query-input': 'required name=search_term_string',
+      },
     },
   ]
 
