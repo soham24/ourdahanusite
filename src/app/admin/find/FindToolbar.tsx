@@ -52,6 +52,12 @@ export default function FindToolbar({
 
   useEffect(() => { setQuery(q) }, [q])
 
+  useEffect(() => {
+    return () => {
+      if (timer.current) clearTimeout(timer.current)
+    }
+  }, [])
+
   function onSearchChange(value: string) {
     setQuery(value)
     if (timer.current) clearTimeout(timer.current)
