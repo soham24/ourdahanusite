@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Briefcase, Plus, UserCircle, User, Clock, CheckCircle, Shield, Store, Edit2, LogOut, Calendar } from 'lucide-react'
+import { UserCircle, User, CheckCircle, Shield, Store, Edit2, LogOut, Calendar } from 'lucide-react'
 import { updateProfile } from '@/app/actions/profile'
 import { getUserRole } from '@/app/actions/admin'
 
@@ -43,19 +43,11 @@ export default async function DashboardPage() {
 
   const { role, verified } = await getUserRole(supabase)
 
-  let myJobsCount = 0
-  let myJobs: Record<string, unknown>[] = []
   let profileData: Record<string, unknown> | null = null
 
   try {
-    const [jobsCountRes, jobsRes, profileRes] = await Promise.all([
-      supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('posted_by', user.id),
-      supabase.from('jobs').select('id, title, company, type, approved, created_at').eq('posted_by', user.id).order('created_at', { ascending: false }).limit(5),
-      supabase.from('profiles').select('full_name, phone, address').eq('id', user.id).single(),
-    ])
-    myJobsCount = jobsCountRes.count || 0
-    myJobs = jobsRes.data || []
-    profileData = profileRes.data
+    const { data } = await supabase.from('profiles').select('full_name, phone, address').eq('id', user.id).single()
+    profileData = data
   } catch {
     // DB not ready — use defaults
   }
@@ -106,17 +98,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {/* Jobs — live */}
-        <a href="#my-jobs"
-          className="bg-white border border-gray-100 hover:border-green-300 hover:shadow-md rounded-2xl p-4 text-center transition-all group">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-green-50 text-green-600">
-            <Briefcase size={18} />
-          </div>
-          <div className="text-2xl font-bold text-gray-900 group-hover:text-green-700 transition-colors">{myJobsCount}</div>
-          <div className="text-xs text-gray-500">My Jobs</div>
-        </a>
-
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         {/* My Business — live */}
         <Link href="/my-business"
           className="bg-white border border-gray-100 hover:border-border hover:shadow-md rounded-2xl p-4 text-center transition-all group">
@@ -137,7 +119,7 @@ export default async function DashboardPage() {
         </Link>
 
         {[
-          { label: 'News', emoji: '📰' },
+          { label: 'Classifieds', emoji: '📦' },
         ].map(s => (
           <div key={s.label} className="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-4 text-center opacity-50 cursor-not-allowed">
             <div className="text-2xl mb-2">{s.emoji}</div>
@@ -149,16 +131,8 @@ export default async function DashboardPage() {
 
       {/* Quick Actions */}
       <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-10">
         {/* Live actions */}
-        <Link href="/jobs/submit"
-          className="bg-white border border-gray-100 hover:border-green-300 hover:shadow-md rounded-2xl p-4 text-center transition-all group">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-green-100 text-green-700">
-            <Briefcase size={18} />
-          </div>
-          <div className="text-xs font-semibold text-gray-700 group-hover:text-green-700 transition-colors">Post Job</div>
-        </Link>
-
         <Link href="/profile"
           className="bg-white border border-gray-100 hover:border-border hover:shadow-md rounded-2xl p-4 text-center transition-all group">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 bg-surface-soft text-brand">
@@ -188,7 +162,6 @@ export default async function DashboardPage() {
         {[
           { label: 'Post Event', emoji: '📅' },
           { label: 'Post Ad', emoji: '📦' },
-          { label: 'Submit News', emoji: '📰' },
         ].map(a => (
           <div key={a.label} className="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-4 text-center opacity-50 cursor-not-allowed">
             <div className="text-2xl mb-2">{a.emoji}</div>
@@ -197,50 +170,9 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* My Jobs — LIVE */}
-      <div id="my-jobs" className="bg-white border border-gray-100 rounded-2xl p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <Briefcase size={18} className="text-green-600" />
-            My Job Postings
-          </h2>
-          <Link href="/jobs/submit" className="inline-flex items-center gap-1 text-sm text-green-600 font-medium hover:text-green-700">
-            <Plus size={14} /> Post Job
-          </Link>
-        </div>
-        {myJobs.length === 0 ? (
-          <p className="text-gray-400 text-sm text-center py-4">
-            No jobs posted yet.{' '}
-            <Link href="/jobs/submit" className="text-green-600 hover:underline">Post your first job opening</Link>
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {myJobs.map(job => (
-              <div key={job.id as string} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                <div>
-                  <p className="font-medium text-gray-900 text-sm">{job.title as string}</p>
-                  <p className="text-xs text-gray-400 flex items-center gap-1">
-                    {job.company as string}{job.type ? ` · ${job.type as string}` : ''}
-                    {job.created_at ? (
-                      <span className="flex items-center gap-0.5 ml-1"><Clock size={10} />
-                        {new Date(String(job.created_at)).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                      </span>
-                    ) : null}
-                  </p>
-                </div>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${job.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                  {job.approved ? 'Live' : 'Pending'}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Coming Soon sections */}
       <ComingSoonSection title="My Events" icon={<span className="text-xl">📅</span>} color="text-[var(--od-brand)]" />
       <ComingSoonSection title="My Business Listings" icon={<span className="text-xl">📍</span>} color="text-[var(--od-gold)]" />
-      <ComingSoonSection title="My News Articles" icon={<span className="text-xl">📰</span>} color="text-[var(--od-success)]" />
       <ComingSoonSection title="My Classifieds" icon={<span className="text-xl">📦</span>} color="text-[var(--od-brown)]" />
 
       {/* Edit Profile */}

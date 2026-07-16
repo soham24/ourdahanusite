@@ -540,9 +540,6 @@ function renderAdminSubmission(
     listing: 'Listing',
     classified: 'Classified',
     event: 'Event',
-    news: 'News post',
-    forum: 'Forum post',
-    job: 'Job',
     professional: 'Professional',
     professional_review: 'Professional review',
   }

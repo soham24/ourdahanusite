@@ -32,7 +32,7 @@ export default function AboutDahanu() {
             </h2>
             <p className="text-sm text-[var(--color-text-muted)] mt-2 max-w-[620px] leading-[1.7]">
               OurDahanu began as a social and WhatsApp community for Dahanu people. Now it is
-              growing into a marketplace where locals can discover businesses, services, jobs and
+              growing into a marketplace where locals can discover businesses, services and
               trusted recommendations.
             </p>
           </div>

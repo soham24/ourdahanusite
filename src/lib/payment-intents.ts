@@ -4,7 +4,6 @@ import { createAdminClient } from '@/lib/supabase/admin-client'
 
 export type PaymentIntentFlow =
   | 'listing'
-  | 'job'
   | 'renew'
   | 'order'
   | 'marketplace'

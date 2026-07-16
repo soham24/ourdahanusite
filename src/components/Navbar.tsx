@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { BriefcaseBusiness, Plus, Search, ShieldAlert, Store, UsersRound } from 'lucide-react'
+import { Plus, Search, ShieldAlert, Store, UsersRound } from 'lucide-react'
 
 import NavbarAuthControls from '@/components/NavbarAuthControls'
 import SafeAppLink from '@/components/SafeAppLink'
@@ -8,7 +8,6 @@ import { buildAbsoluteUrl } from '@/lib/site'
 
 const NAV_LINKS = [
   { href: buildAbsoluteUrl('/listings'), label: 'Businesses' },
-  { href: buildAbsoluteUrl('/jobs'), label: 'Jobs' },
   { href: buildAbsoluteUrl('/search'), label: 'Search' },
   { href: buildAbsoluteUrl('/about'), label: 'About' },
 ]
@@ -16,7 +15,6 @@ const NAV_LINKS = [
 const MOBILE_NAV = [
   { href: buildAbsoluteUrl('/listings'), label: 'Explore Businesses', icon: Store },
   { href: buildAbsoluteUrl('/search'), label: 'Search Everything', icon: Search },
-  { href: buildAbsoluteUrl('/jobs'), label: 'Jobs in Dahanu', icon: BriefcaseBusiness },
   { href: buildAbsoluteUrl('/about'), label: 'About OurDahanu', icon: UsersRound },
   { href: buildAbsoluteUrl('/listings/submit'), label: 'Add Business', icon: Plus },
 ]

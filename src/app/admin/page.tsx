@@ -3,15 +3,11 @@ import Link from 'next/link'
 import {
   ArrowRight,
   BadgePercent,
-  Briefcase,
   Calendar,
   CheckCircle,
-  Clock,
   Mail,
   MapPin,
   Megaphone,
-  MessageCircle,
-  Newspaper,
   Package,
   Plus,
   Search,
@@ -21,14 +17,6 @@ import {
 } from 'lucide-react'
 
 import { getUserRole } from '@/app/actions/admin'
-
-type RecentThread = {
-  id: string
-  title: string | null
-  author_name: string | null
-  created_at: string | null
-  category: string | null
-}
 
 type Tone = 'amber' | 'blue' | 'green' | 'purple' | 'red' | 'slate'
 
@@ -65,23 +53,6 @@ const TONE_STYLES: Record<Tone, { icon: string; value: string; badge: string }> 
   },
 }
 
-function timeAgo(dateStr: string | null) {
-  if (!dateStr) return 'Recently'
-
-  const date = new Date(dateStr)
-  const timestamp = date.getTime()
-  if (Number.isNaN(timestamp)) return 'Recently'
-
-  const diff = Math.max(0, Date.now() - timestamp)
-  const minutes = Math.floor(diff / 60000)
-  if (minutes < 60) return `${Math.max(1, minutes)}m ago`
-
-  const hours = Math.floor(diff / 3600000)
-  if (hours < 24) return `${hours}h ago`
-
-  return `${Math.floor(hours / 24)}d ago`
-}
-
 function plural(count: number, singular: string) {
   return `${count} ${singular}${count === 1 ? '' : 's'}`
 }
@@ -90,10 +61,7 @@ export default async function AdminOverviewPage() {
   let pendingEvents = 0
   let pendingListings = 0
   let activeAlerts = 0
-  let pendingJobs = 0
-  let pendingNews = 0
   let activeClassifieds = 0
-  let recentThreads: RecentThread[] = []
 
   const supabase = await createClient()
   const { role } = await getUserRole(supabase)
@@ -103,42 +71,24 @@ export default async function AdminOverviewPage() {
       eventsRes,
       listingsRes,
       alertsRes,
-      jobsRes,
-      newsRes,
       classifiedsRes,
-      threadsRes,
     ] = await Promise.all([
       supabase.from('events').select('id', { count: 'exact', head: true }).eq('approved', false),
       supabase.from('listings').select('id', { count: 'exact', head: true }).eq('approved', false),
       supabase.from('emergency_alerts').select('id', { count: 'exact', head: true }).eq('active', true),
-      supabase
-        .from('jobs')
-        .select('id', { count: 'exact', head: true })
-        .eq('approved', false)
-        .neq('status', 'closed'),
-      supabase.from('news_articles').select('id', { count: 'exact', head: true }).eq('published', false),
       supabase.from('classifieds').select('id', { count: 'exact', head: true }).eq('active', true),
-      supabase
-        .from('forum_threads')
-        .select('id, title, author_name, created_at, category')
-        .order('created_at', { ascending: false })
-        .limit(5),
     ])
 
     pendingEvents = eventsRes.count ?? 0
     pendingListings = listingsRes.count ?? 0
     activeAlerts = alertsRes.count ?? 0
-    pendingJobs = jobsRes.count ?? 0
-    pendingNews = newsRes.count ?? 0
     activeClassifieds = classifiedsRes.count ?? 0
-    recentThreads = (threadsRes.data ?? []) as RecentThread[]
   } catch {
     // Keep the dashboard usable if local DB/env setup is incomplete.
   }
 
   const canAdmin = role === 'admin'
   const canModerateContent = role === 'admin' || role === 'moderator'
-  const canReviewJobs = role === 'admin' || role === 'moderator' || role === 'job_reviewer'
 
   const reviewQueues = [
     ...(canModerateContent
@@ -160,14 +110,6 @@ export default async function AdminOverviewPage() {
             tone: 'amber' as Tone,
           },
           {
-            label: 'News',
-            description: 'Draft stories ready for publishing',
-            count: pendingNews,
-            href: '/admin/news',
-            icon: Newspaper,
-            tone: 'purple' as Tone,
-          },
-          {
             label: 'Classifieds',
             description: 'Active marketplace posts to monitor',
             count: activeClassifieds,
@@ -177,30 +119,17 @@ export default async function AdminOverviewPage() {
           },
         ]
       : []),
-    ...(canReviewJobs
-      ? [
-          {
-            label: 'Jobs',
-            description: 'Open job posts pending review',
-            count: pendingJobs,
-            href: '/admin/jobs?tab=pending',
-            icon: Briefcase,
-            tone: 'green' as Tone,
-          },
-        ]
-      : []),
   ]
 
   const reviewTotal = reviewQueues.reduce((total, item) => total + item.count, 0)
-  const roleLabel =
-    role === 'job_reviewer' ? 'Job reviewer' : role.charAt(0).toUpperCase() + role.slice(1)
+  const roleLabel = role.charAt(0).toUpperCase() + role.slice(1)
 
   const statusCards = [
     {
       label: 'Review queue',
       value: reviewTotal,
       detail: reviewTotal > 0 ? 'Items waiting for action' : 'No visible queue items',
-      href: canReviewJobs && !canModerateContent ? '/admin/jobs?tab=pending' : '/admin/listings?filter=pending',
+      href: '/admin/listings?filter=pending',
       icon: CheckCircle,
       tone: reviewTotal > 0 ? ('amber' as Tone) : ('green' as Tone),
       badge: reviewTotal > 0 ? 'Needs review' : 'Clear',
@@ -221,15 +150,6 @@ export default async function AdminOverviewPage() {
     ...(canModerateContent
       ? [
           {
-            label: 'Forum activity',
-            value: recentThreads.length,
-            detail: 'Latest threads surfaced for moderation',
-            href: '/admin/forum',
-            icon: MessageCircle,
-            tone: 'blue' as Tone,
-            badge: 'Latest 5',
-          },
-          {
             label: 'Classifieds',
             value: activeClassifieds,
             detail: 'Active posts visible in the marketplace',
@@ -243,16 +163,6 @@ export default async function AdminOverviewPage() {
   ]
 
   const quickActions = [
-    ...(canReviewJobs
-      ? [
-          {
-            label: 'Review jobs',
-            detail: plural(pendingJobs, 'pending job'),
-            href: '/admin/jobs?tab=pending',
-            icon: Briefcase,
-          },
-        ]
-      : []),
     ...(canModerateContent
       ? [
           {
@@ -325,7 +235,7 @@ export default async function AdminOverviewPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
-            href={canReviewJobs && !canModerateContent ? '/admin/jobs?tab=pending' : '/admin/listings?filter=pending'}
+            href="/admin/listings?filter=pending"
             className="inline-flex h-10 items-center gap-2 rounded-md bg-[var(--od-ink)] px-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--od-brand-strong)]"
           >
             <CheckCircle size={15} />
@@ -451,52 +361,7 @@ export default async function AdminOverviewPage() {
         </div>
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-          <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
-            <div>
-              <h2 className="text-base font-bold text-gray-950">Recent forum threads</h2>
-              <p className="mt-0.5 text-xs text-gray-500">Latest community discussions that may need a look.</p>
-            </div>
-            {canModerateContent && (
-              <Link
-                href="/admin/forum"
-                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-gray-200 px-2.5 text-xs font-semibold text-gray-700 transition-colors hover:border-[rgba(192,88,46,0.35)] hover:text-[var(--od-brand)]"
-              >
-                Manage
-                <ArrowRight size={12} />
-              </Link>
-            )}
-          </div>
-
-          {recentThreads.length === 0 ? (
-            <div className="flex items-center gap-3 px-5 py-8 text-sm text-gray-500">
-              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-green-50 text-green-700">
-                <CheckCircle size={18} />
-              </span>
-              No recent forum activity.
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {recentThreads.map((thread) => (
-                <div key={thread.id} className="flex items-start justify-between gap-4 px-5 py-4">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-gray-950">{thread.title ?? 'Untitled thread'}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500">
-                      <span>{thread.author_name ?? 'Unknown author'}</span>
-                      {thread.category && <span className="rounded-full bg-gray-100 px-2 py-0.5">{thread.category}</span>}
-                    </div>
-                  </div>
-                  <span className="inline-flex flex-shrink-0 items-center gap-1 text-xs font-medium text-gray-400">
-                    <Clock size={12} />
-                    {timeAgo(thread.created_at)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
+      <section className="grid gap-5">
         <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
           <div className="flex items-center gap-2">
             <Shield size={17} className="text-[var(--od-brand)]" />
@@ -511,7 +376,7 @@ export default async function AdminOverviewPage() {
                 </p>
                 <p className="mt-0.5 text-xs leading-5 text-gray-500">
                   {reviewTotal > 0
-                    ? 'Start with pending jobs, listings, events, and drafts.'
+                    ? 'Start with pending listings and events.'
                     : 'No visible approval queue items for your role.'}
                 </p>
               </div>

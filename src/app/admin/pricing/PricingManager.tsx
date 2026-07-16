@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { updatePricing, updateJobPricing, createCoupon, toggleCoupon, deleteCoupon } from '@/app/actions/pricing'
+import { updatePricing, createCoupon, toggleCoupon, deleteCoupon } from '@/app/actions/pricing'
 import type { Coupon, PricingConfig } from '@/app/actions/pricing'
 import { Save, Plus, Trash2, Loader2, CheckCircle, ToggleLeft, ToggleRight, Tag, IndianRupee, X } from 'lucide-react'
 
@@ -17,13 +17,6 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
   const [pricingSaved, setPricingSaved] = useState(false)
   const [pricingError, setPricingError] = useState('')
   const [savingPricing, startSavePricing] = useTransition()
-
-  // Job Pricing
-  const [jobBasePrice, setJobBasePrice] = useState(String(pricing.job_base_price ?? 70))
-  const [jobCurrentPrice, setJobCurrentPrice] = useState(String(pricing.job_current_price ?? 40))
-  const [jobPricingSaved, setJobPricingSaved] = useState(false)
-  const [jobPricingError, setJobPricingError] = useState('')
-  const [savingJobPricing, startSaveJobPricing] = useTransition()
 
   // Coupons list
   const [coupons, setCoupons] = useState<Coupon[]>(initialCoupons)
@@ -50,20 +43,6 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
       const res = await updatePricing(fd)
       if (res.error) setPricingError(res.error)
       else setPricingSaved(true)
-    })
-  }
-
-  function handleSaveJobPricing(e: React.FormEvent) {
-    e.preventDefault()
-    setJobPricingError('')
-    setJobPricingSaved(false)
-    const fd = new FormData()
-    fd.set('job_base_price', jobBasePrice)
-    fd.set('job_current_price', jobCurrentPrice)
-    startSaveJobPricing(async () => {
-      const res = await updateJobPricing(fd)
-      if (res.error) setJobPricingError(res.error)
-      else setJobPricingSaved(true)
     })
   }
 
@@ -179,59 +158,6 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
               </span>
             )}
             {pricingError && <span className="text-red-500 text-sm">{pricingError}</span>}
-          </div>
-        </form>
-      </div>
-
-      {/* ── Job Pricing ───────────────────────────────────────────────── */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6">
-        <h2 className="font-bold text-gray-800 mb-1 flex items-center gap-2">
-          <IndianRupee size={16} className="text-blue-600" />
-          Job Posting Prices
-        </h2>
-        <p className="text-xs text-gray-400 mb-5">Controls the price shown on the job submit page.</p>
-
-        <form onSubmit={handleSaveJobPricing} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Original Price (₹) <span className="text-xs font-normal text-gray-400">— shown as strikethrough</span>
-              </label>
-              <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-blue-400">
-                <span className="px-3 py-3 bg-gray-50 text-gray-400 text-sm border-r border-gray-200">₹</span>
-                <input
-                  type="number" min="0" value={jobBasePrice}
-                  onChange={e => { setJobBasePrice(e.target.value); setJobPricingSaved(false) }}
-                  className="flex-1 px-3 py-3 focus:outline-none text-sm font-semibold"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Current Offer Price (₹) <span className="text-xs font-normal text-gray-400">— actual charge</span>
-              </label>
-              <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-blue-400">
-                <span className="px-3 py-3 bg-gray-50 text-gray-400 text-sm border-r border-gray-200">₹</span>
-                <input
-                  type="number" min="0" value={jobCurrentPrice}
-                  onChange={e => { setJobCurrentPrice(e.target.value); setJobPricingSaved(false) }}
-                  className="flex-1 px-3 py-3 focus:outline-none text-sm font-semibold"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button type="submit" disabled={savingJobPricing}
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-60">
-              {savingJobPricing ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : <><Save size={14} /> Save Job Pricing</>}
-            </button>
-            {jobPricingSaved && (
-              <span className="flex items-center gap-1 text-blue-600 text-sm font-medium">
-                <CheckCircle size={14} /> Saved!
-              </span>
-            )}
-            {jobPricingError && <span className="text-red-500 text-sm">{jobPricingError}</span>}
           </div>
         </form>
       </div>

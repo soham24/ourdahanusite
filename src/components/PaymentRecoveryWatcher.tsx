@@ -16,7 +16,6 @@ import {
 const FLOW_LABEL = {
   listing: 'business listing',
   renew: 'listing renewal',
-  job: 'job posting',
   order: 'service order',
   marketplace: 'marketplace order',
   appointment: 'appointment booking',

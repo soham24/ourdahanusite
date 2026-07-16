@@ -37,18 +37,6 @@ export interface FeaturedListing {
   phone: string | null
 }
 
-export interface HomeJob {
-  id: string
-  title: string
-  company: string
-  location: string | null
-  type: string
-  salary: string | null
-  category: string
-  status: string
-  created_at: string
-}
-
 export interface HomeReview {
   id: string
   listing_id: string
@@ -62,7 +50,6 @@ export interface HomeReview {
 
 export interface HomeStats {
   totalListings: number
-  totalJobs: number
   featuredListing: FeaturedListing | null
   categoryCounts: Record<string, number>
   topCategoryLabels: string[]
@@ -109,7 +96,6 @@ export async function getHomeStats(): Promise<HomeStats> {
 
   const empty: HomeStats = {
     totalListings: 0,
-    totalJobs: 0,
     featuredListing: null,
     categoryCounts: {},
     topCategoryLabels: FALLBACK_TOP_CATEGORIES,
@@ -122,7 +108,6 @@ export async function getHomeStats(): Promise<HomeStats> {
     const stats = (statsData ?? {}) as {
       category_counts?: Record<string, number> | null
       total_listings?: number | null
-      total_jobs?: number | null
       featured_listing?: FeaturedListing | null
     }
 
@@ -142,7 +127,6 @@ export async function getHomeStats(): Promise<HomeStats> {
 
     return {
       totalListings: stats.total_listings ?? 0,
-      totalJobs: stats.total_jobs ?? 0,
       featuredListing: stats.featured_listing ?? null,
       categoryCounts,
       topCategoryLabels,
@@ -257,27 +241,3 @@ export async function getHomeRecentReviews(): Promise<HomeReview[]> {
   }
 }
 
-/** Three most recent open/hiring jobs for the JobsSection list. */
-export async function getHomeRecentJobs(): Promise<HomeJob[]> {
-  'use cache'
-
-  cacheLife(PUBLIC_CONTENT_CACHE)
-  cacheTag(CACHE_TAGS.home)
-  cacheTag(CACHE_TAGS.jobs)
-  logCacheRegeneration({ scope: 'home:recent-jobs', tags: [CACHE_TAGS.home, CACHE_TAGS.jobs] })
-
-  try {
-    const supabase = createPublicClient()
-    const { data } = await supabase
-      .from('jobs')
-      .select('id, title, company, location, type, salary, category, status, created_at')
-      .eq('approved', true)
-      .in('status', ['open', 'hiring'])
-      .order('created_at', { ascending: false })
-      .order('id', { ascending: true })
-      .limit(3)
-    return (data ?? []) as HomeJob[]
-  } catch {
-    return []
-  }
-}

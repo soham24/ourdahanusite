@@ -23,7 +23,7 @@ export default function CategoryGrid({ topCategoryLabels, categoryCounts }: Cate
         <SectionHeader
           label="Browse by need"
           title="Explore Categories"
-          sub="One clear place to jump into food, shops, services, health, jobs and more"
+          sub="One clear place to jump into food, shops, services, health and more"
           viewAllHref="/listings"
         />
         <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-5">

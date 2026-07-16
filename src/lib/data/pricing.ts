@@ -10,8 +10,6 @@ import { createPublicClient } from '@/lib/supabase/public'
 export interface PricingConfig {
   base_price: number
   current_price: number
-  job_base_price: number
-  job_current_price: number
 }
 
 export interface Coupon {
@@ -27,8 +25,6 @@ export interface Coupon {
 const FALLBACK_PRICING: PricingConfig = {
   base_price: 500,
   current_price: 210,
-  job_base_price: 70,
-  job_current_price: 40,
 }
 
 export async function getCachedPricingConfig(): Promise<PricingConfig> {
@@ -42,7 +38,7 @@ export async function getCachedPricingConfig(): Promise<PricingConfig> {
     const supabase = createPublicClient()
     const { data } = await supabase
       .from('pricing_config')
-      .select('base_price, current_price, job_base_price, job_current_price')
+      .select('base_price, current_price')
       .eq('id', 1)
       .single()
 
