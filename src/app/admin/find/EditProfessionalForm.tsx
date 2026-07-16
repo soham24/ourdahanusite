@@ -7,7 +7,15 @@ import { updateProfessional, setProfessionalStatus, deleteProfessional, type Adm
 import type { FindProfessional } from '@/lib/find/types'
 import BusinessPicker from './BusinessPicker'
 
-export default function EditProfessionalForm({ pro, businessLabel }: { pro: FindProfessional; businessLabel?: string | null }) {
+export default function EditProfessionalForm({
+  pro,
+  businessLabel,
+  onSaved,
+}: {
+  pro: FindProfessional
+  businessLabel?: string | null
+  onSaved?: () => void
+}) {
   const router = useRouter()
   const [professions, setProfessions] = useState<string[]>(pro.professions ?? [])
   const [businessId, setBusinessId] = useState<string | null>(pro.business_listing_id ?? null)
@@ -47,7 +55,10 @@ export default function EditProfessionalForm({ pro, businessLabel }: { pro: Find
     setError(null); setMsg(null); setPending(true)
     const res = await updateProfessional(pro.id, fields(new FormData(e.currentTarget)))
     setPending(false)
-    if (res.error) setError(res.error); else setMsg('Saved.')
+    if (res.error) { setError(res.error); return }
+    setMsg('Saved.')
+    router.refresh()
+    onSaved?.()
   }
 
   async function saveAndApprove(formEl: HTMLFormElement) {
@@ -56,7 +67,10 @@ export default function EditProfessionalForm({ pro, businessLabel }: { pro: Find
     if (upd.error) { setPending(false); setError(upd.error); return }
     const res = await setProfessionalStatus(pro.id, 'approved')
     setPending(false)
-    if (res.error) setError(res.error); else setMsg('Approved and live.')
+    if (res.error) { setError(res.error); return }
+    setMsg('Approved and live.')
+    router.refresh()
+    onSaved?.()
   }
 
   const cls = 'w-full rounded border border-gray-300 px-2 py-1 text-sm'
@@ -120,7 +134,15 @@ export default function EditProfessionalForm({ pro, businessLabel }: { pro: Find
         )}
         {pro.status !== 'rejected' && (
           <button type="button" disabled={pending}
-            onClick={async () => { setPending(true); const r = await setProfessionalStatus(pro.id, 'rejected'); setPending(false); if (r.error) setError(r.error); else setMsg('Rejected.') }}
+            onClick={async () => {
+              setPending(true)
+              const r = await setProfessionalStatus(pro.id, 'rejected')
+              setPending(false)
+              if (r.error) { setError(r.error); return }
+              setMsg('Rejected.')
+              router.refresh()
+              onSaved?.()
+            }}
             className="rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-60">
             Reject
           </button>

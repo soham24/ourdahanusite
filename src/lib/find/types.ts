@@ -44,3 +44,12 @@ export interface ProfessionalWithStats extends FindProfessional {
   rating_count: number
   business: LinkedBusiness | null
 }
+
+export interface AdminFindCounts {
+  pending: number
+  approved: number
+  rejected: number
+  inactive: number
+  total: number
+  pending_ratings: number
+}

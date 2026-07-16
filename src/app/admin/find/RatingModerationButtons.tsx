@@ -4,7 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { setRatingStatus, deleteRating } from '@/app/actions/admin-find'
 
-export default function RatingModerationButtons({ ratingId }: { ratingId: string }) {
+export default function RatingModerationButtons({
+  ratingId,
+  onActed,
+}: {
+  ratingId: string
+  onActed?: (status: 'approved' | 'rejected') => void
+}) {
   const router = useRouter()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -13,7 +19,8 @@ export default function RatingModerationButtons({ ratingId }: { ratingId: string
     setPending(true); setError(null)
     const res = await setRatingStatus(ratingId, status)
     setPending(false)
-    if (res.error) setError(res.error)
+    if (res.error) { setError(res.error); return }
+    onActed?.(status)
   }
 
   async function remove() {

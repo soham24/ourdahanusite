@@ -572,6 +572,109 @@ export type Database = {
           },
         ]
       }
+      find_professionals: {
+        Row: {
+          business_listing_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          locality: string | null
+          name: string
+          note: string | null
+          phone: string
+          profession_other: string | null
+          professions: string[]
+          status: string
+          submitted_by: string | null
+          updated_at: string
+          whatsapp: boolean
+        }
+        Insert: {
+          business_listing_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          locality?: string | null
+          name: string
+          note?: string | null
+          phone: string
+          profession_other?: string | null
+          professions: string[]
+          status?: string
+          submitted_by?: string | null
+          updated_at?: string
+          whatsapp?: boolean
+        }
+        Update: {
+          business_listing_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          locality?: string | null
+          name?: string
+          note?: string | null
+          phone?: string
+          profession_other?: string | null
+          professions?: string[]
+          status?: string
+          submitted_by?: string | null
+          updated_at?: string
+          whatsapp?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "find_professionals_business_listing_id_fkey"
+            columns: ["business_listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      find_ratings: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          professional_id: string
+          rating: number
+          status: string
+          updated_at: string
+          used_service: boolean
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          professional_id: string
+          rating: number
+          status?: string
+          updated_at?: string
+          used_service?: boolean
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          professional_id?: string
+          rating?: number
+          status?: string
+          updated_at?: string
+          used_service?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "find_ratings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "find_professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       forum_replies: {
         Row: {
           author_id: string | null
@@ -2000,7 +2103,10 @@ export type Database = {
         Args: { p_product_id: string; p_quantity: number }
         Returns: boolean
       }
+      get_admin_find_counts: { Args: never; Returns: Json }
       get_homepage_stats: { Args: never; Returns: Json }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       [_ in never]: never
