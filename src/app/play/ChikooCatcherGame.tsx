@@ -38,6 +38,19 @@ interface ChikooCatcherGameProps {
   initialBestScore: number | null
 }
 
+type RoundRenderer = Pick<GameRenderer, 'clear' | 'setPointerX'>
+type RoundAudio = Pick<
+  AudioController,
+  'setEnabled' | 'suspend' | 'setPhase' | 'unlock' | 'play' | 'resume'
+>
+type ScoreResult = { error?: string; isNewBest?: boolean }
+
+interface ScoreSubmissionCallbacks {
+  isCurrent(): boolean
+  onError(message: string): void
+  onSuccess(isNewBest: boolean): void
+}
+
 export function normalizePointerX(clientX: number, rect: PointerRect): number | null {
   if (!Number.isFinite(clientX) || !Number.isFinite(rect.left) || rect.width <= 0) return null
   const logicalX = ((clientX - rect.left) / rect.width) * GAME_CONFIG.width
@@ -60,6 +73,53 @@ export function shouldPublishSnapshot(
   return hasEvents || currentTime - previousPublishTime >= SNAPSHOT_INTERVAL_MS
 }
 
+export function resetRoundResources(
+  renderer: RoundRenderer | null,
+  audio: RoundAudio | null,
+  soundEnabled: boolean,
+): void {
+  renderer?.clear()
+  renderer?.setPointerX(null)
+  audio?.setEnabled(soundEnabled)
+  void audio?.suspend()
+  audio?.setPhase('warmup')
+  void audio?.unlock()
+  audio?.play('countdown')
+}
+
+export function startPlayingAudio(audio: Pick<AudioController, 'resume'> | null): void {
+  void audio?.resume()
+}
+
+export async function runScoreSubmission(
+  score: number,
+  submit: (score: number) => Promise<ScoreResult>,
+  callbacks: ScoreSubmissionCallbacks,
+): Promise<void> {
+  try {
+    const result = await submit(score)
+    if (!callbacks.isCurrent()) return
+    if (result.error) {
+      callbacks.onError(result.error)
+      return
+    }
+    callbacks.onSuccess(Boolean(result.isNewBest))
+  } catch {
+    if (!callbacks.isCurrent()) return
+    callbacks.onError('Could not save your score. Check your connection and try again.')
+  }
+}
+
+export function modeAfterFullscreenExit(documentLike: { fullscreenElement?: unknown }): ImmersiveMode {
+  return documentLike.fullscreenElement ? 'fullscreen' : 'none'
+}
+
+function useLazyGameEngine(): { current: GameEngine } {
+  const engineRef = useRef<GameEngine | null>(null)
+  if (engineRef.current === null) engineRef.current = createGameEngine()
+  return engineRef as { current: GameEngine }
+}
+
 const phaseAnnouncement = (snapshot: GameSnapshot) => {
   switch (snapshot.phase) {
     case 'warmup':
@@ -80,7 +140,7 @@ export default function ChikooCatcherGame({
   const router = useRouter()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const shellRef = useRef<HTMLDivElement>(null)
-  const engineRef = useRef<GameEngine>(createGameEngine())
+  const engineRef = useLazyGameEngine()
   const rendererRef = useRef<GameRenderer | null>(null)
   const audioRef = useRef<AudioController | null>(null)
   const hapticsRef = useRef<ReturnType<typeof createHaptics> | null>(null)
@@ -97,6 +157,8 @@ export default function ChikooCatcherGame({
   const lastSnapshotPublishRef = useRef(0)
   const submissionSequenceRef = useRef(0)
   const mountedRef = useRef(false)
+  const isSignedInRef = useRef(isSignedIn)
+  const routerRef = useRef(router)
 
   const [playState, setPlayState] = useState<PlayState>('ready')
   const [snapshot, setSnapshot] = useState<GameSnapshot>(() => engineRef.current.snapshot())
@@ -132,7 +194,7 @@ export default function ChikooCatcherGame({
   const clearHeldDirections = useCallback(() => {
     heldDirectionsRef.current = { left: false, right: false }
     engineRef.current.setInput(inputForHeldDirections(heldDirectionsRef.current))
-  }, [])
+  }, [engineRef])
 
   const removeFocusLock = useCallback(() => {
     document.documentElement.classList.remove('chikoo-focus-lock')
@@ -166,32 +228,29 @@ export default function ChikooCatcherGame({
 
   const saveScore = useCallback(
     async (score: number) => {
-      if (!isSignedIn) return
+      if (!isSignedInRef.current) return
 
       frozenScoreRef.current = score
       const requestSequence = ++submissionSequenceRef.current
       setSubmitState('saving')
       setSubmitError('')
-      const result = await submitGameScore(score)
-
-      if (
-        !mountedRef.current ||
-        requestSequence !== submissionSequenceRef.current ||
-        playStateRef.current !== 'gameOver' ||
-        frozenScoreRef.current !== score
-      ) {
-        return
-      }
-
-      if (result.error) {
-        setSubmitError(result.error)
-        setSubmitState('error')
-        return
-      }
-      setSubmitState(result.isNewBest ? 'best' : 'saved')
-      router.refresh()
+      await runScoreSubmission(score, submitGameScore, {
+        isCurrent: () =>
+          mountedRef.current &&
+          requestSequence === submissionSequenceRef.current &&
+          playStateRef.current === 'gameOver' &&
+          frozenScoreRef.current === score,
+        onError: (message) => {
+          setSubmitError(message)
+          setSubmitState('error')
+        },
+        onSuccess: (isNewBest) => {
+          setSubmitState(isNewBest ? 'best' : 'saved')
+          routerRef.current.refresh()
+        },
+      })
     },
-    [isSignedIn, router],
+    [],
   )
 
   const handleEvents = useCallback(
@@ -285,17 +344,18 @@ export default function ChikooCatcherGame({
         rafRef.current = requestAnimationFrame(runFrame)
       }
     },
-    [handleEvents],
+    [engineRef, handleEvents],
   )
 
   const startRound = useCallback(() => {
     cancelFrame()
     clearCountdownTimers()
     clearHeldDirections()
-    rendererRef.current?.setPointerX(null)
     hapticsRef.current?.stop()
     submissionSequenceRef.current += 1
     frozenScoreRef.current = null
+
+    resetRoundResources(rendererRef.current, audioRef.current, settingsRef.current.sound)
 
     engineRef.current.reset()
     const initialSnapshot = engineRef.current.snapshot()
@@ -309,12 +369,6 @@ export default function ChikooCatcherGame({
     transitionPlayState('countdown')
     setAnnouncement('Round starts in 3')
     rendererRef.current?.render(initialSnapshot, settingsRef.current, 0)
-
-    const audio = audioRef.current
-    audio?.setEnabled(settingsRef.current.sound)
-    void audio?.unlock()
-    void audio?.resume()
-    audio?.play('countdown')
 
     const scheduleBeat = (delay: number, value: 2 | 1) => {
       const timer = window.setTimeout(() => {
@@ -334,7 +388,7 @@ export default function ChikooCatcherGame({
       accumulatorRef.current = 0
       lastFrameRef.current = 0
       lastSnapshotPublishRef.current = 0
-      audioRef.current?.setPhase(engineRef.current.snapshot().phase)
+      startPlayingAudio(audioRef.current)
       transitionPlayState('playing')
       setAnnouncement('Go')
       cancelFrame()
@@ -345,6 +399,7 @@ export default function ChikooCatcherGame({
     cancelFrame,
     clearCountdownTimers,
     clearHeldDirections,
+    engineRef,
     frame,
     transitionPlayState,
   ])
@@ -363,7 +418,7 @@ export default function ChikooCatcherGame({
       setSnapshot(engineRef.current.snapshot())
       setAnnouncement(reason)
     },
-    [cancelFrame, clearCountdownTimers, clearHeldDirections, transitionPlayState],
+    [cancelFrame, clearCountdownTimers, clearHeldDirections, engineRef, transitionPlayState],
   )
 
   const resumeRound = useCallback(() => {
@@ -375,8 +430,8 @@ export default function ChikooCatcherGame({
     lastFrameRef.current = 0
     lastSnapshotPublishRef.current = 0
     audioRef.current?.setEnabled(settingsRef.current.sound)
-    void audioRef.current?.resume()
     audioRef.current?.setPhase(engineRef.current.snapshot().phase)
+    void audioRef.current?.resume()
     audioRef.current?.play('resume')
     transitionPlayState('playing')
     setAnnouncement('Game resumed')
@@ -385,6 +440,7 @@ export default function ChikooCatcherGame({
     cancelFrame,
     clearCountdownTimers,
     clearHeldDirections,
+    engineRef,
     frame,
     transitionPlayState,
   ])
@@ -401,7 +457,16 @@ export default function ChikooCatcherGame({
   const exitImmersiveMode = useCallback(async () => {
     if (isActivePlayState(playStateRef.current)) pauseRound('Game view exited. Game paused')
     const exitSequence = immersiveModeRef.current
-    if (exitSequence === 'fullscreen') await exitImmersive(document)
+    if (exitSequence === 'fullscreen') {
+      await exitImmersive(document)
+      if (!mountedRef.current) return
+      const actualMode = modeAfterFullscreenExit(document)
+      if (actualMode === 'fullscreen') {
+        transitionImmersiveMode('fullscreen')
+        setAnnouncement('Could not exit fullscreen. Use your browser fullscreen control and try again.')
+        return
+      }
+    }
     removeFocusLock()
     if (mountedRef.current) transitionImmersiveMode('none')
   }, [pauseRound, removeFocusLock, transitionImmersiveMode])
@@ -466,6 +531,14 @@ export default function ChikooCatcherGame({
   }, [])
 
   useEffect(() => {
+    isSignedInRef.current = isSignedIn
+  }, [isSignedIn])
+
+  useEffect(() => {
+    routerRef.current = router
+  }, [router])
+
+  useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const renderer = createRenderer(canvas)
@@ -483,7 +556,7 @@ export default function ChikooCatcherGame({
       renderer.destroy()
       rendererRef.current = null
     }
-  }, [])
+  }, [engineRef])
 
   useEffect(() => {
     mountedRef.current = true
@@ -583,6 +656,7 @@ export default function ChikooCatcherGame({
     cancelFrame,
     clearCountdownTimers,
     clearHeldDirections,
+    engineRef,
     pauseRound,
     removeFocusLock,
     resumeRound,
