@@ -13,6 +13,11 @@ interface GameHudProps {
 
 export default function GameHud(props: GameHudProps) {
   const { snapshot } = props
+  const immersiveLabel = props.immersiveMode === 'none'
+    ? 'Enter fullscreen'
+    : props.immersiveMode === 'fullscreen'
+      ? 'Exit fullscreen'
+      : 'Exit focus mode'
 
   return (
     <div className="chikoo-hud" role="group" aria-label="Game status and controls">
@@ -35,7 +40,7 @@ export default function GameHud(props: GameHudProps) {
         <button
           type="button"
           onClick={props.onToggleSound}
-          aria-label={props.soundEnabled ? 'Mute game sound' : 'Enable game sound'}
+          aria-label="Game sound"
           aria-pressed={props.soundEnabled}
         >
           {props.soundEnabled ? <Volume2 aria-hidden="true" /> : <VolumeX aria-hidden="true" />}
@@ -46,7 +51,7 @@ export default function GameHud(props: GameHudProps) {
         <button
           type="button"
           onClick={props.onToggleImmersive}
-          aria-label={props.immersiveMode === 'none' ? 'Enter fullscreen' : 'Exit fullscreen'}
+          aria-label={immersiveLabel}
         >
           {props.immersiveMode === 'none' ? (
             <Expand aria-hidden="true" />

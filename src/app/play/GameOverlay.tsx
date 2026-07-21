@@ -72,12 +72,13 @@ function SettingsControls(props: SettingsControlsProps) {
           type="button"
           className="chikoo-setting"
           data-active={control.active}
+          aria-label={control.label}
           aria-pressed={control.active}
           onClick={control.onClick}
         >
           <span className="chikoo-setting__mark" aria-hidden="true" />
           <span>{control.label}</span>
-          <small>{control.active ? 'On' : 'Off'}</small>
+          <small aria-hidden="true">{control.active ? 'On' : 'Off'}</small>
         </button>
       ))}
     </div>
