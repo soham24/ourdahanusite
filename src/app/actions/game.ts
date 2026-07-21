@@ -1,9 +1,10 @@
 'use server'
 
+import { GAME_CONFIG } from '@/app/play/game/config'
 import { createClient } from '@/lib/supabase/server'
 
 const GAME_ID = 'chikoo_catcher'
-const MAX_SCORE = 500
+const MAX_SCORE = GAME_CONFIG.maxScore
 const COOLDOWN_MS = 20_000
 
 export async function submitGameScore(
