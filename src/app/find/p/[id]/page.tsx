@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, LogIn, MapPin, MessageCircle, Phone, Share2, ShieldCheck } from 'lucide-react'
 import { getProfessionalById, getApprovedRatings, getApprovedProfessionals } from '@/lib/data/find'
+import { truncateAtWord } from '@/lib/text'
 import { createClient } from '@/lib/supabase/server'
 import { professionSlug } from '@/lib/find/professions'
 import StructuredData from '@/components/StructuredData'
@@ -29,7 +30,7 @@ export async function generateMetadata({
   if (!pro) return {}
   const professions = professionLabels(pro).map((l) => l.label).join(', ')
   const title = `${pro.name} — ${professions} in Dahanu`
-  const description = [
+  const descriptionParts = [
     pro.rating_count > 0
       ? `Rated ${pro.avg_rating.toFixed(1)}/5 by ${pro.rating_count} verified customer${pro.rating_count > 1 ? 's' : ''}.`
       : 'Vouched for by neighbours on FindDahanu.',
@@ -38,7 +39,7 @@ export async function generateMetadata({
   ]
     .filter(Boolean)
     .join(' ')
-    .slice(0, 160)
+  const description = truncateAtWord(descriptionParts, 159)
   const url = `${FIND_URL}/p/${pro.id}`
   return {
     title,

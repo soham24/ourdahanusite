@@ -23,6 +23,7 @@ import {
 } from '@/lib/listing-url'
 import { buildAbsoluteUrl } from '@/lib/site'
 import { getCachedListingDetail } from '@/lib/data/listing-detail'
+import { truncateAtWord } from '@/lib/text'
 import { ListingViewerProvider } from './ListingViewerContext'
 
 // Modular Components
@@ -43,7 +44,7 @@ export async function generateMetadata({
   const listing = listingDetail?.listing as Record<string, unknown> | null
 
   if (!listing) {
-    return { title: 'Business Listing | OurDahanu' }
+    return { title: 'Business Listing' }
   }
 
   // Parse tags and services for keywords
@@ -66,10 +67,10 @@ export async function generateMetadata({
   const descParts: string[] = []
   if (listing.tagline) descParts.push(String(listing.tagline))
   if (listing.description) descParts.push(String(listing.description).replace(/\s+/g, ' ').trim())
-  const baseDesc = descParts.join(' — ').slice(0, 130)
+  const baseDesc = truncateAtWord(descParts.join(' — '), 130)
   const locationSuffix = `${listing.category} in Dahanu${listing.address ? `, ${String(listing.address).split(',')[0]}` : ''}, Maharashtra.`
   const description = baseDesc
-    ? `${baseDesc}. ${locationSuffix}`.slice(0, 160)
+    ? truncateAtWord(`${baseDesc}. ${locationSuffix}`, 159)
     : `${String(listing.name)} — ${locationSuffix} Find contact info, reviews & more on OurDahanu.`
 
   // Build keyword list
@@ -86,7 +87,7 @@ export async function generateMetadata({
   ].filter((k): k is string => Boolean(k)).join(', ')
 
   const canonicalUrl = getCanonicalListingUrl(String(listing.id), typeof listing.subdomain === 'string' ? listing.subdomain : null)
-  const title = `${String(listing.name)} | ${String(listing.category)} in Dahanu | OurDahanu`
+  const title = `${String(listing.name)} | ${String(listing.category)} in Dahanu`
   const images = [listing.image_url, listing.cover_image]
     .filter((u): u is string => typeof u === 'string' && u.startsWith('http'))
 

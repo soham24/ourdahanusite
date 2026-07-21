@@ -23,12 +23,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { productId } = await params
   const data = await fetchProductAndListing(productId)
-  if (!data?.product) return { title: 'Product | OurDahanu' }
+  if (!data?.product) return { title: 'Product' }
 
   const { product, listing } = data
   const price = formatPrice(product.price_paise)
   const businessUrl = getCanonicalListingUrl(String(listing?.id ?? ''), listing?.subdomain ?? null)
-  const title = `${product.name} — ${price} | ${listing?.name ?? 'OurDahanu'}`
+  const title = listing?.name ? `${product.name} — ${price} | ${listing.name}` : `${product.name} — ${price}`
   const description = product.description ?? `${product.name} for ${price}`
   return {
     title,

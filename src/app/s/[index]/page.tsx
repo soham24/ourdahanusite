@@ -19,14 +19,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { index } = await params
   const serviceIndex = Number(index)
-  if (Number.isNaN(serviceIndex)) return { title: 'Service | OurDahanu' }
+  if (Number.isNaN(serviceIndex)) return { title: 'Service' }
 
   const headersList = await headers()
   const subdomain = headersList.get('x-subdomain')
-  if (!subdomain) return { title: 'Service | OurDahanu' }
+  if (!subdomain) return { title: 'Service' }
 
   const result = await fetchListingAndService(subdomain, serviceIndex)
-  if (!result) return { title: 'Service | OurDahanu' }
+  if (!result) return { title: 'Service' }
 
   const { listing, service } = result
   const businessUrl = getCanonicalListingUrl(String(listing.id), listing.subdomain as string | null)
