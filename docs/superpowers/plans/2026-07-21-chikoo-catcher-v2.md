@@ -194,13 +194,28 @@ test('seeded random sequence is repeatable', () => {
 })
 ```
 
-- [ ] **Step 4: Run the test and verify it fails for missing modules**
+- [ ] **Step 4: Add compile-only sentinels, then verify genuine test failures**
+
+Because a missing-module error does not prove an assertion, add only these sentinel exports after the tests exist:
+
+```ts
+// config.ts — RED-only scaffold, replaced in Step 5
+export const GAME_CONFIG = { maxFallSpeed: 0, minSpawnIntervalMs: 0, maxItems: 0 }
+export function getDifficulty(): never { throw new Error('getDifficulty not implemented') }
+export function scoreFor(): never { throw new Error('scoreFor not implemented') }
+```
+
+```ts
+// random.ts — RED-only scaffold, replaced in Step 5
+export type RandomSource = () => number
+export function mulberry32(): never { throw new Error('mulberry32 not implemented') }
+```
 
 Run: `npm run test:game`
 
-Expected: FAIL with module-resolution errors for `./config` and `./random`.
+Expected: three failing tests whose output names the deliberately unimplemented function each test exercises. This one-time scaffold exception is approved so RED is an actual test failure rather than a loader error.
 
-- [ ] **Step 5: Implement constants, curve, scoring, and seeded random**
+- [ ] **Step 5: Replace the sentinels with constants, curve, scoring, and seeded random**
 
 Create `config.ts`:
 
@@ -331,6 +346,20 @@ function advance(engine: GameEngine, totalMs: number): GameEvent[] {
   return events
 }
 
+function advanceUntil(engine: GameEngine, predicate: () => boolean, maxMs = 120_000): GameEvent[] {
+  const events: GameEvent[] = []
+  for (let elapsed = 0; elapsed < maxMs && !predicate(); elapsed += GAME_CONFIG.fixedStepMs) {
+    events.push(...engine.step(GAME_CONFIG.fixedStepMs))
+  }
+  assert.equal(predicate(), true, 'condition was not reached before the simulation deadline')
+  return events
+}
+
+function sequenceRandom(values: readonly number[]): () => number {
+  let index = 0
+  return () => values[index++ % values.length]
+}
+
 test('engine follows clamped pointer input and advances active time', () => {
   const engine = createGameEngine(() => 0.5)
   engine.setInput({ targetX: 999, left: false, right: false })
@@ -342,18 +371,8 @@ test('engine follows clamped pointer input and advances active time', () => {
 
 test('five consecutive ripe catches earn one capped combo point', () => {
   const engine = createGameEngine(() => 0.5)
-  for (let index = 0; index < 5; index += 1) {
-    engine.debugInsertItem({
-      id: index,
-      kind: 'ripe',
-      x: engine.snapshot().basketX,
-      y: GAME_CONFIG.basketY,
-      vx: 0,
-      rotation: 0,
-      spin: 0,
-    })
-    engine.step(GAME_CONFIG.fixedStepMs)
-  }
+  engine.setInput({ targetX: GAME_CONFIG.width / 2, left: false, right: false })
+  advanceUntil(engine, () => engine.snapshot().catches >= 5)
   const state = engine.snapshot()
   assert.equal(state.catches, 5)
   assert.equal(state.combo, 5)
@@ -363,38 +382,17 @@ test('five consecutive ripe catches earn one capped combo point', () => {
 
 test('a miss resets combo and three misses end the round once', () => {
   const engine = createGameEngine(() => 0.5)
-  const events = []
-  for (let index = 0; index < 3; index += 1) {
-    engine.debugInsertItem({
-      id: index,
-      kind: 'ripe',
-      x: 20,
-      y: GAME_CONFIG.height + GAME_CONFIG.itemRadius + 1,
-      vx: 0,
-      rotation: 0,
-      spin: 0,
-    })
-    events.push(...engine.step(GAME_CONFIG.fixedStepMs))
-  }
+  engine.setInput({ targetX: GAME_CONFIG.width, left: false, right: false })
+  const events = advanceUntil(engine, () => engine.snapshot().gameOver)
   assert.equal(engine.snapshot().misses, 3)
   assert.equal(engine.snapshot().gameOver, true)
   assert.equal(events.filter((event) => event.type === 'gameOver').length, 1)
 })
 
 test('three rotten catches end the round without adding score', () => {
-  const engine = createGameEngine(() => 0.5)
-  for (let index = 0; index < 3; index += 1) {
-    engine.debugInsertItem({
-      id: index,
-      kind: 'rotten',
-      x: engine.snapshot().basketX,
-      y: GAME_CONFIG.basketY,
-      vx: 0,
-      rotation: 0,
-      spin: 0,
-    })
-    engine.step(GAME_CONFIG.fixedStepMs)
-  }
+  const engine = createGameEngine(sequenceRandom([0.5, 0, 0.5, 0.5, 0.5]))
+  engine.setInput({ targetX: GAME_CONFIG.width / 2, left: false, right: false })
+  advanceUntil(engine, () => engine.snapshot().gameOver)
   assert.equal(engine.snapshot().badCatches, 3)
   assert.equal(engine.snapshot().score, 0)
   assert.equal(engine.snapshot().gameOver, true)
@@ -413,7 +411,7 @@ test('phase changes emit one transition event', () => {
 
 test('reset clears a completed round and preserves no entity references', () => {
   const engine = createGameEngine(() => 0.5)
-  engine.debugInsertItem({ id: 1, kind: 'ripe', x: 50, y: 50, vx: 0, rotation: 0, spin: 0 })
+  advanceUntil(engine, () => engine.snapshot().items.length > 0)
   const before = engine.snapshot()
   engine.reset()
   const after = engine.snapshot()
@@ -423,7 +421,7 @@ test('reset clears a completed round and preserves no entity references', () => 
 })
 ```
 
-`debugInsertItem` is an explicit test seam, not a production cheat path; it is never exposed from the React component.
+Every test drives only the same public input and time-advance API used by the browser. No test-only production method is permitted.
 
 - [ ] **Step 2: Run tests and confirm engine cases fail**
 
@@ -445,7 +443,6 @@ export interface GameEngine {
   setInput(input: InputState): void
   step(dtMs: number): GameEvent[]
   snapshot(): GameSnapshot
-  debugInsertItem(item: FallingItem): void
 }
 
 const initialState = (): GameEngineState => ({
@@ -582,9 +579,6 @@ export function createGameEngine(random: RandomSource = Math.random): GameEngine
     setInput,
     step,
     snapshot,
-    debugInsertItem(item) {
-      state.items.push({ ...item })
-    },
   }
 }
 ```

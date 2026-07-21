@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/app/actions/find-notifications.test.ts src/lib/find/safe-submission.test.ts src/lib/supabase/auth-regression.test.ts"
+    "test": "npm run test:existing && npm run test:game",
+    "test:existing": "tsx --test src/app/actions/find-notifications.test.ts src/lib/find/safe-submission.test.ts src/lib/supabase/auth-regression.test.ts",
+    "test:game": "node scripts/run-game-tests.mjs"
   },
   "dependencies": {
     "@next/third-parties": "^16.2.10",
