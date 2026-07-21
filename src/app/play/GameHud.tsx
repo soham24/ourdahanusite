@@ -33,8 +33,14 @@ export default function GameHud(props: GameHudProps) {
         className="chikoo-hud__lives"
         aria-label={`${3 - snapshot.misses} misses and ${3 - snapshot.badCatches} bad catches remaining`}
       >
-        <span aria-hidden="true">🟤 {3 - snapshot.misses}</span>
-        <span aria-hidden="true">⚠ {3 - snapshot.badCatches}</span>
+        <span aria-hidden="true">
+          <i className="chikoo-hud__allowance-mark chikoo-hud__allowance-mark--miss" />
+          {3 - snapshot.misses}
+        </span>
+        <span aria-hidden="true">
+          <i className="chikoo-hud__allowance-mark chikoo-hud__allowance-mark--bad" />
+          {3 - snapshot.badCatches}
+        </span>
       </div>
       <div className="chikoo-hud__actions">
         <button
