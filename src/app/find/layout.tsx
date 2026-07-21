@@ -18,6 +18,19 @@ export default function FindLayout({ children }: { children: React.ReactNode }) 
         Skip to content
       </a>
 
+      <div className="w-full bg-[var(--od-ink)] px-4 py-2 text-center text-xs font-semibold text-[var(--od-bg)]">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
+          <span aria-hidden>🏪</span>
+          <span>FindDahanu is a directory of vouched-for local contacts.</span>
+          <a
+            href="https://ourdahanu.in/listings"
+            className="border-b border-[var(--od-bg)]/40 transition-colors hover:border-[var(--od-bg)]/70"
+          >
+            Browse verified business listings on OurDahanu →
+          </a>
+        </div>
+      </div>
+
       <header className="sticky top-0 z-40 border-b border-[var(--od-border)] bg-[rgba(250,250,247,0.88)] backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           <Link href="/find" className="flex items-baseline">
