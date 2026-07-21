@@ -223,7 +223,10 @@ export default function ChikooCatcherGame({ isSignedIn }: { isSignedIn: boolean 
     keyFrame = requestAnimationFrame(moveLoop)
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') held.add(e.key)
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault()
+        held.add(e.key)
+      }
     }
     const onKeyUp = (e: KeyboardEvent) => {
       held.delete(e.key)
