@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createGameAudio } from './audio'
+import { createGameAudio, type AudioCue } from './audio'
 
 function createFakeContext(calls: string[]) {
   return {
@@ -28,6 +28,26 @@ function createFakeContext(calls: string[]) {
     resume: async () => { calls.push('resume') },
     suspend: async () => { calls.push('suspend') },
     close: async () => { calls.push('close') },
+  }
+}
+
+function createTimerWindow(calls: string[]) {
+  const callbacks = new Map<number, () => void>()
+  let nextHandle = 1
+  return {
+    callbacks,
+    window: {
+      setInterval(callback: () => void, delay: number) {
+        const handle = nextHandle++
+        calls.push(`interval:${delay}`)
+        callbacks.set(handle, callback)
+        return handle
+      },
+      clearInterval(handle: number) {
+        calls.push(`clear:${handle}`)
+        callbacks.delete(handle)
+      },
+    },
   }
 }
 
@@ -111,4 +131,125 @@ test('timer failures do not interrupt the game', async () => {
   } finally {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: originalWindow })
   }
+})
+
+test('a retained rhythm callback stays silent after mute', async () => {
+  const calls: string[] = []
+  const { callbacks, window } = createTimerWindow(calls)
+  const originalWindow = globalThis.window
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: window })
+
+  try {
+    const audio = createGameAudio(() => createFakeContext(calls))
+    await audio.unlock()
+    audio.setPhase('flow')
+    const retainedCallback = callbacks.get(1)
+    assert.ok(retainedCallback)
+
+    retainedCallback()
+    const startsBeforeMute = calls.filter((call) => call === 'start').length
+    audio.setEnabled(false)
+    retainedCallback()
+
+    assert.equal(calls.filter((call) => call === 'start').length, startsBeforeMute)
+    await audio.destroy()
+  } finally {
+    Object.defineProperty(globalThis, 'window', { configurable: true, value: originalWindow })
+  }
+})
+
+test('a retained rhythm callback stays silent after suspension', async () => {
+  const calls: string[] = []
+  const { callbacks, window } = createTimerWindow(calls)
+  const originalWindow = globalThis.window
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: window })
+
+  try {
+    const audio = createGameAudio(() => createFakeContext(calls))
+    await audio.unlock()
+    audio.setPhase('flow')
+    const retainedCallback = callbacks.get(1)
+    assert.ok(retainedCallback)
+
+    retainedCallback()
+    const startsBeforeSuspend = calls.filter((call) => call === 'start').length
+    await audio.suspend()
+    retainedCallback()
+
+    assert.equal(calls.filter((call) => call === 'start').length, startsBeforeSuspend)
+    await audio.destroy()
+  } finally {
+    Object.defineProperty(globalThis, 'window', { configurable: true, value: originalWindow })
+  }
+})
+
+test('suspend and phase changes replace rhythm scheduling without duplicates', async () => {
+  const calls: string[] = []
+  const { callbacks, window } = createTimerWindow(calls)
+  const originalWindow = globalThis.window
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: window })
+
+  try {
+    const audio = createGameAudio(() => createFakeContext(calls))
+    await audio.unlock()
+    audio.setPhase('flow')
+    assert.equal(callbacks.size, 1)
+
+    await audio.suspend()
+    assert.equal(callbacks.size, 0)
+    assert.equal(calls.includes('clear:1'), true)
+
+    await audio.resume()
+    assert.equal(callbacks.size, 1)
+    assert.equal(calls.filter((call) => call === 'interval:720').length, 2)
+
+    audio.setPhase('rush')
+    assert.equal(callbacks.size, 1)
+    assert.equal(calls.includes('clear:2'), true)
+    assert.equal(calls.includes('interval:560'), true)
+
+    await audio.destroy()
+  } finally {
+    Object.defineProperty(globalThis, 'window', { configurable: true, value: originalWindow })
+  }
+})
+
+test('cleanup uses the scheduler that created the rhythm handle', async () => {
+  const calls: string[] = []
+  const first = createTimerWindow(calls)
+  const originalWindow = globalThis.window
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: first.window })
+
+  try {
+    const audio = createGameAudio(() => createFakeContext(calls))
+    await audio.unlock()
+    audio.setPhase('warmup')
+
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: {
+        setInterval() { return 99 },
+        clearInterval(handle: number) { calls.push(`replacement-clear:${handle}`) },
+      },
+    })
+    audio.setEnabled(false)
+
+    assert.equal(calls.includes('clear:1'), true)
+    assert.equal(calls.some((call) => call.startsWith('replacement-clear:')), false)
+    await audio.destroy()
+  } finally {
+    Object.defineProperty(globalThis, 'window', { configurable: true, value: originalWindow })
+  }
+})
+
+test('every cue produces a tone when audio is enabled and unlocked', async () => {
+  const calls: string[] = []
+  const audio = createGameAudio(() => createFakeContext(calls))
+  const cues: AudioCue[] = ['countdown', 'catch', 'combo', 'miss', 'damage', 'pause', 'resume', 'gameOver', 'select']
+
+  await audio.unlock()
+  for (const cue of cues) audio.play(cue)
+
+  assert.equal(calls.filter((call) => call === 'start').length, cues.length)
+  await audio.destroy()
 })

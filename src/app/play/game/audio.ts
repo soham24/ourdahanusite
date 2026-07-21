@@ -36,6 +36,11 @@ interface AudioContextLike {
 
 type AudioContextFactory = () => AudioContextLike
 
+interface RhythmTimer {
+  handle: number
+  clear(handle: number): void
+}
+
 const CUES: Record<AudioCue, readonly [number, number, number, number]> = {
   countdown: [440, 0.08, 0.05, 520],
   catch: [520, 0.07, 0.045, 680],
@@ -71,21 +76,21 @@ export function createGameAudio(factory: AudioContextFactory = createBrowserAudi
   let playing = false
   let suspended = false
   let destroyed = false
-  let rhythmTimer: number | undefined
+  let rhythmTimer: RhythmTimer | undefined
 
   const clearRhythm = () => {
-    if (rhythmTimer === undefined || typeof window === 'undefined') return
+    const timer = rhythmTimer
+    if (!timer) return
+    rhythmTimer = undefined
     try {
-      window.clearInterval(rhythmTimer)
+      timer.clear(timer.handle)
     } catch {
       // Audio is an optional capability.
-    } finally {
-      rhythmTimer = undefined
     }
   }
 
   const tone = (frequency: number, duration: number, volume: number, endFrequency: number) => {
-    if (!context || destroyed) return
+    if (!context || !enabled || suspended || destroyed) return
 
     try {
       const oscillator = context.createOscillator()
@@ -115,7 +120,11 @@ export function createGameAudio(factory: AudioContextFactory = createBrowserAudi
   const startRhythm = () => {
     if (!context || !enabled || !playing || suspended || destroyed || rhythmTimer !== undefined || typeof window === 'undefined') return
     try {
-      rhythmTimer = window.setInterval(playRhythm, PHASE_INTERVALS[phase])
+      const scheduler = window
+      rhythmTimer = {
+        handle: scheduler.setInterval(playRhythm, PHASE_INTERVALS[phase]),
+        clear: scheduler.clearInterval.bind(scheduler),
+      }
     } catch {
       // Audio is an optional capability.
     }
