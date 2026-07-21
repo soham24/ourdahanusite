@@ -118,7 +118,7 @@ export function modeAfterFullscreenExit(
   documentLike: { fullscreenElement?: unknown },
   shell: unknown,
 ): ImmersiveMode {
-  return documentLike.fullscreenElement === shell ? 'fullscreen' : 'none'
+  return shell != null && documentLike.fullscreenElement === shell ? 'fullscreen' : 'none'
 }
 
 function useLazyGameEngine(): { current: GameEngine } {
@@ -438,6 +438,7 @@ export default function ChikooCatcherGame({
     lastSnapshotPublishRef.current = 0
     audioRef.current?.setEnabled(settingsRef.current.sound)
     audioRef.current?.setPhase(engineRef.current.snapshot().phase)
+    startPlayingAudio(audioRef.current)
     void audioRef.current?.resume()
     audioRef.current?.play('resume')
     transitionPlayState('playing')
