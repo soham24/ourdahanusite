@@ -779,6 +779,30 @@ export type Database = {
           },
         ]
       }
+      game_scores: {
+        Row: {
+          game: string
+          id: string
+          played_at: string
+          score: number
+          user_id: string
+        }
+        Insert: {
+          game?: string
+          id?: string
+          played_at?: string
+          score: number
+          user_id: string
+        }
+        Update: {
+          game?: string
+          id?: string
+          played_at?: string
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       jobs: {
         Row: {
           amount_paid: number | null
@@ -2104,6 +2128,10 @@ export type Database = {
         Returns: boolean
       }
       get_admin_find_counts: { Args: never; Returns: Json }
+      get_game_leaderboard: {
+        Args: { p_game: string; p_scope: string }
+        Returns: Json
+      }
       get_homepage_stats: { Args: never; Returns: Json }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }

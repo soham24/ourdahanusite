@@ -68,7 +68,7 @@ export async function getCachedActiveCoupons(): Promise<Coupon[]> {
       .order('created_at', { ascending: false })
       .order('id', { ascending: true })
 
-    return data ?? []
+    return (data ?? []) as unknown as Coupon[]
   } catch {
     return []
   }
