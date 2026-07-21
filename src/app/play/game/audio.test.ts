@@ -59,6 +59,7 @@ test('audio is lazy, respects mute, suspends, and closes', async () => {
   assert.equal(calls.length, 0)
   await audio.unlock()
   audio.setEnabled(false)
+  audio.setRhythmActive(false)
   audio.play('catch')
   await audio.suspend()
   await audio.destroy()
@@ -90,6 +91,7 @@ test('audio schedules a two-note rhythm only while an enabled game is playing', 
     const audio = createGameAudio(() => fake)
     await audio.unlock()
     audio.setPhase('flow')
+    audio.setRhythmActive(true)
 
     assert.deepEqual(calls, ['resume', 'interval:720'])
     intervals.get(1)?.()
@@ -110,6 +112,7 @@ test('unsupported audio capabilities are non-blocking', async () => {
 
   await assert.doesNotReject(audio.unlock())
   assert.doesNotThrow(() => audio.play('catch'))
+  assert.doesNotThrow(() => audio.setRhythmActive(false))
   await assert.doesNotReject(audio.suspend())
   await assert.doesNotReject(audio.resume())
   await assert.doesNotReject(audio.destroy())
@@ -127,6 +130,7 @@ test('timer failures do not interrupt the game', async () => {
     await audio.unlock()
 
     assert.doesNotThrow(() => audio.setPhase('warmup'))
+    assert.doesNotThrow(() => audio.setRhythmActive(true))
     await assert.doesNotReject(audio.destroy())
   } finally {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: originalWindow })
@@ -143,6 +147,7 @@ test('a retained rhythm callback stays silent after mute', async () => {
     const audio = createGameAudio(() => createFakeContext(calls))
     await audio.unlock()
     audio.setPhase('flow')
+    audio.setRhythmActive(true)
     const retainedCallback = callbacks.get(1)
     assert.ok(retainedCallback)
 
@@ -168,6 +173,7 @@ test('a retained rhythm callback stays silent after suspension', async () => {
     const audio = createGameAudio(() => createFakeContext(calls))
     await audio.unlock()
     audio.setPhase('flow')
+    audio.setRhythmActive(true)
     const retainedCallback = callbacks.get(1)
     assert.ok(retainedCallback)
 
@@ -193,6 +199,7 @@ test('suspend and phase changes replace rhythm scheduling without duplicates', a
     const audio = createGameAudio(() => createFakeContext(calls))
     await audio.unlock()
     audio.setPhase('flow')
+    audio.setRhythmActive(true)
     assert.equal(callbacks.size, 1)
 
     await audio.suspend()
@@ -224,6 +231,7 @@ test('cleanup uses the scheduler that created the rhythm handle', async () => {
     const audio = createGameAudio(() => createFakeContext(calls))
     await audio.unlock()
     audio.setPhase('warmup')
+    audio.setRhythmActive(true)
 
     Object.defineProperty(globalThis, 'window', {
       configurable: true,
@@ -252,4 +260,31 @@ test('every cue produces a tone when audio is enabled and unlocked', async () =>
 
   assert.equal(calls.filter((call) => call === 'start').length, cues.length)
   await audio.destroy()
+})
+
+test('countdown cues are audible while rhythm stays inactive until play', async () => {
+  const calls: string[] = []
+  const { callbacks, window } = createTimerWindow(calls)
+  const originalWindow = globalThis.window
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: window })
+
+  try {
+    const audio = createGameAudio(() => createFakeContext(calls))
+    await audio.unlock()
+    audio.setRhythmActive(false)
+    audio.setPhase('warmup')
+    audio.play('countdown')
+    audio.play('countdown')
+    audio.play('countdown')
+
+    assert.equal(calls.filter((call) => call === 'start').length, 3)
+    assert.equal(callbacks.size, 0)
+
+    audio.setRhythmActive(true)
+    assert.equal(callbacks.size, 1)
+    assert.equal(calls.filter((call) => call === 'interval:900').length, 1)
+    await audio.destroy()
+  } finally {
+    Object.defineProperty(globalThis, 'window', { configurable: true, value: originalWindow })
+  }
 })

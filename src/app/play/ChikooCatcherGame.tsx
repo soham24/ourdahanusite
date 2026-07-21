@@ -41,7 +41,7 @@ interface ChikooCatcherGameProps {
 type RoundRenderer = Pick<GameRenderer, 'clear' | 'setPointerX'>
 type RoundAudio = Pick<
   AudioController,
-  'setEnabled' | 'suspend' | 'setPhase' | 'unlock' | 'play' | 'resume'
+  'setEnabled' | 'suspend' | 'setPhase' | 'setRhythmActive' | 'unlock' | 'play' | 'resume'
 >
 type ScoreResult = { error?: string; isNewBest?: boolean }
 
@@ -82,13 +82,17 @@ export function resetRoundResources(
   renderer?.setPointerX(null)
   audio?.setEnabled(soundEnabled)
   void audio?.suspend()
+  audio?.setRhythmActive(false)
   audio?.setPhase('warmup')
   void audio?.unlock()
+  void audio?.resume()
   audio?.play('countdown')
 }
 
-export function startPlayingAudio(audio: Pick<AudioController, 'resume'> | null): void {
-  void audio?.resume()
+export function startPlayingAudio(
+  audio: Pick<AudioController, 'setRhythmActive'> | null,
+): void {
+  audio?.setRhythmActive(true)
 }
 
 export async function runScoreSubmission(
@@ -110,8 +114,11 @@ export async function runScoreSubmission(
   }
 }
 
-export function modeAfterFullscreenExit(documentLike: { fullscreenElement?: unknown }): ImmersiveMode {
-  return documentLike.fullscreenElement ? 'fullscreen' : 'none'
+export function modeAfterFullscreenExit(
+  documentLike: { fullscreenElement?: unknown },
+  shell: unknown,
+): ImmersiveMode {
+  return documentLike.fullscreenElement === shell ? 'fullscreen' : 'none'
 }
 
 function useLazyGameEngine(): { current: GameEngine } {
@@ -460,7 +467,7 @@ export default function ChikooCatcherGame({
     if (exitSequence === 'fullscreen') {
       await exitImmersive(document)
       if (!mountedRef.current) return
-      const actualMode = modeAfterFullscreenExit(document)
+      const actualMode = modeAfterFullscreenExit(document, shellRef.current)
       if (actualMode === 'fullscreen') {
         transitionImmersiveMode('fullscreen')
         setAnnouncement('Could not exit fullscreen. Use your browser fullscreen control and try again.')

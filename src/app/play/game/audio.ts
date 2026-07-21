@@ -6,6 +6,7 @@ export interface AudioController {
   unlock(): Promise<void>
   setEnabled(enabled: boolean): void
   setPhase(phase: GamePhase): void
+  setRhythmActive(active: boolean): void
   play(cue: AudioCue): void
   suspend(): Promise<void>
   resume(): Promise<void>
@@ -73,7 +74,7 @@ export function createGameAudio(factory: AudioContextFactory = createBrowserAudi
   let context: AudioContextLike | undefined
   let enabled = true
   let phase: GamePhase = 'warmup'
-  let playing = false
+  let rhythmActive = false
   let suspended = false
   let destroyed = false
   let rhythmTimer: RhythmTimer | undefined
@@ -118,7 +119,7 @@ export function createGameAudio(factory: AudioContextFactory = createBrowserAudi
   }
 
   const startRhythm = () => {
-    if (!context || !enabled || !playing || suspended || destroyed || rhythmTimer !== undefined || typeof window === 'undefined') return
+    if (!context || !enabled || !rhythmActive || suspended || destroyed || rhythmTimer !== undefined || typeof window === 'undefined') return
     try {
       const scheduler = window
       rhythmTimer = {
@@ -158,9 +159,14 @@ export function createGameAudio(factory: AudioContextFactory = createBrowserAudi
 
     setPhase(nextPhase) {
       phase = nextPhase
-      playing = true
       clearRhythm()
       startRhythm()
+    },
+
+    setRhythmActive(active) {
+      rhythmActive = active
+      if (!rhythmActive) clearRhythm()
+      else startRhythm()
     },
 
     play(cue) {
