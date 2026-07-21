@@ -32,7 +32,10 @@ export default async function PlayPage() {
         </p>
       </div>
 
-      <ChikooCatcherGame isSignedIn={Boolean(user)} />
+      <ChikooCatcherGame
+        isSignedIn={Boolean(user)}
+        initialBestScore={Math.max(yourBestWeek ?? 0, yourBestAllTime ?? 0) || null}
+      />
 
       <Leaderboard
         weekly={weekly}
