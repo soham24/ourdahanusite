@@ -34,6 +34,7 @@ export interface QualityController {
 
 export interface GameRenderer {
   resize(cssWidth: number, cssHeight: number, devicePixelRatio: number): void
+  setPointerX(logicalX: number | null): void
   emit(events: readonly GameEvent[]): void
   render(snapshot: GameSnapshot, settings: GameSettings, frameMs: number): void
   clear(): void
@@ -68,6 +69,37 @@ export function createQualityController(): QualityController {
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+
+const normalizeFrameMs = (frameMs: number) =>
+  Math.max(0, Number.isFinite(frameMs) ? frameMs : 0)
+
+export function getParallaxTarget(
+  pointerX: number | null,
+  quality: QualityLevel,
+  reducedEffects: boolean,
+) {
+  if (pointerX === null || !Number.isFinite(pointerX) || quality === 'reduced' || reducedEffects) {
+    return 0
+  }
+  return clamp((pointerX / GAME_CONFIG.width - 0.5) * 12, -6, 6)
+}
+
+export function getNextParallaxX(
+  currentX: number,
+  pointerX: number | null,
+  quality: QualityLevel,
+  reducedEffects: boolean,
+) {
+  if (pointerX === null || !Number.isFinite(pointerX) || quality === 'reduced' || reducedEffects) {
+    return 0
+  }
+  const targetX = getParallaxTarget(pointerX, quality, reducedEffects)
+  return clamp(currentX + (targetX - currentX) * 0.12, -6, 6)
+}
+
+export function advanceEffectDuration(remainingMs: number, frameMs: number) {
+  return Math.max(0, remainingMs - normalizeFrameMs(frameMs))
+}
 
 function roundedRect(
   context: CanvasRenderingContext2D,
@@ -374,6 +406,7 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
   let quality = createQualityController()
   let renderedQuality: QualityLevel = 'high'
   let reducedEffects = false
+  let pointerX: number | null = null
   let parallaxX = 0
   let shakeRemainingMs = 0
   let dangerAgeMs = DANGER_PULSE_MS
@@ -454,24 +487,25 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
   }
 
   const updateEffects = (frameMs: number) => {
-    const dtMs = clamp(Number.isFinite(frameMs) ? frameMs : 0, 0, 50)
-    const dtSeconds = dtMs / 1000
-    shakeRemainingMs = Math.max(0, shakeRemainingMs - dtMs)
-    dangerAgeMs = Math.min(DANGER_PULSE_MS, dangerAgeMs + dtMs)
+    const elapsedMs = normalizeFrameMs(frameMs)
+    const motionMs = Math.min(50, elapsedMs)
+    const motionSeconds = motionMs / 1000
+    shakeRemainingMs = advanceEffectDuration(shakeRemainingMs, elapsedMs)
+    dangerAgeMs = Math.min(DANGER_PULSE_MS, dangerAgeMs + elapsedMs)
     for (const particle of particles) {
       if (!particle.active) continue
-      particle.ageMs += dtMs
+      particle.ageMs += elapsedMs
       if (particle.ageMs >= particle.durationMs) {
         particle.active = false
         continue
       }
-      particle.vy += 145 * dtSeconds
-      particle.x += particle.vx * dtSeconds
-      particle.y += particle.vy * dtSeconds
+      particle.vy += 145 * motionSeconds
+      particle.x += particle.vx * motionSeconds
+      particle.y += particle.vy * motionSeconds
     }
     for (const burst of bursts) {
       if (!burst.active) continue
-      burst.ageMs += dtMs
+      burst.ageMs += elapsedMs
       if (burst.ageMs >= burst.durationMs) burst.active = false
     }
   }
@@ -516,6 +550,11 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
     canvas.height = Math.max(1, Math.round(safeHeight * backingScale))
   }
 
+  const setPointerX = (logicalX: number | null) => {
+    if (destroyed) return
+    pointerX = logicalX !== null && Number.isFinite(logicalX) ? logicalX : null
+  }
+
   const render = (snapshot: GameSnapshot, settings: GameSettings, frameMs: number) => {
     if (destroyed) return
     quality.observe(frameMs)
@@ -523,11 +562,7 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
     reducedEffects = settings.reducedEffects
     updateEffects(frameMs)
 
-    const parallaxTarget = renderedQuality === 'high' && !reducedEffects
-      ? clamp(((snapshot.basketX / GAME_CONFIG.width) - 0.5) * 12, -6, 6)
-      : 0
-    parallaxX += (parallaxTarget - parallaxX) * 0.12
-    parallaxX = clamp(parallaxX, -6, 6)
+    parallaxX = getNextParallaxX(parallaxX, pointerX, renderedQuality, reducedEffects)
 
     const scaleX = canvas.width / GAME_CONFIG.width
     const scaleY = canvas.height / GAME_CONFIG.height
@@ -553,11 +588,13 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
   }
 
   const clear = () => {
+    if (destroyed) return
     particles.length = 0
     bursts.length = 0
     shakeRemainingMs = 0
     dangerAgeMs = DANGER_PULSE_MS
     dangerX = GAME_CONFIG.width / 2
+    pointerX = null
     parallaxX = 0
     reducedEffects = false
     renderedQuality = 'high'
@@ -572,5 +609,5 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
     destroyed = true
   }
 
-  return { resize, emit, render, clear, destroy }
+  return { resize, setPointerX, emit, render, clear, destroy }
 }
