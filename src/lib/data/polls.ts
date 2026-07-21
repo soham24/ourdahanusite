@@ -161,7 +161,7 @@ export async function getAllPolls(): Promise<PollWithResults[]> {
     .order('created_at', { ascending: false })
     .order('id', { ascending: true })
 
-  const polls = (pollsData ?? []) as PollRow[]
+  const polls = (pollsData ?? []) as unknown as PollRow[]
   if (polls.length === 0) return []
 
   const pollIds = polls.map(p => p.id)
