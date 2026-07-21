@@ -2,7 +2,9 @@ import 'server-only'
 
 import { createClient } from '@supabase/supabase-js'
 
-let publicClient: ReturnType<typeof createClient> | null = null
+import type { Database } from '@/lib/database.types'
+
+let publicClient: ReturnType<typeof createClient<Database>> | null = null
 
 export function createPublicClient() {
   if (publicClient) {
@@ -16,7 +18,7 @@ export function createPublicClient() {
     throw new Error('Public Supabase environment variables are not configured.')
   }
 
-  publicClient = createClient(url, anonKey, {
+  publicClient = createClient<Database>(url, anonKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
