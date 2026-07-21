@@ -4,10 +4,23 @@ import { getGameLeaderboard, getUserBestScore } from '@/lib/data/game'
 import ChikooCatcherGame from './ChikooCatcherGame'
 import Leaderboard from './Leaderboard'
 
+const TITLE = 'Chikoo Catcher — A Dahanu Mini-Game'
+const DESCRIPTION =
+  "Catch falling chikoos, dodge the rotten ones, and climb the OurDahanu leaderboard. A quick, fun mini-game themed around Dahanu's signature fruit."
+
 export const metadata: Metadata = {
-  title: 'Chikoo Catcher — A Dahanu Mini-Game',
-  description:
-    "Catch falling chikoos, dodge the rotten ones, and climb the OurDahanu leaderboard. A quick, fun mini-game themed around Dahanu's signature fruit.",
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 }
 
 export default async function PlayPage() {
