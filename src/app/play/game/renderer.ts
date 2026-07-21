@@ -444,7 +444,7 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
   }
 
   const addCatchParticles = (x: number, y: number) => {
-    const count = renderedQuality === 'high' ? 10 : 4
+    const count = reducedEffects ? 2 : renderedQuality === 'high' ? 10 : 4
     for (let index = 0; index < count; index += 1) {
       const particle = allocateParticle()
       if (!particle) break
@@ -467,7 +467,7 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
     for (const event of events) {
       if (event.type === 'ripeCaught') {
         addCatchParticles(event.x, event.y)
-        if (event.bonusAwarded > 0) {
+        if (event.bonusAwarded > 0 && !reducedEffects) {
           const burst = allocateBurst()
           if (burst) {
             burst.active = true
@@ -511,16 +511,21 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
   }
 
   const drawEffects = () => {
+    let renderedParticles = 0
     for (const particle of particles) {
       if (!particle.active) continue
+      if (reducedEffects && renderedParticles >= 2) continue
       const life = 1 - particle.ageMs / particle.durationMs
       context.globalAlpha = clamp(life * 1.35, 0, 1)
       context.fillStyle = particle.color
       context.beginPath()
       context.arc(particle.x, particle.y, particle.radius * (0.75 + life * 0.45), 0, TAU)
       context.fill()
+      renderedParticles += 1
     }
     context.globalAlpha = 1
+
+    if (reducedEffects) return
 
     for (const burst of bursts) {
       if (!burst.active) continue

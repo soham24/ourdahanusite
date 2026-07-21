@@ -72,6 +72,18 @@ test('engine follows clamped pointer input and advances active time', () => {
   assert.ok(state.basketX <= GAME_CONFIG.width - GAME_CONFIG.basketWidth / 2)
 })
 
+test('basket can be prepositioned without advancing fruit simulation', () => {
+  const engine = createGameEngine(() => 0.5)
+  const before = engine.snapshot()
+  engine.positionBasket(999)
+  const after = engine.snapshot()
+
+  assert.equal(after.basketX, GAME_CONFIG.width - GAME_CONFIG.basketWidth / 2)
+  assert.equal(after.activeMs, before.activeMs)
+  assert.equal(after.spawnElapsedMs, before.spawnElapsedMs)
+  assert.deepEqual(after.items, before.items)
+})
+
 test('five consecutive ripe catches earn one capped combo point', () => {
   const engine = createGameEngine(() => 0.5)
   engine.setInput({ targetX: GAME_CONFIG.width / 2, left: false, right: false })
@@ -121,4 +133,15 @@ test('reset clears a completed round and preserves no entity references', () => 
   assert.equal(after.items.length, 0)
   assert.equal(after.score, 0)
   assert.notEqual(before.items, after.items)
+})
+
+test('score ceiling ends the round exactly once with a server-valid score', () => {
+  const engine = createGameEngine(() => 0.5)
+  engine.setInput({ targetX: GAME_CONFIG.width / 2, left: false, right: false })
+  const events = advanceUntil(engine, () => engine.snapshot().gameOver, 300_000)
+  const gameOverEvents = events.filter((event) => event.type === 'gameOver')
+
+  assert.equal(engine.snapshot().score, GAME_CONFIG.maxScore)
+  assert.deepEqual(gameOverEvents, [{ type: 'gameOver', score: GAME_CONFIG.maxScore }])
+  assert.deepEqual(engine.step(GAME_CONFIG.fixedStepMs), [])
 })

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { enterImmersive, exitImmersive } from './fullscreen'
+import { enterImmersive, exitImmersive, immersiveModeAnnouncement } from './fullscreen'
 
 test('native fullscreen is preferred', async () => {
   let requested = false
@@ -32,4 +32,11 @@ test('exit leaves inactive fullscreen untouched and returns none', async () => {
 
   assert.equal(exited, false)
   assert.equal(result, 'none')
+})
+
+test('focus fallback has an explicit accessible announcement', () => {
+  assert.equal(
+    immersiveModeAnnouncement('focus'),
+    'Fullscreen unavailable. Focus mode enabled.',
+  )
 })

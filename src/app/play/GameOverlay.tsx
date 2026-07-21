@@ -8,6 +8,7 @@ type OverlayProps =
   | {
       state: Extract<OverlayState, 'ready'>
       settings: GameSettings
+      immersiveMode: ImmersiveMode
       onPlay(): void
       onToggleSound(): void
       onToggleHaptics(): void
@@ -134,6 +135,12 @@ export default function GameOverlay(props: OverlayProps) {
   }
 
   if (props.state === 'ready') {
+    const immersiveLabel = props.immersiveMode === 'fullscreen'
+      ? 'Exit fullscreen'
+      : props.immersiveMode === 'focus'
+        ? 'Exit focus mode'
+        : 'Enter fullscreen'
+
     return (
       <div className="chikoo-overlay chikoo-overlay--ready">
         <section className="chikoo-overlay__card" aria-labelledby="chikoo-ready-title">
@@ -157,7 +164,7 @@ export default function GameOverlay(props: OverlayProps) {
               Play
             </button>
             <button type="button" className="chikoo-action chikoo-action--quiet" onClick={props.onToggleImmersive}>
-              Enter fullscreen
+              {immersiveLabel}
             </button>
           </div>
 
@@ -249,6 +256,18 @@ export default function GameOverlay(props: OverlayProps) {
             Exit game view
           </button>
         </div>
+      </section>
+    </div>
+  )
+}
+
+export function GameUnavailable({ message }: { message: string }) {
+  return (
+    <div className="chikoo-overlay chikoo-overlay--ready" role="alert">
+      <section className="chikoo-overlay__card" aria-labelledby="chikoo-unavailable-title">
+        <p className="chikoo-overlay__eyebrow">Game unavailable</p>
+        <h2 id="chikoo-unavailable-title">Unable to start Chikoo Catcher</h2>
+        <p className="chikoo-overlay__intro">{message}</p>
       </section>
     </div>
   )

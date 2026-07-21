@@ -120,3 +120,23 @@ test('combo burst rendering stays capped at twelve active records', () => {
   renderer.render(snapshot, settings, 16)
   assert.equal(spy.textCalls(), 12)
 })
+
+test('reduced effects limits catch particles and suppresses combo burst motion', () => {
+  const spy = createCanvasSpy()
+  const renderer = createRenderer(spy.canvas)
+  const snapshot = createGameEngine(() => 0.5).snapshot()
+  renderer.render(snapshot, settings, 16)
+  const baselineArcs = spy.arcCalls()
+  renderer.emit([{
+    type: 'ripeCaught',
+    x: 180,
+    y: 300,
+    combo: 5,
+    bonusAwarded: 1,
+  }])
+  renderer.render(snapshot, { ...settings, reducedEffects: true }, 16)
+
+  const effectArcs = spy.arcCalls() - baselineArcs - baselineArcs
+  assert.equal(effectArcs, 2)
+  assert.equal(spy.textCalls(), 0)
+})

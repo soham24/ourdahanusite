@@ -2,6 +2,12 @@ export type ImmersiveMode = 'none' | 'fullscreen' | 'focus'
 type ElementLike = { requestFullscreen?: () => Promise<void> }
 type DocumentLike = { fullscreenElement?: unknown; exitFullscreen?: () => Promise<void> }
 
+export function immersiveModeAnnouncement(mode: ImmersiveMode): string {
+  if (mode === 'focus') return 'Fullscreen unavailable. Focus mode enabled.'
+  if (mode === 'fullscreen') return 'Fullscreen enabled.'
+  return 'Game view exited.'
+}
+
 export async function enterImmersive(element: ElementLike, _document: DocumentLike): Promise<ImmersiveMode> {
   void _document
   if (!element.requestFullscreen) return 'focus'

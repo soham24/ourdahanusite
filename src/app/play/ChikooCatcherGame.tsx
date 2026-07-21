@@ -5,17 +5,17 @@ import type { PointerEvent as ReactPointerEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { submitGameScore } from '@/app/actions/game'
 import GameHud from './GameHud'
-import GameOverlay from './GameOverlay'
+import GameOverlay, { GameUnavailable } from './GameOverlay'
 import { createGameAudio } from './game/audio'
 import type { AudioController } from './game/audio'
 import { GAME_CONFIG } from './game/config'
 import { createGameEngine } from './game/engine'
 import type { GameEngine } from './game/engine'
-import { enterImmersive, exitImmersive } from './game/fullscreen'
+import { enterImmersive, exitImmersive, immersiveModeAnnouncement } from './game/fullscreen'
 import type { ImmersiveMode } from './game/fullscreen'
 import { createHaptics } from './game/haptics'
-import { createRenderer } from './game/renderer'
 import type { GameRenderer } from './game/renderer'
+import { initializeRenderer } from './game/renderer-lifecycle'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from './game/storage'
 import type {
   GameEvent,
@@ -175,6 +175,7 @@ export default function ChikooCatcherGame({
   const [submitState, setSubmitState] = useState<SubmitState>('idle')
   const [submitError, setSubmitError] = useState('')
   const [announcement, setAnnouncement] = useState('Ready to play')
+  const [rendererError, setRendererError] = useState('')
 
   const transitionPlayState = useCallback((next: PlayState) => {
     playStateRef.current = next
@@ -355,6 +356,10 @@ export default function ChikooCatcherGame({
   )
 
   const startRound = useCallback(() => {
+    if (!rendererRef.current) {
+      setAnnouncement('Unable to start Chikoo Catcher because canvas rendering is unavailable')
+      return
+    }
     cancelFrame()
     clearCountdownTimers()
     clearHeldDirections()
@@ -497,6 +502,7 @@ export default function ChikooCatcherGame({
       removeFocusLock()
     }
     transitionImmersiveMode(next)
+    setAnnouncement(immersiveModeAnnouncement(next))
   }, [exitImmersiveMode, removeFocusLock, transitionImmersiveMode])
 
   const retrySave = useCallback(() => {
@@ -509,8 +515,15 @@ export default function ChikooCatcherGame({
     const rect = event.currentTarget.getBoundingClientRect()
     const logicalX = normalizePointerX(event.clientX, rect)
     rendererRef.current?.setPointerX(logicalX)
-    if (logicalX !== null && playStateRef.current === 'playing') {
-      engineRef.current.setInput({ targetX: logicalX, left: false, right: false })
+    if (logicalX !== null && (playStateRef.current === 'playing' || playStateRef.current === 'countdown')) {
+      if (playStateRef.current === 'countdown') {
+        engineRef.current.positionBasket(logicalX)
+        const next = engineRef.current.snapshot()
+        setSnapshot(next)
+        rendererRef.current?.render(next, settingsRef.current, 0)
+      } else {
+        engineRef.current.setInput({ targetX: logicalX, left: false, right: false })
+      }
       heldDirectionsRef.current = { left: false, right: false }
     }
   }
@@ -549,7 +562,15 @@ export default function ChikooCatcherGame({
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const renderer = createRenderer(canvas)
+    const initialized = initializeRenderer(canvas)
+    if (!initialized.renderer) {
+      rendererRef.current = null
+      setRendererError(initialized.error)
+      setAnnouncement(initialized.error)
+      return
+    }
+    const renderer = initialized.renderer
+    setRendererError('')
     rendererRef.current = renderer
     const resize = () => {
       const rect = canvas.getBoundingClientRect()
@@ -594,8 +615,17 @@ export default function ChikooCatcherGame({
     }
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-        if (playStateRef.current !== 'playing') return
+        if (playStateRef.current !== 'playing' && playStateRef.current !== 'countdown') return
         event.preventDefault()
+        if (playStateRef.current === 'countdown') {
+          const direction = event.key === 'ArrowLeft' ? -1 : 1
+          engineRef.current.positionBasket(engineRef.current.snapshot().basketX + direction * 28)
+          const next = engineRef.current.snapshot()
+          setSnapshot(next)
+          rendererRef.current?.setPointerX(null)
+          rendererRef.current?.render(next, settingsRef.current, 0)
+          return
+        }
         heldDirectionsRef.current = {
           ...heldDirectionsRef.current,
           [event.key === 'ArrowLeft' ? 'left' : 'right']: true,
@@ -701,15 +731,20 @@ export default function ChikooCatcherGame({
           />
         )}
         {playState === 'ready' && (
-          <GameOverlay
-            state="ready"
-            settings={settings}
-            onPlay={startRound}
-            onToggleSound={toggleSound}
-            onToggleHaptics={toggleHaptics}
-            onToggleReducedEffects={toggleReducedEffects}
-            onToggleImmersive={() => void toggleImmersive()}
-          />
+          rendererError ? (
+            <GameUnavailable message={rendererError} />
+          ) : (
+            <GameOverlay
+              state="ready"
+              settings={settings}
+              immersiveMode={immersiveMode}
+              onPlay={startRound}
+              onToggleSound={toggleSound}
+              onToggleHaptics={toggleHaptics}
+              onToggleReducedEffects={toggleReducedEffects}
+              onToggleImmersive={() => void toggleImmersive()}
+            />
+          )
         )}
         {playState === 'countdown' && <GameOverlay state="countdown" count={countdown} />}
         {playState === 'paused' && (

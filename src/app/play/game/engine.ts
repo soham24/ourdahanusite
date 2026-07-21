@@ -5,6 +5,7 @@ import type { FallingItem, GameEngineState, GameEvent, GameSnapshot, InputState 
 export interface GameEngine {
   reset(): void
   setInput(input: InputState): void
+  positionBasket(targetX: number): void
   step(dtMs: number): GameEvent[]
   snapshot(): GameSnapshot
 }
@@ -42,6 +43,14 @@ export function createGameEngine(random: RandomSource = Math.random): GameEngine
 
   const setInput = (next: InputState) => {
     input = { ...next }
+  }
+
+  const positionBasket = (targetX: number) => {
+    if (!Number.isFinite(targetX)) return
+    const minX = GAME_CONFIG.basketWidth / 2
+    const maxX = GAME_CONFIG.width - minX
+    state.basketX = clamp(targetX, minX, maxX)
+    state.basketVelocity = 0
   }
 
   const spawn = () => {
@@ -109,7 +118,7 @@ export function createGameEngine(random: RandomSource = Math.random): GameEngine
         const nextScore = scoreFor(state.catches, state.rawComboBonus)
         const bonusAwarded = nextScore.bonus - state.bonus
         state.bonus = nextScore.bonus
-        state.score = nextScore.score
+        state.score = Math.min(nextScore.score, GAME_CONFIG.maxScore)
         events.push({ type: 'ripeCaught', x: moved.x, y: moved.y, combo: state.combo, bonusAwarded })
         continue
       }
@@ -131,7 +140,11 @@ export function createGameEngine(random: RandomSource = Math.random): GameEngine
     }
     state.items = remaining
 
-    if (state.misses >= GAME_CONFIG.maxMisses || state.badCatches >= GAME_CONFIG.maxBadCatches) {
+    if (
+      state.score >= GAME_CONFIG.maxScore ||
+      state.misses >= GAME_CONFIG.maxMisses ||
+      state.badCatches >= GAME_CONFIG.maxBadCatches
+    ) {
       state.gameOver = true
       events.push({ type: 'gameOver', score: state.score })
     }
@@ -141,6 +154,7 @@ export function createGameEngine(random: RandomSource = Math.random): GameEngine
   return {
     reset,
     setInput,
+    positionBasket,
     step,
     snapshot,
   }
