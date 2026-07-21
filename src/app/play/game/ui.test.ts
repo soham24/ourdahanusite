@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -31,4 +32,11 @@ test('renderer failure is a semantic alert with no playable start action', () =>
   assert.match(html, /role="alert"/)
   assert.match(html, /Canvas unavailable\./)
   assert.doesNotMatch(html, />Play</)
+})
+
+test('countdown overlay lets pointer input reach the canvas', () => {
+  const css = readFileSync(new URL('../game.css', import.meta.url), 'utf8')
+  const countdownRule = css.match(/\.chikoo-overlay--countdown\s*\{([^}]*)\}/)?.[1] ?? ''
+
+  assert.match(countdownRule, /pointer-events\s*:\s*none\s*;/)
 })
