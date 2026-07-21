@@ -578,6 +578,7 @@ export default function ChikooCatcherGame({
       if (document.visibilityState !== 'visible') pauseRound('Page hidden. Game paused')
     }
     const onWindowBlur = () => pauseRound('Window lost focus. Game paused')
+    const onWindowResize = () => pauseRound('Viewport resized. Game paused')
     const onOrientationChange = () => pauseRound('Orientation changed. Game paused')
     const onFullscreenChange = () => {
       if (document.fullscreenElement === shell) {
@@ -637,6 +638,7 @@ export default function ChikooCatcherGame({
     document.addEventListener('visibilitychange', onVisibilityChange)
     document.addEventListener('fullscreenchange', onFullscreenChange)
     window.addEventListener('blur', onWindowBlur)
+    window.addEventListener('resize', onWindowResize)
     window.addEventListener('orientationchange', onOrientationChange)
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
@@ -656,6 +658,7 @@ export default function ChikooCatcherGame({
       document.removeEventListener('visibilitychange', onVisibilityChange)
       document.removeEventListener('fullscreenchange', onFullscreenChange)
       window.removeEventListener('blur', onWindowBlur)
+      window.removeEventListener('resize', onWindowResize)
       window.removeEventListener('orientationchange', onOrientationChange)
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
