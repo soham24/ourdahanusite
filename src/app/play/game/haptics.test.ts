@@ -10,6 +10,15 @@ test('haptics vibrate only when enabled, supported, and visible', () => {
   assert.deepEqual(calls, [[12]])
 })
 
+test('haptics do not vibrate while the document is hidden', () => {
+  const calls: number[][] = []
+  const haptics = createHaptics((pattern) => { calls.push([...pattern]); return true }, () => false)
+
+  haptics.play('catch', true)
+
+  assert.deepEqual(calls, [])
+})
+
 test('unsupported haptics never throw', () => {
   assert.doesNotThrow(() => createHaptics(undefined, () => true).play('gameOver', true))
 })

@@ -14,8 +14,22 @@ test('rejected fullscreen falls back to focus mode', async () => {
   assert.equal(result, 'focus')
 })
 
+test('missing fullscreen capability falls back to focus mode', async () => {
+  const result = await enterImmersive({}, {})
+
+  assert.equal(result, 'focus')
+})
+
 test('exit uses document exit only when native fullscreen is active', async () => {
   let exited = false
   await exitImmersive({ fullscreenElement: {}, exitFullscreen: async () => { exited = true } })
   assert.equal(exited, true)
+})
+
+test('exit leaves inactive fullscreen untouched and returns none', async () => {
+  let exited = false
+  const result = await exitImmersive({ exitFullscreen: async () => { exited = true } })
+
+  assert.equal(exited, false)
+  assert.equal(result, 'none')
 })
