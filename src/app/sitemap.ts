@@ -8,6 +8,7 @@ import { compareStableText, getCategoryUrl } from '@/lib/listing-category'
 import { SITE_URL } from '@/lib/site'
 import { createPublicClient } from '@/lib/supabase/public'
 import { isValidProfession, professionSlug } from '@/lib/find/professions'
+import { MIN_CATEGORY_SIZE, isProfileIndexable } from '@/lib/seo-thresholds'
 
 const STATIC_LAST_MODIFIED = new Date('2026-01-01T00:00:00.000Z')
 
@@ -70,10 +71,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       return [entry]
     })
 
-    const categoryRoutes: MetadataRoute.Sitemap = [...new Set(sitemapListings.map((listing) => listing.category).filter(Boolean))]
-      .sort((a, b) => compareStableText(a as string, b as string))
+    const listingCategoryCounts = new Map<string, number>()
+    for (const l of sitemapListings) {
+      if (!l.category) continue
+      listingCategoryCounts.set(l.category, (listingCategoryCounts.get(l.category) ?? 0) + 1)
+    }
+
+    const categoryRoutes: MetadataRoute.Sitemap = [...listingCategoryCounts.entries()]
+      .filter(([, count]) => count >= MIN_CATEGORY_SIZE)
+      .map(([category]) => category)
+      .sort((a, b) => compareStableText(a, b))
       .map((category) => ({
-        url: getCategoryUrl(category as string),
+        url: getCategoryUrl(category),
         lastModified: STATIC_LAST_MODIFIED,
         changeFrequency: 'daily' as const,
         priority: 0.7,
@@ -84,7 +93,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // business-subdomain URLs above rely on).
     const { data: professionals } = await supabase
       .from('find_professionals')
-      .select('id, updated_at, professions')
+      .select('id, updated_at, professions, note, business_listing_id')
       .eq('status', 'approved')
       .eq('is_active', true)
 
@@ -92,15 +101,44 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       id: string
       updated_at: string | null
       professions: string[] | null
+      note: string | null
+      business_listing_id: string | null
     }[]
 
-    // One category landing page per profession that actually has professionals.
-    const categorySet = new Set<string>()
+    const { data: ratedRows } = await supabase
+      .from('find_ratings')
+      .select('professional_id')
+      .eq('status', 'approved')
+
+    const ratedProfessionalIds = new Set(
+      ((ratedRows ?? []) as { professional_id: string }[]).map((r) => r.professional_id),
+    )
+
+    // One category landing page per profession with enough professionals to
+    // not read as thin/doorway content to search engines.
+    const professionCounts = new Map<string, number>()
     for (const row of findRows) {
       for (const prof of row.professions ?? []) {
-        if (prof !== 'Other' && isValidProfession(prof)) categorySet.add(prof)
+        if (prof !== 'Other' && isValidProfession(prof)) {
+          professionCounts.set(prof, (professionCounts.get(prof) ?? 0) + 1)
+        }
       }
     }
+    const categorySet = new Set(
+      [...professionCounts.entries()]
+        .filter(([, count]) => count >= MIN_CATEGORY_SIZE)
+        .map(([prof]) => prof),
+    )
+
+    // Only list profiles that would actually be indexable — mirrors the same
+    // rule applied on the profile page itself (src/lib/seo-thresholds.ts).
+    const indexableFindRows = findRows.filter((row) =>
+      isProfileIndexable({
+        note: row.note,
+        rating_count: ratedProfessionalIds.has(row.id) ? 1 : 0,
+        business: row.business_listing_id,
+      }),
+    )
 
     const findRoutes: MetadataRoute.Sitemap = [
       {
@@ -115,7 +153,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'daily' as const,
         priority: 0.7,
       })),
-      ...findRows.map((p) => ({
+      ...indexableFindRows.map((p) => ({
         url: `https://find.ourdahanu.in/p/${p.id}`,
         lastModified: p.updated_at ? new Date(p.updated_at) : STATIC_LAST_MODIFIED,
         changeFrequency: 'weekly' as const,
