@@ -9,6 +9,7 @@ import {
   professionSlug,
   professionMarathi,
 } from '@/lib/find/professions'
+import { MIN_CATEGORY_SIZE } from '@/lib/seo-thresholds'
 import StructuredData from '@/components/StructuredData'
 import FindCard from '../../FindCard'
 import { Mr } from '../../find-ui'
@@ -45,8 +46,8 @@ export async function generateMetadata({
     description,
     alternates: { canonical },
     openGraph: { title, description, url: canonical, type: 'website', siteName: 'FindDahanu' },
-    // Don't index a category page with nobody in it yet.
-    ...(count === 0 ? { robots: { index: false, follow: true } } : {}),
+    // Don't index a category page that doesn't yet look like a real category.
+    ...(count < MIN_CATEGORY_SIZE ? { robots: { index: false, follow: true } } : {}),
   }
 }
 
