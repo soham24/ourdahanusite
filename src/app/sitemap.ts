@@ -130,13 +130,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .map(([prof]) => prof),
     )
 
+    const approvedListingIds = new Set(sitemapListings.map((l) => l.id))
+
     // Only list profiles that would actually be indexable — mirrors the same
     // rule applied on the profile page itself (src/lib/seo-thresholds.ts).
+    // business_listing_id is gated to APPROVED listings only, matching
+    // normalizeLinkedBusiness in src/lib/data/find.ts — a bare professional
+    // linked to a pending/unapproved listing must not count as "has a
+    // business" here, or this page would end up in the sitemap while its
+    // own page (correctly) renders noindex.
     const indexableFindRows = findRows.filter((row) =>
       isProfileIndexable({
         note: row.note,
         rating_count: ratedProfessionalIds.has(row.id) ? 1 : 0,
-        business: row.business_listing_id,
+        business:
+          row.business_listing_id && approvedListingIds.has(row.business_listing_id)
+            ? row.business_listing_id
+            : null,
       }),
     )
 
