@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, LogIn, MapPin, MessageCircle, Phone, Share2, ShieldCheck } from 'lucide-react'
 import { getProfessionalById, getApprovedRatings, getApprovedProfessionals } from '@/lib/data/find'
 import { truncateAtWord } from '@/lib/text'
+import { isProfileIndexable } from '@/lib/seo-thresholds'
 import { createClient } from '@/lib/supabase/server'
 import { professionSlug } from '@/lib/find/professions'
 import StructuredData from '@/components/StructuredData'
@@ -47,6 +48,7 @@ export async function generateMetadata({
     alternates: { canonical: url },
     openGraph: { title, description, url, type: 'profile', siteName: 'FindDahanu' },
     twitter: { card: 'summary', title, description },
+    ...(isProfileIndexable(pro) ? {} : { robots: { index: false, follow: true } }),
   }
 }
 

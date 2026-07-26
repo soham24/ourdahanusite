@@ -9,6 +9,7 @@ import {
   getCategoryUrl,
   toCategorySlug,
 } from '@/lib/listing-category'
+import { MIN_CATEGORY_SIZE } from '@/lib/seo-thresholds'
 import { getListingCategories, getListingsDirectoryData } from '../../directory-data'
 
 async function resolveCategory(slug: string): Promise<string | null> {
@@ -70,6 +71,7 @@ export async function generateMetadata({
       description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in Dahanu, Bordi, and Gholvad on OurDahanu.`,
       images: ['https://ourdahanu.in/logo.png'],
     },
+    ...(listingCount < MIN_CATEGORY_SIZE ? { robots: { index: false, follow: true } } : {}),
   }
 }
 
