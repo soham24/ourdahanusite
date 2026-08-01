@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import { ChevronDown, LayoutGrid } from 'lucide-react'
+import { PROFESSION_ICON } from '@/lib/find/profession-icons'
+import type { Profession } from '@/lib/find/professions'
 import { chipOff, chipOn, Mr } from './find-ui'
 
 export interface CategoryTile {
-  label: string
+  label: Profession
   mr: string | null
   count: number
 }
@@ -32,6 +34,7 @@ export default function CategoryGridClient({
   const [showAll, setShowAll] = useState(false)
   const collapsible = tiles.length > MOBILE_VISIBLE
   const activeTile = active ? tiles.find((t) => t.label === active) : null
+  const ActiveIcon = activeTile ? PROFESSION_ICON[activeTile.label] : null
 
   return (
     <nav aria-label="Filter by profession" className="mt-5">
@@ -48,9 +51,12 @@ export default function CategoryGridClient({
         <span className="flex min-w-0 items-center gap-2">
           <LayoutGrid size={15} className="shrink-0 text-[var(--od-muted)]" aria-hidden />
           <span className="shrink-0">Categories</span>
-          {activeTile && !open && (
-            <span className="min-w-0 truncate rounded-full bg-[rgba(192,88,46,0.09)] px-2 py-0.5 text-[12px] font-bold text-[var(--od-brand-strong)]">
-              {activeTile.label} <Mr text={activeTile.mr} />
+          {activeTile && ActiveIcon && !open && (
+            <span className="flex min-w-0 items-center gap-1 truncate rounded-full bg-[rgba(192,88,46,0.09)] px-2 py-0.5 text-[12px] font-bold text-[var(--od-brand-strong)]">
+              <ActiveIcon size={12} className="shrink-0" aria-hidden />
+              <span className="truncate">
+                {activeTile.label} <Mr text={activeTile.mr} />
+              </span>
             </span>
           )}
         </span>
@@ -74,12 +80,16 @@ export default function CategoryGridClient({
               aria-current={!active ? 'page' : undefined}
               className={`${tileBase} ${!active ? chipOn : chipOff}`}
             >
-              <span>All</span>
+              <span className="flex min-w-0 items-center gap-1.5">
+                <LayoutGrid size={14} className="shrink-0 opacity-70" aria-hidden />
+                All
+              </span>
               <span className="shrink-0 text-xs font-bold tabular-nums opacity-70">{total}</span>
             </button>
             {tiles.map((t, i) => {
               const on = active === t.label
               const collapsedOnMobile = collapsible && !showAll && i >= MOBILE_VISIBLE && !on
+              const Icon = PROFESSION_ICON[t.label]
               return (
                 <button
                   type="button"
@@ -88,8 +98,11 @@ export default function CategoryGridClient({
                   aria-current={on ? 'page' : undefined}
                   className={`${collapsedOnMobile ? 'hidden sm:flex' : 'flex'} ${tileBase} ${on ? chipOn : chipOff}`}
                 >
-                  <span className="min-w-0 truncate">
-                    {t.label} <Mr text={t.mr} />
+                  <span className="flex min-w-0 items-center gap-1.5 truncate">
+                    <Icon size={14} className="shrink-0 opacity-70" aria-hidden />
+                    <span className="truncate">
+                      {t.label} <Mr text={t.mr} />
+                    </span>
                   </span>
                   <span className="shrink-0 text-xs font-bold tabular-nums opacity-70">{t.count}</span>
                 </button>

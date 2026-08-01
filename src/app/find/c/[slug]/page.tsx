@@ -10,6 +10,7 @@ import {
   professionMarathi,
 } from '@/lib/find/professions'
 import { MIN_CATEGORY_SIZE } from '@/lib/seo-thresholds'
+import { PROFESSION_ICON } from '@/lib/find/profession-icons'
 import StructuredData from '@/components/StructuredData'
 import FindCard from '../../FindCard'
 import { Mr } from '../../find-ui'
@@ -67,6 +68,7 @@ export default async function CategoryPage({
 
   const mr = professionMarathi(profession)
   const canonical = `${FIND_URL}/c/${slug}`
+  const Icon = PROFESSION_ICON[profession]
 
   const others = PROFESSIONS.filter(
     (p) => p !== profession && p !== 'Other' && (counts.get(p) ?? 0) > 0,
@@ -107,8 +109,13 @@ export default async function CategoryPage({
       </Link>
 
       <header className="mb-6">
-        <h1 className="text-balance font-display text-3xl leading-tight sm:text-4xl">
-          {profession} <span className="text-[var(--od-brand)]">in Dahanu</span>
+        <h1 className="flex items-center gap-2.5 text-balance font-display text-3xl leading-tight sm:text-4xl">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-[var(--color-surface-soft)] text-[var(--od-brand)] sm:h-12 sm:w-12">
+            <Icon size={22} aria-hidden />
+          </span>
+          <span>
+            {profession} <span className="text-[var(--od-brand)]">in Dahanu</span>
+          </span>
         </h1>
         {mr && (
           <p className="mt-1 text-[15px] font-semibold text-[var(--od-muted)]">
@@ -152,18 +159,22 @@ export default async function CategoryPage({
             Browse other categories in Dahanu
           </p>
           <div className="flex flex-wrap gap-2">
-            {others.map((p) => (
-              <Link
-                key={p}
-                href={`/find/c/${professionSlug(p)}`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-[var(--od-border)] bg-white/70 px-3.5 py-2 text-[13px] font-semibold text-[var(--od-ink-2)] transition-colors hover:border-[var(--od-gold)] hover:bg-white"
-              >
-                {p} <Mr text={professionMarathi(p)} />
-                <span className="rounded-full bg-[var(--od-surface-soft)] px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-[var(--od-brand-strong)]">
-                  {counts.get(p) ?? 0}
-                </span>
-              </Link>
-            ))}
+            {others.map((p) => {
+              const OtherIcon = PROFESSION_ICON[p]
+              return (
+                <Link
+                  key={p}
+                  href={`/find/c/${professionSlug(p)}`}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[var(--od-border)] bg-white/70 px-3.5 py-2 text-[13px] font-semibold text-[var(--od-ink-2)] transition-colors hover:border-[var(--od-gold)] hover:bg-white"
+                >
+                  <OtherIcon size={14} className="shrink-0 opacity-70" aria-hidden />
+                  {p} <Mr text={professionMarathi(p)} />
+                  <span className="rounded-full bg-[var(--od-surface-soft)] px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-[var(--od-brand-strong)]">
+                    {counts.get(p) ?? 0}
+                  </span>
+                </Link>
+              )
+            })}
           </div>
         </nav>
       )}
