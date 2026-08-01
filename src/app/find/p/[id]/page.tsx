@@ -81,6 +81,11 @@ export default async function ProfessionalDetailPage({
   const primaryProfession = proLabels[0] ?? 'Professional'
   const primarySlug = professionSlug(primaryProfession)
   const categoryUrl = `${FIND_URL}/c/${primarySlug}`
+  const primaryProfessionLower = primaryProfession.toLowerCase()
+  // Avoid "systemss" for categories that already end in 's' (e.g. "CCTV & Security Systems").
+  const primaryProfessionPlural = primaryProfessionLower.endsWith('s')
+    ? primaryProfessionLower
+    : `${primaryProfessionLower}s`
 
   // "More {profession} in Dahanu" — internal links out to related profiles,
   // so crawlers keep moving between pages instead of dead-ending here.
@@ -318,7 +323,7 @@ export default async function ProfessionalDetailPage({
       {related.length > 0 && (
         <section className="mt-10 border-t border-[var(--od-border)] pt-8">
           <h2 className="mb-3 font-display text-2xl">
-            More {primaryProfession.toLowerCase()}s in Dahanu
+            More {primaryProfessionPlural} in Dahanu
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {related.map((p) => (
@@ -329,7 +334,7 @@ export default async function ProfessionalDetailPage({
             href={`/find/c/${primarySlug}`}
             className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-bold text-[var(--od-brand)] hover:text-[var(--od-brand-strong)]"
           >
-            View all {primaryProfession.toLowerCase()}s in Dahanu →
+            View all {primaryProfessionPlural} in Dahanu →
           </Link>
         </section>
       )}

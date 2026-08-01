@@ -48,6 +48,8 @@ export const PROFESSIONS = [
   'Tempo / Goods Transport',
   'Driving School / Instructor',
   'Icecream Parlour',
+  'CCTV & Security Systems',
+  'Vehicle Dealer/Showroom',
   'Other',
 ] as const
 
@@ -108,6 +110,8 @@ export const PROFESSION_MR: Record<Profession, string> = {
   'Tempo / Goods Transport': 'टेम्पो / मालवाहतूक सेवा',
   'Driving School / Instructor': 'ड्रायव्हिंग स्कूल / शिकवणी',
   'Icecream Parlour': 'आइस्क्रीम पार्लर',
+  'CCTV & Security Systems': 'सीसीटीव्ही व सुरक्षा प्रणाली',
+  'Vehicle Dealer/Showroom': 'वाहन विक्रेता / शोरूम',
   Other: 'इतर',
 }
 
