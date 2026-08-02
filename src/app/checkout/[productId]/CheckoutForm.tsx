@@ -1,7 +1,28 @@
 'use client'
 
-import { useState } from 'react'
-import { Minus, Pencil, Plus, Package, ShieldCheck, Wrench } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import {
+  CheckCircle,
+  Copy,
+  Loader2,
+  Minus,
+  Pencil,
+  Plus,
+  Package,
+  ShieldCheck,
+  Wrench,
+} from 'lucide-react'
+
+import { placeMarketplaceOrder } from '@/app/actions/marketplace-orders'
+import {
+  attemptWithRetry,
+  clearRecoveryDraft,
+  persistRecoveryDraft,
+  recoveryUrlFor,
+  snapshotFormData,
+  updateRecoveryDraft,
+} from '@/lib/payment-retry'
 
 export interface CheckoutFormProps {
   product: {
@@ -19,6 +40,28 @@ export interface CheckoutFormProps {
   buyerEmail: string
 }
 
+interface RazorpayOptions {
+  key: string
+  amount: number
+  currency: string
+  name: string
+  description: string
+  order_id: string
+  handler: (r: {
+    razorpay_payment_id: string
+    razorpay_order_id: string
+    razorpay_signature: string
+  }) => void
+  modal: { ondismiss: () => void }
+  prefill: { name: string; contact: string; email?: string }
+  theme: { color: string }
+}
+
+type Status = 'idle' | 'ordering' | 'paying' | 'submitting' | 'done' | 'recovery' | 'error'
+
+interface DoneInfo { orderId: string }
+interface RecoveryInfo { razorpayOrderId: string; paymentId: string; message: string }
+
 const inputCls =
   'w-full rounded-xl border border-[var(--od-border)] px-3.5 py-2.5 text-sm text-[var(--od-ink)] focus:border-[var(--od-brand)] focus:outline-none disabled:bg-[var(--color-surface-soft)]'
 const labelCls = 'mb-1.5 block text-[11px] font-bold uppercase tracking-[0.04em] text-[var(--od-muted)]'
@@ -35,8 +78,10 @@ export function isValidPhone(raw: string): boolean {
 export default function CheckoutForm({
   product,
   listing,
+  businessUrl,
   buyerName: initialName,
   buyerPhone: initialPhone,
+  buyerEmail,
 }: CheckoutFormProps) {
   const [quantity, setQuantity] = useState(1)
   const [buyerName, setBuyerName] = useState(initialName)
@@ -47,12 +92,32 @@ export default function CheckoutForm({
   const [notesOpen, setNotesOpen] = useState(false)
   const [fieldError, setFieldError] = useState<{ field: 'name' | 'phone'; message: string } | null>(null)
 
+  const [status, setStatus] = useState<Status>('idle')
+  const [error, setError] = useState('')
+  const [done, setDone] = useState<DoneInfo | null>(null)
+  const [recovery, setRecovery] = useState<RecoveryInfo | null>(null)
+  const [scriptReady, setScriptReady] = useState(
+    () => typeof document !== 'undefined' && document.getElementById('razorpay-script') !== null,
+  )
+  const [copied, setCopied] = useState(false)
+
+  const busy = status === 'ordering' || status === 'paying' || status === 'submitting'
+
   const isService = product.type === 'service'
   const maxQuantity = product.quantityInStock ?? 99
   const totalPaise = product.pricePaise * quantity
-  const busy = false // Task 4 replaces this with real payment state
 
-  const handlePay = () => {
+  useEffect(() => {
+    if (document.getElementById('razorpay-script')) return
+    const s = document.createElement('script')
+    s.id = 'razorpay-script'
+    s.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    s.async = true
+    s.onload = () => setScriptReady(true)
+    document.body.appendChild(s)
+  }, [])
+
+  const handlePay = async () => {
     if (!buyerName.trim()) {
       setFieldError({ field: 'name', message: 'Please enter your name.' })
       setDetailsOpen(true)
@@ -64,7 +129,192 @@ export default function CheckoutForm({
       return
     }
     setFieldError(null)
-    // Task 4: start the Razorpay flow here.
+    setError('')
+
+    try {
+      setStatus('ordering')
+      const orderRes = await fetch('/api/razorpay/create-marketplace-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: product.id, quantity }),
+      })
+      const orderData = await orderRes.json()
+      if (!orderRes.ok || orderData.error) {
+        setError(orderData.error || 'Could not start the payment. Please try again.')
+        setStatus('error')
+        return
+      }
+
+      setStatus('paying')
+
+      const baseFields: Record<string, string> = {
+        product_id: product.id,
+        quantity: String(quantity),
+        buyer_name: buyerName.trim(),
+        buyer_phone: buyerPhone.trim(),
+        delivery_address: deliveryAddress.trim(),
+        notes: notes.trim(),
+      }
+
+      persistRecoveryDraft({
+        orderId: orderData.orderId,
+        flow: 'marketplace',
+        amountPaise: orderData.amount,
+        fields: baseFields,
+        returnTo: window.location.pathname,
+      })
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const Razorpay = (window as any).Razorpay as new (o: RazorpayOptions) => { open: () => void }
+
+      new Razorpay({
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency || 'INR',
+        name: orderData.listingName || listing.name,
+        description: `${product.name} ×${quantity}`,
+        order_id: orderData.orderId,
+        handler: async (response) => {
+          setStatus('submitting')
+          const fd = new FormData()
+          for (const [key, value] of Object.entries(baseFields)) fd.set(key, value)
+          fd.set('razorpay_order_id', response.razorpay_order_id)
+          fd.set('razorpay_payment_id', response.razorpay_payment_id)
+          fd.set('razorpay_signature', response.razorpay_signature)
+
+          updateRecoveryDraft(orderData.orderId, {
+            fields: snapshotFormData(fd),
+            paymentId: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+          })
+
+          const result = await attemptWithRetry(() => placeMarketplaceOrder(fd))
+          if (result.error) {
+            // Money has been captured. Never show a Pay button from here on.
+            updateRecoveryDraft(orderData.orderId, { lastError: result.error })
+            setRecovery({
+              razorpayOrderId: orderData.orderId,
+              paymentId: response.razorpay_payment_id,
+              message: result.error,
+            })
+            setStatus('recovery')
+          } else {
+            clearRecoveryDraft(orderData.orderId)
+            setDone({ orderId: result.orderId ?? orderData.orderId })
+            setStatus('done')
+          }
+        },
+        modal: {
+          // Buyer closed Razorpay without paying — unlock the form.
+          ondismiss: () => setStatus('idle'),
+        },
+        prefill: { name: buyerName, contact: buyerPhone, email: buyerEmail },
+        theme: { color: '#C4663A' },
+      }).open()
+    } catch (e) {
+      console.error('[CheckoutForm] payment error:', e)
+      setError('Something went wrong. Please try again.')
+      setStatus('error')
+    }
+  }
+
+  if (status === 'done' && done) {
+    const reference = done.orderId.replace(/-/g, '').slice(0, 8).toUpperCase()
+    return (
+      <div className="flex min-h-[calc(100vh-8rem)] flex-col items-center gap-4 pt-10 text-center">
+        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[rgba(19,138,75,0.12)]">
+          <CheckCircle size={34} className="text-[var(--od-success)]" aria-hidden />
+        </span>
+        <h1 className="font-display text-2xl">Order placed</h1>
+        <p className="max-w-xs text-sm leading-relaxed text-[var(--od-muted)]">
+          {listing.name} has been notified and will contact you to confirm.
+        </p>
+
+        <div className="w-full space-y-2 rounded-[14px] border border-[var(--od-border)] bg-white p-4 text-left">
+          <div className="flex justify-between text-[13px]">
+            <span className="text-[var(--od-muted)]">Reference</span>
+            <span className="font-mono font-bold text-[var(--od-ink)]">{reference}</span>
+          </div>
+          <div className="flex justify-between text-[13px]">
+            <span className="text-[var(--od-muted)]">
+              {product.name} ×{quantity}
+            </span>
+            <span className="font-bold text-[var(--od-ink)]">{formatInr(totalPaise)}</span>
+          </div>
+          <div className="flex justify-between text-[13px]">
+            <span className="text-[var(--od-muted)]">Paid to</span>
+            <span className="font-bold text-[var(--od-ink)]">{listing.name}</span>
+          </div>
+        </div>
+
+        <div className="mt-auto w-full space-y-2 pb-4">
+          <Link
+            href={`/account/orders/${done.orderId}`}
+            className="od-button-primary w-full py-3 text-sm"
+          >
+            View my order
+          </Link>
+          <Link href={businessUrl} className="od-button-secondary w-full py-3 text-sm">
+            Back to {listing.name}
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (status === 'recovery' && recovery) {
+    const waHref = listing.whatsapp
+      ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(
+          `Hi ${listing.name}, I paid for ${product.name} ×${quantity} (${formatInr(totalPaise)}) but the order did not save. My payment reference is ${recovery.paymentId}.`,
+        )}`
+      : null
+
+    return (
+      <div className="flex min-h-[calc(100vh-8rem)] flex-col items-center gap-4 pt-10 text-center">
+        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[rgba(200,136,30,0.14)] text-2xl font-black text-[var(--od-gold)]">
+          !
+        </span>
+        <h1 className="font-display text-2xl">Payment received</h1>
+        <p className="max-w-xs text-sm leading-relaxed text-[var(--od-muted)]">
+          Your money reached {listing.name} safely, but we couldn’t finish saving the order.
+        </p>
+
+        <div className="w-full rounded-[14px] border border-[rgba(200,136,30,0.35)] bg-[rgba(200,136,30,0.07)] p-4 text-left">
+          <p className="text-[13px] leading-relaxed text-[var(--od-ink-2)]">
+            Nothing is lost — we’ve kept your payment reference. Tap below and we’ll finish it.
+          </p>
+          <code className="mt-2 block select-all rounded-lg border border-[var(--od-border)] bg-white px-3 py-2 font-mono text-[13px] font-bold text-[var(--od-ink)]">
+            {recovery.paymentId}
+          </code>
+        </div>
+
+        <div className="mt-auto w-full space-y-2 pb-4">
+          <Link
+            href={recoveryUrlFor(recovery.razorpayOrderId)}
+            className="od-button-primary w-full py-3 text-sm"
+          >
+            Finish my order →
+          </Link>
+          {waHref && (
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => {
+                navigator.clipboard?.writeText(recovery.paymentId).then(
+                  () => setCopied(true),
+                  () => undefined,
+                )
+              }}
+              className="od-button-secondary flex w-full items-center justify-center gap-1.5 py-3 text-sm"
+            >
+              <Copy size={14} aria-hidden />
+              {copied ? 'Reference copied' : 'Copy reference & WhatsApp seller'}
+            </a>
+          )}
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -141,10 +391,15 @@ export default function CheckoutForm({
                 placeholder="Full name"
                 aria-label="Your name"
                 aria-invalid={fieldError?.field === 'name'}
+                aria-describedby={fieldError?.field === 'name' ? 'name-error' : undefined}
                 className={inputCls}
               />
               {fieldError?.field === 'name' && (
-                <p className="mt-1 text-xs font-semibold text-[var(--color-danger-strong,#a33)]">
+                <p
+                  id="name-error"
+                  role="alert"
+                  className="mt-1 text-xs font-semibold text-[var(--color-danger-strong,#a33)]"
+                >
                   {fieldError.message}
                 </p>
               )}
@@ -160,10 +415,15 @@ export default function CheckoutForm({
                 placeholder="10-digit mobile number"
                 aria-label="Phone number"
                 aria-invalid={fieldError?.field === 'phone'}
+                aria-describedby={fieldError?.field === 'phone' ? 'phone-error' : undefined}
                 className={inputCls}
               />
               {fieldError?.field === 'phone' && (
-                <p className="mt-1 text-xs font-semibold text-[var(--color-danger-strong,#a33)]">
+                <p
+                  id="phone-error"
+                  role="alert"
+                  className="mt-1 text-xs font-semibold text-[var(--color-danger-strong,#a33)]"
+                >
                   {fieldError.message}
                 </p>
               )}
@@ -232,6 +492,12 @@ export default function CheckoutForm({
         Payment goes straight to {listing.name}
       </p>
 
+      {status === 'error' && error && (
+        <div className="rounded-xl border border-[rgba(200,60,40,0.25)] bg-[rgba(200,60,40,0.06)] px-4 py-3 text-sm text-[var(--od-ink-2)]">
+          {error}
+        </div>
+      )}
+
       {/* Sticky footer */}
       <div className="sticky bottom-0 mt-auto -mx-4 flex items-center gap-3 border-t border-[var(--od-border)] bg-white px-4 py-3">
         <span>
@@ -243,10 +509,21 @@ export default function CheckoutForm({
         <button
           type="button"
           onClick={handlePay}
-          disabled={busy}
-          className="od-button-primary flex-1 py-3 text-sm disabled:opacity-60"
+          disabled={busy || !scriptReady}
+          className="od-button-primary flex flex-1 items-center justify-center gap-2 py-3 text-sm disabled:opacity-60"
         >
-          Pay {formatInr(totalPaise)}
+          {busy ? (
+            <>
+              <Loader2 size={15} className="animate-spin" aria-hidden />
+              {status === 'ordering' && 'Opening payment…'}
+              {status === 'paying' && 'Waiting for payment…'}
+              {status === 'submitting' && 'Finalising order…'}
+            </>
+          ) : scriptReady ? (
+            <>Pay {formatInr(totalPaise)}</>
+          ) : (
+            <>Loading payment…</>
+          )}
         </button>
       </div>
     </div>
