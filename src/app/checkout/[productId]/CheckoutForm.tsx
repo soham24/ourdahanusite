@@ -116,7 +116,12 @@ export default function CheckoutForm({
   const [done, setDone] = useState<DoneInfo | null>(null)
   const [recovery, setRecovery] = useState<RecoveryInfo | null>(null)
   const [scriptReady, setScriptReady] = useState(
-    () => typeof document !== 'undefined' && document.getElementById('razorpay-script') !== null,
+    // A `#razorpay-script` tag existing in the DOM only means *some*
+    // component asked for the script — possibly one still loading, or one
+    // that already failed. The only signal that Razorpay is actually usable
+    // is the global it sets once its own script finishes executing.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    () => typeof window !== 'undefined' && typeof (window as any).Razorpay !== 'undefined',
   )
   const [scriptError, setScriptError] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -135,7 +140,34 @@ export default function CheckoutForm({
   const totalPaise = product.pricePaise * quantity
 
   useEffect(() => {
-    if (document.getElementById('razorpay-script')) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (typeof (window as any).Razorpay !== 'undefined') {
+      // The inherited tag (or our own from a previous mount) already
+      // finished loading successfully before this effect ran. `scriptReady`'s
+      // initial state is computed with this exact check, so it's already
+      // `true` — no `load` event will ever fire again for us to catch, and
+      // there's nothing left to subscribe to.
+      return
+    }
+
+    const existing = document.getElementById('razorpay-script')
+    if (existing) {
+      // `#razorpay-script` is a shared id: OrderModal, AppointmentBooking,
+      // ListingSubmitForm and RenewForm all inject the same tag onto
+      // `document.body`, which survives client-side navigation into this
+      // route. It may still be mid-flight, so listen on the element that's
+      // actually there instead of assuming its outcome — and don't create a
+      // second tag.
+      const onLoad = () => setScriptReady(true)
+      const onError = () => setScriptError(true)
+      existing.addEventListener('load', onLoad)
+      existing.addEventListener('error', onError)
+      return () => {
+        existing.removeEventListener('load', onLoad)
+        existing.removeEventListener('error', onError)
+      }
+    }
+
     const s = document.createElement('script')
     s.id = 'razorpay-script'
     s.src = 'https://checkout.razorpay.com/v1/checkout.js'
