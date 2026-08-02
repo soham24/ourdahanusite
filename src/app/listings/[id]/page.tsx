@@ -380,7 +380,6 @@ async function ListingDetailContent({
               businessUrl={businessUrl}
               marketplaceReady={marketplaceReady}
               marketplaceProducts={marketplaceProducts}
-              platformLoginUrl={platformLoginUrl}
               appointmentsEnabled={appointmentsEnabled}
               appointmentSettings={appointmentSettings}
               appointmentBookingFee={appointmentBookingFee}

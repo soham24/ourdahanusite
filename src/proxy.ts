@@ -120,6 +120,21 @@ export const config = {
       ],
     },
     {
+      // Checkout pages — middleware sets the x-subdomain header for parity
+      // with /p and /s. The page itself resolves everything from productId,
+      // so nothing reads this header today; it is here so subdomain context
+      // is available if checkout ever needs it.
+      source: '/checkout/:path*',
+      has: [
+        {
+          type: 'header',
+          key: 'host',
+          value:
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+        },
+      ],
+    },
+    {
       // find.ourdahanu.in — standalone professionals directory
       source: '/:path*',
       has: [

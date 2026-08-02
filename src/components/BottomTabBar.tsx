@@ -17,6 +17,13 @@ const TABS = [
 export default function BottomTabBar() {
   const pathname = usePathname()
 
+  // The checkout page has its own sticky footer with the Pay button. On
+  // the apex/www domain (the only place this component renders — business
+  // subdomains and find.* already suppress it in SiteBottomTabBar) this
+  // fixed nav would otherwise sit on top of that footer and make Pay
+  // untappable. Hide site navigation for the whole checkout flow.
+  if (pathname?.startsWith('/checkout/')) return null
+
   return (
     <nav
       className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--od-border)] bg-[rgba(250,250,247,0.96)] shadow-[0_-10px_30px_rgba(46,18,5,0.08)] backdrop-blur-xl"

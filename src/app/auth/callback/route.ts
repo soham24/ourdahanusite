@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { resolveSafeRedirect } from '@/lib/safe-redirect'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
@@ -32,10 +33,9 @@ export async function GET(request: Request) {
         }
       } catch { /* non-fatal */ }
 
-      // next may be a full URL (e.g. https://abcd.ourdahanu.in) or a path (e.g. /dashboard)
-      const isFullUrl = next.startsWith('https://') || next.startsWith('http://')
-      const redirectUrl = isFullUrl ? next : `${origin}${next}`
-      return NextResponse.redirect(redirectUrl)
+      // `next` is attacker-controlled query input — resolveSafeRedirect keeps
+      // it to our own domains so this cannot become an open redirect.
+      return NextResponse.redirect(resolveSafeRedirect(next, origin))
     }
   }
 

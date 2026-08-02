@@ -30,9 +30,12 @@ function LoginContent() {
     const isSubdomain = hostname !== 'ourdahanu.in' && hostname.endsWith('.ourdahanu.in')
     // Always callback via main domain so cookies get set with .ourdahanu.in domain
     const callbackOrigin = isSubdomain ? 'https://ourdahanu.in' : window.location.origin
-    // After auth, redirect back to where user came from (subdomain or next param)
+    // After auth, redirect back to where the user came from. On a business
+    // subdomain the callback runs on the apex, so `next` must be absolute —
+    // but it still has to keep the path, or a buyer signing in from a product
+    // lands on the shop root instead of their checkout.
     const next = isSubdomain
-      ? window.location.origin
+      ? window.location.origin + (searchParams.get('next') || '/')
       : (searchParams.get('next') || '/')
     await supabase.auth.signInWithOAuth({
       provider: 'google',
