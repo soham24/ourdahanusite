@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   CheckCircle,
@@ -101,6 +101,13 @@ export default function CheckoutForm({
   )
   const [copied, setCopied] = useState(false)
 
+  // Tracks whether Razorpay's `handler` has started for the in-flight
+  // attempt. A ref (not state) because `ondismiss` closes over the render
+  // scope it was created in — it needs to read the *current* value even if
+  // it fires in the same tick as `handler`, before React would ever commit
+  // a state update.
+  const capturedRef = useRef(false)
+
   const busy = status === 'ordering' || status === 'paying' || status === 'submitting'
 
   const isService = product.type === 'service'
@@ -130,6 +137,7 @@ export default function CheckoutForm({
     }
     setFieldError(null)
     setError('')
+    capturedRef.current = false
 
     try {
       setStatus('ordering')
@@ -175,6 +183,12 @@ export default function CheckoutForm({
         description: `${product.name} ×${quantity}`,
         order_id: orderData.orderId,
         handler: async (response) => {
+          // Set before anything else — including before the state update on
+          // the next line — so `ondismiss` (which Razorpay also fires once
+          // it closes its own modal after a successful payment) can never
+          // observe a window where capture happened but this flag doesn't
+          // reflect it yet.
+          capturedRef.current = true
           setStatus('submitting')
           const fd = new FormData()
           for (const [key, value] of Object.entries(baseFields)) fd.set(key, value)
@@ -188,25 +202,53 @@ export default function CheckoutForm({
             signature: response.razorpay_signature,
           })
 
-          const result = await attemptWithRetry(() => placeMarketplaceOrder(fd))
-          if (result.error) {
-            // Money has been captured. Never show a Pay button from here on.
-            updateRecoveryDraft(orderData.orderId, { lastError: result.error })
+          try {
+            const result = await attemptWithRetry(() => placeMarketplaceOrder(fd))
+            if (result.error) {
+              // Money has been captured. Never show a Pay button from here on.
+              updateRecoveryDraft(orderData.orderId, { lastError: result.error })
+              setRecovery({
+                razorpayOrderId: orderData.orderId,
+                paymentId: response.razorpay_payment_id,
+                message: result.error,
+              })
+              setStatus('recovery')
+            } else {
+              clearRecoveryDraft(orderData.orderId)
+              setDone({ orderId: result.orderId ?? orderData.orderId })
+              setStatus('done')
+            }
+          } catch (err) {
+            // Every retry attempt threw (a real server exception or a
+            // rejected server action) — attemptWithRetry rethrows in that
+            // case instead of returning {error}. Money is already captured,
+            // so route through the exact same recovery path a returned
+            // {error} would use rather than leaving `status` stuck at
+            // 'submitting' forever.
+            console.error('[CheckoutForm] order save threw after capture:', err)
+            const message =
+              err instanceof Error && err.message
+                ? err.message
+                : 'We could not confirm your order after payment. Please use the link below.'
+            updateRecoveryDraft(orderData.orderId, { lastError: message })
             setRecovery({
               razorpayOrderId: orderData.orderId,
               paymentId: response.razorpay_payment_id,
-              message: result.error,
+              message,
             })
             setStatus('recovery')
-          } else {
-            clearRecoveryDraft(orderData.orderId)
-            setDone({ orderId: result.orderId ?? orderData.orderId })
-            setStatus('done')
           }
         },
         modal: {
-          // Buyer closed Razorpay without paying — unlock the form.
-          ondismiss: () => setStatus('idle'),
+          // Razorpay fires this both when the buyer closes the modal
+          // without paying AND after a successful payment (it closes its
+          // own modal once `handler` starts running). Only unlock the form
+          // for a genuine cancel — if capture already started, leave
+          // `status` exactly where `handler` put it (submitting/recovery/done).
+          ondismiss: () => {
+            if (capturedRef.current) return
+            setStatus('idle')
+          },
         },
         prefill: { name: buyerName, contact: buyerPhone, email: buyerEmail },
         theme: { color: '#C4663A' },
