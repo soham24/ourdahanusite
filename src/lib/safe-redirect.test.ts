@@ -52,3 +52,22 @@ test('localhost subdomains are allowed so dev sign-in works', () => {
     'http://organic.localhost:3000/checkout/abc',
   )
 })
+
+test('backslash-based host bypasses are rejected', () => {
+  // WHATWG URL parsing treats '\' as '/' for special schemes, so a naive
+  // "starts with a single '/'" check can be fooled into a foreign host.
+  assert.equal(resolveSafeRedirect('/\\evil.com', ORIGIN), 'https://ourdahanu.in/')
+  assert.equal(resolveSafeRedirect('/\\/evil.com', ORIGIN), 'https://ourdahanu.in/')
+})
+
+test('embedded tab/LF/CR host bypasses are rejected', () => {
+  // The URL parser strips ASCII tab/LF/CR from anywhere in the input, so
+  // these all normalize to protocol-relative '//evil.com' despite starting
+  // with a single '/'.
+  const tab = '/' + String.fromCharCode(9) + '/evil.com'
+  const lf = '/' + String.fromCharCode(10) + '/evil.com'
+  const cr = '/' + String.fromCharCode(13) + '/evil.com'
+  assert.equal(resolveSafeRedirect(tab, ORIGIN), 'https://ourdahanu.in/')
+  assert.equal(resolveSafeRedirect(lf, ORIGIN), 'https://ourdahanu.in/')
+  assert.equal(resolveSafeRedirect(cr, ORIGIN), 'https://ourdahanu.in/')
+})

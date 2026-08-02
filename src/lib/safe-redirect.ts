@@ -5,6 +5,17 @@
  * this gate, /auth/callback?next=https://evil.com is an open redirect that
  * can be used to phish OurDahanu users with a genuine ourdahanu.in link.
  *
+ * There is a single parse-then-validate path, on purpose: `next` is parsed
+ * exactly once via `new URL(next, origin)` (which resolves relative paths
+ * against `origin` and leaves absolute URLs as-is), and the resulting host
+ * is checked against the allowlist below no matter which shape the input
+ * had. A separate "trust relative paths" branch is what created the
+ * original bug — the WHATWG URL parser treats a backslash as `/` for
+ * special schemes and strips tab/LF/CR from anywhere in the input, so
+ * inputs like '/\evil.com' or '/\t/evil.com' start with a single '/' yet
+ * parse to a foreign host. Validating the host unconditionally closes that
+ * off regardless of what the input looked like before parsing.
+ *
  * Allowed:
  *   - relative paths beginning with a single '/'
  *   - https URLs on ourdahanu.in or any *.ourdahanu.in subdomain
@@ -15,21 +26,9 @@ export function resolveSafeRedirect(next: string | null, origin: string): string
   const fallback = new URL('/', origin).toString()
   if (!next) return fallback
 
-  // '//evil.com' is protocol-relative — the browser treats it as a foreign
-  // host, so it must not be mistaken for a relative path.
-  if (next.startsWith('//')) return fallback
-
-  if (next.startsWith('/')) {
-    try {
-      return new URL(next, origin).toString()
-    } catch {
-      return fallback
-    }
-  }
-
   let parsed: URL
   try {
-    parsed = new URL(next)
+    parsed = new URL(next, origin)
   } catch {
     return fallback
   }
