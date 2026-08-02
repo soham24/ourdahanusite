@@ -60,6 +60,23 @@ test('backslash-based host bypasses are rejected', () => {
   assert.equal(resolveSafeRedirect('/\\/evil.com', ORIGIN), 'https://ourdahanu.in/')
 })
 
+test('a relative path on a vercel.app preview origin keeps its path', () => {
+  const previewOrigin = 'https://feat-checkout.vercel.app'
+  assert.equal(
+    resolveSafeRedirect('/checkout/abc', previewOrigin),
+    'https://feat-checkout.vercel.app/checkout/abc',
+  )
+})
+
+test('an absolute foreign host is still rejected when origin is vercel.app', () => {
+  const previewOrigin = 'https://feat-checkout.vercel.app'
+  assert.equal(resolveSafeRedirect('https://evil.com', previewOrigin), 'https://feat-checkout.vercel.app/')
+  assert.equal(
+    resolveSafeRedirect('https://evil.com/x', previewOrigin),
+    'https://feat-checkout.vercel.app/',
+  )
+})
+
 test('embedded tab/LF/CR host bypasses are rejected', () => {
   // The URL parser strips ASCII tab/LF/CR from anywhere in the input, so
   // these all normalize to protocol-relative '//evil.com' despite starting

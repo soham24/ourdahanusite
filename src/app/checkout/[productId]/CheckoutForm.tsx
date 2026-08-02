@@ -59,7 +59,7 @@ interface RazorpayOptions {
 
 type Status = 'idle' | 'ordering' | 'paying' | 'submitting' | 'done' | 'recovery' | 'error'
 
-interface DoneInfo { orderId: string }
+interface DoneInfo { orderId: string; amountPaise?: number }
 interface RecoveryInfo { razorpayOrderId: string; paymentId: string; message: string }
 
 const inputCls =
@@ -68,6 +68,25 @@ const labelCls = 'mb-1.5 block text-[11px] font-bold uppercase tracking-[0.04em]
 
 export function formatInr(paise: number): string {
   return `₹${(paise / 100).toLocaleString('en-IN')}`
+}
+
+const GENERIC_RECOVERY_REASON =
+  'We could not confirm the exact reason, but your payment is safe and we have your reference.'
+const MAX_RECOVERY_MESSAGE_LENGTH = 180
+
+/**
+ * Both `placeMarketplaceOrder`'s returned `{ error }` string and a thrown
+ * exception's `message` end up shown directly to the buyer on the recovery
+ * screen. Neither is validated server-side for length or shape, so trim,
+ * cap, and fall back to a generic sentence for anything empty or garbled
+ * rather than rendering raw/oversized text in the UI.
+ */
+export function sanitizeRecoveryMessage(raw: string | null | undefined): string {
+  const trimmed = (raw ?? '').trim()
+  if (!trimmed) return GENERIC_RECOVERY_REASON
+  return trimmed.length > MAX_RECOVERY_MESSAGE_LENGTH
+    ? `${trimmed.slice(0, MAX_RECOVERY_MESSAGE_LENGTH).trim()}…`
+    : trimmed
 }
 
 /** Ten digits after stripping separators — matches the previous BuyButton rule. */
@@ -99,6 +118,7 @@ export default function CheckoutForm({
   const [scriptReady, setScriptReady] = useState(
     () => typeof document !== 'undefined' && document.getElementById('razorpay-script') !== null,
   )
+  const [scriptError, setScriptError] = useState(false)
   const [copied, setCopied] = useState(false)
 
   // Tracks whether Razorpay's `handler` has started for the in-flight
@@ -121,6 +141,7 @@ export default function CheckoutForm({
     s.src = 'https://checkout.razorpay.com/v1/checkout.js'
     s.async = true
     s.onload = () => setScriptReady(true)
+    s.onerror = () => setScriptError(true)
     document.body.appendChild(s)
   }, [])
 
@@ -138,6 +159,19 @@ export default function CheckoutForm({
     setFieldError(null)
     setError('')
     capturedRef.current = false
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (typeof (window as any).Razorpay === 'undefined') {
+      // The script tag may exist (another component on this page injected
+      // it) without having finished loading yet — `scriptReady` can be
+      // initialised `true` from that tag's mere presence. Re-check the
+      // real global right before we'd create a server-side order so we
+      // never spend a payment_intents row / order on an attempt that can't
+      // possibly open the checkout modal.
+      setError('Payment is still loading. Please try again in a moment.')
+      setStatus('error')
+      return
+    }
 
     try {
       setStatus('ordering')
@@ -210,12 +244,18 @@ export default function CheckoutForm({
               setRecovery({
                 razorpayOrderId: orderData.orderId,
                 paymentId: response.razorpay_payment_id,
-                message: result.error,
+                message: sanitizeRecoveryMessage(result.error),
               })
               setStatus('recovery')
             } else {
               clearRecoveryDraft(orderData.orderId)
-              setDone({ orderId: result.orderId ?? orderData.orderId })
+              // orderData.amount is the authoritative paise figure the
+              // server actually created the Razorpay order for (computed
+              // from the live DB price). totalPaise is a client-side
+              // number derived from a price that may have been cached
+              // before a seller edit — never let the receipt show that
+              // instead of what was actually charged.
+              setDone({ orderId: result.orderId ?? orderData.orderId, amountPaise: orderData.amount })
               setStatus('done')
             }
           } catch (err) {
@@ -234,7 +274,7 @@ export default function CheckoutForm({
             setRecovery({
               razorpayOrderId: orderData.orderId,
               paymentId: response.razorpay_payment_id,
-              message,
+              message: sanitizeRecoveryMessage(message),
             })
             setStatus('recovery')
           }
@@ -281,7 +321,9 @@ export default function CheckoutForm({
             <span className="text-[var(--od-muted)]">
               {product.name} ×{quantity}
             </span>
-            <span className="font-bold text-[var(--od-ink)]">{formatInr(totalPaise)}</span>
+            <span className="font-bold text-[var(--od-ink)]">
+              {formatInr(done.amountPaise ?? totalPaise)}
+            </span>
           </div>
           <div className="flex justify-between text-[13px]">
             <span className="text-[var(--od-muted)]">Paid to</span>
@@ -319,6 +361,9 @@ export default function CheckoutForm({
         <h1 className="font-display text-2xl">Payment received</h1>
         <p className="max-w-xs text-sm leading-relaxed text-[var(--od-muted)]">
           Your money reached {listing.name} safely, but we couldn’t finish saving the order.
+        </p>
+        <p className="max-w-xs text-xs leading-relaxed text-[var(--od-muted)]">
+          {recovery.message}
         </p>
 
         <div className="w-full rounded-[14px] border border-[rgba(200,136,30,0.35)] bg-[rgba(200,136,30,0.07)] p-4 text-left">
@@ -540,6 +585,14 @@ export default function CheckoutForm({
         </div>
       )}
 
+      {scriptError && (
+        <div className="rounded-xl border border-[rgba(200,60,40,0.25)] bg-[rgba(200,60,40,0.06)] px-4 py-3 text-sm text-[var(--od-ink-2)]">
+          We couldn’t load the payment gateway. This is usually caused by an ad
+          blocker or privacy extension blocking checkout.razorpay.com — please
+          disable it for this site and refresh the page to pay.
+        </div>
+      )}
+
       {/* Sticky footer */}
       <div className="sticky bottom-0 mt-auto -mx-4 flex items-center gap-3 border-t border-[var(--od-border)] bg-white px-4 py-3">
         <span>
@@ -563,6 +616,8 @@ export default function CheckoutForm({
             </>
           ) : scriptReady ? (
             <>Pay {formatInr(totalPaise)}</>
+          ) : scriptError ? (
+            <>Payment unavailable</>
           ) : (
             <>Loading payment…</>
           )}
