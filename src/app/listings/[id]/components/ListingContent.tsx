@@ -23,7 +23,6 @@ interface ListingContentProps {
   businessUrl: string
   marketplaceReady: boolean
   marketplaceProducts: any[]
-  platformLoginUrl: string
   appointmentsEnabled: boolean
   appointmentSettings: any
   appointmentBookingFee: number
@@ -41,7 +40,6 @@ export default function ListingContent({
   businessUrl,
   marketplaceReady,
   marketplaceProducts,
-  platformLoginUrl,
   appointmentsEnabled,
   appointmentSettings,
   appointmentBookingFee,
@@ -177,10 +175,6 @@ export default function ListingContent({
                       type: product.type,
                     }}
                     isSignedIn={viewer.isLoggedIn}
-                    loginHref={platformLoginUrl}
-                    userName={viewer.name}
-                    userPhone={viewer.phone}
-                    userEmail={viewer.email}
                   />
                 }
               />
