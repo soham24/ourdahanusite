@@ -4,13 +4,15 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, Clock } from 'lucide-react'
 
 import StructuredData from '@/components/StructuredData'
-import { getGuideBySlug, getPublishedGuides, getRelatedGuides } from '@/lib/guides'
+import { getGuideBySlug, getRelatedGuides } from '@/lib/guides'
 import { SITE_URL } from '@/lib/site'
 
-export async function generateStaticParams() {
-  const guides = await getPublishedGuides()
-  return guides.map((g) => ({ slug: g.slug }))
-}
+// No `generateStaticParams` here on purpose. Under Cache Components it must
+// return at least one entry, and this route legitimately has zero published
+// guides until an article's facts have been checked — an empty array fails
+// the build outright (EmptyGenerateStaticParamsError). Rendering on demand
+// also matches every other dynamic route in this app (listings/[id],
+// find/p/[id], checkout/[productId]), none of which prerender their params.
 
 export async function generateMetadata({
   params,
