@@ -24,6 +24,8 @@ If you're buying Warli anywhere in India, buying it here means buying it at the 
 
 Warli isn't a museum piece here — it has living practitioners, and the best-known working today are **Mayur and Tushar Vayeda**, brothers from **Ganjad**, a village in this taluka.
 
+![Mayur and Tushar Vayeda in front of one of their Warli paintings](/guides/vayeda-brothers.webp "Mayur and Tushar Vayeda. Photo supplied by the artists.")
+
 They learned the form from family as children, left to study other subjects in Mumbai, and came back to it as a profession around 2007–08. They've been at it for well over fifteen years since, and their work has travelled a long way from the village: exhibitions in India and abroad, and picture books published with Tara Books — *Tail Tale* (2019), *Deep* (2020) and more recently *Seed*.
 
 What makes them worth knowing about isn't only the art. Their studio in Ganjad occupies what was once their grandfather Vasudeo Vayeda's community school, and it still functions partly as one — a workshop and learning space for younger artists in the community, including young women, who are the traditional creatives of the Warli world. The stated aim is to move the tradition forward without diluting it.
