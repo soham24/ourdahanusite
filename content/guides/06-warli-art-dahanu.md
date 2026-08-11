@@ -15,6 +15,18 @@ The tradition also produced **Jivya Soma Mashe**, who received the Padma Shri fo
 
 If you're buying Warli anywhere in India, buying it here means buying it at the source.
 
+## The Vayeda Brothers
+
+Warli isn't a museum piece here — it has living practitioners, and the best-known working today are **Mayur and Tushar Vayeda**, brothers from **Ganjad**, a village in this taluka.
+
+They learned the form from family as children, left to study other subjects in Mumbai, and came back to it as a profession around 2007–08. They've been at it for well over fifteen years since, and their work has travelled a long way from the village: exhibitions in India and abroad, and picture books published with Tara Books — *Tail Tale* (2019), *Deep* (2020) and more recently *Seed*.
+
+What makes them worth knowing about isn't only the art. Their studio in Ganjad occupies what was once their grandfather Vasudeo Vayeda's community school, and it still functions partly as one — a workshop and learning space for younger artists in the community, including young women, who are the traditional creatives of the Warli world. The stated aim is to move the tradition forward without diluting it.
+
+That balance shows in the method. They still work with the traditional materials — cow dung ground for the surface, rice paste for the white, bamboo sticks for brushes — while widening what the form can depict. As they put it, Warli has always been a living tradition that absorbs new motifs; they treat it that way rather than as something frozen.
+
+**If you want to own their work and can't get to a gallery, the Tara Books titles are the accessible route** — they're properly printed, widely available, and a real piece of contemporary Warli rather than a souvenir reproduction.
+
 ## Where to see it
 
 - **Villages and interiors** around Dahanu and toward the Jawhar side, where the painting is part of the buildings rather than hung on a wall
@@ -84,7 +96,18 @@ If you want a closer look at the culture, a farm stay or an organised workshop i
 
 ## ⚠️ Verify before publishing
 
-1. **Named places to buy** — this is the biggest gap. The article tells people to buy artist-direct but names nowhere to do it. Two or three specific artists, co-operatives or shops would make it genuinely actionable.
+**Vayeda Brothers section — deliberately incomplete, needs your local knowledge:**
+
+- **Can visitors contact or visit the Ganjad studio?** I have *not* said they can, because I don't know. If people can arrange a visit, that's a significant thing to add. If they can't, the article should say so plainly so nobody turns up unannounced at a working studio and a family home.
+- **Are their workshops open to outsiders**, or community-only? The sources describe teaching younger artists in the community, which is not the same as running visitor workshops — I've kept those separate on purpose.
+- **Can you buy originals direct**, and roughly what does a piece cost? Right now the only concrete buying route in the whole article is their books.
+- **Have I got the family detail right** — grandfather Vasudeo Vayeda, studio in his former community school?
+- **Is `vayeda.in` their current site?** It didn't load cleanly for me (TLS certificate mismatch), so I haven't linked it. Worth linking if it's live and correct.
+- **Any other working Warli artists in the taluka** who'd want the visibility? Naming only one family reads oddly in a place with a whole tradition of them.
+
+**General:**
+
+1. **Named places to buy** — still the biggest gap. The article tells people to buy artist-direct but, other than the Vayedas' books, names nowhere to do it. Two or three specific artists, co-operatives or shops would make it genuinely actionable.
 2. **Price bands** — you flagged "not sure." Even "a small framed piece is usually ₹X–Y" would help a buyer avoid being overcharged.
 3. **Where to actually see wall painting** — any village or spot a respectful visitor can visit without intruding?
 4. **Other workshops** besides Save Farm?
