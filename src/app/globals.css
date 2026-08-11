@@ -1073,3 +1073,109 @@ html.loader-fonts-ready .our-dahanu-loader__logo-arc-bottom text {
     padding-bottom: 0;
   }
 }
+
+@layer components {
+  /* Article body rendered from markdown (src/lib/guides.ts). Styled here
+     rather than with a typography plugin so guide copy inherits the same
+     tokens as the rest of the site. */
+  .od-guide-prose {
+    color: var(--od-ink-2);
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+
+  .od-guide-prose > * + * {
+    margin-top: 1.1em;
+  }
+
+  .od-guide-prose h2 {
+    color: var(--od-ink);
+    font-family: var(--font-display), serif;
+    font-size: 1.6rem;
+    line-height: 1.25;
+    margin-top: 2.2rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .od-guide-prose h3 {
+    color: var(--od-ink);
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin-top: 1.7rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .od-guide-prose strong {
+    color: var(--od-ink);
+    font-weight: 700;
+  }
+
+  .od-guide-prose a {
+    color: var(--od-brand-strong);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .od-guide-prose a:hover {
+    color: var(--od-brand);
+  }
+
+  .od-guide-prose ul,
+  .od-guide-prose ol {
+    padding-left: 1.3rem;
+  }
+
+  .od-guide-prose ul { list-style: disc; }
+  .od-guide-prose ol { list-style: decimal; }
+  .od-guide-prose li + li { margin-top: 0.4em; }
+
+  .od-guide-prose blockquote {
+    border-left: 3px solid var(--od-gold);
+    background: var(--color-surface-soft);
+    border-radius: 0 12px 12px 0;
+    padding: 0.75rem 1rem;
+    color: var(--od-ink-2);
+  }
+
+  .od-guide-prose hr {
+    border: 0;
+    border-top: 1px solid var(--od-border);
+    margin: 2.2rem 0;
+  }
+
+  /* Tables carry a lot of this content (fares, costs, comparisons) and must
+     scroll on their own rather than pushing the page sideways on mobile. */
+  .od-guide-prose .od-table-scroll {
+    overflow-x: auto;
+    margin-top: 1.4rem;
+  }
+
+  .od-guide-prose table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 22rem;
+    font-size: 0.93rem;
+  }
+
+  .od-guide-prose thead th {
+    background: var(--color-surface-soft);
+    color: var(--od-ink);
+    font-weight: 800;
+    text-align: left;
+  }
+
+  .od-guide-prose th,
+  .od-guide-prose td {
+    border: 1px solid var(--od-border);
+    padding: 0.55rem 0.75rem;
+    vertical-align: top;
+  }
+
+  .od-guide-prose code {
+    background: var(--color-surface-soft);
+    border-radius: 6px;
+    font-size: 0.9em;
+    padding: 0.1em 0.35em;
+  }
+}

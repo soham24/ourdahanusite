@@ -4,6 +4,7 @@ import { cacheLife, cacheTag } from 'next/cache'
 import { CACHE_TAGS } from '@/lib/cache-tags'
 import { PUBLIC_SITEMAP_CACHE } from '@/lib/cache-policy'
 import { logCacheRegeneration } from '@/lib/isr-debug'
+import { getPublishedGuides } from '@/lib/guides'
 import { compareStableText, getCategoryUrl } from '@/lib/listing-category'
 import { SITE_URL } from '@/lib/site'
 import { createPublicClient } from '@/lib/supabase/public'
@@ -38,6 +39,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/play`, lastModified: STATIC_LAST_MODIFIED, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${base}/emergency`, lastModified: STATIC_LAST_MODIFIED, changeFrequency: 'weekly', priority: 0.6 },
   ]
+
+  // Editorial guides are files in the repo, not DB rows, so they're resolved
+  // outside the Supabase try/catch below — a database outage must not drop
+  // them from the sitemap.
+  const guides = await getPublishedGuides()
+  if (guides.length > 0) {
+    staticRoutes.push({
+      url: `${base}/guides`,
+      lastModified: STATIC_LAST_MODIFIED,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    })
+    for (const guide of guides) {
+      staticRoutes.push({
+        url: `${base}/guides/${guide.slug}`,
+        lastModified: guide.date ? new Date(guide.date) : STATIC_LAST_MODIFIED,
+        changeFrequency: 'monthly',
+        priority: 0.75,
+      })
+    }
+  }
 
   try {
     const supabase = createPublicClient()
