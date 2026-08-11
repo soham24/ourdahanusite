@@ -4,7 +4,7 @@ slug: bordi-vs-dahanu-beach
 description: "Which Dahanu beach to choose — Bordi is quieter and cleaner, Dahanu is easier to reach. Swimming safety, best times, parking, and what's actually available."
 date: 2026-08-03
 category: Beaches
-published: false   # flip to true only after the verify list at the bottom is done
+published: true
 ---
 
 # Bordi or Dahanu Beach?

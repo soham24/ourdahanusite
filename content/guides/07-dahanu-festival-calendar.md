@@ -4,7 +4,7 @@ slug: dahanu-festival-calendar
 description: "When Dahanu's festivals happen — the Mahalaxmi yatra, the Bordi Chikoo Festival, Dahanu Festival, Navratri and the village jatras — and which ones visitors can attend."
 date: 2026-08-03
 category: Culture
-published: false   # flip to true only after the verify list at the bottom is done
+published: true
 ---
 
 # Dahanu's Festival Calendar
