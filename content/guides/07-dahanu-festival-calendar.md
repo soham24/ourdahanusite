@@ -4,6 +4,12 @@ slug: dahanu-festival-calendar
 description: "When Dahanu's festivals happen — the Mahalaxmi yatra, the Bordi Chikoo Festival, Dahanu Festival, Navratri and the village jatras — and which ones visitors can attend."
 date: 2026-08-03
 category: Culture
+hero: /guides/bohada-palghar.jpg
+heroAlt: "A masked Bohada performer at a tribal festival in Palghar district"
+heroAuthor: Suraj Digrase
+heroSource: https://commons.wikimedia.org/wiki/File:Bohada_in_Palghar_Tribe_Festival.jpg
+heroLicence: CC0
+heroNote: "A Bohada performer at a tribal festival in Palghar district."
 published: true
 ---
 

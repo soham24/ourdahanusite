@@ -61,3 +61,36 @@ frontmatter.
 
 No code changes needed — the route, index, sitemap entry and `Article` schema
 are all generated from the file.
+
+## Images
+
+A hero image is optional. When present, **every attribution field is required** —
+CC BY and CC BY-SA oblige us to name the author, state the licence, and link to
+both the source and the licence text:
+
+```yaml
+hero: /guides/dahanu-beach.jpg
+heroAlt: "The shoreline at Dahanu Beach"
+heroAuthor: Raman Patel
+heroSource: https://commons.wikimedia.org/wiki/File:Dahanu_Beach...
+heroLicence: CC BY 3.0
+heroNote: "Optional — say so when the photo isn't of the exact place"
+```
+
+If any of `heroAuthor`, `heroSource` or `heroLicence` is missing, the image is
+**dropped entirely** rather than shown uncredited. An uncredited CC image is a
+licence breach, so failing closed is deliberate.
+
+`heroLicenceUrl` is derived automatically for the common licences; set it
+explicitly for anything unusual.
+
+**Use `heroNote` whenever the photo isn't of the place being described.** The
+Warli article's hero was photographed in Mumbai, not Dahanu, and the caption
+says so. Readers should never have to guess.
+
+Images live in `public/guides/`. Resize before committing — `next.config` sets
+`images.unoptimized`, so whatever you add is what mobile users download.
+
+**Only use images you have the right to publish**: your own photos, or
+properly licensed ones (Wikimedia Commons, Openverse). Crediting a copyrighted
+image does not make it legal to use.

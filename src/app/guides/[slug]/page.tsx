@@ -6,6 +6,7 @@ import { ArrowLeft, Clock } from 'lucide-react'
 import StructuredData from '@/components/StructuredData'
 import { getGuideBySlug, getRelatedGuides } from '@/lib/guides'
 import { SITE_URL } from '@/lib/site'
+import GuideHero from '../GuideHero'
 
 // No `generateStaticParams` here on purpose. Under Cache Components it must
 // return at least one entry, and this route legitimately has zero published
@@ -24,6 +25,7 @@ export async function generateMetadata({
   if (!guide) return {}
 
   const url = `${SITE_URL}/guides/${guide.slug}`
+  const images = guide.hero ? [`${SITE_URL}${guide.hero.src}`] : undefined
   return {
     title: guide.title,
     description: guide.description,
@@ -34,8 +36,14 @@ export async function generateMetadata({
       url,
       type: 'article',
       publishedTime: guide.date || undefined,
+      ...(images ? { images } : {}),
     },
-    twitter: { card: 'summary_large_image', title: guide.title, description: guide.description },
+    twitter: {
+      card: 'summary_large_image',
+      title: guide.title,
+      description: guide.description,
+      ...(images ? { images } : {}),
+    },
   }
 }
 
@@ -60,6 +68,7 @@ export default async function GuidePage({
     mainEntityOfPage: url,
     datePublished: guide.date || undefined,
     dateModified: guide.date || undefined,
+    ...(guide.hero ? { image: `${SITE_URL}${guide.hero.src}` } : {}),
     author: { '@type': 'Organization', name: 'OurDahanu', url: SITE_URL },
     publisher: { '@type': 'Organization', name: 'OurDahanu', url: SITE_URL },
     about: 'Dahanu, Maharashtra',
@@ -104,6 +113,8 @@ export default async function GuidePage({
             {guide.readingMinutes} min read
           </p>
         </header>
+
+        {guide.hero && <GuideHero image={guide.hero} />}
 
         {/* Content is authored in-repo, not user-submitted — see src/lib/guides.ts */}
         <div className="od-guide-prose" dangerouslySetInnerHTML={{ __html: guide.html }} />

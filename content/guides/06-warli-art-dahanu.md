@@ -4,6 +4,12 @@ slug: warli-art-dahanu
 description: "Dahanu is core Warli country. Where to see Warli painting, how to buy direct from artists, what the symbols mean, and how to tell a hand-painted piece from a print."
 date: 2026-08-03
 category: Culture
+hero: /guides/warli-wall.jpg
+heroAlt: "Warli painting on a house wall, showing the tradition’s characteristic stick figures and circular dance"
+heroAuthor: Blackstardust
+heroSource: https://commons.wikimedia.org/wiki/File:Warli_art_on_a_house_wall_at_Sanjay_Gandhi_National_Park.jpg
+heroLicence: CC BY-SA 4.0
+heroNote: "Warli wall painting, photographed at Sanjay Gandhi National Park, Mumbai — the tradition, not a Dahanu location."
 published: true
 ---
 

@@ -22,6 +22,28 @@ renderer.table = (token) => `<div class="od-table-scroll">${renderTable(token)}<
  */
 const DRAFT_SECTION_MARKER = /^##\s+(⚠️|SEO\b)/m
 
+/**
+ * Attribution for a Creative Commons image. Every field is required by the
+ * licence itself — CC BY and CC BY-SA oblige us to name the author, state the
+ * licence, and link back to both the original and the licence text. A credit
+ * line missing any of these is not a valid attribution, so the renderer only
+ * shows an image when all of it is present.
+ */
+export interface GuideImage {
+  src: string
+  alt: string
+  author: string
+  sourceUrl: string
+  licence: string
+  licenceUrl: string
+  /**
+   * Optional clarification shown in the caption. Used when the photograph is
+   * illustrative rather than of the exact place the article is about — a
+   * reader should never have to guess whether a picture was taken here.
+   */
+  note: string
+}
+
 export interface Guide {
   slug: string
   title: string
@@ -29,6 +51,7 @@ export interface Guide {
   category: string
   date: string
   published: boolean
+  hero: GuideImage | null
   /** Markdown body, already stripped of author-only sections. */
   body: string
   /** Rendered HTML of `body`. */
@@ -83,6 +106,43 @@ function stripLeadingH1(body: string): string {
   return body.replace(/^\s*#\s+.*\n/, '')
 }
 
+const LICENCE_URLS: Record<string, string> = {
+  'CC BY 3.0': 'https://creativecommons.org/licenses/by/3.0/',
+  'CC BY-SA 3.0': 'https://creativecommons.org/licenses/by-sa/3.0/',
+  'CC BY 4.0': 'https://creativecommons.org/licenses/by/4.0/',
+  'CC BY-SA 4.0': 'https://creativecommons.org/licenses/by-sa/4.0/',
+  CC0: 'https://creativecommons.org/publicdomain/zero/1.0/',
+  'Public domain': 'https://en.wikipedia.org/wiki/Public_domain',
+}
+
+/**
+ * Build the hero image from frontmatter, but only if the attribution is
+ * complete. A partially-credited CC image is a licence breach, so anything
+ * missing a field is dropped entirely rather than rendered uncredited.
+ */
+function parseHero(data: Frontmatter): GuideImage | null {
+  const src = data.hero?.trim()
+  if (!src) return null
+
+  const author = data.heroAuthor?.trim()
+  const sourceUrl = data.heroSource?.trim()
+  const licence = data.heroLicence?.trim()
+  if (!author || !sourceUrl || !licence) return null
+
+  const licenceUrl = data.heroLicenceUrl?.trim() || LICENCE_URLS[licence]
+  if (!licenceUrl) return null
+
+  return {
+    src,
+    alt: data.heroAlt?.trim() || '',
+    author,
+    sourceUrl,
+    licence,
+    licenceUrl,
+    note: data.heroNote?.trim() ?? '',
+  }
+}
+
 function readingMinutes(body: string): number {
   const words = body.split(/\s+/).filter(Boolean).length
   return Math.max(1, Math.round(words / 200))
@@ -109,6 +169,7 @@ async function parseGuide(filename: string): Promise<Guide | null> {
     // verified it and said so explicitly. A missing or malformed value
     // keeps it unpublished.
     published: data.published?.trim().toLowerCase() === 'true',
+    hero: parseHero(data),
     body: publicBody,
     html: await marked.parse(publicBody, { async: true, renderer }),
     readingMinutes: readingMinutes(publicBody),
