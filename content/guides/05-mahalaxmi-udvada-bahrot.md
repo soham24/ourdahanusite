@@ -4,7 +4,7 @@ slug: mahalaxmi-udvada-bahrot-caves
 description: "Visiting Mahalaxmi Temple, the Parsi town of Udvada, and the Bahrot Caves trek — how to get to each, what you can and can't enter, and what to expect."
 date: 2026-08-03
 category: Heritage
-published: false   # flip to true only after the verify list at the bottom is done
+published: true
 ---
 
 # Mahalaxmi, Udvada and Bahrot Caves

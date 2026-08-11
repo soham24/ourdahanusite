@@ -4,7 +4,7 @@ slug: dahanu-weekend-stay-eat-cost
 description: "Honest costs for a weekend in Dahanu — beach resorts vs homestays vs farm stays, where to eat seafood, and a realistic budget for a couple or a family of four."
 date: 2026-08-03
 category: Travel
-published: false   # flip to true only after the verify list at the bottom is done
+published: true
 ---
 
 # A Weekend in Dahanu: Where to Stay, What to Eat, What It Costs

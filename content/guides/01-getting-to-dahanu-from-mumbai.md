@@ -4,7 +4,7 @@ slug: getting-to-dahanu-from-mumbai
 description: "A practical guide to reaching Dahanu from Mumbai — which trains to take, what autos actually cost when you arrive, the road route via Charoti, and when not to travel."
 date: 2026-08-03
 category: Travel
-published: false   # flip to true only after the verify list at the bottom is done
+published: true
 ---
 
 # Getting to Dahanu from Mumbai

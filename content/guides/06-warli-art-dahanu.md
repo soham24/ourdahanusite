@@ -4,7 +4,7 @@ slug: warli-art-dahanu
 description: "Dahanu is core Warli country. Where to see Warli painting, how to buy direct from artists, what the symbols mean, and how to tell a hand-painted piece from a print."
 date: 2026-08-03
 category: Culture
-published: false   # flip to true only after the verify list at the bottom is done
+published: true
 ---
 
 # Warli Art in Dahanu
