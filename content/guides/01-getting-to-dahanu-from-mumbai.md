@@ -4,6 +4,11 @@ slug: getting-to-dahanu-from-mumbai
 description: "A practical guide to reaching Dahanu from Mumbai — which trains to take, what autos actually cost when you arrive, the road route via Charoti, and when not to travel."
 date: 2026-08-03
 category: Travel
+hero: /guides/dahanu-road-station.jpg
+heroAlt: "Dahanu Road railway station, the terminus of the Western Railway suburban line"
+heroAuthor: Superfast1111
+heroSource: https://commons.wikimedia.org/wiki/File:Dahanu_Road_railway_station_-_Overview.jpg
+heroLicence: CC BY-SA 4.0
 published: true
 ---
 

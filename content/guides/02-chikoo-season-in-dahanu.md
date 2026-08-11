@@ -4,6 +4,12 @@ slug: chikoo-season-in-dahanu
 description: "Dahanu and Gholvad grow India's most famous chikoo — a GI-tagged fruit. When it's best, how to buy direct from the orchards, how to pick a good one, and when the Chikoo Festival happens."
 date: 2026-08-03
 category: Food & Farming
+hero: /guides/chikoo-sapota.jpg
+heroAlt: "Ripe chikoo (sapota) fruit on the tree"
+heroAuthor: Vengolis
+heroSource: https://commons.wikimedia.org/wiki/File:Manilkara_zapota_02368.jpg
+heroLicence: CC BY-SA 4.0
+heroNote: "Chikoo (sapota) on the tree. Illustrative — not photographed in Dahanu."
 published: true
 ---
 

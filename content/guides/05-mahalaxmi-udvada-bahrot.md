@@ -4,6 +4,11 @@ slug: mahalaxmi-udvada-bahrot-caves
 description: "Visiting Mahalaxmi Temple, the Parsi town of Udvada, and the Bahrot Caves trek — how to get to each, what you can and can't enter, and what to expect."
 date: 2026-08-03
 category: Heritage
+hero: /guides/udvada-motiwada.jpg
+heroAlt: "A street in Motiwada, Udvada, showing the town’s heritage Parsi houses"
+heroAuthor: Raman Patel
+heroSource: https://commons.wikimedia.org/wiki/File:Motiwada,_Udvada_RS_-_panoramio.jpg
+heroLicence: CC BY 3.0
 published: true
 ---
 

@@ -15,12 +15,70 @@ const renderer = new Renderer()
 const renderTable = renderer.table.bind(renderer)
 renderer.table = (token) => `<div class="od-table-scroll">${renderTable(token)}</div>`
 
+function escapeAttr(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+/**
+ * Inline images render as a <figure>, with the markdown title used as the
+ * caption — which is where a photo credit goes:
+ *
+ *   ![Alt text](/guides/photo.jpg "Photo: Name, used with permission")
+ *
+ * Unlike the hero, a caption is not enforced here: this path exists for
+ * photographs we own or have direct permission for, where there is no licence
+ * to breach. Anything Creative Commons should use the hero fields, which
+ * refuse to render without full attribution.
+ */
+renderer.image = ({ href, title, text }) =>
+  `<figure class="od-guide-figure">` +
+  `<img src="${escapeAttr(href)}" alt="${escapeAttr(text ?? '')}" loading="lazy" />` +
+  (title ? `<figcaption>${escapeAttr(title)}</figcaption>` : '') +
+  `</figure>`
+
+// An image on its own line is a paragraph as far as markdown is concerned, so
+// the <figure> above would land inside a <p> — invalid HTML, which browsers
+// "fix" by closing the paragraph early and leaving a stray empty one behind.
+// Emit the figure bare when it is the paragraph's only content.
+const renderParagraph = renderer.paragraph.bind(renderer)
+renderer.paragraph = (token) => {
+  const only = token.tokens?.length === 1 ? token.tokens[0] : null
+  if (only?.type === 'image') return renderer.image(only as Parameters<typeof renderer.image>[0])
+  return renderParagraph(token)
+}
+
 /**
  * Everything from this heading onward is working notes for the author —
  * open questions, fact-check lists, SEO scratch. It must never reach a
  * reader, so the body is cut here before any rendering happens.
  */
 const DRAFT_SECTION_MARKER = /^##\s+(⚠️|SEO\b)/m
+
+/**
+ * Attribution for a Creative Commons image. Every field is required by the
+ * licence itself — CC BY and CC BY-SA oblige us to name the author, state the
+ * licence, and link back to both the original and the licence text. A credit
+ * line missing any of these is not a valid attribution, so the renderer only
+ * shows an image when all of it is present.
+ */
+export interface GuideImage {
+  src: string
+  alt: string
+  author: string
+  sourceUrl: string
+  licence: string
+  licenceUrl: string
+  /**
+   * Optional clarification shown in the caption. Used when the photograph is
+   * illustrative rather than of the exact place the article is about — a
+   * reader should never have to guess whether a picture was taken here.
+   */
+  note: string
+}
 
 export interface Guide {
   slug: string
@@ -29,6 +87,7 @@ export interface Guide {
   category: string
   date: string
   published: boolean
+  hero: GuideImage | null
   /** Markdown body, already stripped of author-only sections. */
   body: string
   /** Rendered HTML of `body`. */
@@ -83,6 +142,43 @@ function stripLeadingH1(body: string): string {
   return body.replace(/^\s*#\s+.*\n/, '')
 }
 
+const LICENCE_URLS: Record<string, string> = {
+  'CC BY 3.0': 'https://creativecommons.org/licenses/by/3.0/',
+  'CC BY-SA 3.0': 'https://creativecommons.org/licenses/by-sa/3.0/',
+  'CC BY 4.0': 'https://creativecommons.org/licenses/by/4.0/',
+  'CC BY-SA 4.0': 'https://creativecommons.org/licenses/by-sa/4.0/',
+  CC0: 'https://creativecommons.org/publicdomain/zero/1.0/',
+  'Public domain': 'https://en.wikipedia.org/wiki/Public_domain',
+}
+
+/**
+ * Build the hero image from frontmatter, but only if the attribution is
+ * complete. A partially-credited CC image is a licence breach, so anything
+ * missing a field is dropped entirely rather than rendered uncredited.
+ */
+function parseHero(data: Frontmatter): GuideImage | null {
+  const src = data.hero?.trim()
+  if (!src) return null
+
+  const author = data.heroAuthor?.trim()
+  const sourceUrl = data.heroSource?.trim()
+  const licence = data.heroLicence?.trim()
+  if (!author || !sourceUrl || !licence) return null
+
+  const licenceUrl = data.heroLicenceUrl?.trim() || LICENCE_URLS[licence]
+  if (!licenceUrl) return null
+
+  return {
+    src,
+    alt: data.heroAlt?.trim() || '',
+    author,
+    sourceUrl,
+    licence,
+    licenceUrl,
+    note: data.heroNote?.trim() ?? '',
+  }
+}
+
 function readingMinutes(body: string): number {
   const words = body.split(/\s+/).filter(Boolean).length
   return Math.max(1, Math.round(words / 200))
@@ -109,6 +205,7 @@ async function parseGuide(filename: string): Promise<Guide | null> {
     // verified it and said so explicitly. A missing or malformed value
     // keeps it unpublished.
     published: data.published?.trim().toLowerCase() === 'true',
+    hero: parseHero(data),
     body: publicBody,
     html: await marked.parse(publicBody, { async: true, renderer }),
     readingMinutes: readingMinutes(publicBody),

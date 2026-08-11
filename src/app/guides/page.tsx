@@ -66,8 +66,22 @@ export default async function GuidesIndexPage() {
               <li key={g.slug}>
                 <Link
                   href={`/guides/${g.slug}`}
-                  className="od-card od-card-hover flex h-full flex-col p-5"
+                  className="od-card od-card-hover flex h-full flex-col overflow-hidden"
                 >
+                  {g.hero && (
+                    // Decorative here — the card's heading already names the
+                    // article, so an alt would just repeat it to a screen reader.
+                    // Full credit is rendered on the article page itself.
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={g.hero.src}
+                      alt=""
+                      aria-hidden
+                      className="aspect-[16/9] w-full object-cover"
+                      loading="lazy"
+                    />
+                  )}
+                  <div className="flex flex-1 flex-col p-5">
                   <p className="od-eyebrow mb-2 text-[10px]">{g.category}</p>
                   <h2 className="font-display text-xl leading-snug text-[var(--od-ink)]">
                     {g.title}
@@ -81,6 +95,7 @@ export default async function GuidesIndexPage() {
                     <Clock size={12} aria-hidden />
                     {g.readingMinutes} min read
                   </p>
+                  </div>
                 </Link>
               </li>
             ))}

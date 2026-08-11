@@ -4,6 +4,11 @@ slug: bordi-vs-dahanu-beach
 description: "Which Dahanu beach to choose — Bordi is quieter and cleaner, Dahanu is easier to reach. Swimming safety, best times, parking, and what's actually available."
 date: 2026-08-03
 category: Beaches
+hero: /guides/narpad-beach.jpg
+heroAlt: "Narpad Beach on the Dahanu coast"
+heroAuthor: Raman Patel
+heroSource: https://commons.wikimedia.org/wiki/File:Narpad_Beach,_Dahanu_-_panoramio.jpg
+heroLicence: CC BY 3.0
 published: true
 ---
 

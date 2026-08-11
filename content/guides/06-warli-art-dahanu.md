@@ -4,6 +4,11 @@ slug: warli-art-dahanu
 description: "Dahanu is core Warli country. Where to see Warli painting, how to buy direct from artists, what the symbols mean, and how to tell a hand-painted piece from a print."
 date: 2026-08-03
 category: Culture
+hero: /guides/warli-art.jpg
+heroAlt: "A Warli painting in the traditional style — white figures on an earth-toned ground"
+heroAuthor: Sahakol41
+heroSource: https://commons.wikimedia.org/wiki/File:Warli_art_form.jpg
+heroLicence: CC0
 published: true
 ---
 
@@ -18,6 +23,8 @@ If you're buying Warli anywhere in India, buying it here means buying it at the 
 ## The Vayeda Brothers
 
 Warli isn't a museum piece here — it has living practitioners, and the best-known working today are **Mayur and Tushar Vayeda**, brothers from **Ganjad**, a village in this taluka.
+
+![Mayur and Tushar Vayeda in front of one of their Warli paintings](/guides/vayeda-brothers.webp "Mayur and Tushar Vayeda. Photo supplied by the artists.")
 
 They learned the form from family as children, left to study other subjects in Mumbai, and came back to it as a profession around 2007–08. They've been at it for well over fifteen years since, and their work has travelled a long way from the village: exhibitions in India and abroad, and picture books published with Tara Books — *Tail Tale* (2019), *Deep* (2020) and more recently *Seed*.
 
