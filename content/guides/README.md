@@ -94,3 +94,20 @@ Images live in `public/guides/`. Resize before committing — `next.config` sets
 **Only use images you have the right to publish**: your own photos, or
 properly licensed ones (Wikimedia Commons, Openverse). Crediting a copyrighted
 image does not make it legal to use.
+
+### Images inside an article
+
+Put the image on its own line. The markdown title becomes the caption, which is
+where a photo credit goes:
+
+```markdown
+![Mayur and Tushar Vayeda](/guides/vayeda-brothers.jpg "Photo: supplied by the artists")
+```
+
+Unlike the hero, a caption is **not** enforced here — this path is for photos we
+own or have direct permission for, where there is no licence to breach. Anything
+Creative Commons should use the hero fields instead, which refuse to render
+without complete attribution.
+
+Keep images on their own line; one placed mid-sentence still becomes a block
+figure and will break the paragraph around it.

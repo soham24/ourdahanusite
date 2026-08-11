@@ -15,6 +15,42 @@ const renderer = new Renderer()
 const renderTable = renderer.table.bind(renderer)
 renderer.table = (token) => `<div class="od-table-scroll">${renderTable(token)}</div>`
 
+function escapeAttr(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+/**
+ * Inline images render as a <figure>, with the markdown title used as the
+ * caption — which is where a photo credit goes:
+ *
+ *   ![Alt text](/guides/photo.jpg "Photo: Name, used with permission")
+ *
+ * Unlike the hero, a caption is not enforced here: this path exists for
+ * photographs we own or have direct permission for, where there is no licence
+ * to breach. Anything Creative Commons should use the hero fields, which
+ * refuse to render without full attribution.
+ */
+renderer.image = ({ href, title, text }) =>
+  `<figure class="od-guide-figure">` +
+  `<img src="${escapeAttr(href)}" alt="${escapeAttr(text ?? '')}" loading="lazy" />` +
+  (title ? `<figcaption>${escapeAttr(title)}</figcaption>` : '') +
+  `</figure>`
+
+// An image on its own line is a paragraph as far as markdown is concerned, so
+// the <figure> above would land inside a <p> — invalid HTML, which browsers
+// "fix" by closing the paragraph early and leaving a stray empty one behind.
+// Emit the figure bare when it is the paragraph's only content.
+const renderParagraph = renderer.paragraph.bind(renderer)
+renderer.paragraph = (token) => {
+  const only = token.tokens?.length === 1 ? token.tokens[0] : null
+  if (only?.type === 'image') return renderer.image(only as Parameters<typeof renderer.image>[0])
+  return renderParagraph(token)
+}
+
 /**
  * Everything from this heading onward is working notes for the author —
  * open questions, fact-check lists, SEO scratch. It must never reach a

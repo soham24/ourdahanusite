@@ -1179,3 +1179,25 @@ html.loader-fonts-ready .our-dahanu-loader__logo-arc-bottom text {
     padding: 0.1em 0.35em;
   }
 }
+
+@layer components {
+  /* Inline article images (src/lib/guides.ts renderer.image). */
+  .od-guide-prose .od-guide-figure {
+    margin-top: 1.6rem;
+  }
+
+  .od-guide-prose .od-guide-figure img {
+    border: 1px solid var(--od-border);
+    border-radius: var(--od-radius);
+    display: block;
+    height: auto;
+    width: 100%;
+  }
+
+  .od-guide-prose .od-guide-figure figcaption {
+    color: var(--od-muted);
+    font-size: 0.7rem;
+    line-height: 1.5;
+    margin-top: 0.5rem;
+  }
+}
