@@ -7,6 +7,7 @@ import { buildAbsoluteUrl } from '@/lib/site'
 
 const EXPLORE_LINKS = [
   { href: '/listings', label: 'Business Listings' },
+  { href: '/guides', label: 'Dahanu Guides' },
   { href: '/listings/submit', label: 'List Your Business' },
   { href: '/emergency', label: 'Emergency & Safety' },
   { href: '/search', label: 'Search' },
