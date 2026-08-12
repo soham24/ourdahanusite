@@ -258,3 +258,29 @@ function isPermanentClientError(message: string): boolean {
 export function recoveryUrlFor(orderId: string): string {
   return `${RECOVERY_PATH_PREFIX}/${encodeURIComponent(orderId)}`
 }
+
+/**
+ * A payment that Razorpay captured but whose order/booking/submission never
+ * saved. Every payment flow renders this as its own screen — never as a banner
+ * beside a live pay button, because the money has already moved.
+ */
+export interface CapturedPaymentRecovery {
+  razorpayOrderId: string
+  paymentId: string
+  message: string
+}
+
+/**
+ * Turn whatever a failed save produced — an error string, an Error, or
+ * something unhelpful — into a sentence safe to show the payer. Never a stack
+ * trace, never an empty box.
+ */
+export function readableReason(raw: unknown): string {
+  const text =
+    typeof raw === 'string' ? raw : raw instanceof Error && raw.message ? raw.message : ''
+  const clean = text.trim()
+  if (!clean) {
+    return 'We could not confirm the exact reason, but your payment is safe and we have your reference.'
+  }
+  return clean.length > 180 ? `${clean.slice(0, 179)}…` : clean
+}

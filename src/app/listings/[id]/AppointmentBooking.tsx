@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowRight,
   Calendar,
@@ -11,6 +11,7 @@ import {
   Clock3,
   CreditCard,
   Loader2,
+  ShieldAlert,
   ShieldCheck,
   User,
 } from 'lucide-react'
@@ -25,9 +26,11 @@ import {
   attemptWithRetry,
   clearRecoveryDraft,
   persistRecoveryDraft,
+  readableReason,
   recoveryUrlFor,
   snapshotFormData,
   updateRecoveryDraft,
+  type CapturedPaymentRecovery,
 } from '@/lib/payment-retry'
 
 type Props = {
@@ -41,7 +44,8 @@ type Props = {
   userEmail: string
 }
 
-type BookingStatus = 'idle' | 'loading-slots' | 'processing' | 'success' | 'error'
+type BookingStatus = 'idle' | 'loading-slots' | 'processing' | 'success' | 'error' | 'recovery'
+
 type Step = 'date' | 'time' | 'details'
 
 type RazorpayOptions = {
@@ -163,6 +167,10 @@ export default function AppointmentBooking({
   const [slots, setSlots] = useState<AppointmentSlot[]>([])
   const [selectedSlot, setSelectedSlot] = useState<AppointmentSlot | null>(null)
   const [status, setStatus] = useState<BookingStatus>('idle')
+  const [recovery, setRecovery] = useState<CapturedPaymentRecovery | null>(null)
+  // Whether Razorpay's handler has started for the in-flight attempt. A ref,
+  // not state: ondismiss must read the current value even in the same tick.
+  const capturedRef = useRef(false)
   const [error, setError] = useState('')
   const [confirmation, setConfirmation] = useState<{ date: string; slot: AppointmentSlot } | null>(null)
   const [scriptReady, setScriptReady] = useState(bookingFee <= 0)
@@ -256,18 +264,42 @@ export default function AppointmentBooking({
       })
     }
 
-    const result = await attemptWithRetry(() => bookAppointment(formData))
-    if (result.error) {
+    // Routes a post-capture failure to the recovery screen rather than the
+    // ordinary error banner — money has moved, so the buyer needs a working
+    // link, not a retry button.
+    const failAfterCapture = (reason: unknown) => {
+      const message = readableReason(reason)
       if (payment?.razorpay_order_id) {
-        updateRecoveryDraft(payment.razorpay_order_id, { lastError: result.error })
+        updateRecoveryDraft(payment.razorpay_order_id, { lastError: message })
       }
-      setStatus('error')
-      setError(
-        payment?.razorpay_payment_id
-          ? `${result.error} (Payment ID: ${payment.razorpay_payment_id}). ` +
-            `If the amount was debited, click here to recover: ${recoveryUrlFor(payment.razorpay_order_id ?? '')}`
-          : result.error,
-      )
+      if (payment?.razorpay_order_id && payment?.razorpay_payment_id) {
+        setRecovery({
+          razorpayOrderId: payment.razorpay_order_id,
+          paymentId: payment.razorpay_payment_id,
+          message,
+        })
+        setStatus('recovery')
+      } else {
+        // No payment involved (free booking) — an ordinary retryable error.
+        setStatus('error')
+        setError(message)
+      }
+    }
+
+    let result: { error?: string }
+    try {
+      result = await attemptWithRetry(() => bookAppointment(formData))
+    } catch (err) {
+      // Every retry threw, so attemptWithRetry rethrows rather than returning
+      // {error}. Without this the rejection escapes an SDK callback and the
+      // buyer is stuck on "processing" forever with their money gone.
+      console.error('[AppointmentBooking] booking save threw:', err)
+      failAfterCapture(err)
+      return
+    }
+
+    if (result.error) {
+      failAfterCapture(result.error)
       return
     }
 
@@ -319,6 +351,7 @@ export default function AppointmentBooking({
       return
     }
 
+    capturedRef.current = false
     setStatus('processing')
     setError('')
 
@@ -368,13 +401,66 @@ export default function AppointmentBooking({
       name: listingName,
       description: `Appointment on ${formatSelectedDate(selectedDate)} at ${selectedSlot.start}`,
       order_id: orderData.orderId,
-      handler: async (paymentResponse) => { await submitBooking(paymentResponse) },
-      modal: { ondismiss: () => { setStatus('idle') } },
+      handler: async (paymentResponse) => {
+        // Set before anything else so `ondismiss` can never observe a window
+        // where money has moved but this flag has not been set.
+        capturedRef.current = true
+        await submitBooking(paymentResponse)
+      },
+      modal: {
+        // Razorpay fires this both on a genuine cancel AND after a successful
+        // payment. Only unlock the form for a cancel; otherwise leave `status`
+        // wherever the handler put it.
+        ondismiss: () => {
+          if (capturedRef.current) return
+          setStatus('idle')
+        },
+      },
       prefill: { name: name.trim(), contact: phone.trim(), email: userEmail },
       theme: { color: '#C4663A' },
     })
 
     razorpay.open()
+  }
+
+  // Payment captured but the booking didn't save. Its own early return, so the
+  // booking form — and its pay button — cannot render in this state.
+  if (status === 'recovery' && recovery) {
+    return (
+      <div className="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm">
+        <div className="bg-amber-500 px-5 py-4 text-white">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+              <ShieldAlert size={20} />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-100">
+                Payment received
+              </p>
+              <p className="text-base font-bold">{listingName}</p>
+            </div>
+          </div>
+        </div>
+        <div className="space-y-3 px-5 py-5">
+          <p className="text-sm leading-relaxed text-[var(--od-ink-2)]">
+            Your money reached {listingName} safely, but we couldn&apos;t finish saving the
+            booking. Nothing is lost — we have your payment reference.
+          </p>
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">
+            {recovery.message}
+          </p>
+          <span className="block select-all rounded-lg border border-[var(--od-border)] bg-white px-3 py-2 font-mono text-xs text-[var(--od-ink)]">
+            {recovery.paymentId}
+          </span>
+          <Link
+            href={recoveryUrlFor(recovery.razorpayOrderId)}
+            className="block w-full rounded-xl bg-[var(--od-brand)] py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-[var(--od-brand-strong)]"
+          >
+            Finish my booking →
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   if (status === 'success' && confirmation) {
