@@ -77,7 +77,7 @@ Two things worth understanding:
 
 **Agree the fare before you get in.** Dahanu autos don't work like Mumbai's metered ones, particularly for longer trips. This isn't anyone trying to cheat you — it's just how it works — but state where you're going and confirm the price first, and use the numbers above as your reference point.
 
-**Heading to Bordi?** That's considerably further — Maharashtra Tourism puts it around 17 km from Dahanu — so expect a proper negotiated fare rather than a short local hop.
+**Heading to Bordi?** That's considerably further — about 17 km from Dahanu — so expect a proper negotiated fare rather than a short local hop. A shared auto via Gholvad runs about **₹50 a seat**.
 
 There are shops, tea and basic food around the station and in town, so you don't need to arrive stocked up.
 
@@ -91,11 +91,15 @@ There are shops, tea and basic food around the station and in town, so you don't
 
 **The turn people get wrong:** you leave NH48 around **Charoti**, heading toward Dahanu and the Mahalaxmi side. Miss it and you'll be well on your way to Gujarat before you notice. Set it in your maps app before you start rather than looking for signage at speed.
 
-**Stopping to eat:** the highway restaurants around **Manor** and **Charoti** are the usual break, and Charoti is a natural pause since you're turning off there anyway.
+**Stopping to eat:** the highway restaurants around **Manor** and **Charoti** are the usual break — Jalaram Kathiyawadi, Ahura, and Atithi Parsi Dairy Farm are the names people actually stop at, and Charoti is a natural pause since you're turning off there anyway.
 
 **Tolls and fuel:** we're deliberately not printing a figure. It depends on your vehicle and current fuel prices, and a wrong number is worse than none — work it out for your own car before you leave.
 
 **Parking at the beaches** is generally available, but weekends and festival dates get busy. Arrive earlier rather than circling.
+
+## By bus
+
+There's also an ST (state transport) bus connecting Mumbai and Dahanu, if you'd rather skip both the train and driving yourself.
 
 ## When to travel
 
@@ -129,18 +133,12 @@ Monsoon Dahanu is beautiful, and plenty of people prefer it. Just don't arrive e
 
 ## ⚠️ Verify before publishing
 
-Everything below came through as "not sure" or from a public source rather than first-hand — please confirm or correct:
+Journey times, Bordi distance, road distance and auto fares are all confirmed correct.
+Food stops, the Bordi auto fare, and the ST bus option are now named above. One item
+remains open:
 
-1. **Journey times** — Borivali 1h45–2h local, 1h20–40 express, South Mumbai 2.5–3h. Are these right from experience?
-2. **Bordi distance** — 17 km from Dahanu (Maharashtra Tourism figure).
-3. **Road distance** — 130–150 km, 3–4 hours.
-4. **Manor / Charoti food stops** — still the places people actually stop?
-5. **Auto fares** — I've published your figures as-is. Confirm they're current, and tell me if they change seasonally or after dark.
-6. **Bordi auto fare** — you didn't give one. Roughly what should someone expect? It's a common trip and a number here would be valuable.
-
-Two more that would strengthen the piece if you know them:
-- Is there a bus option worth mentioning (ST / private)?
-- Is there anything at Dahanu Road station itself worth flagging — a decent place to wait, a left-luggage option, which exit the autos are actually on?
+- Is there anything at Dahanu Road station itself worth flagging — a decent place to wait,
+  a left-luggage option, which exit the autos are actually on?
 
 ## SEO
 
