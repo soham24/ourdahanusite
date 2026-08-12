@@ -71,6 +71,12 @@ export default function Footer() {
           <p className="text-[rgba(251,240,220,0.45)]">© 2026 OurDahanu. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <Link
+              href={buildAbsoluteUrl('/contact')}
+              className="text-[rgba(251,240,220,0.45)] hover:text-[#FBF0DC] transition-colors"
+            >
+              Contact
+            </Link>
+            <Link
               href={buildAbsoluteUrl('/privacy')}
               className="text-[rgba(251,240,220,0.45)] hover:text-[#FBF0DC] transition-colors"
             >
