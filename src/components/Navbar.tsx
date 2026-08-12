@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { Plus, Search, ShieldAlert, Store, UsersRound, Gamepad2 } from 'lucide-react'
+import { BookOpen, Plus, Search, ShieldAlert, Store, UsersRound, Gamepad2 } from 'lucide-react'
 
 import NavbarAuthControls from '@/components/NavbarAuthControls'
 import SafeAppLink from '@/components/SafeAppLink'
@@ -8,6 +8,7 @@ import { buildAbsoluteUrl } from '@/lib/site'
 
 const NAV_LINKS = [
   { href: buildAbsoluteUrl('/listings'), label: 'Businesses' },
+  { href: buildAbsoluteUrl('/guides'), label: 'Guides' },
   { href: buildAbsoluteUrl('/search'), label: 'Search' },
   { href: buildAbsoluteUrl('/play'), label: 'Play' },
   { href: buildAbsoluteUrl('/about'), label: 'About' },
@@ -15,6 +16,7 @@ const NAV_LINKS = [
 
 const MOBILE_NAV = [
   { href: buildAbsoluteUrl('/listings'), label: 'Explore Businesses', icon: Store },
+  { href: buildAbsoluteUrl('/guides'), label: 'Dahanu Guides', icon: BookOpen },
   { href: buildAbsoluteUrl('/search'), label: 'Search Everything', icon: Search },
   { href: buildAbsoluteUrl('/play'), label: 'Chikoo Catcher Game', icon: Gamepad2 },
   { href: buildAbsoluteUrl('/about'), label: 'About OurDahanu', icon: UsersRound },
