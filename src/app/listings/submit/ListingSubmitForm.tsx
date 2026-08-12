@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Loader2, CreditCard, ShieldCheck, Tag, CheckCircle,
-  X, BadgePercent, ArrowLeft,
+  X, BadgePercent, ArrowLeft, ShieldAlert,
 } from 'lucide-react'
 import { submitPaidListing } from '@/app/actions/listings'
 import ImageUploadField from '@/components/ImageUploadField'
@@ -16,9 +16,11 @@ import {
   attemptWithRetry,
   clearRecoveryDraft,
   persistRecoveryDraft,
+  readableReason,
   recoveryUrlFor,
   snapshotFormData,
   updateRecoveryDraft,
+  type CapturedPaymentRecovery,
 } from '@/lib/payment-retry'
 import { normalizeOptionalUrl } from '@/lib/url'
 import { LISTING_CATEGORY_GROUPS, LISTING_CATEGORY_EMOJIS } from '@/lib/listing-category'
@@ -64,9 +66,18 @@ export default function ListingSubmitForm({
 }: Props) {
   const router     = useRouter()
   const formRef    = useRef<HTMLFormElement>(null)
-  const [scriptReady, setScriptReady] = useState(false)
-  const [status, setStatus]    = useState<'idle' | 'ordering' | 'paying' | 'submitting' | 'error'>('idle')
+  const [scriptReady, setScriptReady] = useState(
+    // A `#razorpay-script` tag existing only means *some* component asked for
+    // the script — the id is shared across every payment flow. The only proof
+    // it is usable is the global it defines once loaded.
+    () => typeof window !== 'undefined' && typeof window.Razorpay !== 'undefined',
+  )
+  const [status, setStatus]    = useState<'idle' | 'ordering' | 'paying' | 'submitting' | 'error' | 'recovery'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
+  const [recovery, setRecovery] = useState<CapturedPaymentRecovery | null>(null)
+  // Ref, not state: `ondismiss` must read the current value even when it
+  // fires in the same tick as the payment handler.
+  const capturedRef = useRef(false)
 
   // Build coupon lookup from props
   const COUPON_META = Object.fromEntries(activeCoupons.map(c => [c.code, { label: c.label, finalPrice: c.finalPrice }]))
@@ -81,7 +92,17 @@ export default function ListingSubmitForm({
 
   // Load Razorpay SDK
   useEffect(() => {
-    if (document.getElementById('razorpay-script')) { setScriptReady(true); return }
+    if (typeof window.Razorpay !== 'undefined') return
+
+    // A tag injected by a sibling flow may still be in flight — listen on it
+    // rather than assuming its outcome, and don't inject a duplicate.
+    const existing = document.getElementById('razorpay-script')
+    if (existing) {
+      const onLoad = () => setScriptReady(true)
+      existing.addEventListener('load', onLoad)
+      return () => existing.removeEventListener('load', onLoad)
+    }
+
     const s = document.createElement('script')
     s.id = 'razorpay-script'
     s.src = 'https://checkout.razorpay.com/v1/checkout.js'
@@ -130,6 +151,7 @@ export default function ListingSubmitForm({
     }
 
     try {
+      capturedRef.current = false
       setStatus('ordering')
       const orderRes = await fetch('/api/razorpay/create-listing-order', {
         method: 'POST',
@@ -185,6 +207,9 @@ export default function ListingSubmitForm({
         description: `Business Listing — ₹${orderData.finalAmountRupees}/year`,
         order_id:    orderData.orderId,
         handler: async (response) => {
+          // First statement, before any state update, so `ondismiss` cannot
+          // observe a window where money moved but this flag is unset.
+          capturedRef.current = true
           setStatus('submitting')
           formSnapshot.set('razorpay_payment_id', response.razorpay_payment_id)
           formSnapshot.set('razorpay_order_id',   response.razorpay_order_id)
@@ -199,22 +224,47 @@ export default function ListingSubmitForm({
             signature: response.razorpay_signature,
           })
 
-          const result = await attemptWithRetry(() => submitPaidListing(formSnapshot))
+          // Money is captured from here on. Both failure paths route to the
+          // recovery screen, which links to /payments/recover rather than
+          // printing the URL as unclickable text.
+          const failAfterCapture = (reason: unknown) => {
+            const message = readableReason(reason)
+            updateRecoveryDraft(orderData.orderId, { lastError: message })
+            setRecovery({
+              razorpayOrderId: orderData.orderId,
+              paymentId: response.razorpay_payment_id,
+              message,
+            })
+            setStatus('recovery')
+          }
+
+          let result: { error?: string } | undefined
+          try {
+            result = await attemptWithRetry(() => submitPaidListing(formSnapshot))
+          } catch (err) {
+            // attemptWithRetry rethrows when every attempt threw. This is an
+            // SDK callback, so an escaping rejection would strand the payer.
+            console.error('[ListingSubmitForm] submit threw after capture:', err)
+            failAfterCapture(err)
+            return
+          }
+
           if (result?.error) {
-            updateRecoveryDraft(orderData.orderId, { lastError: result.error })
-            setErrorMsg(
-              result.error +
-              ` (Payment ID: ${response.razorpay_payment_id}). ` +
-              `If the amount was debited, click here to recover: ${recoveryUrlFor(orderData.orderId)}`,
-            )
-            setStatus('error')
+            failAfterCapture(result.error)
           } else {
             clearRecoveryDraft(orderData.orderId)
             const bizName = encodeURIComponent(formSnapshot.get('name') as string || '')
             router.push(`/listings/submit?submitted=1&name=${bizName}`)
           }
         },
-        modal: { ondismiss: () => setStatus('idle') },
+        modal: {
+          // Fired on a genuine cancel AND after a successful payment — only
+          // unlock the form for the former.
+          ondismiss: () => {
+            if (capturedRef.current) return
+            setStatus('idle')
+          },
+        },
         prefill:  { email: userEmail, name: userName },
         theme:    { color: '#C4663A' },
       })
@@ -233,7 +283,43 @@ export default function ListingSubmitForm({
     paying:     'Waiting for payment…',
     submitting: 'Submitting your listing…',
     error:      finalPrice === 0 ? 'Submit Listing for Free 🎉' : `Pay ₹${finalPrice} & Submit Listing`,
+    // Unused — the recovery screen replaces the form entirely, so this button
+    // is never rendered once a payment has been captured.
+    recovery:   '',
   }[status]
+
+  // Payment captured but the listing didn't save. Its own early return, so the
+  // form — and its pay button — cannot render once money has moved.
+  if (status === 'recovery' && recovery) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm">
+          <div className="flex items-center gap-3 bg-amber-500 px-5 py-4 text-white">
+            <ShieldAlert size={20} />
+            <p className="text-base font-bold">Payment received</p>
+          </div>
+          <div className="space-y-3 px-5 py-5">
+            <p className="text-sm leading-relaxed text-[var(--od-ink-2)]">
+              Your payment went through, but we couldn&apos;t finish saving the listing. Nothing
+              is lost — we have your payment reference and the details you entered.
+            </p>
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">
+              {recovery.message}
+            </p>
+            <span className="block select-all rounded-lg border border-[var(--od-border)] bg-white px-3 py-2 font-mono text-xs text-[var(--od-ink)]">
+              {recovery.paymentId}
+            </span>
+            <Link
+              href={recoveryUrlFor(recovery.razorpayOrderId)}
+              className="block w-full rounded-xl bg-[var(--od-brand)] py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-[var(--od-brand-strong)]"
+            >
+              Finish my listing →
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

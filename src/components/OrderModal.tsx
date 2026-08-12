@@ -1,15 +1,18 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { X, ShoppingCart, Loader2, CheckCircle, Minus, Plus, ShieldCheck } from 'lucide-react'
+import Link from 'next/link'
+import { X, ShoppingCart, Loader2, CheckCircle, Minus, Plus, ShieldCheck, ShieldAlert } from 'lucide-react'
 import { placeOrder } from '@/app/actions/orders'
 import {
   attemptWithRetry,
   clearRecoveryDraft,
   persistRecoveryDraft,
+  readableReason,
   recoveryUrlFor,
   snapshotFormData,
   updateRecoveryDraft,
+  type CapturedPaymentRecovery,
 } from '@/lib/payment-retry'
 
 interface RazorpayOptions {
@@ -36,24 +39,50 @@ interface Props {
   onClose: () => void
 }
 
-type Status = 'form' | 'ordering' | 'paying' | 'submitting' | 'done' | 'error'
+type Status = 'form' | 'ordering' | 'paying' | 'submitting' | 'done' | 'error' | 'recovery'
+
 
 export default function OrderModal({ listing, service, serviceIndex, userEmail = '', userName = '', onClose }: Props) {
   const [status, setStatus] = useState<Status>('form')
   const [errorMsg, setErrorMsg] = useState('')
-  const [scriptReady, setScriptReady] = useState(false)
+  const [scriptReady, setScriptReady] = useState(
+    // A `#razorpay-script` tag existing only means *some* component asked for
+    // the script — the id is shared with CheckoutForm, AppointmentBooking,
+    // ListingSubmitForm and RenewForm. The only proof it is usable is the
+    // global it defines once loaded.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    () => typeof window !== 'undefined' && typeof (window as any).Razorpay !== 'undefined',
+  )
   const [quantity, setQuantity] = useState(1)
   const [buyerName, setBuyerName] = useState(userName)
   const [buyerPhone, setBuyerPhone] = useState('')
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [notes, setNotes] = useState('')
+  const [recovery, setRecovery] = useState<CapturedPaymentRecovery | null>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
+
+  // Whether Razorpay's `handler` has started for the in-flight attempt. A ref,
+  // not state: `ondismiss` closes over the render scope it was created in and
+  // must read the current value even when it fires in the same tick.
+  const capturedRef = useRef(false)
 
   const total = service.price * quantity
 
   // Load Razorpay SDK
   useEffect(() => {
-    if (document.getElementById('razorpay-script')) { setScriptReady(true); return }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (typeof (window as any).Razorpay !== 'undefined') return
+
+    // A tag inherited from a sibling component may still be in flight, so
+    // listen on the element that's already there instead of assuming its
+    // outcome — and don't inject a second one.
+    const existing = document.getElementById('razorpay-script')
+    if (existing) {
+      const onLoad = () => setScriptReady(true)
+      existing.addEventListener('load', onLoad)
+      return () => existing.removeEventListener('load', onLoad)
+    }
+
     const s = document.createElement('script')
     s.id = 'razorpay-script'
     s.src = 'https://checkout.razorpay.com/v1/checkout.js'
@@ -83,6 +112,7 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
       return
     }
     setErrorMsg('')
+    capturedRef.current = false
 
     try {
       setStatus('ordering')
@@ -135,6 +165,10 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
         description: `${service.name} ×${quantity}`,
         order_id:    orderData.orderId,
         handler: async (response) => {
+          // Before anything else, including the state update below, so
+          // `ondismiss` can never observe a window where money has moved but
+          // this flag hasn't been set.
+          capturedRef.current = true
           setStatus('submitting')
           const fd = new FormData()
           for (const [key, value] of Object.entries(baseFields)) fd.set(key, value)
@@ -148,21 +182,47 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
             signature: response.razorpay_signature,
           })
 
-          const result = await attemptWithRetry(() => placeOrder(fd))
-          if (result.error) {
-            updateRecoveryDraft(orderData.orderId, { lastError: result.error })
-            setErrorMsg(
-              result.error +
-              ` (Payment ID: ${response.razorpay_payment_id}). ` +
-              `If the amount was debited, click here to recover: ${recoveryUrlFor(orderData.orderId)}`,
-            )
-            setStatus('error')
-          } else {
-            clearRecoveryDraft(orderData.orderId)
-            setStatus('done')
+          try {
+            const result = await attemptWithRetry(() => placeOrder(fd))
+            if (result.error) {
+              // Money is captured. Never show a Pay button from here on.
+              updateRecoveryDraft(orderData.orderId, { lastError: result.error })
+              setRecovery({
+                razorpayOrderId: orderData.orderId,
+                paymentId: response.razorpay_payment_id,
+                message: readableReason(result.error),
+              })
+              setStatus('recovery')
+            } else {
+              clearRecoveryDraft(orderData.orderId)
+              setStatus('done')
+            }
+          } catch (err) {
+            // Every retry threw, so attemptWithRetry rethrows instead of
+            // returning {error}. This runs in an SDK callback, outside the
+            // try/catch around handlePay, so without this the rejection
+            // escapes and the buyer is stuck on "submitting" forever with
+            // their money gone.
+            console.error('[OrderModal] order save threw after capture:', err)
+            const message = readableReason(err)
+            updateRecoveryDraft(orderData.orderId, { lastError: message })
+            setRecovery({
+              razorpayOrderId: orderData.orderId,
+              paymentId: response.razorpay_payment_id,
+              message,
+            })
+            setStatus('recovery')
           }
         },
-        modal: { ondismiss: () => setStatus('form') },
+        modal: {
+          // Razorpay fires this both when the buyer closes the sheet without
+          // paying AND after a successful payment. Only unlock the form for a
+          // genuine cancel — otherwise leave `status` where `handler` put it.
+          ondismiss: () => {
+            if (capturedRef.current) return
+            setStatus('form')
+          },
+        },
         prefill: { name: buyerName, contact: buyerPhone },
         theme: { color: '#C4663A' },
       })
@@ -196,8 +256,44 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
           </button>
         </div>
 
-        {/* Done state */}
-        {status === 'done' ? (
+        {/* Payment captured but the order didn't save. Deliberately a branch
+            of its own: this state must never render the Pay button. */}
+        {status === 'recovery' && recovery ? (
+          <div className="px-5 py-8 flex flex-col items-center gap-4 text-center">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center">
+              <ShieldAlert size={32} className="text-amber-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Payment received</h3>
+            <p className="text-sm text-gray-500 max-w-xs">
+              Your money reached {listing.name} safely, but we couldn&apos;t finish saving the
+              order. Nothing is lost — we have your payment reference.
+            </p>
+            <p className="w-full rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-xs leading-relaxed text-amber-900">
+              {recovery.message}
+            </p>
+            <span className="w-full select-all rounded-lg border border-border bg-white px-3 py-2 font-mono text-xs text-ink">
+              {recovery.paymentId}
+            </span>
+            <Link
+              href={recoveryUrlFor(recovery.razorpayOrderId)}
+              className="mt-1 w-full rounded-xl bg-brand py-3 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong"
+            >
+              Finish my order →
+            </Link>
+            {listing.whatsapp && (
+              <a
+                href={`https://wa.me/${listing.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(
+                  `Hi! I paid for "${service.name}" on OurDahanu but the order didn't save. Payment ID: ${recovery.paymentId}`,
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full rounded-xl border border-border py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:border-brand/40 hover:text-brand"
+              >
+                Message {listing.name} on WhatsApp
+              </a>
+            )}
+          </div>
+        ) : status === 'done' ? (
           <div className="px-5 py-10 flex flex-col items-center gap-4 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
               <CheckCircle size={36} className="text-green-500" />

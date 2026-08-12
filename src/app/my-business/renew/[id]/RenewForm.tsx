@@ -1,20 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Loader2, Tag, CheckCircle, X, BadgePercent,
-  Calendar, Store, ArrowLeft, ShieldCheck,
+  Calendar, Store, ArrowLeft, ShieldCheck, ShieldAlert,
 } from 'lucide-react'
 import { renewListing } from '@/app/actions/listings'
 import {
   attemptWithRetry,
   clearRecoveryDraft,
   persistRecoveryDraft,
+  readableReason,
   recoveryUrlFor,
   snapshotFormData,
   updateRecoveryDraft,
+  type CapturedPaymentRecovery,
 } from '@/lib/payment-retry'
 
 interface RazorpayOptions {
@@ -59,8 +61,17 @@ export default function RenewForm({
   activeCoupons = [],
 }: Props) {
   const router = useRouter()
-  const [scriptReady, setScriptReady] = useState(false)
-  const [status, setStatus]   = useState<'idle' | 'ordering' | 'paying' | 'submitting' | 'error'>('idle')
+  const [scriptReady, setScriptReady] = useState(
+    // A `#razorpay-script` tag existing only means *some* component asked for
+    // the script — the id is shared across every payment flow. The only proof
+    // it is usable is the global it defines once loaded.
+    () => typeof window !== 'undefined' && typeof window.Razorpay !== 'undefined',
+  )
+  const [status, setStatus]   = useState<'idle' | 'ordering' | 'paying' | 'submitting' | 'error' | 'recovery'>('idle')
+  const [recovery, setRecovery] = useState<CapturedPaymentRecovery | null>(null)
+  // Ref, not state: `ondismiss` must read the current value even when it
+  // fires in the same tick as the payment handler.
+  const capturedRef = useRef(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [couponInput, setCouponInput]     = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null)
@@ -82,10 +93,20 @@ export default function RenewForm({
 
   // Load Razorpay SDK
   useEffect(() => {
-    if (document.getElementById('razorpay-script')) { setScriptReady(true); return }
+    if (typeof window.Razorpay !== 'undefined') return
+
+    // A tag injected by a sibling flow may still be in flight — listen on it
+    // rather than assuming its outcome, and don't inject a duplicate.
+    const existing = document.getElementById('razorpay-script')
+    if (existing) {
+      const onLoad = () => setScriptReady(true)
+      existing.addEventListener('load', onLoad)
+      return () => existing.removeEventListener('load', onLoad)
+    }
+
     const s = document.createElement('script')
-    s.id    = 'razorpay-script'
-    s.src   = 'https://checkout.razorpay.com/v1/checkout.js'
+    s.id = 'razorpay-script'
+    s.src = 'https://checkout.razorpay.com/v1/checkout.js'
     s.async = true
     s.onload = () => setScriptReady(true)
     document.body.appendChild(s)
@@ -118,6 +139,7 @@ export default function RenewForm({
     }
 
     try {
+      capturedRef.current = false
       setStatus('ordering')
       const orderRes = await fetch('/api/razorpay/create-listing-order', {
         method:  'POST',
@@ -166,6 +188,9 @@ export default function RenewForm({
         description: `Listing Renewal — ${listingName}`,
         order_id:    orderData.orderId,
         handler: async (response) => {
+          // First statement, before any state update, so `ondismiss` cannot
+          // observe a window where money moved but this flag is unset.
+          capturedRef.current = true
           setStatus('submitting')
           fd.set('razorpay_payment_id', response.razorpay_payment_id)
           fd.set('razorpay_order_id',   response.razorpay_order_id)
@@ -177,21 +202,44 @@ export default function RenewForm({
             signature: response.razorpay_signature,
           })
 
-          const result = await attemptWithRetry(() => renewListing(listingId, fd))
+          // Money is captured from here on — both failure paths go to the
+          // recovery screen, never back to a pay button.
+          const failAfterCapture = (reason: unknown) => {
+            const message = readableReason(reason)
+            updateRecoveryDraft(orderData.orderId, { lastError: message })
+            setRecovery({
+              razorpayOrderId: orderData.orderId,
+              paymentId: response.razorpay_payment_id,
+              message,
+            })
+            setStatus('recovery')
+          }
+
+          let result: { error?: string } | undefined
+          try {
+            result = await attemptWithRetry(() => renewListing(listingId, fd))
+          } catch (err) {
+            // attemptWithRetry rethrows when every attempt threw; this is an
+            // SDK callback, so an escaping rejection would strand the payer.
+            console.error('[RenewForm] renewal threw after capture:', err)
+            failAfterCapture(err)
+            return
+          }
+
           if (result?.error) {
-            updateRecoveryDraft(orderData.orderId, { lastError: result.error })
-            setErrorMsg(
-              result.error +
-              ` (Payment ID: ${response.razorpay_payment_id}). ` +
-              `If the amount was debited, click here to recover: ${recoveryUrlFor(orderData.orderId)}`,
-            )
-            setStatus('error')
+            failAfterCapture(result.error)
           } else {
             clearRecoveryDraft(orderData.orderId)
             router.push('/my-business?renewed=1')
           }
         },
-        modal:   { ondismiss: () => setStatus('idle') },
+        modal: {
+          // Fired on a genuine cancel AND after a successful payment.
+          ondismiss: () => {
+            if (capturedRef.current) return
+            setStatus('idle')
+          },
+        },
         prefill: { email: userEmail, name: userName },
         theme:   { color: '#C4663A' },
       })
@@ -211,7 +259,42 @@ export default function RenewForm({
     paying:     'Waiting for payment…',
     submitting: 'Renewing your listing…',
     error:      finalPrice === 0 ? 'Renew for Free 🎉' : `Pay ₹${finalPrice} & Renew`,
+    // Unused — the recovery screen replaces the form once a payment lands.
+    recovery:   '',
   }[status]
+
+  // Payment captured but the renewal didn't save. Its own early return, so the
+  // pay button cannot render once money has moved.
+  if (status === 'recovery' && recovery) {
+    return (
+      <div className="max-w-xl mx-auto px-4 sm:px-6 py-10">
+        <div className="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm">
+          <div className="flex items-center gap-3 bg-amber-500 px-5 py-4 text-white">
+            <ShieldAlert size={20} />
+            <p className="text-base font-bold">Payment received</p>
+          </div>
+          <div className="space-y-3 px-5 py-5">
+            <p className="text-sm leading-relaxed text-[var(--od-ink-2)]">
+              Your payment went through, but we couldn&apos;t finish renewing {listingName}.
+              Nothing is lost — we have your payment reference.
+            </p>
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">
+              {recovery.message}
+            </p>
+            <span className="block select-all rounded-lg border border-[var(--od-border)] bg-white px-3 py-2 font-mono text-xs text-[var(--od-ink)]">
+              {recovery.paymentId}
+            </span>
+            <Link
+              href={recoveryUrlFor(recovery.razorpayOrderId)}
+              className="block w-full rounded-xl bg-[var(--od-brand)] py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-[var(--od-brand-strong)]"
+            >
+              Finish my renewal →
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-xl mx-auto px-4 sm:px-6 py-10">
