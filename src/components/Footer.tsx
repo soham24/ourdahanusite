@@ -82,6 +82,12 @@ export default function Footer() {
             >
               Privacy Policy
             </Link>
+            <Link
+              href={buildAbsoluteUrl('/terms')}
+              className="text-[rgba(251,240,220,0.45)] hover:text-[#FBF0DC] transition-colors"
+            >
+              Terms
+            </Link>
             <p className="text-[rgba(251,240,220,0.45)]">Made in Dahanu</p>
           </div>
         </div>
