@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { updatePricing, createCoupon, toggleCoupon, deleteCoupon, setCouponAssignedTo } from '@/app/actions/pricing'
 import type { Coupon, PricingConfig } from '@/app/actions/pricing'
 import { Save, Plus, Trash2, Loader2, CheckCircle, ToggleLeft, ToggleRight, Tag, IndianRupee, X, Pencil } from 'lucide-react'
@@ -311,9 +312,9 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
                       }`}>
                         {coupon.final_price === 0 ? 'FREE' : `₹${coupon.final_price}`}
                       </span>
-                      <a href={`/admin/coupons/${coupon.code}`} className="text-xs text-[#C0582E] hover:underline">
+                      <Link href={`/admin/coupons/${coupon.code}`} className="text-xs text-[#C0582E] hover:underline">
                         view usage
-                      </a>
+                      </Link>
                     </div>
                     <p className="text-xs text-gray-500 mt-0.5 truncate">{coupon.label}</p>
                     {editingAssignedId === coupon.id ? (
