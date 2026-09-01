@@ -113,11 +113,14 @@ otherwise the insert will fail the CHECK.
 
 **Idempotency limitation, stated explicitly:** free-coupon redemptions have no
 `payment_id`, so the unique index does not cover them. This is accepted rather
-than engineered around: production currently has **zero** `free_coupon`
-listings of any kind (all 64 listings are `paid` or `manual`), the write
-happens once in the same code path that creates the listing, and that path is
-already guarded against double submission. If free coupons become common,
-revisit with a `(listing_id, kind, redeemed_at::date)` constraint.
+than engineered around for `submitPaidListing` (a resubmit hits the `subdomain`
+UNIQUE check before the ledger write), but not for `renewListing`, which
+updates an existing row and has no natural key to collide on. A follow-up
+migration (`supabase/add_coupon_redemptions_free_guard.sql`) closes this gap
+with a `(listing_id, coupon_code, kind, ((redeemed_at AT TIME ZONE 'UTC')::date))`
+unique index — note `AT TIME ZONE 'UTC'`, not `redeemed_at::date`, because a
+plain `timestamptz::date` cast is not IMMUTABLE (it depends on the session's
+`TimeZone` setting) and Postgres rejects it in an index expression.
 
 ### 2. Write path
 
