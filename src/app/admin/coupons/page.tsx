@@ -16,7 +16,7 @@ export default async function AdminCouponsPage() {
   const { byCoupon, byPerson } = await getCouponReport()
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-10">
+    <div className="max-w-5xl space-y-10">
       <header>
         <h1 className="text-2xl font-bold text-gray-900">Coupon Report</h1>
         <p className="text-sm text-gray-500 mt-1">
