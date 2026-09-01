@@ -1,6 +1,3 @@
-// AUTO-GENERATED from Supabase (project slmbqngmxketyxjauxxk).
-// Regenerate with the Supabase generate_typescript_types tool. Shared with the native app for typed models.
-
 export type Json =
   | string
   | number
@@ -13,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.4"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -208,8 +205,70 @@ export type Database = {
           },
         ]
       }
+      coupon_redemptions: {
+        Row: {
+          amount_paid: number
+          coupon_code: string
+          coupon_id: string | null
+          id: string
+          kind: string
+          listing_id: string | null
+          payment_id: string | null
+          payment_status: string
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid?: number
+          coupon_code: string
+          coupon_id?: string | null
+          id?: string
+          kind: string
+          listing_id?: string | null
+          payment_id?: string | null
+          payment_status: string
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          coupon_code?: string
+          coupon_id?: string | null
+          id?: string
+          kind?: string
+          listing_id?: string | null
+          payment_id?: string | null
+          payment_status?: string
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupons: {
         Row: {
+          assigned_to: string | null
           code: string
           created_at: string | null
           enabled: boolean
@@ -219,6 +278,7 @@ export type Database = {
           usage_count: number
         }
         Insert: {
+          assigned_to?: string | null
           code: string
           created_at?: string | null
           enabled?: boolean
@@ -228,6 +288,7 @@ export type Database = {
           usage_count?: number
         }
         Update: {
+          assigned_to?: string | null
           code?: string
           created_at?: string | null
           enabled?: boolean
