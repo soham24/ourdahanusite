@@ -33,7 +33,13 @@ CREATE TABLE IF NOT EXISTS coupon_redemptions (
   -- Lowercase snapshot of the code at redemption time. Survives deletion.
   coupon_code text NOT NULL,
 
-  user_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  -- Originally NOT NULL ... ON DELETE CASCADE. Since profiles.id -> auth.users(id)
+  -- is also CASCADE, that let deleting one auth user silently delete their
+  -- redemption rows through two hops, contradicting the append-only design
+  -- described above for coupon_id/listing_id. Fixed to nullable + SET NULL by
+  -- supabase/fix_coupon_redemptions_user_fk.sql — see that file for the
+  -- migration; the column below reflects the corrected, current shape.
+  user_id uuid REFERENCES profiles(id) ON DELETE SET NULL,
   -- SET NULL so deleting a listing does not erase that money came in.
   listing_id uuid REFERENCES listings(id) ON DELETE SET NULL,
 
