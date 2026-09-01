@@ -37,7 +37,10 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
   const [editingAssignedId, setEditingAssignedId] = useState<string | null>(null)
   const [assignedDraft, setAssignedDraft] = useState('')
   const [savingAssignedId, setSavingAssignedId] = useState<string | null>(null)
-  const [assignedError, setAssignedError] = useState('')
+  // Keyed by coupon id (not a single shared scalar) so a failed save for one
+  // row can never be misattributed to whichever row the admin has since
+  // switched to editing — see Fix round 2.
+  const [assignedErrors, setAssignedErrors] = useState<Record<string, string>>({})
 
   function handleSavePricing(e: React.FormEvent) {
     e.preventDefault()
@@ -94,30 +97,51 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
     setDeletingId(null)
   }
 
+  function clearAssignedRowError(id: string) {
+    setAssignedErrors(prev => {
+      if (!(id in prev)) return prev
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+  }
+
   function startEditAssigned(coupon: Coupon) {
-    setAssignedError('')
+    clearAssignedRowError(coupon.id)
     setEditingAssignedId(coupon.id)
     setAssignedDraft(coupon.assigned_to ?? '')
   }
 
-  function cancelEditAssigned() {
-    setEditingAssignedId(null)
+  function cancelEditAssigned(coupon: Coupon) {
+    // Functional updater: only close this row's editor if it's still the one
+    // open. If the admin already switched to another row, leave it alone.
+    setEditingAssignedId(prev => prev === coupon.id ? null : prev)
     setAssignedDraft('')
-    setAssignedError('')
+    clearAssignedRowError(coupon.id)
   }
 
   async function handleSaveAssigned(coupon: Coupon) {
-    setAssignedError('')
+    clearAssignedRowError(coupon.id)
     setSavingAssignedId(coupon.id)
-    const res = await setCouponAssignedTo(coupon.id, assignedDraft)
+    const draft = assignedDraft
+    const res = await setCouponAssignedTo(coupon.id, draft)
     if (res.error) {
-      setAssignedError(res.error)
+      const message = res.error
+      // Keyed by coupon.id, so this can never land on a different row's
+      // editor even if the admin has since switched away from this one.
+      setAssignedErrors(prev => ({ ...prev, [coupon.id]: message }))
     } else {
-      const value = assignedDraft.trim() || null
+      const value = draft.trim() || null
       setCoupons(prev => prev.map(c => c.id === coupon.id ? { ...c, assigned_to: value } : c))
-      setEditingAssignedId(null)
+      // Functional updater: only clear editingAssignedId if this row is still
+      // the one being edited. If the admin has since opened a different row's
+      // editor, editingAssignedId no longer equals coupon.id and this is a
+      // no-op — the other row's in-progress edit survives.
+      setEditingAssignedId(prev => prev === coupon.id ? null : prev)
     }
-    setSavingAssignedId(null)
+    // Same ownership check for the in-flight indicator: don't clear another
+    // row's spinner just because this row's request resolved.
+    setSavingAssignedId(prev => prev === coupon.id ? null : prev)
   }
 
   const discount = Math.max(0, parseInt(basePrice || '0') - parseInt(currentPrice || '0'))
@@ -313,7 +337,7 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
                           }
                         </button>
                         <button
-                          onClick={cancelEditAssigned}
+                          onClick={() => cancelEditAssigned(coupon)}
                           disabled={savingAssignedId === coupon.id}
                           title="Cancel"
                           className="text-gray-300 hover:text-red-500 transition-colors p-1"
@@ -330,8 +354,8 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
                         {coupon.assigned_to || 'Assign to…'}
                       </button>
                     )}
-                    {editingAssignedId === coupon.id && assignedError && (
-                      <p className="text-red-500 text-[10px] mt-0.5">{assignedError}</p>
+                    {editingAssignedId === coupon.id && assignedErrors[coupon.id] && (
+                      <p className="text-red-500 text-[10px] mt-0.5">{assignedErrors[coupon.id]}</p>
                     )}
                   </div>
                 </div>
