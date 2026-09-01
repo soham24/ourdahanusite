@@ -136,7 +136,7 @@ export async function getCouponReport(): Promise<{
     const rows = await fetchAllRedemptions()
 
     const { data } = await db.from('coupons').select('code, assigned_to')
-    const assignedBy: Record<string, string | null> = {}
+    const assignedBy = Object.create(null) as Record<string, string | null>
     for (const c of (data ?? []) as { code: string; assigned_to: string | null }[]) {
       assignedBy[c.code] = c.assigned_to
     }
@@ -145,7 +145,8 @@ export async function getCouponReport(): Promise<{
       byCoupon: summariseByCoupon(rows),
       byPerson: summariseByPerson(rows, assignedBy),
     }
-  } catch {
+  } catch (err) {
+    console.error('[coupon-report]', err)
     return { byCoupon: [], byPerson: [] }
   }
 }

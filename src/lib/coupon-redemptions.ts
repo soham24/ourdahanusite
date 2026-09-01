@@ -29,10 +29,10 @@ export type RecordCouponRedemptionInput = {
 export async function recordCouponRedemption(
   input: RecordCouponRedemptionInput,
 ): Promise<void> {
-  const code = input.couponCode.trim().toLowerCase()
-  if (!code) return
-
   try {
+    const code = input.couponCode.trim().toLowerCase()
+    if (!code) return
+
     const db = createAdminClient()
     if (!db) {
       console.error('[coupon-redemption] admin client unavailable; not recorded', { code })
