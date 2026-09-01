@@ -1,7 +1,18 @@
 -- ============================================================
 -- One-time backfill of historical coupon redemptions.
 --
--- Idempotent: the NOT EXISTS guard means re-running inserts nothing.
+-- IDEMPOTENCY CAVEAT: the NOT EXISTS guard keys on listing_id, so
+-- re-running this script is safe ONLY as long as no live-path row exists
+-- yet for these listings. The live write path (src/lib/coupon-redemptions.ts,
+-- added in Task 3) keys its own idempotency on payment_id instead, and
+-- legitimately inserts MULTIPLE rows per listing_id — each renewal of the
+-- same listing adds another row with a different payment_id and
+-- kind='renewal'. If this script is ever replayed after a live renewal
+-- row has landed for one of these listings (e.g. on a restored database,
+-- a Supabase branch, or by accident), the guard will find that unrelated
+-- renewal row and silently skip re-inserting the listing's original
+-- historical kind='new' row. This script is a ONE-TIME historical
+-- backfill, not a general-purpose re-runnable sync.
 --
 -- KNOWN INACCURACY: every backfilled row is recorded as kind='new'.
 -- renewListing overwrites listings.coupon_used on the same row, so past
