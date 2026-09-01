@@ -22,6 +22,7 @@ import {
   normalizeStringArray,
   normalizeUrlArray,
 } from '@/lib/listing-content'
+import { recordCouponRedemption } from '@/lib/coupon-redemptions'
 import {
   findFinalizedIntentByPaymentId,
   markIntentCaptured,
@@ -195,6 +196,19 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
       razorpayOrderId: orderId,
       entityId: insertedListing.id as string,
       entityTable: 'listings',
+    })
+  }
+
+  // Ledger row only on a verified success — abandoned checkouts write nothing.
+  if (charge.couponValid && charge.couponCode) {
+    await recordCouponRedemption({
+      couponCode: charge.couponCode,
+      userId: user.id,
+      listingId: (insertedListing?.id as string) ?? null,
+      kind: 'new',
+      paymentStatus: charge.paymentStatus,
+      amountPaid: charge.finalPrice,
+      paymentId: isFree ? null : paymentId,
     })
   }
 
@@ -768,6 +782,18 @@ export async function renewListing(
       razorpayOrderId: orderId,
       entityId: listingId,
       entityTable: 'listings',
+    })
+  }
+
+  if (charge.couponValid && charge.couponCode) {
+    await recordCouponRedemption({
+      couponCode: charge.couponCode,
+      userId: user.id,
+      listingId,
+      kind: 'renewal',
+      paymentStatus: charge.paymentStatus,
+      amountPaid: charge.finalPrice,
+      paymentId: isFree ? null : paymentId,
     })
   }
 

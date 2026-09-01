@@ -118,14 +118,3 @@ export async function deleteCoupon(id: string): Promise<{ error?: string }> {
     return { error: e instanceof Error ? e.message : 'Failed to delete coupon.' }
   }
 }
-
-export async function incrementCouponUsage(code: string) {
-  try {
-    const supabase = await createClient()
-    const { data } = await supabase.from('coupons').select('usage_count').eq('code', code).single()
-    if (data) {
-      await supabase.from('coupons').update({ usage_count: (data.usage_count || 0) + 1 }).eq('code', code)
-      revalidateCouponCache()
-    }
-  } catch { /* non-critical */ }
-}
