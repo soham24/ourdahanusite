@@ -13,6 +13,7 @@ import {
   MapPin,
   Megaphone,
   Package,
+  Receipt,
   ShieldAlert,
   ShoppingBag,
   Sparkles,
@@ -48,6 +49,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/newsletter', label: 'Newsletter', icon: Mail, roles: ADMIN_ONLY },
   { href: '/admin/roles', label: 'Roles', icon: Users, roles: ADMIN_ONLY },
   { href: '/admin/pricing', label: 'Pricing', icon: BadgePercent, roles: ADMIN_ONLY },
+  { href: '/admin/coupons', label: 'Coupon Report', icon: Receipt, roles: ADMIN_ONLY },
 ]
 
 function isActive(pathname: string, href: string) {

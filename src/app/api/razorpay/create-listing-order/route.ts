@@ -33,22 +33,6 @@ export async function POST(request: Request) {
   const appliedCoupon = charge.couponCode ?? ''
   const intentFlow = body.intent === 'renew' ? 'renew' : 'listing'
 
-  // Increment usage count (non-blocking)
-  if (couponValid && appliedCoupon) {
-    supabase.from('coupons')
-      .select('usage_count')
-      .eq('code', appliedCoupon)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          supabase.from('coupons')
-            .update({ usage_count: (data.usage_count || 0) + 1 })
-            .eq('code', appliedCoupon)
-            .then(() => {})
-        }
-      })
-  }
-
   if (amountRupees === 0) {
     return NextResponse.json({ free: true, couponValid: true, finalAmountRupees: 0 })
   }

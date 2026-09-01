@@ -12,6 +12,13 @@ import {
   type Coupon,
   type PricingConfig,
 } from '@/lib/data/pricing'
+import { fetchAllRedemptions } from '@/lib/data/coupon-redemptions'
+import {
+  summariseByCoupon,
+  summariseByPerson,
+  type CouponTotals,
+  type PersonTotals,
+} from '@/lib/coupon-reporting'
 import { getUserRole } from './admin'
 
 export type { Coupon, PricingConfig } from '@/lib/data/pricing'
@@ -78,12 +85,13 @@ export async function createCoupon(formData: FormData): Promise<{ error?: string
     const label = (formData.get('label') as string)?.trim()
     const final_price = parseInt(formData.get('final_price') as string)
     const enabled = formData.get('enabled') === 'true'
+    const assigned_to = ((formData.get('assigned_to') as string) ?? '').trim() || null
 
     if (!code || !label) return { error: 'Code and label are required.' }
     if (isNaN(final_price) || final_price < 0) return { error: 'Invalid price.' }
     if (!/^[a-z0-9]+$/.test(code)) return { error: 'Code must be lowercase letters and numbers only.' }
 
-    const { error } = await db.from('coupons').insert({ code, label, final_price, enabled })
+    const { error } = await db.from('coupons').insert({ code, label, final_price, enabled, assigned_to })
     if (error) {
       if (error.code === '23505') return { error: `Coupon code "${code}" already exists.` }
       return { error: error.message }
@@ -119,13 +127,42 @@ export async function deleteCoupon(id: string): Promise<{ error?: string }> {
   }
 }
 
-export async function incrementCouponUsage(code: string) {
+export async function getCouponReport(): Promise<{
+  byCoupon: CouponTotals[]
+  byPerson: PersonTotals[]
+}> {
   try {
-    const supabase = await createClient()
-    const { data } = await supabase.from('coupons').select('usage_count').eq('code', code).single()
-    if (data) {
-      await supabase.from('coupons').update({ usage_count: (data.usage_count || 0) + 1 }).eq('code', code)
-      revalidateCouponCache()
+    const db = await checkAdmin()
+    const rows = await fetchAllRedemptions()
+
+    const { data } = await db.from('coupons').select('code, assigned_to')
+    const assignedBy = Object.create(null) as Record<string, string | null>
+    for (const c of (data ?? []) as { code: string; assigned_to: string | null }[]) {
+      assignedBy[c.code] = c.assigned_to
     }
-  } catch { /* non-critical */ }
+
+    return {
+      byCoupon: summariseByCoupon(rows),
+      byPerson: summariseByPerson(rows, assignedBy),
+    }
+  } catch (err) {
+    console.error('[coupon-report]', err)
+    return { byCoupon: [], byPerson: [] }
+  }
+}
+
+export async function setCouponAssignedTo(
+  id: string,
+  assignedTo: string,
+): Promise<{ error?: string }> {
+  try {
+    const db = await checkAdmin()
+    const value = assignedTo.trim() || null
+    const { error } = await db.from('coupons').update({ assigned_to: value }).eq('id', id)
+    if (error) return { error: error.message }
+    revalidateCouponCache()
+    return {}
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : 'Failed to update coupon.' }
+  }
 }

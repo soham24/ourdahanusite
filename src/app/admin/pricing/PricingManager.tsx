@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { updatePricing, createCoupon, toggleCoupon, deleteCoupon } from '@/app/actions/pricing'
+import Link from 'next/link'
+import { updatePricing, createCoupon, toggleCoupon, deleteCoupon, setCouponAssignedTo } from '@/app/actions/pricing'
 import type { Coupon, PricingConfig } from '@/app/actions/pricing'
-import { Save, Plus, Trash2, Loader2, CheckCircle, ToggleLeft, ToggleRight, Tag, IndianRupee, X } from 'lucide-react'
+import { Save, Plus, Trash2, Loader2, CheckCircle, ToggleLeft, ToggleRight, Tag, IndianRupee, X, Pencil } from 'lucide-react'
 
 interface Props {
   pricing: PricingConfig
@@ -25,12 +26,22 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
   const [showNew, setShowNew] = useState(false)
   const [newCode, setNewCode] = useState('')
   const [newLabel, setNewLabel] = useState('')
+  const [newAssignedTo, setNewAssignedTo] = useState('')
   const [newPrice, setNewPrice] = useState('')
   const [newEnabled, setNewEnabled] = useState(true)
   const [newError, setNewError] = useState('')
   const [creatingCoupon, startCreate] = useTransition()
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  // Inline "assigned to" editor
+  const [editingAssignedId, setEditingAssignedId] = useState<string | null>(null)
+  const [assignedDraft, setAssignedDraft] = useState('')
+  const [savingAssignedId, setSavingAssignedId] = useState<string | null>(null)
+  // Keyed by coupon id (not a single shared scalar) so a failed save for one
+  // row can never be misattributed to whichever row the admin has since
+  // switched to editing — see Fix round 2.
+  const [assignedErrors, setAssignedErrors] = useState<Record<string, string>>({})
 
   function handleSavePricing(e: React.FormEvent) {
     e.preventDefault()
@@ -54,12 +65,13 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
     fd.set('label', newLabel)
     fd.set('final_price', newPrice)
     fd.set('enabled', newEnabled ? 'true' : 'false')
+    fd.set('assigned_to', newAssignedTo)
     startCreate(async () => {
       const res = await createCoupon(fd)
       if (res.error) {
         setNewError(res.error)
       } else {
-        setNewCode(''); setNewLabel(''); setNewPrice(''); setNewEnabled(true)
+        setNewCode(''); setNewLabel(''); setNewPrice(''); setNewEnabled(true); setNewAssignedTo('')
         setShowNew(false)
         // Optimistic update — reload will bring real data
         window.location.reload()
@@ -84,6 +96,53 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
       setCoupons(prev => prev.filter(c => c.id !== coupon.id))
     }
     setDeletingId(null)
+  }
+
+  function clearAssignedRowError(id: string) {
+    setAssignedErrors(prev => {
+      if (!(id in prev)) return prev
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+  }
+
+  function startEditAssigned(coupon: Coupon) {
+    clearAssignedRowError(coupon.id)
+    setEditingAssignedId(coupon.id)
+    setAssignedDraft(coupon.assigned_to ?? '')
+  }
+
+  function cancelEditAssigned(coupon: Coupon) {
+    // Functional updater: only close this row's editor if it's still the one
+    // open. If the admin already switched to another row, leave it alone.
+    setEditingAssignedId(prev => prev === coupon.id ? null : prev)
+    setAssignedDraft('')
+    clearAssignedRowError(coupon.id)
+  }
+
+  async function handleSaveAssigned(coupon: Coupon) {
+    clearAssignedRowError(coupon.id)
+    setSavingAssignedId(coupon.id)
+    const draft = assignedDraft
+    const res = await setCouponAssignedTo(coupon.id, draft)
+    if (res.error) {
+      const message = res.error
+      // Keyed by coupon.id, so this can never land on a different row's
+      // editor even if the admin has since switched away from this one.
+      setAssignedErrors(prev => ({ ...prev, [coupon.id]: message }))
+    } else {
+      const value = draft.trim() || null
+      setCoupons(prev => prev.map(c => c.id === coupon.id ? { ...c, assigned_to: value } : c))
+      // Functional updater: only clear editingAssignedId if this row is still
+      // the one being edited. If the admin has since opened a different row's
+      // editor, editingAssignedId no longer equals coupon.id and this is a
+      // no-op — the other row's in-progress edit survives.
+      setEditingAssignedId(prev => prev === coupon.id ? null : prev)
+    }
+    // Same ownership check for the in-flight indicator: don't clear another
+    // row's spinner just because this row's request resolved.
+    setSavingAssignedId(prev => prev === coupon.id ? null : prev)
   }
 
   const discount = Math.max(0, parseInt(basePrice || '0') - parseInt(currentPrice || '0'))
@@ -199,6 +258,12 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-purple-400 text-sm" />
               </div>
               <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Assigned to</label>
+                <input value={newAssignedTo} onChange={e => setNewAssignedTo(e.target.value)}
+                  placeholder="e.g. Ajay Bari"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-purple-400 text-sm" />
+              </div>
+              <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Final Price (₹) <span className="text-red-500">*</span></label>
                 <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-purple-400 bg-white">
                   <span className="px-2.5 py-2.5 bg-gray-50 text-gray-400 text-xs border-r border-gray-200">₹</span>
@@ -247,9 +312,52 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
                       }`}>
                         {coupon.final_price === 0 ? 'FREE' : `₹${coupon.final_price}`}
                       </span>
-                      <span className="text-xs text-gray-400">used {coupon.usage_count}×</span>
+                      <Link href={`/admin/coupons/${coupon.code}`} className="text-xs text-[#C0582E] hover:underline">
+                        view usage
+                      </Link>
                     </div>
                     <p className="text-xs text-gray-500 mt-0.5 truncate">{coupon.label}</p>
+                    {editingAssignedId === coupon.id ? (
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <input
+                          value={assignedDraft}
+                          onChange={e => setAssignedDraft(e.target.value)}
+                          placeholder="Assigned to"
+                          autoFocus
+                          className="px-2 py-1 border border-gray-200 rounded-lg focus:outline-none focus:border-purple-400 text-xs w-40"
+                        />
+                        <button
+                          onClick={() => handleSaveAssigned(coupon)}
+                          disabled={savingAssignedId === coupon.id}
+                          title="Save"
+                          className="text-gray-400 hover:text-green-600 transition-colors p-1"
+                        >
+                          {savingAssignedId === coupon.id
+                            ? <Loader2 size={13} className="animate-spin" />
+                            : <Save size={13} />
+                          }
+                        </button>
+                        <button
+                          onClick={() => cancelEditAssigned(coupon)}
+                          disabled={savingAssignedId === coupon.id}
+                          title="Cancel"
+                          className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => startEditAssigned(coupon)}
+                        className="flex items-center gap-1 mt-0.5 text-xs text-gray-500 hover:text-purple-600 transition-colors"
+                      >
+                        <Pencil size={11} />
+                        {coupon.assigned_to || 'Assign to…'}
+                      </button>
+                    )}
+                    {editingAssignedId === coupon.id && assignedErrors[coupon.id] && (
+                      <p className="text-red-500 text-[10px] mt-0.5">{assignedErrors[coupon.id]}</p>
+                    )}
                   </div>
                 </div>
 
