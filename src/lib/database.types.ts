@@ -1,3 +1,6 @@
+// AUTO-GENERATED from Supabase (project slmbqngmxketyxjauxxk).
+// Regenerate with the Supabase generate_typescript_types tool. Shared with the native app for typed models.
+
 export type Json =
   | string
   | number
