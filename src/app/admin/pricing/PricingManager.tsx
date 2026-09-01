@@ -25,6 +25,7 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
   const [showNew, setShowNew] = useState(false)
   const [newCode, setNewCode] = useState('')
   const [newLabel, setNewLabel] = useState('')
+  const [newAssignedTo, setNewAssignedTo] = useState('')
   const [newPrice, setNewPrice] = useState('')
   const [newEnabled, setNewEnabled] = useState(true)
   const [newError, setNewError] = useState('')
@@ -54,12 +55,13 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
     fd.set('label', newLabel)
     fd.set('final_price', newPrice)
     fd.set('enabled', newEnabled ? 'true' : 'false')
+    fd.set('assigned_to', newAssignedTo)
     startCreate(async () => {
       const res = await createCoupon(fd)
       if (res.error) {
         setNewError(res.error)
       } else {
-        setNewCode(''); setNewLabel(''); setNewPrice(''); setNewEnabled(true)
+        setNewCode(''); setNewLabel(''); setNewPrice(''); setNewEnabled(true); setNewAssignedTo('')
         setShowNew(false)
         // Optimistic update — reload will bring real data
         window.location.reload()
@@ -199,6 +201,12 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-purple-400 text-sm" />
               </div>
               <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Assigned to</label>
+                <input value={newAssignedTo} onChange={e => setNewAssignedTo(e.target.value)}
+                  placeholder="e.g. Ajay Bari"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-purple-400 text-sm" />
+              </div>
+              <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Final Price (₹) <span className="text-red-500">*</span></label>
                 <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-purple-400 bg-white">
                   <span className="px-2.5 py-2.5 bg-gray-50 text-gray-400 text-xs border-r border-gray-200">₹</span>
@@ -247,9 +255,14 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
                       }`}>
                         {coupon.final_price === 0 ? 'FREE' : `₹${coupon.final_price}`}
                       </span>
-                      <span className="text-xs text-gray-400">used {coupon.usage_count}×</span>
+                      <a href={`/admin/coupons/${coupon.code}`} className="text-xs text-[#C0582E] hover:underline">
+                        view usage
+                      </a>
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5 truncate">{coupon.label}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 truncate">
+                      {coupon.label}
+                      {coupon.assigned_to ? ` · ${coupon.assigned_to}` : ''}
+                    </p>
                   </div>
                 </div>
 
