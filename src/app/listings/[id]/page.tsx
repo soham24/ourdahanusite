@@ -205,6 +205,7 @@ async function ListingDetailContent({
   const reviews: Record<string, any>[] = (publicData?.reviews as Record<string, any>[] | undefined) ?? []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const questions: Record<string, any>[] = (publicData?.questions as Record<string, any>[] | undefined) ?? []
+  const hasMoreReviews = publicData?.hasMoreReviews ?? false
   const recommendCount = publicData?.recommendCount ?? 0
   const favouriteCount = publicData?.favouriteCount ?? 0
   const similarListings = publicData?.similarListings ?? []
@@ -238,7 +239,10 @@ async function ListingDetailContent({
 
   const listingId   = listing.id as string
   const rating      = (listing.rating as number) || 0
-  const reviewCount = (listing.review_count as number) || reviews.length
+  // Exact count from the reviews table. listings.review_count is a
+  // denormalised counter that has already drifted in production, and it feeds
+  // both the hero and the aggregateRating JSON-LD.
+  const reviewCount = publicData?.reviewCount ?? reviews.length
   const subdomain   = listing.subdomain as string | null
 
   if (shouldRedirectListingToSubdomain(currentHost, subdomain)) {
@@ -388,6 +392,8 @@ async function ListingDetailContent({
             <ListingReviewsSection 
               listing={listing}
               reviews={reviews}
+              reviewCount={reviewCount}
+              hasMoreReviews={hasMoreReviews}
               rating={rating}
               platformLoginUrl={platformLoginUrl}
               listingId={listingId}
