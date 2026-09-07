@@ -134,6 +134,14 @@ export async function getHomeStats(): Promise<HomeStats> {
 
     // Thumbnails for the bento tiles. buildCategoryGroups re-sorts per group,
     // but ordering here too keeps the row cap meaningful rather than arbitrary.
+    //
+    // The `.limit(200)` below is a safety bound, not a real ceiling: the
+    // directory has 64 approved listings today, so every listing is fetched.
+    // If approved listings approach 200, a group whose listings are all
+    // low-rated could fall outside this window and silently lose its
+    // thumbnails. At that point, switch to a per-group select (e.g. top N
+    // per category via a Postgres window function or separate queries)
+    // instead of raising this number further.
     const { data: thumbData } = await supabase
       .from('listings')
       .select('id, name, category, image_thumb_url, image_url, rating, review_count')
