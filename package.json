@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "npm run test:existing && npm run test:game",
-    "test:existing": "tsx --test src/app/actions/find-notifications.test.ts src/lib/find/safe-submission.test.ts src/lib/supabase/auth-regression.test.ts src/lib/safe-redirect.test.ts src/lib/coupon-reporting.test.ts",
+    "test:existing": "tsx --test src/app/actions/find-notifications.test.ts src/lib/find/safe-submission.test.ts src/lib/supabase/auth-regression.test.ts src/lib/safe-redirect.test.ts src/lib/coupon-reporting.test.ts src/lib/category-groups.test.ts",
     "test:game": "node scripts/run-game-tests.mjs"
   },
   "dependencies": {
