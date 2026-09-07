@@ -4,6 +4,11 @@ import { cacheLife, cacheTag } from 'next/cache'
 
 import { CACHE_TAGS } from '@/lib/cache-tags'
 import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
+import {
+  buildCategoryGroups,
+  type CategoryGroupSummary,
+  type GroupThumbSource,
+} from '@/lib/category-groups'
 import { logCacheRegeneration } from '@/lib/isr-debug'
 import { sortCategoriesForDiscovery } from '@/lib/listing-category'
 import { createPublicClient } from '@/lib/supabase/public'
@@ -53,6 +58,7 @@ export interface HomeStats {
   featuredListing: FeaturedListing | null
   categoryCounts: Record<string, number>
   topCategoryLabels: string[]
+  categoryGroups: CategoryGroupSummary[]
 }
 
 const FALLBACK_TOP_CATEGORIES = [
@@ -99,6 +105,7 @@ export async function getHomeStats(): Promise<HomeStats> {
     featuredListing: null,
     categoryCounts: {},
     topCategoryLabels: FALLBACK_TOP_CATEGORIES,
+    categoryGroups: [],
   }
 
   try {
@@ -125,11 +132,29 @@ export async function getHomeStats(): Promise<HomeStats> {
           .map(([category]) => category)
       : FALLBACK_TOP_CATEGORIES
 
+    // Thumbnails for the bento tiles. buildCategoryGroups re-sorts per group,
+    // but ordering here too keeps the row cap meaningful rather than arbitrary.
+    const { data: thumbData } = await supabase
+      .from('listings')
+      .select('id, name, category, image_thumb_url, image_url, rating, review_count')
+      .eq('approved', true)
+      .not('category', 'is', null)
+      .order('rating', { ascending: false, nullsFirst: false })
+      .order('review_count', { ascending: false })
+      .order('id', { ascending: true })
+      .limit(200)
+
+    const categoryGroups = buildCategoryGroups(
+      categoryCounts,
+      (thumbData ?? []) as unknown as GroupThumbSource[],
+    )
+
     return {
       totalListings: stats.total_listings ?? 0,
       featuredListing: stats.featured_listing ?? null,
       categoryCounts,
       topCategoryLabels,
+      categoryGroups,
     }
   } catch {
     return empty
