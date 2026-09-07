@@ -117,21 +117,23 @@ export default function CategoryGrid({ groups }: CategoryGridProps) {
                   </span>
                 </button>
 
-                {isOpen && (
-                  <div id={`category-group-${group.slug}`} className="mt-2 flex flex-wrap gap-2 rounded-2xl border border-[var(--color-border)] bg-white/70 p-3">
-                    {group.members.map((member) => (
-                      <SafeAppLink
-                        key={member.href}
-                        href={member.href}
-                        className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 text-[11px] font-semibold text-[var(--color-bark)] transition-colors hover:border-[rgba(192,88,46,0.45)] hover:text-[var(--color-brand-strong)]"
-                      >
-                        {member.label}
-                        <span className="text-[var(--color-text-muted)]">{member.count}</span>
-                        <ArrowUpRight size={11} />
-                      </SafeAppLink>
-                    ))}
-                  </div>
-                )}
+                <div
+                  id={`category-group-${group.slug}`}
+                  hidden={!isOpen}
+                  className="mt-2 flex flex-wrap gap-2 rounded-2xl border border-[var(--color-border)] bg-white/70 p-3"
+                >
+                  {group.members.map((member) => (
+                    <SafeAppLink
+                      key={member.href}
+                      href={member.href}
+                      className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 text-[11px] font-semibold text-[var(--color-bark)] transition-colors hover:border-[rgba(192,88,46,0.45)] hover:text-[var(--color-brand-strong)]"
+                    >
+                      {member.label}
+                      <span className="text-[var(--color-text-muted)]">{member.count}</span>
+                      <ArrowUpRight size={11} />
+                    </SafeAppLink>
+                  ))}
+                </div>
               </div>
             )
           })}
