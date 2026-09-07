@@ -77,7 +77,7 @@ export function buildCategoryGroups(
     const memberSet = new Set<string>(memberCategories)
     const thumbs = photoListings
       .filter((l) => memberSet.has(l.category))
-      .map((l) => ({ listing: l, imageUrl: l.image_thumb_url ?? l.image_url }))
+      .map((l) => ({ listing: l, imageUrl: l.image_thumb_url || l.image_url }))
       .filter((entry): entry is { listing: GroupThumbSource; imageUrl: string } =>
         typeof entry.imageUrl === 'string' && entry.imageUrl.length > 0,
       )
