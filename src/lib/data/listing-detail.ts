@@ -7,6 +7,10 @@ import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
 import { logCacheRegeneration } from '@/lib/isr-debug'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createPublicClient } from '@/lib/supabase/public'
+import {
+  fetchListingReviewCount,
+  fetchListingReviewsPage,
+} from '@/lib/data/reviews'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -39,6 +43,9 @@ export interface ListingProductPublic {
 export interface ListingDetailData {
   listing: ListingRecord
   reviews: ReviewRecord[]
+  /** Exact total, not listings.review_count (which drifts). */
+  reviewCount: number
+  hasMoreReviews: boolean
   questions: QuestionRecord[]
   recommendCount: number
   favouriteCount: number
@@ -80,7 +87,8 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
     const paymentsEnabled = listing.payments_enabled === true
 
     const [
-      reviewResult,
+      reviewPage,
+      reviewTotal,
       questionResult,
       recCountResult,
       favCountResult,
@@ -88,13 +96,8 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
       productsResult,
       paymentConfigResult,
     ] = await Promise.all([
-      supabase
-        .from('reviews')
-        .select('*')
-        .eq('listing_id', listingId)
-        .order('created_at', { ascending: false })
-        .order('id', { ascending: true })
-        .limit(20),
+      fetchListingReviewsPage(listingId, 0),
+      fetchListingReviewCount(listingId),
       supabase
         .from('listing_questions')
         .select('*')
@@ -150,30 +153,10 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
         : Promise.resolve({ data: null as { verified_at: string | null } | null }),
     ])
 
-    const rawReviews = (reviewResult.data ?? []) as ReviewRecord[]
-    let reviews = rawReviews
-
-    if (rawReviews.length > 0) {
-      const userIds = [...new Set(rawReviews.map((review) => review.user_id).filter(Boolean))]
-      if (userIds.length > 0) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('id, full_name')
-          .in('id', userIds as string[])
-
-        const profileMap: Record<string, string> = {}
-        for (const profile of (profileData ?? []) as Array<{ id: string; full_name: string | null }>) {
-          if (profile.full_name) {
-            profileMap[profile.id] = profile.full_name
-          }
-        }
-
-        reviews = rawReviews.map((review) => ({
-          ...review,
-          reviewer_name: typeof review.user_id === 'string' ? (profileMap[review.user_id] ?? null) : null,
-        }))
-      }
-    }
+    // Reviews arrive already paged and name-enriched from the shared helper,
+    // which the "load more" server action also uses — so page 1 and page N
+    // cannot drift in ordering or in how reviewer names are resolved.
+    const reviews = reviewPage.reviews
 
     const products = (productsResult.data ?? []) as ListingProductPublic[]
     const paymentConfig = (paymentConfigResult.data ?? null) as { verified_at: string | null } | null
@@ -182,6 +165,8 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
     return {
       listing,
       reviews,
+      reviewCount: reviewTotal,
+      hasMoreReviews: reviewPage.hasMore,
       questions: (questionResult.data ?? []) as QuestionRecord[],
       recommendCount: recCountResult.count ?? 0,
       favouriteCount: favCountResult.count ?? 0,
