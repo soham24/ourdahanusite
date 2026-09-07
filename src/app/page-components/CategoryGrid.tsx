@@ -25,7 +25,7 @@ function Thumbs({ group }: { group: CategoryGroupSummary }) {
   const remainder = group.count - group.thumbs.length
 
   return (
-    <div className="mt-3 flex items-center justify-center">
+    <div className="mt-3 flex items-center justify-center" aria-hidden>
       <div className="flex -space-x-2">
         {group.thumbs.map((thumb) => (
           <span
@@ -75,6 +75,7 @@ export default function CategoryGrid({ groups }: CategoryGridProps) {
                   type="button"
                   onClick={() => setOpenSlug(isOpen ? null : group.slug)}
                   aria-expanded={isOpen}
+                  aria-controls={`category-group-${group.slug}`}
                   className="group relative w-full h-full bg-white border border-[var(--color-border)] rounded-2xl p-5 text-center transition-all duration-300 hover:border-[rgba(192,88,46,0.45)] hover:-translate-y-1 hover:shadow-[0_18px_44px_rgba(192,88,46,0.14)] overflow-hidden"
                 >
                   <span
@@ -117,7 +118,7 @@ export default function CategoryGrid({ groups }: CategoryGridProps) {
                 </button>
 
                 {isOpen && (
-                  <div className="mt-2 flex flex-wrap gap-2 rounded-2xl border border-[var(--color-border)] bg-white/70 p-3">
+                  <div id={`category-group-${group.slug}`} className="mt-2 flex flex-wrap gap-2 rounded-2xl border border-[var(--color-border)] bg-white/70 p-3">
                     {group.members.map((member) => (
                       <SafeAppLink
                         key={member.href}
