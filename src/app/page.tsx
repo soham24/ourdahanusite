@@ -102,10 +102,7 @@ async function StatsAndCategoriesAsync() {
         topCategoryLabelsLength={stats.topCategoryLabels.length}
       />
       {stats.featuredListing && <FeaturedSpotlight listing={stats.featuredListing} />}
-      <CategoryGrid
-        topCategoryLabels={stats.topCategoryLabels}
-        categoryCounts={stats.categoryCounts}
-      />
+      <CategoryGrid groups={stats.categoryGroups} />
     </>
   )
 }
