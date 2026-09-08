@@ -30,6 +30,15 @@ export interface DirectoryListing {
   created_at?: string | null
 }
 
+// Upper bound on rows the directory renders in one pass. This is a safety cap
+// against an unbounded query, not a page size — it must stay comfortably above
+// the number of approved listings or businesses silently vanish from /listings
+// with no error and no empty state. At 48 it was already below the live count
+// and was hiding 16 paid listings. Revisit with real pagination (and
+// server-side search, which today filters only over the rows sent here) when
+// the directory approaches this number.
+const DIRECTORY_LISTING_CAP = 200
+
 export const PLAN_FEATURES = [
   'Your own profile page on OurDahanu',
   'Your unique subdomain (yourname.ourdahanu.in)',
@@ -115,7 +124,7 @@ export async function getListingsDirectoryData(activeCategory: string | null = n
       .order('plan', { ascending: false })
       .order('created_at', { ascending: false })
       .order('id', { ascending: true })
-      .limit(48)
+      .limit(DIRECTORY_LISTING_CAP)
 
     if (activeCategory) {
       query = query.eq('category', activeCategory) as typeof query
