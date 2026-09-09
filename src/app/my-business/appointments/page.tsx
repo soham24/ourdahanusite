@@ -327,19 +327,9 @@ export default function MyBusinessAppointmentsPage() {
         ))}
       </div>
 
-      {tab === 'schedule' && appointments[0]?.listing_id && (
-        <ScheduleTab
-          listingId={appointments[0].listing_id}
-          listingName={appointments[0].listing?.name ?? 'Your business'}
-        />
-      )}
+      {tab === 'schedule' && <ScheduleTab />}
 
-      {tab === 'schedule' && !appointments[0]?.listing_id && (
-        <p className="rounded-2xl border border-dashed border-[#e5d3c2] p-6 text-center text-xs text-[#9b7c69]">
-          Your schedule appears here once appointments are enabled for your business.
-        </p>
-      )}
-
+      {tab === 'bookings' && (
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-2xl border border-[#eee2d7] bg-white p-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff3e7] text-brand mb-3">
@@ -370,6 +360,7 @@ export default function MyBusinessAppointmentsPage() {
           <p className="text-[11px] text-[#9b7c69] mt-0.5 uppercase tracking-wide font-semibold">Value</p>
         </div>
       </section>
+      )}
 
       {errorMessage && (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -383,10 +374,12 @@ export default function MyBusinessAppointmentsPage() {
           Loading appointments...
         </div>
       ) : appointments.length === 0 ? (
+        tab === 'bookings' && (
         <div className="rounded-[28px] border border-[#eee2d7] bg-white px-6 py-14 text-center shadow-sm">
           <p className="text-lg font-semibold text-[#2d160b]">No appointments yet.</p>
           <p className="mt-2 text-sm text-[#7c6253]">Once customers start booking, they will show up here.</p>
         </div>
+        )
       ) : (
         <div className="space-y-8">
           {tab === 'bookings' && (

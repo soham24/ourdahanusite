@@ -75,6 +75,39 @@ async function requireListingAccess(listingId: string) {
   return { userId: user.id }
 }
 
+export type OwnerAppointmentListing = { id: string; name: string }
+
+/**
+ * The caller's own listings that currently take appointments. Derived from
+ * ownership rather than from existing bookings, so a business that has just
+ * been enabled — with no bookings yet — can still block out dates.
+ */
+export async function getMyAppointmentListings(): Promise<{
+  error?: string
+  listings: OwnerAppointmentListing[]
+}> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Please sign in first.', listings: [] }
+
+  const reader = createAdminClient() ?? supabase
+  const { data, error } = await reader
+    .from('listings')
+    .select('id, name')
+    .eq('owner_id', user.id)
+    .eq('appointments_enabled', true)
+    .order('name', { ascending: true })
+
+  if (error) return { error: error.message, listings: [] }
+
+  return {
+    listings: ((data ?? []) as Array<{ id: string; name: string }>).map((row) => ({
+      id: row.id,
+      name: row.name,
+    })),
+  }
+}
+
 export async function getUpcomingOverrides(
   listingId: string,
 ): Promise<{ error?: string; overrides: AppointmentOverrideRecord[] }> {
