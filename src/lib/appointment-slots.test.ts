@@ -1,0 +1,133 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+
+import { generateAvailableSlots, resolveWindowsForDate } from './appointment-slots'
+import { DEFAULT_APPOINTMENT_SETTINGS, type AppointmentSettings } from './listing-content'
+
+// 2026-09-14 is a Monday. Every test uses a date far in the future so the
+// "today" branch (minimum notice) never fires unless a test opts into it.
+const MONDAY = '2026-09-14'
+const TUESDAY = '2026-09-15'
+
+function settings(over: Partial<AppointmentSettings> = {}): AppointmentSettings {
+  return {
+    ...DEFAULT_APPOINTMENT_SETTINGS,
+    availability: {
+      ...DEFAULT_APPOINTMENT_SETTINGS.availability,
+      mon: [{ start: '09:00', end: '11:00' }],
+    },
+    ...over,
+  }
+}
+
+test('returns nothing when settings are null', () => {
+  assert.deepEqual(generateAvailableSlots(null, MONDAY, {}), [])
+})
+
+test('returns nothing on a day with no windows', () => {
+  assert.deepEqual(generateAvailableSlots(settings(), TUESDAY, {}), [])
+})
+
+test('generates slots across one window', () => {
+  const slots = generateAvailableSlots(settings({ slot_duration: 60 }), MONDAY, {})
+  assert.deepEqual(slots.map((s) => s.start), ['09:00', '10:00'])
+  assert.deepEqual(slots.map((s) => s.end), ['10:00', '11:00'])
+})
+
+test('generates slots across two windows in order', () => {
+  const config = settings({
+    slot_duration: 60,
+    availability: {
+      ...DEFAULT_APPOINTMENT_SETTINGS.availability,
+      mon: [{ start: '09:00', end: '11:00' }, { start: '16:00', end: '18:00' }],
+    },
+  })
+  const slots = generateAvailableSlots(config, MONDAY, {})
+  assert.deepEqual(slots.map((s) => s.start), ['09:00', '10:00', '16:00', '17:00'])
+})
+
+test('never emits a slot that would run past its window end', () => {
+  const config = settings({
+    slot_duration: 45,
+    availability: {
+      ...DEFAULT_APPOINTMENT_SETTINGS.availability,
+      mon: [{ start: '09:00', end: '10:00' }],
+    },
+  })
+  assert.deepEqual(generateAvailableSlots(config, MONDAY, {}).map((s) => s.start), ['09:00'])
+})
+
+test('adds buffer between slots but not to slot length', () => {
+  const config = settings({ slot_duration: 30, buffer_minutes: 15 })
+  const slots = generateAvailableSlots(config, MONDAY, {})
+  assert.deepEqual(slots.map((s) => s.start), ['09:00', '09:45', '10:30'])
+  assert.equal(slots[0].end, '09:30')
+})
+
+test('marks a full slot unavailable but still returns it', () => {
+  const config = settings({ slot_duration: 60, capacity: 1 })
+  const slots = generateAvailableSlots(config, MONDAY, { '09:00': 1 })
+  assert.equal(slots[0].available, false)
+  assert.equal(slots[0].reason, 'full')
+  assert.equal(slots[0].remaining, 0)
+  assert.equal(slots[1].available, true)
+  assert.equal(slots[1].reason, 'open')
+})
+
+test('reports remaining seats for multi-capacity slots', () => {
+  const config = settings({ slot_duration: 60, capacity: 3 })
+  const slots = generateAvailableSlots(config, MONDAY, { '09:00': 2 })
+  assert.equal(slots[0].remaining, 1)
+  assert.equal(slots[0].available, true)
+})
+
+test('never reports negative remaining', () => {
+  const config = settings({ slot_duration: 60, capacity: 1 })
+  const slots = generateAvailableSlots(config, MONDAY, { '09:00': 5 })
+  assert.equal(slots[0].remaining, 0)
+})
+
+test('a closed override yields no slots', () => {
+  const slots = generateAvailableSlots(settings({ slot_duration: 60 }), MONDAY, {}, {
+    override_date: MONDAY,
+    closed: true,
+    windows: null,
+  })
+  assert.deepEqual(slots, [])
+})
+
+test('an open override replaces the weekday windows entirely', () => {
+  const slots = generateAvailableSlots(settings({ slot_duration: 60 }), MONDAY, {}, {
+    override_date: MONDAY,
+    closed: false,
+    windows: [{ start: '14:00', end: '16:00' }],
+  })
+  assert.deepEqual(slots.map((s) => s.start), ['14:00', '15:00'])
+})
+
+test('an open override with no windows yields no slots', () => {
+  const slots = generateAvailableSlots(settings({ slot_duration: 60 }), MONDAY, {}, {
+    override_date: MONDAY,
+    closed: false,
+    windows: null,
+  })
+  assert.deepEqual(slots, [])
+})
+
+test('an override can open a normally closed day', () => {
+  const slots = generateAvailableSlots(settings({ slot_duration: 60 }), TUESDAY, {}, {
+    override_date: TUESDAY,
+    closed: false,
+    windows: [{ start: '10:00', end: '12:00' }],
+  })
+  assert.deepEqual(slots.map((s) => s.start), ['10:00', '11:00'])
+})
+
+test('resolveWindowsForDate prefers the override over the weekday', () => {
+  const config = settings()
+  assert.deepEqual(resolveWindowsForDate(config, MONDAY), [{ start: '09:00', end: '11:00' }])
+  assert.deepEqual(
+    resolveWindowsForDate(config, MONDAY, { override_date: MONDAY, closed: true, windows: null }),
+    [],
+  )
+})

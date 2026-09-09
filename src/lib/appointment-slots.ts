@@ -1,13 +1,28 @@
 import {
+  type AppointmentDayWindow,
   type AppointmentSettings,
   type AppointmentWeekday,
 } from '@/lib/listing-content'
+
+/**
+ * Why a slot cannot be booked. `full` and `too_soon` slots are still returned
+ * so the UI can show them greyed with a reason — a sparse grid and a busy
+ * clinic looked identical when unbookable slots were simply omitted.
+ */
+export type AppointmentSlotReason = 'open' | 'full' | 'too_soon'
 
 export type AppointmentSlot = {
   start: string
   end: string
   available: boolean
   remaining: number
+  reason: AppointmentSlotReason
+}
+
+export type AppointmentDateOverride = {
+  override_date: string
+  closed: boolean
+  windows: AppointmentDayWindow[] | null
 }
 
 const INDIA_TIME_ZONE = 'Asia/Kolkata'
@@ -43,45 +58,78 @@ function getIndiaTodayInfo() {
   }
 }
 
+export function getWeekdayForDate(bookingDate: string): AppointmentWeekday {
+  const dayIndex = new Date(`${bookingDate}T12:00:00+05:30`).getUTCDay()
+  return WEEKDAY_MAP[dayIndex]
+}
+
+/**
+ * The windows that actually apply to one date. An override replaces the
+ * weekday's normal windows completely rather than merging with them — a
+ * business closing for a festival means closed, not "closed plus whatever
+ * Monday usually is".
+ */
+export function resolveWindowsForDate(
+  settings: AppointmentSettings,
+  bookingDate: string,
+  override?: AppointmentDateOverride | null,
+): AppointmentDayWindow[] {
+  if (override && override.override_date === bookingDate) {
+    if (override.closed) return []
+    return override.windows ?? []
+  }
+
+  return settings.availability[getWeekdayForDate(bookingDate)] ?? []
+}
+
 export function generateAvailableSlots(
   settings: AppointmentSettings | null,
   bookingDate: string,
   bookingCounts: Record<string, number>,
+  override?: AppointmentDateOverride | null,
 ): AppointmentSlot[] {
   if (!settings) return []
 
-  const dayIndex = new Date(`${bookingDate}T12:00:00+05:30`).getUTCDay()
-  const weekday = WEEKDAY_MAP[dayIndex]
-  const window = settings.availability[weekday]
-  if (!window) return []
+  const windows = resolveWindowsForDate(settings, bookingDate, override)
+  if (windows.length === 0) return []
 
-  const startMinutes = timeToMinutes(window.start)
-  const endMinutes = timeToMinutes(window.end)
   const stepMinutes = settings.slot_duration + settings.buffer_minutes
   const { today, nowMinutes } = getIndiaTodayInfo()
+  const isToday = bookingDate === today
+  const earliestBookable = nowMinutes + settings.min_notice_minutes
 
   const slots: AppointmentSlot[] = []
 
-  for (
-    let cursor = startMinutes;
-    cursor + settings.slot_duration <= endMinutes;
-    cursor += stepMinutes
-  ) {
-    if (bookingDate === today && cursor <= nowMinutes) {
-      continue
+  for (const window of windows) {
+    const startMinutes = timeToMinutes(window.start)
+    const endMinutes = timeToMinutes(window.end)
+
+    for (
+      let cursor = startMinutes;
+      cursor + settings.slot_duration <= endMinutes;
+      cursor += stepMinutes
+    ) {
+      // Slots already in the past are dropped entirely. Only slots between now
+      // and the notice threshold are surfaced as "too soon" — listing every
+      // past slot of the day would be noise, not information.
+      if (isToday && cursor <= nowMinutes) continue
+
+      const start = minutesToTime(cursor)
+      const count = bookingCounts[start] ?? 0
+      const remaining = Math.max(settings.capacity - count, 0)
+      const tooSoon = isToday && cursor < earliestBookable
+
+      const reason: AppointmentSlotReason =
+        remaining <= 0 ? 'full' : tooSoon ? 'too_soon' : 'open'
+
+      slots.push({
+        start,
+        end: minutesToTime(cursor + settings.slot_duration),
+        available: reason === 'open',
+        remaining,
+        reason,
+      })
     }
-
-    const start = minutesToTime(cursor)
-    const end = minutesToTime(cursor + settings.slot_duration)
-    const count = bookingCounts[start] ?? 0
-    const remaining = Math.max(settings.capacity - count, 0)
-
-    slots.push({
-      start,
-      end,
-      available: remaining > 0,
-      remaining,
-    })
   }
 
   return slots
