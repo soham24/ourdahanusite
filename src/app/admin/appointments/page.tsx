@@ -62,7 +62,7 @@ function summarizeAvailability(settings: AppointmentSettings | null) {
     }
   }
 
-  const openDays = Object.values(settings.availability).filter(Boolean).length
+  const openDays = Object.values(settings.availability).filter((windows) => windows.length > 0).length
   return {
     openDays,
     label: `${openDays} open day${openDays === 1 ? '' : 's'} • ${settings.slot_duration} min slots • capacity ${settings.capacity}`,
