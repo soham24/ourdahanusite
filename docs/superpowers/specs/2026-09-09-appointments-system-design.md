@@ -134,32 +134,39 @@ list, and because "who is closed tomorrow" becomes a query rather than a scan.
 windows. `closed = true` yields no slots. `closed = false` yields slots from
 `windows` only.
 
-### 3. Capacity race — `seat_index`
+### 3. Capacity is already race-safe — no change
 
-**Bug found during design.** Capacity is enforced in application code: read the
-count, compare to `capacity`, insert (`src/app/actions/appointments.ts:192`).
-There is no database constraint behind it. Two customers booking the last slot
-simultaneously both read `count = 0` and both insert. With money involved, one
-pays ₹5 for a slot that is already gone.
+An earlier draft of this spec claimed capacity was enforced by an unguarded
+read-then-write and proposed a `seat_index` column to fix it. **That was wrong**
+and is recorded here so nobody re-introduces the "fix".
 
-The existing unique index `idx_appointments_unique_active_user_slot` only stops
-**the same user** booking the same slot twice. It does nothing across users.
-
-**Fix:** add `seat_index integer NOT NULL DEFAULT 1` to `appointments`, with
+`bookAppointment` does check `selectedSlot.available` in application code, but
+that is only a fast pre-check for UX. The authoritative insert goes through the
+`create_appointment_booking` Postgres function, which opens with:
 
 ```sql
-CREATE UNIQUE INDEX idx_appointments_seat
-  ON appointments (listing_id, booking_date, slot_start, seat_index)
-  WHERE status <> 'cancelled';
+PERFORM pg_advisory_xact_lock(
+  hashtext(p_listing_id::text || '|' || p_booking_date::text || '|' || p_slot_start::text)
+);
 ```
 
-Booking claims the lowest free seat in `1..capacity`. If two requests race for
-seat 1, Postgres rejects one with `23505` and it retries seat 2, or fails
-cleanly with "slot full" when every seat is taken. The database becomes the
-authority instead of a read-then-write in application code.
+The lock is transaction-scoped, so two concurrent bookings for the same slot
+serialize: the second waits, then counts rows the first has already committed,
+and raises `Selected slot is already full` if capacity is reached. The function
+also re-reads `capacity` from `listings.appointment_settings` and re-checks
+`approved AND appointments_enabled`, so a client cannot smuggle stale settings
+past it.
 
-Existing rows backfill to `seat_index = 1`, which is correct — every current
-booking is on a capacity-1 listing.
+Confirmed as the **only** write path — no `insert` into `appointments` exists
+anywhere in `src/`, and the RPC is called from exactly one place
+(`src/app/actions/appointments.ts:295`).
+
+`hashtext` collisions between different slots are possible in principle; the
+consequence is two unrelated bookings briefly serializing, which is harmless.
+
+**The capacity path needs no work.** The only change this project makes near it
+is that the slot generator feeding the pre-check becomes override-aware, so the
+pre-check and the RPC continue to agree.
 
 ### 4. Booking flow
 
@@ -270,10 +277,6 @@ via `customer_reminder_sent_at` / `owner_reminder_sent_at`.
 
   The slot generator is worth testing hardest — nearly every visible bug in a
   booking system traces back to it, and it is pure input-to-output.
-
-- **The seat race** gets an explicit test: two concurrent bookings for a
-  capacity-1 slot, asserting exactly one succeeds and the other receives a clean
-  "slot full" rather than a 500.
 
 - **Not unit-testable:** the Razorpay leg. Verified by a real booking against a
   live flow, plus confirming no appointment row is written when a checkout is
