@@ -154,6 +154,10 @@ export async function saveAppointmentDateOverride(
 
   if (upsertError) return { error: upsertError.message }
 
+  // The override is saved from here on. Anything that fails after this point
+  // leaves the schedule genuinely changed, so the cache must be refreshed and
+  // the message must say what actually happened — telling the owner "failed"
+  // while the day is really closed is worse than telling them the truth.
   if (conflictIds.length > 0 && input.resolution === 'cancel_conflicts') {
     const { error: cancelError } = await adminClient
       .from('appointments')
@@ -164,7 +168,14 @@ export async function saveAppointmentDateOverride(
       })
       .in('id', conflictIds)
 
-    if (cancelError) return { error: cancelError.message }
+    if (cancelError) {
+      revalidateAppointmentsCache(input.listingId)
+      return {
+        error:
+          'The date was saved, but the existing bookings on it could not be cancelled. ' +
+          'Please cancel them from the Bookings tab and contact those customers.',
+      }
+    }
   }
 
   revalidateAppointmentsCache(input.listingId)
