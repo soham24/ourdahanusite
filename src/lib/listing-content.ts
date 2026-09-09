@@ -19,24 +19,29 @@ export type AppointmentSettings = {
   capacity: number
   buffer_minutes: number
   advance_days: number
-  availability: Record<AppointmentWeekday, AppointmentDayWindow | null>
+  min_notice_minutes: number
+  availability: Record<AppointmentWeekday, AppointmentDayWindow[]>
 }
 
 const APPOINTMENT_WEEKDAYS: AppointmentWeekday[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+
+/** Morning / afternoon / evening is the realistic ceiling for a local clinic. */
+export const MAX_WINDOWS_PER_DAY = 3
 
 export const DEFAULT_APPOINTMENT_SETTINGS: AppointmentSettings = {
   slot_duration: 30,
   capacity: 1,
   buffer_minutes: 0,
   advance_days: 30,
+  min_notice_minutes: 0,
   availability: {
-    mon: null,
-    tue: null,
-    wed: null,
-    thu: null,
-    fri: null,
-    sat: null,
-    sun: null,
+    mon: [],
+    tue: [],
+    wed: [],
+    thu: [],
+    fri: [],
+    sat: [],
+    sun: [],
   },
 }
 
@@ -304,6 +309,48 @@ export function normalizeBeforeAfter(
   return { before, after }
 }
 
+/**
+ * One weekday's windows, from either shape, cleaned into a sorted, disjoint,
+ * capped array. Invalid entries are dropped rather than throwing — a bad row
+ * should render as "closed", never as a crash.
+ */
+export function normalizeDayWindows(value: unknown): AppointmentDayWindow[] {
+  if (!value) return []
+
+  const entries = Array.isArray(value) ? value : [value]
+  const parsed: AppointmentDayWindow[] = []
+
+  for (const entry of entries) {
+    if (!entry || typeof entry !== 'object') continue
+    const record = entry as Record<string, unknown>
+    const start = normalizeTimeString(record.start)
+    const end = normalizeTimeString(record.end)
+    if (!start || !end) continue
+    if (timeStringToMinutes(end) <= timeStringToMinutes(start)) continue
+    parsed.push({ start, end })
+  }
+
+  parsed.sort((a, b) => timeStringToMinutes(a.start) - timeStringToMinutes(b.start))
+
+  const disjoint: AppointmentDayWindow[] = []
+  for (const window of parsed) {
+    const previous = disjoint[disjoint.length - 1]
+    if (previous && timeStringToMinutes(window.start) < timeStringToMinutes(previous.end)) continue
+    disjoint.push(window)
+    if (disjoint.length === MAX_WINDOWS_PER_DAY) break
+  }
+
+  return disjoint
+}
+
+/**
+ * Accepts both the legacy single-window shape (`{start, end} | null`) and the
+ * current array shape. Legacy rows upgrade to a one-element array, so this
+ * needs no data migration and a stale row can never break rendering.
+ *
+ * Windows are sorted by start and any window overlapping its predecessor is
+ * dropped, so downstream slot generation can assume disjoint, ordered windows.
+ */
 export function normalizeAppointmentSettings(value: unknown): AppointmentSettings | null {
   if (!value || typeof value !== 'object') return null
 
@@ -313,25 +360,12 @@ export function normalizeAppointmentSettings(value: unknown): AppointmentSetting
       ? (source.availability as Record<string, unknown>)
       : {}
 
-  const availability = APPOINTMENT_WEEKDAYS.reduce<Record<AppointmentWeekday, AppointmentDayWindow | null>>(
+  const availability = APPOINTMENT_WEEKDAYS.reduce<Record<AppointmentWeekday, AppointmentDayWindow[]>>(
     (result, day) => {
-      const entry = rawAvailability[day]
-      if (!entry || typeof entry !== 'object') {
-        result[day] = null
-        return result
-      }
-
-      const start = normalizeTimeString((entry as Record<string, unknown>).start)
-      const end = normalizeTimeString((entry as Record<string, unknown>).end)
-      if (!start || !end || timeStringToMinutes(end) <= timeStringToMinutes(start)) {
-        result[day] = null
-        return result
-      }
-
-      result[day] = { start, end }
+      result[day] = normalizeDayWindows(rawAvailability[day])
       return result
     },
-    { ...DEFAULT_APPOINTMENT_SETTINGS.availability },
+    {} as Record<AppointmentWeekday, AppointmentDayWindow[]>,
   )
 
   return {
@@ -339,6 +373,12 @@ export function normalizeAppointmentSettings(value: unknown): AppointmentSetting
     capacity: clampInteger(source.capacity, 1, 20, DEFAULT_APPOINTMENT_SETTINGS.capacity),
     buffer_minutes: clampInteger(source.buffer_minutes, 0, 60, DEFAULT_APPOINTMENT_SETTINGS.buffer_minutes),
     advance_days: clampInteger(source.advance_days, 1, 90, DEFAULT_APPOINTMENT_SETTINGS.advance_days),
+    min_notice_minutes: clampInteger(
+      source.min_notice_minutes,
+      0,
+      1440,
+      DEFAULT_APPOINTMENT_SETTINGS.min_notice_minutes,
+    ),
     availability,
   }
 }
