@@ -32,6 +32,8 @@ import {
   updateRecoveryDraft,
   type CapturedPaymentRecovery,
 } from '@/lib/payment-retry'
+import BookingDetailsForm from '@/components/appointments/BookingDetailsForm'
+import SlotPicker from '@/components/appointments/SlotPicker'
 
 type Props = {
   listingId: string
@@ -42,6 +44,7 @@ type Props = {
   userName: string
   userPhone: string
   userEmail: string
+  signInHref?: string
 }
 
 type BookingStatus = 'idle' | 'loading-slots' | 'processing' | 'success' | 'error' | 'recovery'
@@ -110,23 +113,6 @@ function formatTimeLabel(value: string): string {
   })
 }
 
-function formatSlotLabel(slot: AppointmentSlot): string {
-  return `${formatTimeLabel(slot.start)} – ${formatTimeLabel(slot.end)}`
-}
-
-function getSlotPeriod(slot: AppointmentSlot): 'morning' | 'afternoon' | 'evening' {
-  const hour = Number.parseInt(slot.start.split(':')[0], 10)
-  if (hour < 12) return 'morning'
-  if (hour < 17) return 'afternoon'
-  return 'evening'
-}
-
-const PERIOD_META = {
-  morning: { label: 'Morning', emoji: '☀️' },
-  afternoon: { label: 'Afternoon', emoji: '🌤️' },
-  evening: { label: 'Evening', emoji: '🌙' },
-} as const
-
 function formatFee(value: number): string {
   return value > 0 ? `Rs ${value.toLocaleString('en-IN')}` : 'Free'
 }
@@ -137,7 +123,7 @@ const STEPS: { id: Step; label: string }[] = [
   { id: 'details', label: 'Details' },
 ]
 
-export default function AppointmentBooking({
+export default function BookingWidget({
   listingId,
   listingName,
   bookingFee,
@@ -146,6 +132,7 @@ export default function AppointmentBooking({
   userName,
   userPhone,
   userEmail,
+  signInHref = '/login',
 }: Props) {
   const pathname = usePathname()
   const today = useMemo(() => getIndiaToday(), [])
@@ -480,10 +467,18 @@ export default function AppointmentBooking({
         <div className="p-5">
           <div className="rounded-xl border border-green-100 bg-green-50 p-4">
             <p className="text-sm font-semibold text-green-900">{formatSelectedDate(confirmation.date)}</p>
-            <p className="mt-1 text-sm text-green-800">{formatSlotLabel(confirmation.slot)}</p>
+            <p className="mt-1 text-sm text-green-800">
+              {formatTimeLabel(confirmation.slot.start)} – {formatTimeLabel(confirmation.slot.end)}
+            </p>
             <p className="mt-2 text-sm text-green-700">
               {bookingFee > 0 ? `Payment: ${formatFee(bookingFee)}` : 'Free booking — no payment required.'}
             </p>
+            {bookingFee > 0 && (
+              <p className="mt-2 text-xs text-[var(--od-muted)]">
+                ₹{bookingFee} booking fee paid. Booking fees are not refunded — to change this
+                appointment, contact {listingName} directly.
+              </p>
+            )}
           </div>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <Link
@@ -571,6 +566,17 @@ export default function AppointmentBooking({
         {/* Step 1: Date */}
         {step === 'date' && (
           <div className="space-y-4">
+            {bookingFee > 0 ? (
+              <p className="rounded-xl border border-[var(--od-border)] bg-[var(--color-surface-2)] px-3 py-2 text-xs text-[var(--od-ink-2)]">
+                <strong className="font-bold">₹{bookingFee} booking fee</strong> — non-refundable, paid
+                now to hold your slot.
+              </p>
+            ) : (
+              <p className="rounded-xl border border-[var(--od-border)] bg-[var(--color-surface-2)] px-3 py-2 text-xs text-[var(--od-ink-2)]">
+                <strong className="font-bold">Free to book.</strong>
+              </p>
+            )}
+
             <div>
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-[#9b7c69]">Quick pick</p>
               <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
@@ -650,94 +656,15 @@ export default function AppointmentBooking({
               </button>
             </div>
 
-            {status === 'loading-slots' ? (
-              <div className="flex items-center justify-center gap-2 py-10 text-sm text-[#9b7c69]">
-                <Loader2 size={16} className="animate-spin" />
-                Loading slots…
-              </div>
-            ) : slots.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-[#e8ddd4] bg-[#fdfaf7] px-4 py-8 text-center text-sm text-[#9b7c69]">
-                {error || 'No slots available for this date.'}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {(['morning', 'afternoon', 'evening'] as const).map((period) => {
-                  const periodSlots = slots.filter((s) => getSlotPeriod(s) === period)
-                  if (periodSlots.length === 0) return null
-                  const meta = PERIOD_META[period]
-                  return (
-                    <div key={period}>
-                      <p className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-[#9b7c69]">
-                        <span>{meta.emoji}</span> {meta.label}
-                      </p>
-                      <div className="grid grid-cols-3 gap-2">
-                        {periodSlots.map((slot) => {
-                          const isSelected = selectedSlot?.start === slot.start
-                          return (
-                            <button
-                              key={slot.start}
-                              type="button"
-                              disabled={!slot.available}
-                              onClick={() => {
-                                setSelectedSlot(slot)
-                                setError('')
-                              }}
-                              className={`relative rounded-xl border py-2.5 text-center text-[12px] font-semibold transition-all ${
-                                !slot.available
-                                  ? 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300 line-through'
-                                  : isSelected
-                                  ? 'border-brand bg-brand text-white shadow-sm'
-                                  : 'border-[#e8ddd4] bg-white text-[#2d160b] hover:border-brand/50 hover:bg-[#fff5ec]'
-                              }`}
-                            >
-                              {formatTimeLabel(slot.start)}
-                              {slot.available &&
-                                slot.remaining <= Math.ceil(appointmentSettings.capacity / 2) &&
-                                appointmentSettings.capacity > 1 && (
-                                  <span className={`absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${
-                                    isSelected ? 'bg-white text-brand' : 'bg-orange-100 text-orange-600'
-                                  }`}>
-                                    {slot.remaining}
-                                  </span>
-                                )}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-
-            {selectedSlot && (
-              <div className="rounded-xl border border-brand/20 bg-[#fff5ec] px-3 py-2.5">
-                <p className="text-[12px] font-semibold text-brand">
-                  {formatSlotLabel(selectedSlot)}
-                </p>
-                <p className="text-[11px] text-[#9b7c69]">
-                  {selectedSlot.remaining} spot{selectedSlot.remaining === 1 ? '' : 's'} remaining
-                </p>
-              </div>
-            )}
-
-            {!isLoggedIn ? (
-              <Link
-                href={`/login?next=${encodeURIComponent(pathname || `/listings/${listingId}`)}`}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white"
-              >
-                Sign In to Continue <ArrowRight size={15} />
-              </Link>
-            ) : (
-              <button
-                type="button"
-                disabled={!selectedSlot}
-                onClick={() => setStep('details')}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white disabled:opacity-40"
-              >
-                Continue <ArrowRight size={15} />
-              </button>
-            )}
+            <SlotPicker
+              slots={slots}
+              selectedStart={selectedSlot?.start ?? null}
+              loading={status === 'loading-slots'}
+              onSelect={(slot) => {
+                setSelectedSlot(slot)
+                setStep('details')
+              }}
+            />
           </div>
         )}
 
@@ -748,7 +675,11 @@ export default function AppointmentBooking({
             <div className="flex items-center justify-between rounded-xl border border-[#eee2d7] bg-[#fdfaf7] px-3 py-2.5">
               <div>
                 <p className="text-[12px] font-bold text-[#2d160b]">{formatSelectedDate(selectedDate)}</p>
-                <p className="text-[11px] text-[#9b7c69]">{selectedSlot ? formatSlotLabel(selectedSlot) : '—'}</p>
+                <p className="text-[11px] text-[#9b7c69]">
+                  {selectedSlot
+                    ? `${formatTimeLabel(selectedSlot.start)} – ${formatTimeLabel(selectedSlot.end)}`
+                    : '—'}
+                </p>
               </div>
               <button
                 type="button"
@@ -759,92 +690,83 @@ export default function AppointmentBooking({
               </button>
             </div>
 
-            {/* Contact details */}
-            <div>
-              <div className="mb-3 flex items-center gap-1.5">
-                <User size={13} className="text-brand" />
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9b7c69]">Your details</p>
-              </div>
-              <div className="space-y-3">
+            {!isLoggedIn ? (
+              <Link
+                href={`${signInHref}?redirect=${encodeURIComponent(pathname)}`}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white"
+              >
+                Sign In to Continue <ArrowRight size={15} />
+              </Link>
+            ) : (
+              <>
+                {/* Contact details */}
                 <div>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(event) => {
-                      setName(event.target.value)
-                      if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: undefined }))
+                  <div className="mb-3 flex items-center gap-1.5">
+                    <User size={13} className="text-brand" />
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9b7c69]">Your details</p>
+                  </div>
+                  <BookingDetailsForm
+                    name={name}
+                    phone={phone}
+                    notes={notes}
+                    fieldErrors={fieldErrors}
+                    disabled={status === 'processing'}
+                    onChange={(patch) => {
+                      if (patch.name !== undefined) setName(patch.name)
+                      if (patch.phone !== undefined) setPhone(patch.phone)
+                      if (patch.notes !== undefined) setNotes(patch.notes)
                     }}
-                    placeholder="Full name *"
-                    className={`w-full rounded-xl border px-4 py-3 text-sm text-gray-800 focus:outline-none ${
-                      fieldErrors.name
-                        ? 'border-red-400 bg-red-50 focus:border-red-500'
-                        : 'border-[#e8ddd4] bg-white focus:border-brand'
-                    }`}
                   />
-                  {fieldErrors.name && <p className="mt-1 text-[11px] text-red-500">{fieldErrors.name}</p>}
                 </div>
-                <div>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(event) => {
-                      setPhone(event.target.value)
-                      if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }))
-                    }}
-                    placeholder="10-digit mobile number *"
-                    className={`w-full rounded-xl border px-4 py-3 text-sm text-gray-800 focus:outline-none ${
-                      fieldErrors.phone
-                        ? 'border-red-400 bg-red-50 focus:border-red-500'
-                        : 'border-[#e8ddd4] bg-white focus:border-brand'
-                    }`}
-                  />
-                  {fieldErrors.phone && <p className="mt-1 text-[11px] text-red-500">{fieldErrors.phone}</p>}
+
+                {/* Fee summary */}
+                <div className="flex items-center justify-between rounded-xl border border-[#eee2d7] bg-[#fdfaf7] px-4 py-3">
+                  <div className="flex items-center gap-2 text-[#9b7c69]">
+                    {bookingFee > 0 ? <CreditCard size={14} /> : <ShieldCheck size={14} />}
+                    <span className="text-[12px] font-semibold">
+                      {bookingFee > 0 ? 'Booking fee' : 'Free booking'}
+                    </span>
+                  </div>
+                  <span className="text-sm font-bold text-[#2d160b]">{formatFee(bookingFee)}</span>
                 </div>
-                <textarea
-                  value={notes}
-                  onChange={(event) => setNotes(event.target.value)}
-                  rows={3}
-                  placeholder="Notes for the business (optional)"
-                  className="w-full resize-none rounded-xl border border-[#e8ddd4] bg-white px-4 py-3 text-sm text-gray-800 focus:border-brand focus:outline-none"
-                />
-              </div>
-            </div>
 
-            {/* Fee summary */}
-            <div className="flex items-center justify-between rounded-xl border border-[#eee2d7] bg-[#fdfaf7] px-4 py-3">
-              <div className="flex items-center gap-2 text-[#9b7c69]">
-                {bookingFee > 0 ? <CreditCard size={14} /> : <ShieldCheck size={14} />}
-                <span className="text-[12px] font-semibold">
-                  {bookingFee > 0 ? 'Booking fee' : 'Free booking'}
-                </span>
-              </div>
-              <span className="text-sm font-bold text-[#2d160b]">{formatFee(bookingFee)}</span>
-            </div>
+                {error && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {error}
+                  </div>
+                )}
 
-            {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
-              </div>
+                {bookingFee > 0 ? (
+                  <p className="rounded-xl border border-[var(--od-border)] bg-[var(--color-surface-2)] px-3 py-2 text-xs text-[var(--od-ink-2)]">
+                    <strong className="font-bold">₹{bookingFee} booking fee</strong> — non-refundable, paid
+                    now to hold your slot.
+                  </p>
+                ) : (
+                  <p className="rounded-xl border border-[var(--od-border)] bg-[var(--color-surface-2)] px-3 py-2 text-xs text-[var(--od-ink-2)]">
+                    <strong className="font-bold">Free to book.</strong>
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => void handleConfirm()}
+                  disabled={status === 'processing' || status === 'loading-slots'}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#2d160b] px-4 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d1f10] disabled:opacity-50"
+                >
+                  {status === 'processing' ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin" />
+                      Processing…
+                    </>
+                  ) : (
+                    <>
+                      {bookingFee > 0 ? <CreditCard size={15} /> : <CheckCircle size={15} />}
+                      {bookingFee > 0 ? `Pay ${formatFee(bookingFee)} & Confirm` : 'Confirm Booking'}
+                    </>
+                  )}
+                </button>
+              </>
             )}
-
-            <button
-              type="button"
-              onClick={() => void handleConfirm()}
-              disabled={status === 'processing' || status === 'loading-slots'}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#2d160b] px-4 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d1f10] disabled:opacity-50"
-            >
-              {status === 'processing' ? (
-                <>
-                  <Loader2 size={15} className="animate-spin" />
-                  Processing…
-                </>
-              ) : (
-                <>
-                  {bookingFee > 0 ? <CreditCard size={15} /> : <CheckCircle size={15} />}
-                  {bookingFee > 0 ? `Pay ${formatFee(bookingFee)} & Confirm` : 'Confirm Booking'}
-                </>
-              )}
-            </button>
           </div>
         )}
       </div>
