@@ -12,7 +12,6 @@ import {
   CreditCard,
   Loader2,
   ShieldAlert,
-  ShieldCheck,
   User,
 } from 'lucide-react'
 
@@ -45,6 +44,14 @@ type Props = {
   userPhone: string
   userEmail: string
   signInHref?: string
+  /**
+   * Origin to resolve apex-only routes against (payment recovery, the
+   * customer's appointments list). Empty on the apex itself, where relative
+   * links are correct. The appointments subdomain passes the apex origin,
+   * because its proxy prefixes every path with /appointments and those
+   * routes do not exist there.
+   */
+  apexOrigin?: string
 }
 
 type BookingStatus = 'idle' | 'loading-slots' | 'processing' | 'success' | 'error' | 'recovery'
@@ -133,6 +140,7 @@ export default function BookingWidget({
   userPhone,
   userEmail,
   signInHref = '/login',
+  apexOrigin = '',
 }: Props) {
   const pathname = usePathname()
   const today = useMemo(() => getIndiaToday(), [])
@@ -440,7 +448,7 @@ export default function BookingWidget({
             {recovery.paymentId}
           </span>
           <Link
-            href={recoveryUrlFor(recovery.razorpayOrderId)}
+            href={`${apexOrigin}${recoveryUrlFor(recovery.razorpayOrderId)}`}
             className="block w-full rounded-xl bg-[var(--od-brand)] py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-[var(--od-brand-strong)]"
           >
             Finish my booking →
@@ -482,7 +490,7 @@ export default function BookingWidget({
           </div>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <Link
-              href="/dashboard/appointments"
+              href={`${apexOrigin}/dashboard/appointments`}
               className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white"
             >
               View My Appointments <ArrowRight size={14} />
@@ -663,6 +671,7 @@ export default function BookingWidget({
               onSelect={(slot) => {
                 setSelectedSlot(slot)
                 setStep('details')
+                setError('')
               }}
             />
           </div>
@@ -692,7 +701,9 @@ export default function BookingWidget({
 
             {!isLoggedIn ? (
               <Link
-                href={`${signInHref}?next=${encodeURIComponent(pathname)}`}
+                href={`${signInHref}?next=${encodeURIComponent(
+                  typeof window === 'undefined' ? pathname : window.location.href,
+                )}`}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white"
               >
                 Sign In to Continue <ArrowRight size={15} />
@@ -712,22 +723,17 @@ export default function BookingWidget({
                     fieldErrors={fieldErrors}
                     disabled={status === 'processing'}
                     onChange={(patch) => {
-                      if (patch.name !== undefined) setName(patch.name)
-                      if (patch.phone !== undefined) setPhone(patch.phone)
+                      if (patch.name !== undefined) {
+                        setName(patch.name)
+                        setFieldErrors((prev) => ({ ...prev, name: undefined }))
+                      }
+                      if (patch.phone !== undefined) {
+                        setPhone(patch.phone)
+                        setFieldErrors((prev) => ({ ...prev, phone: undefined }))
+                      }
                       if (patch.notes !== undefined) setNotes(patch.notes)
                     }}
                   />
-                </div>
-
-                {/* Fee summary */}
-                <div className="flex items-center justify-between rounded-xl border border-[#eee2d7] bg-[#fdfaf7] px-4 py-3">
-                  <div className="flex items-center gap-2 text-[#9b7c69]">
-                    {bookingFee > 0 ? <CreditCard size={14} /> : <ShieldCheck size={14} />}
-                    <span className="text-[12px] font-semibold">
-                      {bookingFee > 0 ? 'Booking fee' : 'Free booking'}
-                    </span>
-                  </div>
-                  <span className="text-sm font-bold text-[#2d160b]">{formatFee(bookingFee)}</span>
                 </div>
 
                 {error && (

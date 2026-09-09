@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 
 import BookingWidget from '@/components/appointments/BookingWidget'
 import { getBookableListingBySubdomain } from '@/lib/data/appointment-directory'
+import { buildAbsoluteUrl } from '@/lib/site'
 import { createClient } from '@/lib/supabase/server'
 
 type Props = { params: Promise<{ subdomain: string }> }
@@ -44,6 +45,11 @@ export default async function AppointmentBookingPage({ params }: Props) {
     viewerPhone = (profile?.phone as string | null) ?? ''
   }
 
+  // The proxy prefixes every path on this host with /appointments, so
+  // apex-only routes (payment recovery, the appointments list) must be
+  // absolute or they 404.
+  const apexOrigin = new URL(buildAbsoluteUrl('/')).origin
+
   return (
     <div className="mx-auto max-w-xl">
       <header className="mb-5">
@@ -69,6 +75,7 @@ export default async function AppointmentBookingPage({ params }: Props) {
         userPhone={viewerPhone}
         userEmail={user?.email ?? ''}
         signInHref="https://ourdahanu.in/login"
+        apexOrigin={apexOrigin}
       />
     </div>
   )
