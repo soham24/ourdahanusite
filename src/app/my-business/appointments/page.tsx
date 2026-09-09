@@ -18,6 +18,8 @@ import {
   type AppointmentRecord,
 } from '@/app/actions/appointments'
 
+import ScheduleTab from './ScheduleTab'
+
 function getIndiaToday(): string {
   const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Kolkata',
@@ -219,6 +221,7 @@ export default function MyBusinessAppointmentsPage() {
   const [appointments, setAppointments] = useState<AppointmentRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
+  const [tab, setTab] = useState<'bookings' | 'schedule'>('bookings')
   const today = useMemo(() => getIndiaToday(), [])
 
   useEffect(() => {
@@ -309,6 +312,34 @@ export default function MyBusinessAppointmentsPage() {
         </div>
       </section>
 
+      <div className="flex gap-2">
+        {(['bookings', 'schedule'] as const).map((id) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setTab(id)}
+            className={`rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
+              tab === id ? 'bg-brand text-white' : 'border border-[#e5d3c2] bg-white text-[#7b6254]'
+            }`}
+          >
+            {id === 'bookings' ? 'Bookings' : 'Schedule'}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'schedule' && appointments[0]?.listing_id && (
+        <ScheduleTab
+          listingId={appointments[0].listing_id}
+          listingName={appointments[0].listing?.name ?? 'Your business'}
+        />
+      )}
+
+      {tab === 'schedule' && !appointments[0]?.listing_id && (
+        <p className="rounded-2xl border border-dashed border-[#e5d3c2] p-6 text-center text-xs text-[#9b7c69]">
+          Your schedule appears here once appointments are enabled for your business.
+        </p>
+      )}
+
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-2xl border border-[#eee2d7] bg-white p-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff3e7] text-brand mb-3">
@@ -358,6 +389,7 @@ export default function MyBusinessAppointmentsPage() {
         </div>
       ) : (
         <div className="space-y-8">
+          {tab === 'bookings' && (
           <section className="space-y-4">
             <div>
               <h2 className="text-xl font-bold text-[#2d160b]">Today</h2>
@@ -380,7 +412,9 @@ export default function MyBusinessAppointmentsPage() {
               </div>
             )}
           </section>
+          )}
 
+          {tab === 'bookings' && (
           <section className="space-y-4">
             <div>
               <h2 className="text-xl font-bold text-[#2d160b]">Upcoming</h2>
@@ -403,7 +437,9 @@ export default function MyBusinessAppointmentsPage() {
               </div>
             )}
           </section>
+          )}
 
+          {tab === 'bookings' && (
           <section className="space-y-4">
             <div>
               <h2 className="text-xl font-bold text-[#2d160b]">Recent Activity</h2>
@@ -426,6 +462,7 @@ export default function MyBusinessAppointmentsPage() {
               </div>
             )}
           </section>
+          )}
         </div>
       )}
     </div>
