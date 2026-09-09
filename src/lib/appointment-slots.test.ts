@@ -194,3 +194,15 @@ test('a future booking date is unaffected by an injected now', () => {
   assert.deepEqual(slots.map((s) => s.start), ['09:00', '10:00'])
   assert.ok(slots.every((s) => s.reason === 'open'))
 })
+
+// Regression: the India-time formatter must use hourCycle 'h23' rather than
+// hour12: false. During the midnight hour, hour12: false yields hour "24"
+// (not "00"), which pushes nowMinutes past every slot in the day and drops
+// them all as "past" — every business would render as closed 00:00-00:59 IST.
+test('at 00:07 IST, a business open 09:00-18:00 still returns its slots', () => {
+  const config = settings({ slot_duration: 60 })
+  const midnight = { today: MONDAY, nowMinutes: 7 } // 00:07
+  const slots = generateAvailableSlots(config, MONDAY, {}, null, midnight)
+  assert.deepEqual(slots.map((s) => s.start), ['09:00', '10:00'])
+  assert.ok(slots.every((s) => s.reason === 'open'))
+})
