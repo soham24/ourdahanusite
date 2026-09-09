@@ -11,6 +11,8 @@ import {
 } from '@/lib/listing-content'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createPublicClient } from '@/lib/supabase/public'
+import { generateAvailableSlots, type AppointmentSlot } from '@/lib/appointment-slots'
+import { getOverrideMap } from '@/lib/data/appointment-overrides'
 
 export type CachedAppointmentSettings = {
   listingId: string
@@ -127,4 +129,22 @@ export async function getLiveAppointmentBookingConfig(
   } catch {
     return null
   }
+}
+
+/**
+ * The one place that turns settings + a date into slots. Every caller — the
+ * booking pre-check, the Razorpay order route, and the directory — goes
+ * through here so they cannot disagree about whether a slot exists.
+ */
+export async function getSlotsForDate(
+  listingId: string,
+  settings: AppointmentSettings,
+  bookingDate: string,
+): Promise<AppointmentSlot[]> {
+  const [counts, overrides] = await Promise.all([
+    getAppointmentCountsForDate(listingId, bookingDate),
+    getOverrideMap(listingId, bookingDate, bookingDate),
+  ])
+
+  return generateAvailableSlots(settings, bookingDate, counts, overrides[bookingDate] ?? null)
 }

@@ -1,12 +1,12 @@
 'use server'
 
 import { getUserRole, requireAdmin } from '@/app/actions/admin'
-import { generateAvailableSlots, type AppointmentSlot } from '@/lib/appointment-slots'
+import { type AppointmentSlot } from '@/lib/appointment-slots'
 import { revalidateAppointmentsCache } from '@/lib/cache-tags'
 import {
-  getAppointmentCountsForDate,
   getCachedAppointmentSettings,
   getLiveAppointmentBookingConfig,
+  getSlotsForDate,
 } from '@/lib/data/appointments'
 import {
   sendNotification,
@@ -130,8 +130,7 @@ async function resolveLiveSlots(
     return { config, slots: [], error: dateError }
   }
 
-  const counts = await getAppointmentCountsForDate(listingId, bookingDate)
-  const slots = generateAvailableSlots(config.appointment_settings, bookingDate, counts)
+  const slots = await getSlotsForDate(listingId, config.appointment_settings, bookingDate)
   return { config, slots }
 }
 
@@ -183,9 +182,8 @@ export async function getAvailableSlotsForDate(
     return { error: dateError, slots: [] }
   }
 
-  const counts = await getAppointmentCountsForDate(listingId, normalizedDate)
   return {
-    slots: generateAvailableSlots(settings.appointment_settings, normalizedDate, counts),
+    slots: await getSlotsForDate(listingId, settings.appointment_settings, normalizedDate),
   }
 }
 
@@ -408,6 +406,25 @@ export async function cancelAppointment(
 
   if (appointment.status !== 'confirmed') {
     return { error: 'Only confirmed appointments can be cancelled.' }
+  }
+
+  // Customers lose the ability to cancel once the notice window closes.
+  // Cancelling five minutes before is functionally a no-show, and the business
+  // finds out from an empty chair rather than from the app. Owners and admins
+  // are deliberately exempt.
+  if (!isAdmin && !isOwner) {
+    const settings = await getCachedAppointmentSettings(appointment.listing_id)
+    const noticeMinutes = settings?.appointment_settings?.min_notice_minutes ?? 0
+    const slotTime = getAppointmentInstant(
+      appointment.booking_date,
+      appointment.slot_start.slice(0, 5),
+    ).getTime()
+
+    if (slotTime - Date.now() < noticeMinutes * 60_000) {
+      return {
+        error: 'It is too late to cancel online. Please phone the business directly.',
+      }
+    }
   }
 
   const adminClient = createAdminClient()

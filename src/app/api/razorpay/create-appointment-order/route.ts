@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
 
-import { generateAvailableSlots } from '@/lib/appointment-slots'
 import {
-  getAppointmentCountsForDate,
   getLiveAppointmentBookingConfig,
+  getSlotsForDate,
 } from '@/lib/data/appointments'
 import { recordPaymentIntent } from '@/lib/payment-intents'
 import { createClient } from '@/lib/supabase/server'
@@ -76,8 +75,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Selected date is outside the booking window.' }, { status: 400 })
   }
 
-  const counts = await getAppointmentCountsForDate(listingId, bookingDate)
-  const slots = generateAvailableSlots(config.appointment_settings, bookingDate, counts)
+  const slots = await getSlotsForDate(listingId, config.appointment_settings, bookingDate)
   const selectedSlot = slots.find((slot) => slot.start === slotStart)
 
   if (!selectedSlot) {
