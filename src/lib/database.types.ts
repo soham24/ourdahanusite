@@ -17,6 +17,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointment_date_overrides: {
+        Row: {
+          closed: boolean
+          created_at: string
+          id: string
+          listing_id: string
+          note: string | null
+          override_date: string
+          windows: Json | null
+        }
+        Insert: {
+          closed?: boolean
+          created_at?: string
+          id?: string
+          listing_id: string
+          note?: string | null
+          override_date: string
+          windows?: Json | null
+        }
+        Update: {
+          closed?: boolean
+          created_at?: string
+          id?: string
+          listing_id?: string
+          note?: string | null
+          override_date?: string
+          windows?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_date_overrides_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           booking_date: string
