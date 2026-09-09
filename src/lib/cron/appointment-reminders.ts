@@ -98,7 +98,7 @@ export async function runAppointmentReminders(
   for (const appointment of appointments) {
     stats.checked++
 
-    const appointmentStart = getAppointmentInstant(appointment.booking_date, appointment.slot_start)
+    const appointmentStart = getAppointmentInstant(appointment.booking_date, appointment.slot_start.slice(0, 5))
     if (appointmentStart.getTime() <= now.getTime()) continue
     if (appointmentStart.getTime() > reminderCutoff.getTime()) continue
 

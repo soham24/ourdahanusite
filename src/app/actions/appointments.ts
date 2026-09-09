@@ -572,7 +572,7 @@ export async function updateAppointmentStatus(
     return { error: 'This appointment cannot be updated.' }
   }
 
-  const appointmentInstant = getAppointmentInstant(appointment.booking_date, appointment.slot_start)
+  const appointmentInstant = getAppointmentInstant(appointment.booking_date, appointment.slot_start.slice(0, 5))
   if (appointment.status === 'confirmed' && appointmentInstant.getTime() > Date.now()) {
     return { error: 'This appointment can only be marked after its scheduled time.' }
   }
