@@ -25,6 +25,8 @@ export type AppointmentDateOverride = {
   windows: AppointmentDayWindow[] | null
 }
 
+export type AppointmentNowInfo = { today: string; nowMinutes: number }
+
 const INDIA_TIME_ZONE = 'Asia/Kolkata'
 const WEEKDAY_MAP: AppointmentWeekday[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
@@ -87,6 +89,7 @@ export function generateAvailableSlots(
   bookingDate: string,
   bookingCounts: Record<string, number>,
   override?: AppointmentDateOverride | null,
+  now?: AppointmentNowInfo,
 ): AppointmentSlot[] {
   if (!settings) return []
 
@@ -94,7 +97,7 @@ export function generateAvailableSlots(
   if (windows.length === 0) return []
 
   const stepMinutes = settings.slot_duration + settings.buffer_minutes
-  const { today, nowMinutes } = getIndiaTodayInfo()
+  const { today, nowMinutes } = now ?? getIndiaTodayInfo()
   const isToday = bookingDate === today
   const earliestBookable = nowMinutes + settings.min_notice_minutes
 

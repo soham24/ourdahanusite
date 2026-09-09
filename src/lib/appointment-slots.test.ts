@@ -131,3 +131,66 @@ test('resolveWindowsForDate prefers the override over the weekday', () => {
     [],
   )
 })
+
+// Booking date is MONDAY itself, so these exercise the isToday / min-notice
+// branch with an injected clock instead of the real one.
+const NOW = { today: MONDAY, nowMinutes: 9 * 60 + 10 } // 09:10
+
+test('a slot strictly before now is dropped entirely', () => {
+  const config = settings({ slot_duration: 60 })
+  const slots = generateAvailableSlots(config, MONDAY, {}, null, NOW)
+  assert.ok(!slots.some((s) => s.start === '09:00'))
+})
+
+test('a slot exactly at now is also dropped', () => {
+  const config = settings({ slot_duration: 10, buffer_minutes: 0 })
+  const slots = generateAvailableSlots(config, MONDAY, {}, null, NOW)
+  assert.ok(!slots.some((s) => s.start === '09:10'))
+})
+
+test('a future slot inside the notice window is too_soon', () => {
+  const config = settings({ slot_duration: 15, buffer_minutes: 0, min_notice_minutes: 20 })
+  const slots = generateAvailableSlots(config, MONDAY, {}, null, NOW)
+  // 09:15 is after now (09:10) but before now + 20min notice (09:30)
+  const slot = slots.find((s) => s.start === '09:15')
+  assert.ok(slot)
+  assert.equal(slot?.available, false)
+  assert.equal(slot?.reason, 'too_soon')
+})
+
+test('a slot at or beyond the notice threshold is open', () => {
+  const config = settings({ slot_duration: 15, buffer_minutes: 0, min_notice_minutes: 20 })
+  const slots = generateAvailableSlots(config, MONDAY, {}, null, NOW)
+  // now + min_notice_minutes = 09:30
+  const slot = slots.find((s) => s.start === '09:30')
+  assert.ok(slot)
+  assert.equal(slot?.available, true)
+  assert.equal(slot?.reason, 'open')
+})
+
+test('with zero min notice, every future slot today is open', () => {
+  const config = settings({ slot_duration: 15, buffer_minutes: 0, min_notice_minutes: 0 })
+  const slots = generateAvailableSlots(config, MONDAY, {}, null, NOW)
+  assert.ok(slots.length > 0)
+  assert.ok(slots.every((s) => s.reason !== 'too_soon'))
+})
+
+test('a full slot inside the notice window reports full, not too_soon', () => {
+  const config = settings({ slot_duration: 15, buffer_minutes: 0, min_notice_minutes: 20, capacity: 1 })
+  const slots = generateAvailableSlots(config, MONDAY, { '09:15': 1 }, null, NOW)
+  const slot = slots.find((s) => s.start === '09:15')
+  assert.ok(slot)
+  assert.equal(slot?.available, false)
+  assert.equal(slot?.reason, 'full')
+})
+
+test('a future booking date is unaffected by an injected now', () => {
+  const config = settings({ slot_duration: 60, min_notice_minutes: 30 })
+  const slots = generateAvailableSlots(config, TUESDAY, {}, {
+    override_date: TUESDAY,
+    closed: false,
+    windows: [{ start: '09:00', end: '11:00' }],
+  }, NOW)
+  assert.deepEqual(slots.map((s) => s.start), ['09:00', '10:00'])
+  assert.ok(slots.every((s) => s.reason === 'open'))
+})
