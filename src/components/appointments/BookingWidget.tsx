@@ -692,7 +692,7 @@ export default function BookingWidget({
 
             {!isLoggedIn ? (
               <Link
-                href={`${signInHref}?redirect=${encodeURIComponent(pathname)}`}
+                href={`${signInHref}?next=${encodeURIComponent(pathname)}`}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white"
               >
                 Sign In to Continue <ArrowRight size={15} />
