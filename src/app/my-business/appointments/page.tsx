@@ -369,10 +369,12 @@ export default function MyBusinessAppointmentsPage() {
       )}
 
       {loading ? (
+        tab === 'bookings' && (
         <div className="flex items-center justify-center py-20 text-gray-400">
           <Loader2 size={22} className="mr-2 animate-spin" />
           Loading appointments...
         </div>
+        )
       ) : appointments.length === 0 ? (
         tab === 'bookings' && (
         <div className="rounded-[28px] border border-[#eee2d7] bg-white px-6 py-14 text-center shadow-sm">
