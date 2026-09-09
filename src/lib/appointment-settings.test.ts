@@ -45,6 +45,17 @@ test('drops malformed times', () => {
   assert.deepEqual(out?.availability.mon, [])
 })
 
+// Production's only listing with appointment settings still holds the legacy
+// single-window shape ({start, end}, no min_notice_minutes), so the legacy
+// upgrade branch is live and load-bearing. An invalid legacy window must
+// degrade to [] rather than throwing or producing a malformed window.
+test('an invalid legacy single-window shape degrades to an empty array', () => {
+  const out = normalizeAppointmentSettings({
+    availability: { mon: { start: '9am', end: '18:00' } },
+  })
+  assert.deepEqual(out?.availability.mon, [])
+})
+
 test('sorts windows by start time', () => {
   const out = normalizeAppointmentSettings({
     availability: { mon: [{ start: '16:00', end: '19:00' }, { start: '09:00', end: '13:00' }] },
