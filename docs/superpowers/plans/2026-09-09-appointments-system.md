@@ -3064,5 +3064,8 @@ Not tasks — the things to confirm before this branch merges.
 - [ ] A real booking completes on `soham.localhost:3000` and writes one `appointments` row.
 - [ ] Abandoning the Razorpay modal writes **no** appointment row.
 - [ ] The owner can close a date, and that date then shows no slots in the booking widget.
-- [ ] **The owner adds the `appointments` DNS record in Vercel** — code cannot do this, and the subdomain is dead until it exists.
+- [x] **No Vercel/DNS action required** — verified the project already has
+      `*.ourdahanu.in` attached as a wildcard domain, so the subdomain resolves
+      and reaches the project already. An earlier version of this plan wrongly
+      said a record had to be added by hand.
 - [ ] Rollout order: test listing only → DR.ADIDX GLOW AND SMILE (`dradidx`) → the remaining three.

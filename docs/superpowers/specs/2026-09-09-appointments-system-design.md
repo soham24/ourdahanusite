@@ -212,7 +212,14 @@ across subdomains — cookies are scoped to `.ourdahanu.in`
   together. Until this lands, a business could register the subdomain
   `appointments` for itself.
 - A new matcher entry for the appointments host.
-- **The owner adds the DNS record in Vercel.** This cannot be done from code.
+- **No DNS or Vercel change is needed.** An earlier draft of this spec said the
+  owner had to add a DNS record; that was wrong. The Vercel project already
+  carries `*.ourdahanu.in` as an attached wildcard domain — which is why every
+  business subdomain and `find.ourdahanu.in` work — so `appointments.ourdahanu.in`
+  already resolves and already reaches this project. Verified: it returns 200
+  with `X-Matched-Path: /listings/[id]`, meaning today's code treats it as a
+  business subdomain. Reserving the prefix and deploying is what routes it to
+  the directory instead.
 
 **Index page:** the enabled businesses, each with photo, category, fee (or
 "Free"), and **its next three open slots**. The slots are the point — "Today
