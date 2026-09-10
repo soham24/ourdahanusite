@@ -19,7 +19,7 @@ export default async function NotificationsPage() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login?redirect=' + encodeURIComponent('/account/notifications'))
+    redirect('/login?next=' + encodeURIComponent('/account/notifications'))
   }
 
   const [prefs, initial] = await Promise.all([
