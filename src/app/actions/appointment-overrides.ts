@@ -1,6 +1,6 @@
 'use server'
 
-import { getUserRole } from '@/app/actions/admin'
+import { requireListingAccess } from '@/lib/appointment-access'
 import { findOverrideConflicts } from '@/lib/appointment-conflicts'
 import { revalidateAppointmentsCache } from '@/lib/cache-tags'
 import {
@@ -50,32 +50,12 @@ function getIndiaToday(): string {
   return `${lookup.year}-${lookup.month}-${lookup.day}`
 }
 
-/**
- * Owner-or-admin access to one listing. Overrides change when customers can
- * book, so this is the same bar as editing the listing itself.
- */
-async function requireListingAccess(listingId: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Please sign in first.' as const }
-
-  const { role } = await getUserRole(supabase)
-  const isAdmin = role === 'admin' || role === 'moderator'
-
-  const reader = createAdminClient() ?? supabase
-  const { data: listing } = await reader
-    .from('listings')
-    .select('id, owner_id')
-    .eq('id', listingId)
-    .maybeSingle()
-
-  if (!listing) return { error: 'Business not found.' as const }
-  if (!isAdmin && listing.owner_id !== user.id) return { error: 'Access denied.' as const }
-
-  return { userId: user.id }
+export type OwnerAppointmentListing = {
+  id: string
+  name: string
+  /** Raw JSONB; the consumer normalises it. May be null for a never-configured listing. */
+  appointment_settings: unknown
 }
-
-export type OwnerAppointmentListing = { id: string; name: string }
 
 /**
  * The caller's own listings that currently take appointments. Derived from
@@ -93,7 +73,7 @@ export async function getMyAppointmentListings(): Promise<{
   const reader = createAdminClient() ?? supabase
   const { data, error } = await reader
     .from('listings')
-    .select('id, name')
+    .select('id, name, appointment_settings')
     .eq('owner_id', user.id)
     .eq('appointments_enabled', true)
     .order('name', { ascending: true })
@@ -101,9 +81,14 @@ export async function getMyAppointmentListings(): Promise<{
   if (error) return { error: error.message, listings: [] }
 
   return {
-    listings: ((data ?? []) as Array<{ id: string; name: string }>).map((row) => ({
+    listings: ((data ?? []) as Array<{
+      id: string
+      name: string
+      appointment_settings: unknown
+    }>).map((row) => ({
       id: row.id,
       name: row.name,
+      appointment_settings: row.appointment_settings,
     })),
   }
 }
