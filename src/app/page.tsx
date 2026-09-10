@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
+import TelegramNotificationPrompt from '@/components/TelegramNotificationPrompt'
 
 import {
   getHomeNewListings,
@@ -65,6 +66,7 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
+      <TelegramNotificationPrompt />
 
       <Suspense fallback={<HomeSectionSkeleton variant="bar" />}>
         <StatsAndCategoriesAsync />
