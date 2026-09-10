@@ -5,11 +5,9 @@ import { CalendarOff, Loader2, Plus, Trash2 } from 'lucide-react'
 
 import {
   deleteAppointmentDateOverride,
-  getMyAppointmentListings,
   getUpcomingOverrides,
   saveAppointmentDateOverride,
   type OverrideConflict,
-  type OwnerAppointmentListing,
 } from '@/app/actions/appointment-overrides'
 import type { AppointmentOverrideRecord } from '@/lib/data/appointment-overrides'
 
@@ -22,12 +20,12 @@ function formatOverrideDate(value: string): string {
   })
 }
 
-export default function ScheduleTab() {
-  const [listings, setListings] = useState<OwnerAppointmentListing[]>([])
-  const [listingsLoading, setListingsLoading] = useState(true)
-  const [listingsError, setListingsError] = useState('')
-  const [listingId, setListingId] = useState('')
+type Props = {
+  listingId: string
+  listingName: string
+}
 
+export default function ScheduleTab({ listingId, listingName }: Props) {
   const [overrides, setOverrides] = useState<AppointmentOverrideRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [isPending, startTransition] = useTransition()
@@ -41,15 +39,6 @@ export default function ScheduleTab() {
   const [conflicts, setConflicts] = useState<OverrideConflict[] | null>(null)
 
   const resetConflicts = () => setConflicts(null)
-
-  useEffect(() => {
-    getMyAppointmentListings().then((result) => {
-      if (result.error) setListingsError(result.error)
-      setListings(result.listings)
-      if (result.listings.length > 0) setListingId(result.listings[0].id)
-      setListingsLoading(false)
-    })
-  }, [])
 
   useEffect(() => {
     if (!listingId) return
@@ -113,47 +102,8 @@ export default function ScheduleTab() {
     })
   }
 
-  if (listingsLoading) {
-    return <p className="text-xs text-[#9b7c69]">Loading…</p>
-  }
-
-  if (listingsError) {
-    return <p className="text-xs font-semibold text-red-600">{listingsError}</p>
-  }
-
-  if (listings.length === 0) {
-    return (
-      <p className="rounded-2xl border border-dashed border-[#e5d3c2] p-6 text-center text-xs text-[#9b7c69]">
-        Appointments are not enabled for any of your businesses yet.
-      </p>
-    )
-  }
-
-  const selectedListing = listings.find((listing) => listing.id === listingId) ?? listings[0]
-  const listingName = selectedListing?.name ?? 'Your business'
-
   return (
     <div className="space-y-6">
-      {listings.length > 1 && (
-        <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-          Business
-          <select
-            value={listingId}
-            onChange={(event) => {
-              setListingId(event.target.value)
-              resetConflicts()
-            }}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-normal normal-case tracking-normal text-gray-800"
-          >
-            {listings.map((listing) => (
-              <option key={listing.id} value={listing.id}>
-                {listing.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
-
       <section className="rounded-2xl border border-[#eee2d7] bg-white p-5">
         <h2 className="text-base font-bold text-[#2d160b]">Closed days &amp; special hours</h2>
         <p className="mt-1 text-[12px] text-[#7b6254]">
