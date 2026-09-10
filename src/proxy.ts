@@ -25,6 +25,24 @@ export function proxy(request: NextRequest) {
     return NextResponse.rewrite(url)
   }
 
+  // appointments.ourdahanu.in → /appointments/* (standalone booking directory,
+  // own layout). Same shape as the find branch above.
+  if (findHost === 'appointments.ourdahanu.in' || findHost === 'appointments.localhost') {
+    const pathname = request.nextUrl.pathname
+    const isInternalOrAsset =
+      pathname.startsWith('/_next') ||
+      pathname.startsWith('/api') ||
+      /\.[^/]+$/.test(pathname)
+    if (isInternalOrAsset) {
+      return NextResponse.next()
+    }
+    const url = request.nextUrl.clone()
+    if (!url.pathname.startsWith('/appointments')) {
+      url.pathname = url.pathname === '/' ? '/appointments' : `/appointments${url.pathname}`
+    }
+    return NextResponse.rewrite(url)
+  }
+
   const subdomain = getBusinessSubdomain(host)
 
   const pathname = request.nextUrl.pathname
@@ -80,7 +98,7 @@ export const config = {
           type: 'header',
           key: 'host',
           value:
-            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find|appointments)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
         },
       ],
     },
@@ -91,7 +109,7 @@ export const config = {
           type: 'header',
           key: 'host',
           value:
-            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find|appointments)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
         },
       ],
     },
@@ -103,7 +121,7 @@ export const config = {
           type: 'header',
           key: 'host',
           value:
-            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find|appointments)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
         },
       ],
     },
@@ -115,7 +133,7 @@ export const config = {
           type: 'header',
           key: 'host',
           value:
-            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find|appointments)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
         },
       ],
     },
@@ -130,7 +148,7 @@ export const config = {
           type: 'header',
           key: 'host',
           value:
-            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
+            '(?!(?:www|admin|api|app|mail|shop|news|events|jobs|forum|classifieds|emergency|dashboard|login|profile|search|about|listings|my-business|offline|auth|static|assets|media|cdn|find|appointments)\\.)(?:[^.]+\\.ourdahanu\\.in|[^.]+\\.localhost(?::\\d+)?)',
         },
       ],
     },
@@ -142,6 +160,17 @@ export const config = {
           type: 'header',
           key: 'host',
           value: '(?:find\\.ourdahanu\\.in|find\\.localhost(?::\\d+)?)',
+        },
+      ],
+    },
+    {
+      // appointments.ourdahanu.in — standalone booking directory
+      source: '/:path*',
+      has: [
+        {
+          type: 'header',
+          key: 'host',
+          value: '(?:appointments\\.ourdahanu\\.in|appointments\\.localhost(?::\\d+)?)',
         },
       ],
     },

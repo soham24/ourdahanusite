@@ -186,8 +186,8 @@ export default function DashboardAppointmentsPage() {
           (appointment) => appointment.status !== 'confirmed' || !isFutureAppointment(appointment),
         )
         .sort((a, b) => {
-          const aTime = new Date(`${a.booking_date}T${a.slot_start}:00+05:30`).getTime()
-          const bTime = new Date(`${b.booking_date}T${b.slot_start}:00+05:30`).getTime()
+          const aTime = new Date(`${a.booking_date}T${a.slot_start.slice(0, 5)}:00+05:30`).getTime()
+          const bTime = new Date(`${b.booking_date}T${b.slot_start.slice(0, 5)}:00+05:30`).getTime()
           return bTime - aTime
         }),
     [appointments],

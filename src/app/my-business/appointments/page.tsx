@@ -18,6 +18,8 @@ import {
   type AppointmentRecord,
 } from '@/app/actions/appointments'
 
+import ScheduleTab from './ScheduleTab'
+
 function getIndiaToday(): string {
   const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Kolkata',
@@ -219,6 +221,7 @@ export default function MyBusinessAppointmentsPage() {
   const [appointments, setAppointments] = useState<AppointmentRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
+  const [tab, setTab] = useState<'bookings' | 'schedule'>('bookings')
   const today = useMemo(() => getIndiaToday(), [])
 
   useEffect(() => {
@@ -309,6 +312,24 @@ export default function MyBusinessAppointmentsPage() {
         </div>
       </section>
 
+      <div className="flex gap-2">
+        {(['bookings', 'schedule'] as const).map((id) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setTab(id)}
+            className={`rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
+              tab === id ? 'bg-brand text-white' : 'border border-[#e5d3c2] bg-white text-[#7b6254]'
+            }`}
+          >
+            {id === 'bookings' ? 'Bookings' : 'Schedule'}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'schedule' && <ScheduleTab />}
+
+      {tab === 'bookings' && (
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-2xl border border-[#eee2d7] bg-white p-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff3e7] text-brand mb-3">
@@ -339,6 +360,7 @@ export default function MyBusinessAppointmentsPage() {
           <p className="text-[11px] text-[#9b7c69] mt-0.5 uppercase tracking-wide font-semibold">Value</p>
         </div>
       </section>
+      )}
 
       {errorMessage && (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -347,17 +369,22 @@ export default function MyBusinessAppointmentsPage() {
       )}
 
       {loading ? (
+        tab === 'bookings' && (
         <div className="flex items-center justify-center py-20 text-gray-400">
           <Loader2 size={22} className="mr-2 animate-spin" />
           Loading appointments...
         </div>
+        )
       ) : appointments.length === 0 ? (
+        tab === 'bookings' && (
         <div className="rounded-[28px] border border-[#eee2d7] bg-white px-6 py-14 text-center shadow-sm">
           <p className="text-lg font-semibold text-[#2d160b]">No appointments yet.</p>
           <p className="mt-2 text-sm text-[#7c6253]">Once customers start booking, they will show up here.</p>
         </div>
+        )
       ) : (
         <div className="space-y-8">
+          {tab === 'bookings' && (
           <section className="space-y-4">
             <div>
               <h2 className="text-xl font-bold text-[#2d160b]">Today</h2>
@@ -380,7 +407,9 @@ export default function MyBusinessAppointmentsPage() {
               </div>
             )}
           </section>
+          )}
 
+          {tab === 'bookings' && (
           <section className="space-y-4">
             <div>
               <h2 className="text-xl font-bold text-[#2d160b]">Upcoming</h2>
@@ -403,7 +432,9 @@ export default function MyBusinessAppointmentsPage() {
               </div>
             )}
           </section>
+          )}
 
+          {tab === 'bookings' && (
           <section className="space-y-4">
             <div>
               <h2 className="text-xl font-bold text-[#2d160b]">Recent Activity</h2>
@@ -426,6 +457,7 @@ export default function MyBusinessAppointmentsPage() {
               </div>
             )}
           </section>
+          )}
         </div>
       )}
     </div>

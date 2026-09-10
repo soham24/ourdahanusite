@@ -6,7 +6,7 @@ export const RESERVED_SUBDOMAINS = new Set([
   'www', 'admin', 'api', 'app', 'mail', 'shop', 'news', 'events',
   'jobs', 'forum', 'classifieds', 'emergency', 'dashboard', 'login',
   'profile', 'search', 'about', 'listings', 'my-business', 'offline',
-  'auth', 'static', 'assets', 'media', 'cdn', 'find',
+  'auth', 'static', 'assets', 'media', 'cdn', 'find', 'appointments',
 ])
 
 /**

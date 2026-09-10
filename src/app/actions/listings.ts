@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import {
+  revalidateAppointmentsCache,
   revalidatePublicListingContent,
   revalidatePublicListingDetail,
 } from '@/lib/cache-tags'
@@ -365,6 +366,9 @@ export async function updateListing(
   if (error) return { error: error.message }
 
   revalidatePublicListingContent(id)
+  if (appointment_settingsRaw !== null) {
+    revalidateAppointmentsCache(id)
+  }
   return {}
 }
 

@@ -8,7 +8,7 @@ import BeforeAfterToggleDeferred from '../BeforeAfterToggleDeferred'
 import ServicesSection from '../ServicesSection'
 import ProductCard from '@/components/ProductCard'
 import BuyButton from '@/components/BuyButton'
-import AppointmentBooking from '../AppointmentBooking'
+import BookingWidget from '@/components/appointments/BookingWidget'
 import { useListingViewer } from '../ListingViewerContext'
 
 interface ListingContentProps {
@@ -184,7 +184,7 @@ export default function ListingContent({
       )}
 
       {appointmentsEnabled && appointmentSettings && (
-        <AppointmentBooking
+        <BookingWidget
           listingId={listingId}
           listingName={String(listing.name)}
           bookingFee={appointmentBookingFee}
