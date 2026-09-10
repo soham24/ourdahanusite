@@ -46,7 +46,7 @@ export default async function MyAccountOrdersPage() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login?redirect=' + encodeURIComponent('/account/orders'))
+    redirect('/login?next=' + encodeURIComponent('/account/orders'))
   }
 
   const orders = await getMyMarketplaceOrders()

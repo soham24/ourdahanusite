@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft, Save, Plus, Trash2, Loader2, CheckCircle,
@@ -10,7 +9,6 @@ import {
   Video, Sparkles, Award, Truck, CreditCard, Megaphone, Gift,
 } from 'lucide-react'
 import { updateListing } from '@/app/actions/listings'
-import ImageUploadField from '@/components/ImageUploadField'
 import ImageUpload from '@/components/ImageUpload'
 import ImageCropUpload from '@/components/ImageCropUpload'
 import CompactImageUpload from '@/components/CompactImageUpload'
@@ -65,7 +63,6 @@ const RESPONSE_TIME_OPTIONS = ['Usually replies within 1 hour', 'Within a few ho
 interface Highlight { label: string; value: string }
 
 export default function EditListingForm({ listing }: Props) {
-  const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
   const [activeTab, setActiveTab] = useState<TabId>('basic')
   const [saving, setSaving] = useState(false)
@@ -809,7 +806,7 @@ export default function EditListingForm({ listing }: Props) {
                 <label className="block text-sm font-semibold text-gray-700 flex items-center gap-1.5">
                   <Sparkles size={14} className="text-brand" /> Highlights / Key Stats
                 </label>
-                <p className="text-xs text-gray-400">e.g. "500+ Happy Customers", "10 Years Experience"</p>
+                <p className="text-xs text-gray-400">e.g. &ldquo;500+ Happy Customers&rdquo;, &ldquo;10 Years Experience&rdquo;</p>
               </div>
               <button type="button" onClick={() => setHighlights(h => [...h, { label: '', value: '' }])}
                 className="text-sm text-brand border border-brand px-3 py-1.5 rounded-xl hover:bg-surface-soft transition-colors flex items-center gap-1">

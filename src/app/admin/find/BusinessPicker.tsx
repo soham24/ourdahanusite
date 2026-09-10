@@ -23,13 +23,15 @@ export default function BusinessPicker({
 
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current)
-    if (query.trim().length < 2) { setResults([]); return }
+    if (query.trim().length < 2) return
     timer.current = setTimeout(async () => {
       setResults(await searchBusinessListings(query))
       setOpen(true)
     }, 250)
     return () => { if (timer.current) clearTimeout(timer.current) }
   }, [query])
+
+  const visibleResults = query.trim().length < 2 ? [] : results
 
   const cls = 'w-full rounded border border-gray-300 px-2 py-1 text-sm'
 
@@ -57,13 +59,13 @@ export default function BusinessPicker({
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => results.length && setOpen(true)}
+        onFocus={() => visibleResults.length && setOpen(true)}
         placeholder="Search business pages…"
         className={`${cls} pl-7`}
       />
-      {open && results.length > 0 && (
+      {open && visibleResults.length > 0 && (
         <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded border border-gray-200 bg-white shadow-md">
-          {results.map((r) => (
+          {visibleResults.map((r) => (
             <li key={r.id}>
               <button
                 type="button"

@@ -8,7 +8,6 @@ import {
   Calendar,
   CheckCircle,
   ChevronLeft,
-  Clock3,
   CreditCard,
   Loader2,
   ShieldAlert,
@@ -20,6 +19,7 @@ import {
   getAvailableSlotsForDate,
 } from '@/app/actions/appointments'
 import type { AppointmentSlot } from '@/lib/appointment-slots'
+import { addIndiaDays, getIndiaToday } from '@/lib/india-time'
 import type { AppointmentSettings } from '@/lib/listing-content'
 import {
   attemptWithRetry,
@@ -73,24 +73,6 @@ type RazorpayOptions = {
   modal: { ondismiss: () => void }
   prefill: { name: string; contact: string; email?: string }
   theme: { color: string }
-}
-
-function getIndiaToday(): string {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Kolkata',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
-  const parts = formatter.formatToParts(new Date())
-  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]))
-  return `${lookup.year}-${lookup.month}-${lookup.day}`
-}
-
-function addIndiaDays(dateString: string, days: number): string {
-  const base = new Date(`${dateString}T12:00:00+05:30`)
-  base.setUTCDate(base.getUTCDate() + days)
-  return base.toISOString().slice(0, 10)
 }
 
 function formatSelectedDate(value: string): string {

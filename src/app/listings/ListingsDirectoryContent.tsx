@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { CheckCircle } from 'lucide-react'
 
 import StructuredData from '@/components/StructuredData'

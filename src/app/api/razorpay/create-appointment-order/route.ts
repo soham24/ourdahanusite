@@ -4,30 +4,13 @@ import {
   getLiveAppointmentBookingConfig,
   getSlotsForDate,
 } from '@/lib/data/appointments'
+import { addIndiaDays, getIndiaToday } from '@/lib/india-time'
 import { recordPaymentIntent } from '@/lib/payment-intents'
 import { createClient } from '@/lib/supabase/server'
 import { rateLimit, tooManyRequests } from '@/lib/rate-limit'
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/
-
-function getIndiaToday(): string {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Kolkata',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
-  const parts = formatter.formatToParts(new Date())
-  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]))
-  return `${lookup.year}-${lookup.month}-${lookup.day}`
-}
-
-function addIndiaDays(dateString: string, days: number): string {
-  const base = new Date(`${dateString}T12:00:00+05:30`)
-  base.setUTCDate(base.getUTCDate() + days)
-  return base.toISOString().slice(0, 10)
-}
 
 export async function POST(request: Request) {
   const supabase = await createClient()

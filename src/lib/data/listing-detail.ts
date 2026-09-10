@@ -14,11 +14,11 @@ import {
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-type ListingRecord = Record<string, unknown>
-type ReviewRecord = Record<string, unknown>
-type QuestionRecord = Record<string, unknown>
+export type ListingRecord = Record<string, unknown>
+export type ReviewRecord = Record<string, unknown>
+export type QuestionRecord = Record<string, unknown>
 
-interface SimilarListing {
+export interface SimilarListing {
   id: string
   name: string
   subdomain: string | null

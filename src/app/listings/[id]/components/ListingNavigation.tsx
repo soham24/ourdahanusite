@@ -2,10 +2,12 @@
 
 import React from 'react'
 import Badge from '@/components/ui/Badge'
+import type { ListingProductPublic } from '@/lib/data/listing-detail'
+import type { NormalizedService } from '@/lib/listing-content'
 
 interface ListingNavigationProps {
-  services: any[]
-  marketplaceProducts: any[]
+  services: NormalizedService[]
+  marketplaceProducts: ListingProductPublic[]
   photos: string[]
 }
 

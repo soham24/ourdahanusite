@@ -74,7 +74,7 @@ export default async function SubmitListingPage({
         <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-8">
           <h2 className="font-bold text-gray-900 text-lg mb-1">Make it yours — customise your listing</h2>
           <p className="text-gray-500 text-sm mb-5">
-            After approval, head to <strong>My Business</strong> to make your profile shine. Here's what you can add:
+            After approval, head to <strong>My Business</strong> to make your profile shine. Here&rsquo;s what you can add:
           </p>
           <div className="space-y-4">
             {[
@@ -99,7 +99,7 @@ export default async function SubmitListingPage({
         {/* Closing message */}
         <div className="text-center mb-8 px-4">
           <p className="text-gray-600 text-sm leading-relaxed italic">
-            "This is just the beginning, {firstName}. Let's start this growth journey together — OurDahanu is rooting for <strong>{bizName}</strong>." 🌱
+            &ldquo;This is just the beginning, {firstName}. Let&rsquo;s start this growth journey together — OurDahanu is rooting for <strong>{bizName}</strong>.&rdquo; 🌱
           </p>
         </div>
 

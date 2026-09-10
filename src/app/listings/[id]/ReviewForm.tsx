@@ -2,7 +2,7 @@
 
 import { useFormStatus } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import { useRef, useEffect, useTransition } from 'react'
+import { useRef, useTransition } from 'react'
 import { submitReview } from '@/app/actions/listings'
 
 function SubmitButton() {

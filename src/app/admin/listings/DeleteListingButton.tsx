@@ -63,7 +63,7 @@ export default function DeleteListingButton({ id, name }: Props) {
                   You are about to permanently delete:
                 </p>
                 <p className="text-sm font-semibold text-gray-800 mb-5 px-2 truncate max-w-full">
-                  "{name}"
+                  &ldquo;{name}&rdquo;
                 </p>
                 <p className="text-xs text-gray-400 mb-6">This action cannot be undone.</p>
 

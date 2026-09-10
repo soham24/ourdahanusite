@@ -7,6 +7,7 @@ import {
   listUpcomingOverrides,
   type AppointmentOverrideRecord,
 } from '@/lib/data/appointment-overrides'
+import { getIndiaToday } from '@/lib/india-time'
 import {
   normalizeDayWindows,
   normalizeInlineText,
@@ -36,18 +37,6 @@ export type SaveOverrideResult = {
   error?: string
   conflicts?: OverrideConflict[]
   saved?: boolean
-}
-
-function getIndiaToday(): string {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Kolkata',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
-  const parts = formatter.formatToParts(new Date())
-  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]))
-  return `${lookup.year}-${lookup.month}-${lookup.day}`
 }
 
 export type OwnerAppointmentListing = {

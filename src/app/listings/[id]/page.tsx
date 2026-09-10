@@ -16,10 +16,9 @@ import {
   normalizePhoneOrNull,
   normalizeAppointmentSettings 
 } from '@/lib/listing-content'
-import { 
-  getCanonicalListingUrl, 
-  getListingHref, 
-  shouldRedirectListingToSubdomain 
+import {
+  getCanonicalListingUrl,
+  shouldRedirectListingToSubdomain
 } from '@/lib/listing-url'
 import { buildAbsoluteUrl } from '@/lib/site'
 import { getCachedListingDetail } from '@/lib/data/listing-detail'
@@ -200,7 +199,7 @@ async function ListingDetailContent({
   const currentHost = headersList.get('x-forwarded-host') ?? headersList.get('host')
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let listing: Record<string, any> | null = (publicData?.listing as Record<string, any> | null) ?? null
+  const listing: Record<string, any> | null = (publicData?.listing as Record<string, any> | null) ?? null
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const reviews: Record<string, any>[] = (publicData?.reviews as Record<string, any>[] | undefined) ?? []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

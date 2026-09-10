@@ -10,21 +10,23 @@ import ProductCard from '@/components/ProductCard'
 import BuyButton from '@/components/BuyButton'
 import BookingWidget from '@/components/appointments/BookingWidget'
 import { useListingViewer } from '../ListingViewerContext'
+import type { ListingRecord, ListingProductPublic } from '@/lib/data/listing-detail'
+import type { NormalizedService, AppointmentSettings } from '@/lib/listing-content'
 
 interface ListingContentProps {
-  listing: any
+  listing: ListingRecord
   photos: string[]
   beforeAfter: { before: string; after: string } | null
   videoEmbedId: string | null
   highlights: { label: string; value: string }[]
-  services: any[]
+  services: NormalizedService[]
   listingId: string
   whatsappNum: string | null
   businessUrl: string
   marketplaceReady: boolean
-  marketplaceProducts: any[]
+  marketplaceProducts: ListingProductPublic[]
   appointmentsEnabled: boolean
-  appointmentSettings: any
+  appointmentSettings: AppointmentSettings | null
   appointmentBookingFee: number
 }
 
@@ -49,7 +51,7 @@ export default function ListingContent({
   return (
     <div className="lg:col-span-2 space-y-5">
       {/* About */}
-      {listing.description && (
+      {Boolean(listing.description) && (
         <Card id="about" className="scroll-mt-32">
           <h2 className="text-base font-bold text-ink mb-3 flex items-center gap-2">
             <span className="w-1 h-4 bg-brand rounded-full inline-block" />
@@ -134,8 +136,8 @@ export default function ListingContent({
             listing={{
               id:       listingId,
               name:     String(listing.name),
-              upi_id:   listing.upi_id ?? null,
-              whatsapp: listing.whatsapp ?? null,
+              upi_id:   (listing.upi_id as string | null) ?? null,
+              whatsapp: (listing.whatsapp as string | null) ?? null,
             }}
             whatsappNum={whatsappNum}
             businessUrl={businessUrl}

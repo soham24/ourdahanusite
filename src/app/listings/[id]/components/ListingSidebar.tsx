@@ -10,13 +10,14 @@ import {
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import { useListingViewer } from '../ListingViewerContext'
+import type { ListingRecord } from '@/lib/data/listing-detail'
 
 interface ListingSidebarProps {
   phoneHref: string | null
   phoneLabel: string | null
   displayAddress: string | null
   directionsUrl: string | null
-  listing: any
+  listing: ListingRecord
   certifications: string[]
   paymentMethods: string[]
   deliveryInfo: { areas?: string; note?: string } | null
@@ -79,7 +80,7 @@ export default function ListingSidebar({
               </div>
             </a>
           )}
-          {listing.website && (
+          {Boolean(listing.website) && (
             <a href={String(listing.website)} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-3 text-sm text-ink-2 hover:text-brand transition-colors group">
               <div className="w-9 h-9 bg-surface-soft group-hover:bg-border rounded-xl flex items-center justify-center flex-shrink-0 transition-colors">
@@ -95,7 +96,7 @@ export default function ListingSidebar({
       </Card>
 
       {/* Hours */}
-      {listing.hours && (
+      {Boolean(listing.hours) && (
         <Card className="p-5" padding="none">
           <h3 className="font-bold text-sm uppercase tracking-wide text-ink-2/50 mb-3 flex items-center gap-2">
             <Clock size={14} className="text-brand" /> Opening Hours
@@ -154,7 +155,7 @@ export default function ListingSidebar({
       )}
 
       {/* UPI */}
-      {listing.upi_id && (
+      {Boolean(listing.upi_id) && (
         <Card className="p-5" padding="none">
           <h3 className="font-bold text-sm uppercase tracking-wide text-ink-2/50 mb-3 flex items-center gap-2">
             <IndianRupee size={14} className="text-brand" /> Pay Directly
@@ -167,11 +168,11 @@ export default function ListingSidebar({
       )}
 
       {/* Social */}
-      {(listing.instagram || listing.facebook) && (
+      {Boolean(listing.instagram || listing.facebook) && (
         <Card className="p-5" padding="none">
           <h3 className="font-bold text-sm uppercase tracking-wide text-ink-2/50 mb-3">Follow</h3>
           <div className="space-y-2">
-            {listing.instagram && (
+            {Boolean(listing.instagram) && (
               <a href={`https://instagram.com/${String(listing.instagram).replace('@', '')}`}
                 target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-2.5 text-sm text-ink-2 hover:text-pink-600 transition-colors p-2 rounded-xl hover:bg-pink-50">
@@ -179,7 +180,7 @@ export default function ListingSidebar({
                 @{String(listing.instagram).replace('@', '')}
               </a>
             )}
-            {listing.facebook && (
+            {Boolean(listing.facebook) && (
               <a href={String(listing.facebook)} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-2.5 text-sm text-ink-2 hover:text-blue-600 transition-colors p-2 rounded-xl hover:bg-blue-50">
                 <Share2 size={16} className="text-blue-600" />

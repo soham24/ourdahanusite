@@ -1,5 +1,4 @@
 import {
-  Calendar,
   CheckCircle,
   Clock3,
   IndianRupee,
@@ -11,30 +10,13 @@ import {
 
 import { requireAdmin } from '@/app/actions/admin'
 import { updateAppointmentAdminSettings } from '@/app/actions/appointments'
+import { addIndiaDays, getIndiaToday } from '@/lib/india-time'
 import {
   normalizeAppointmentSettings,
   type AppointmentSettings,
 } from '@/lib/listing-content'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
-
-function getIndiaToday(): string {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Kolkata',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
-  const parts = formatter.formatToParts(new Date())
-  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]))
-  return `${lookup.year}-${lookup.month}-${lookup.day}`
-}
-
-function addIndiaDays(dateString: string, days: number): string {
-  const base = new Date(`${dateString}T12:00:00+05:30`)
-  base.setUTCDate(base.getUTCDate() + days)
-  return base.toISOString().slice(0, 10)
-}
 
 function formatDate(dateString: string) {
   return new Date(`${dateString}T12:00:00+05:30`).toLocaleDateString('en-IN', {

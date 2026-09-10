@@ -1,5 +1,4 @@
 import { Store, Search } from 'lucide-react'
-import SafeAppLink from '@/components/SafeAppLink'
 import Button from '@/components/ui/Button'
 
 export default function BottomCTABanner() {

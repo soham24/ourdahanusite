@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useDeferredValue, useState } from 'react'
-import { ArrowUpDown, Plus, Search } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 
 import CategoryFilter from './CategoryFilter'
 import ListingCard from './ListingCard'

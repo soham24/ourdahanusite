@@ -257,7 +257,7 @@ export type Database = {
           payment_id: string | null
           payment_status: string
           redeemed_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           amount_paid?: number
@@ -269,7 +269,7 @@ export type Database = {
           payment_id?: string | null
           payment_status: string
           redeemed_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           amount_paid?: number
@@ -281,7 +281,7 @@ export type Database = {
           payment_id?: string | null
           payment_status?: string
           redeemed_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
