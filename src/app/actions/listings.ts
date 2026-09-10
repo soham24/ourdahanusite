@@ -3,7 +3,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import {
-  revalidateAppointmentsCache,
   revalidatePublicListingContent,
   revalidatePublicListingDetail,
 } from '@/lib/cache-tags'
@@ -12,7 +11,6 @@ import {
   sendNotificationToAdmins,
 } from '@/lib/notifications'
 import {
-  normalizeAppointmentSettings,
   normalizeBeforeAfter,
   normalizeDeliveryInfo,
   normalizeHighlightItems,
@@ -289,9 +287,6 @@ export async function updateListing(
   const payment_methodsRaw  = (formData.get('payment_methods')    as string) || '[]'
   const delivery_infoRaw    = (formData.get('delivery_info')      as string) || 'null'
   const before_afterRaw     = (formData.get('before_after')       as string) || 'null'
-  const appointment_settingsRaw = formData.has('appointment_settings')
-    ? ((formData.get('appointment_settings') as string) || 'null')
-    : null
 
   if (!name || !category) return { error: 'Business name and category are required.' }
 
@@ -303,7 +298,6 @@ export async function updateListing(
   let payment_methods = []
   let delivery_info = null
   let before_after = null
-  let appointment_settings = null
   try { services = JSON.parse(servicesRaw) } catch { /* ignore */ }
   try { tags = JSON.parse(tagsRaw) } catch { /* ignore */ }
   try { photos = JSON.parse(photosRaw) } catch { /* ignore */ }
@@ -312,9 +306,6 @@ export async function updateListing(
   try { payment_methods = JSON.parse(payment_methodsRaw) } catch { /* ignore */ }
   try { delivery_info = JSON.parse(delivery_infoRaw) } catch { /* ignore */ }
   try { before_after = JSON.parse(before_afterRaw) } catch { /* ignore */ }
-  if (appointment_settingsRaw !== null) {
-    try { appointment_settings = JSON.parse(appointment_settingsRaw) } catch { /* ignore */ }
-  }
 
   services = normalizeServiceItems(services)
   tags = normalizeStringArray(tags, 12, 30)
@@ -324,9 +315,6 @@ export async function updateListing(
   payment_methods = normalizeStringArray(payment_methods, 8, 30)
   delivery_info = normalizeDeliveryInfo(delivery_info)
   before_after = normalizeBeforeAfter(before_after)
-  appointment_settings = appointment_settingsRaw !== null
-    ? normalizeAppointmentSettings(appointment_settings)
-    : null
 
   // Only overwrite images if a new file was actually uploaded
   // (empty string means no new upload - keep existing DB value)
@@ -340,11 +328,6 @@ export async function updateListing(
     imageFields.cover_image_thumb_url  = cover_image_thumb_url_new || cover_image_new
   }
 
-  const appointmentFields =
-    appointment_settingsRaw !== null
-      ? { appointment_settings }
-      : {}
-
   const updateQuery = db.from('listings').update({
     name, tagline, description, category, phone, address, website,
     whatsapp, instagram, facebook, upi_id, hours,
@@ -354,7 +337,6 @@ export async function updateListing(
     offer_text, offer_expires_at, pinned_announcement, established_year,
     response_time, video_url, photos, highlights, certifications,
     payment_methods, delivery_info, before_after,
-    ...appointmentFields,
     updated_at: new Date().toISOString(),
   }).eq('id', id)
 
@@ -366,9 +348,6 @@ export async function updateListing(
   if (error) return { error: error.message }
 
   revalidatePublicListingContent(id)
-  if (appointment_settingsRaw !== null) {
-    revalidateAppointmentsCache(id)
-  }
   return {}
 }
 

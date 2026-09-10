@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   ArrowLeft, Save, Plus, Trash2, Loader2, CheckCircle,
   AtSign, Share2, Phone, Globe, MapPin, Clock,
-  Tag, Image as ImageIcon, Briefcase, Info, Calendar,
+  Tag, Image as ImageIcon, Briefcase, Info,
   Video, Sparkles, Award, Truck, CreditCard, Megaphone, Gift,
 } from 'lucide-react'
 import { updateListing } from '@/app/actions/listings'
@@ -17,13 +17,7 @@ import CompactImageUpload from '@/components/CompactImageUpload'
 import PhoneInput from '@/components/PhoneInput'
 import LocationPicker from '@/components/LocationPicker'
 import {
-  DEFAULT_APPOINTMENT_SETTINGS,
   MAX_SERVICE_ITEMS,
-  MAX_WINDOWS_PER_DAY,
-  normalizeAppointmentSettings,
-  type AppointmentDayWindow,
-  type AppointmentSettings,
-  type AppointmentWeekday,
 } from '@/lib/listing-content'
 import { normalizeOptionalUrl } from '@/lib/url'
 import { getListingHref } from '@/lib/listing-url'
@@ -63,22 +57,12 @@ interface Props {
   listing: Record<string, any>
 }
 
-type TabId = 'basic' | 'contact' | 'appointments' | 'services' | 'branding' | 'media' | 'extras'
+type TabId = 'basic' | 'contact' | 'services' | 'branding' | 'media' | 'extras'
 
 const PAYMENT_OPTIONS = ['Cash', 'UPI', 'Debit Card', 'Credit Card', 'Net Banking', 'Cheque', 'Online Transfer']
 const RESPONSE_TIME_OPTIONS = ['Usually replies within 1 hour', 'Within a few hours', 'Within 24 hours', 'Within 2–3 days']
 
 interface Highlight { label: string; value: string }
-
-const APPOINTMENT_DAYS: Array<{ key: AppointmentWeekday; label: string }> = [
-  { key: 'mon', label: 'Monday' },
-  { key: 'tue', label: 'Tuesday' },
-  { key: 'wed', label: 'Wednesday' },
-  { key: 'thu', label: 'Thursday' },
-  { key: 'fri', label: 'Friday' },
-  { key: 'sat', label: 'Saturday' },
-  { key: 'sun', label: 'Sunday' },
-]
 
 export default function EditListingForm({ listing }: Props) {
   const router = useRouter()
@@ -91,7 +75,6 @@ export default function EditListingForm({ listing }: Props) {
   const [newProfileThumbUrl, setNewProfileThumbUrl] = useState('')
   const [newCoverUrl, setNewCoverUrl] = useState('')
   const [newCoverThumbUrl, setNewCoverThumbUrl] = useState('')
-  const appointmentsEnabled = listing.appointments_enabled === true
 
   // Category state
   const [category, setCategory] = useState<string>(String(listing.category || ''))
@@ -207,22 +190,6 @@ export default function EditListingForm({ listing }: Props) {
   })()
   const [deliveryInfo, setDeliveryInfo] = useState<{ areas: string; note: string }>(initialDeliveryInfo)
 
-  const initialAppointmentSettings: AppointmentSettings = (() => {
-    if (!appointmentsEnabled) return DEFAULT_APPOINTMENT_SETTINGS
-
-    let parsed: unknown = null
-    try {
-      const raw = listing.appointment_settings
-      if (raw && typeof raw === 'object') parsed = raw
-      else if (typeof raw === 'string') parsed = JSON.parse(raw)
-    } catch {
-      parsed = null
-    }
-
-    return normalizeAppointmentSettings(parsed) ?? DEFAULT_APPOINTMENT_SETTINGS
-  })()
-  const [appointmentSettings, setAppointmentSettings] = useState<AppointmentSettings>(initialAppointmentSettings)
-
   const addService = () =>
     setServices((current) => {
       if (current.length >= MAX_SERVICE_ITEMS) return current
@@ -251,57 +218,6 @@ export default function EditListingForm({ listing }: Props) {
     }
   }
 
-  const setDayWindows = (day: AppointmentWeekday, windows: AppointmentDayWindow[]) => {
-    setAppointmentSettings((current) => ({
-      ...current,
-      availability: { ...current.availability, [day]: windows },
-    }))
-  }
-
-  const toggleAppointmentDay = (day: AppointmentWeekday, isOpen: boolean) => {
-    setDayWindows(day, isOpen ? [{ start: '09:00', end: '18:00' }] : [])
-  }
-
-  const updateAppointmentWindow = (
-    day: AppointmentWeekday,
-    index: number,
-    field: 'start' | 'end',
-    value: string,
-  ) => {
-    setAppointmentSettings((current) => {
-      const windows = current.availability[day].map((window, i) =>
-        i === index ? { ...window, [field]: value } : window,
-      )
-      return { ...current, availability: { ...current.availability, [day]: windows } }
-    })
-  }
-
-  const addAppointmentWindow = (day: AppointmentWeekday) => {
-    setAppointmentSettings((current) => {
-      const windows = current.availability[day]
-      if (windows.length >= MAX_WINDOWS_PER_DAY) return current
-      const last = windows[windows.length - 1]
-      const nextStart = last ? last.end : '09:00'
-      return {
-        ...current,
-        availability: {
-          ...current.availability,
-          [day]: [...windows, { start: nextStart, end: '21:00' }],
-        },
-      }
-    })
-  }
-
-  const removeAppointmentWindow = (day: AppointmentWeekday, index: number) => {
-    setAppointmentSettings((current) => ({
-      ...current,
-      availability: {
-        ...current.availability,
-        [day]: current.availability[day].filter((_, i) => i !== index),
-      },
-    }))
-  }
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
@@ -320,9 +236,6 @@ export default function EditListingForm({ listing }: Props) {
     fd.set('payment_methods', JSON.stringify(paymentMethods))
     fd.set('delivery_info', JSON.stringify(deliveryInfo.areas || deliveryInfo.note ? deliveryInfo : null))
     fd.set('before_after', JSON.stringify(beforeAfter.before && beforeAfter.after ? beforeAfter : null))
-    if (appointmentsEnabled) {
-      fd.set('appointment_settings', JSON.stringify(appointmentSettings))
-    }
     const result = await updateListing(listing.id as string, fd)
     setSaving(false)
     if (result?.error) {
@@ -337,9 +250,6 @@ export default function EditListingForm({ listing }: Props) {
   const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
     { id: 'basic',    label: 'Basic',    icon: <Info size={15} /> },
     { id: 'contact',  label: 'Contact',  icon: <Phone size={15} /> },
-    ...(appointmentsEnabled
-      ? [{ id: 'appointments' as const, label: 'Appointments', icon: <Calendar size={15} /> }]
-      : []),
     { id: 'services', label: 'Services', icon: <Briefcase size={15} /> },
     { id: 'branding', label: 'Brand',    icon: <ImageIcon size={15} /> },
     { id: 'media',    label: 'Media',    icon: <Video size={15} /> },
@@ -575,216 +485,6 @@ export default function EditListingForm({ listing }: Props) {
         </div>
 
         {/* ── SERVICES / PRICING ─────────────────────────────────────────── */}
-        <div className={activeTab === 'appointments' ? 'bg-white border border-gray-100 rounded-2xl p-5 space-y-5' : 'hidden'}>
-            <p className="text-xs text-blue-600 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
-              Appointments are enabled. Configure your slot settings and weekly schedule below.
-            </p>
-
-            {/* Slot duration */}
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-3">Slot duration</p>
-              <div className="grid grid-cols-3 gap-2.5">
-                {[15, 30, 60].map((duration) => (
-                  <button
-                    key={duration}
-                    type="button"
-                    onClick={() => setAppointmentSettings((c) => ({ ...c, slot_duration: duration }))}
-                    className={`rounded-xl border-2 py-4 text-center transition-all ${
-                      appointmentSettings.slot_duration === duration
-                        ? 'border-brand bg-surface-soft'
-                        : 'border-gray-100 bg-gray-50 hover:border-brand/30'
-                    }`}
-                  >
-                    <div className={`text-2xl font-bold leading-none ${appointmentSettings.slot_duration === duration ? 'text-brand' : 'text-gray-800'}`}>
-                      {duration}
-                    </div>
-                    <div className={`text-[11px] mt-1 ${appointmentSettings.slot_duration === duration ? 'text-brand' : 'text-gray-400'}`}>
-                      min
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Capacity + Buffer */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-4">Capacity / slot</p>
-                <div className="flex items-center justify-between gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setAppointmentSettings((c) => ({ ...c, capacity: Math.max(1, c.capacity - 1) }))}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-lg font-bold text-gray-600 transition-colors hover:border-brand hover:text-brand"
-                  >
-                    −
-                  </button>
-                  <span className="text-3xl font-bold text-gray-900">{appointmentSettings.capacity}</span>
-                  <button
-                    type="button"
-                    onClick={() => setAppointmentSettings((c) => ({ ...c, capacity: Math.min(20, c.capacity + 1) }))}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-lg font-bold text-gray-600 transition-colors hover:border-brand hover:text-brand"
-                  >
-                    +
-                  </button>
-                </div>
-                <p className="mt-2 text-center text-[10px] text-gray-400">max 20 people</p>
-              </div>
-
-              <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-3">Buffer time</p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {[0, 5, 10, 15].map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setAppointmentSettings((c) => ({ ...c, buffer_minutes: m }))}
-                      className={`rounded-lg border py-1.5 text-[11px] font-medium transition-colors ${
-                        appointmentSettings.buffer_minutes === m
-                          ? 'border-brand bg-surface-soft text-brand'
-                          : 'border-gray-200 bg-white text-gray-500 hover:border-brand/40'
-                      }`}
-                    >
-                      {m === 0 ? 'None' : `${m} min`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Advance booking window */}
-            <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Advance booking window</p>
-                <span className="text-base font-bold text-gray-900">{appointmentSettings.advance_days} days</span>
-              </div>
-              <input
-                type="range"
-                min="1"
-                max="90"
-                step="1"
-                value={appointmentSettings.advance_days}
-                onChange={(event) =>
-                  setAppointmentSettings((c) => ({
-                    ...c,
-                    advance_days: Math.max(1, Math.min(90, Number(event.target.value))),
-                  }))
-                }
-                className="w-full accent-brand"
-              />
-              <div className="flex justify-between text-[10px] text-gray-400 mt-1">
-                <span>1 day</span>
-                <span>30 days</span>
-                <span>90 days</span>
-              </div>
-            </div>
-
-            {/* Minimum notice */}
-            <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1">Minimum notice</p>
-              <p className="text-[11px] text-gray-400 mb-3">
-                How soon before a slot someone can still book it.
-              </p>
-              <div className="grid grid-cols-4 gap-1.5">
-                {[0, 60, 120, 240].map((minutes) => (
-                  <button
-                    key={minutes}
-                    type="button"
-                    onClick={() => setAppointmentSettings((c) => ({ ...c, min_notice_minutes: minutes }))}
-                    className={`rounded-lg border py-1.5 text-[11px] font-medium transition-colors ${
-                      appointmentSettings.min_notice_minutes === minutes
-                        ? 'border-brand bg-surface-soft text-brand'
-                        : 'border-gray-200 bg-white text-gray-500 hover:border-brand/40'
-                    }`}
-                  >
-                    {minutes === 0 ? 'None' : minutes === 60 ? '1 hour' : `${minutes / 60} hours`}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Weekly schedule */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Weekly schedule</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">
-                    Add a second slot for a lunch break — e.g. 9–1 and 4–7.
-                  </p>
-                </div>
-                <span className="text-[11px] text-gray-400">
-                  {APPOINTMENT_DAYS.filter(({ key }) => appointmentSettings.availability[key].length > 0).length} days open
-                </span>
-              </div>
-              <div className="space-y-2">
-                {APPOINTMENT_DAYS.map(({ key, label }) => {
-                  const windows = appointmentSettings.availability[key]
-                  const isOpen = windows.length > 0
-
-                  return (
-                    <div key={key} className="rounded-xl border border-gray-100 bg-white px-3 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <span className="w-7 shrink-0 text-xs font-semibold text-gray-700">{label.slice(0, 3)}</span>
-                        <div className="flex-1" />
-                        <button
-                          type="button"
-                          onClick={() => toggleAppointmentDay(key, !isOpen)}
-                          className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                            isOpen ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                          }`}
-                        >
-                          {isOpen ? 'Open' : 'Closed'}
-                        </button>
-                      </div>
-
-                      {isOpen && (
-                        <div className="mt-2 space-y-1.5">
-                          {windows.map((window, index) => (
-                            <div key={index} className="flex items-center gap-1.5">
-                              <input
-                                type="time"
-                                aria-label={`${label} window ${index + 1} start`}
-                                value={window.start}
-                                onChange={(event) => updateAppointmentWindow(key, index, 'start', event.target.value)}
-                                className="flex-1 min-w-0 px-2 py-1.5 border border-gray-200 rounded-lg focus:outline-none focus:border-brand text-xs text-center bg-white"
-                              />
-                              <span className="shrink-0 text-gray-400 text-xs">–</span>
-                              <input
-                                type="time"
-                                aria-label={`${label} window ${index + 1} end`}
-                                value={window.end}
-                                onChange={(event) => updateAppointmentWindow(key, index, 'end', event.target.value)}
-                                className="flex-1 min-w-0 px-2 py-1.5 border border-gray-200 rounded-lg focus:outline-none focus:border-brand text-xs text-center bg-white"
-                              />
-                              {windows.length > 1 && (
-                                <button
-                                  type="button"
-                                  aria-label={`Remove ${label} window ${index + 1}`}
-                                  onClick={() => removeAppointmentWindow(key, index)}
-                                  className="shrink-0 rounded-lg border border-gray-200 px-2 py-1.5 text-xs text-gray-400 hover:border-red-200 hover:text-red-500"
-                                >
-                                  ×
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                          {windows.length < MAX_WINDOWS_PER_DAY && (
-                            <button
-                              type="button"
-                              onClick={() => addAppointmentWindow(key)}
-                              className="text-[11px] font-semibold text-brand hover:underline"
-                            >
-                              + Add another time range
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-        </div>
-
         <div className={activeTab === 'services' ? 'bg-white border border-gray-100 rounded-2xl p-6 space-y-4' : 'hidden'}>
             <div className="flex items-center justify-between mb-2">
               <div>
