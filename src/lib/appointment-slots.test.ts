@@ -195,14 +195,20 @@ test('a future booking date is unaffected by an injected now', () => {
   assert.ok(slots.every((s) => s.reason === 'open'))
 })
 
-// Regression: the India-time formatter must use hourCycle 'h23' rather than
-// hour12: false. During the midnight hour, hour12: false yields hour "24"
-// (not "00"), which pushes nowMinutes past every slot in the day and drops
-// them all as "past" — every business would render as closed 00:00-00:59 IST.
-test('at 00:07 IST, a business open 09:00-18:00 still returns its slots', () => {
+// Regression: getIndiaTodayInfo() must use hourCycle 'h23', not hour12: false.
+// hour12: false returns hour "24" during the midnight hour instead of "00",
+// pushing nowMinutes past every slot in the day and dropping them all as
+// "past" — every business rendered as closed 00:00-00:59 IST, nightly.
+// This test deliberately omits the injected clock so it exercises the real
+// Intl formatter; passing `now` would make it pass either way.
+test('at 00:07 IST the real clock path still returns the day slots', (t) => {
+  t.mock.timers.enable({ apis: ['Date'] })
+  // 2026-09-13T18:37:00Z === 2026-09-14T00:07 IST (Monday)
+  t.mock.timers.setTime(Date.UTC(2026, 8, 13, 18, 37))
+
   const config = settings({ slot_duration: 60 })
-  const midnight = { today: MONDAY, nowMinutes: 7 } // 00:07
-  const slots = generateAvailableSlots(config, MONDAY, {}, null, midnight)
+  const slots = generateAvailableSlots(config, MONDAY, {})
+
   assert.deepEqual(slots.map((s) => s.start), ['09:00', '10:00'])
   assert.ok(slots.every((s) => s.reason === 'open'))
 })
