@@ -126,7 +126,7 @@ export default function AssignOwner({ listingId, currentOwnerEmail }: Props) {
           )}
 
           {results.length === 0 && query && !searching && (
-            <p className="text-xs text-gray-400 text-center py-2">No users found for "{query}"</p>
+            <p className="text-xs text-gray-400 text-center py-2">No users found for &ldquo;{query}&rdquo;</p>
           )}
         </div>
       )}

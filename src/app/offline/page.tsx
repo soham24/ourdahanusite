@@ -15,7 +15,7 @@ export default function OfflinePage() {
         <WifiOff size={36} className="text-gray-400" />
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">You're offline</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">You&rsquo;re offline</h1>
       <p className="text-gray-500 mb-8 leading-relaxed">
         No internet connection detected — but emergency contacts are still available below.
       </p>

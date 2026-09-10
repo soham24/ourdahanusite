@@ -809,7 +809,7 @@ export default function EditListingForm({ listing }: Props) {
                 <label className="block text-sm font-semibold text-gray-700 flex items-center gap-1.5">
                   <Sparkles size={14} className="text-brand" /> Highlights / Key Stats
                 </label>
-                <p className="text-xs text-gray-400">e.g. "500+ Happy Customers", "10 Years Experience"</p>
+                <p className="text-xs text-gray-400">e.g. &ldquo;500+ Happy Customers&rdquo;, &ldquo;10 Years Experience&rdquo;</p>
               </div>
               <button type="button" onClick={() => setHighlights(h => [...h, { label: '', value: '' }])}
                 className="text-sm text-brand border border-brand px-3 py-1.5 rounded-xl hover:bg-surface-soft transition-colors flex items-center gap-1">
