@@ -10,6 +10,9 @@ import {
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
 
+/** Matches PostgREST's default "Max Rows"; see the paging loop below. */
+const EVENT_PAGE_SIZE = 1000
+
 /**
  * This month's and last month's numbers for listings the caller owns.
  *
@@ -40,11 +43,26 @@ export async function getMyListingStats(
 
   const windows = monthWindows(getIndiaToday())
 
-  const { data } = await adminClient
-    .from('listing_events')
-    .select('listing_id, kind, day')
-    .in('listing_id', ownedIds)
-    .gte('day', windows.previousStart)
+  // PostgREST caps a response at the project's "Max Rows" setting (1000 by
+  // default) and says nothing when it truncates. An owner busy enough to
+  // cross that would silently be shown an undercount — and with no ORDER BY,
+  // an arbitrary subset rather than even a recent one. A wrong number here is
+  // worse than no feature, so page until the table is exhausted. Ordering by
+  // id keeps the pages stable; id is a unique uuid.
+  const rows: ListingEventRow[] = []
+  for (let from = 0; ; from += EVENT_PAGE_SIZE) {
+    const { data, error } = await adminClient
+      .from('listing_events')
+      .select('listing_id, kind, day')
+      .in('listing_id', ownedIds)
+      .gte('day', windows.previousStart)
+      .order('id', { ascending: true })
+      .range(from, from + EVENT_PAGE_SIZE - 1)
 
-  return summariseListingEvents((data ?? []) as ListingEventRow[], windows)
+    if (error || !data || data.length === 0) break
+    rows.push(...(data as ListingEventRow[]))
+    if (data.length < EVENT_PAGE_SIZE) break
+  }
+
+  return summariseListingEvents(rows, windows)
 }

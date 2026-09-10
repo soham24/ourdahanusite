@@ -381,8 +381,24 @@ export default async function MyBusinessPage({
                       </div>
                       {(() => {
                         const stats = listingStats[listing.id] ?? EMPTY_LISTING_STATS
-                        const hasAny = stats.views > 0 || stats.phone > 0 || stats.whatsapp > 0
-                        if (!hasAny) {
+                        // Every segment is gated, views included. Views can be
+                        // zero while a tap is not — a visitor who opens the
+                        // listing before midnight and taps after it lands the
+                        // view in one month and the tap in the next. Printing
+                        // views unconditionally would show "0 views this month
+                        // · 3 calls", which is the row-of-zeroes look this line
+                        // exists to avoid.
+                        const parts: React.ReactNode[] = []
+                        if (stats.views > 0) {
+                          parts.push(<><span className="font-semibold text-gray-900">{stats.views}</span> views this month</>)
+                        }
+                        if (stats.whatsapp > 0) {
+                          parts.push(<><span className="font-semibold text-gray-900">{stats.whatsapp}</span> WhatsApp</>)
+                        }
+                        if (stats.phone > 0) {
+                          parts.push(<><span className="font-semibold text-gray-900">{stats.phone}</span> calls</>)
+                        }
+                        if (parts.length === 0) {
                           return (
                             <p className="mt-1.5 text-xs text-gray-400">
                               No views yet this month
@@ -391,9 +407,9 @@ export default async function MyBusinessPage({
                         }
                         return (
                           <p className="mt-1.5 text-xs text-gray-600">
-                            <span className="font-semibold text-gray-900">{stats.views}</span> views this month
-                            {stats.whatsapp > 0 && <> · <span className="font-semibold text-gray-900">{stats.whatsapp}</span> WhatsApp</>}
-                            {stats.phone > 0 && <> · <span className="font-semibold text-gray-900">{stats.phone}</span> calls</>}
+                            {parts.map((part, i) => (
+                              <span key={i}>{i > 0 && ' · '}{part}</span>
+                            ))}
                             {stats.previousViews > 0 && (
                               <span className="text-gray-400"> · last month {stats.previousViews}</span>
                             )}
