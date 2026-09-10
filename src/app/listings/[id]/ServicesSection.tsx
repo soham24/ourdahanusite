@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight, ShoppingCart, Link2, Check } from 'lucide-react'
@@ -96,11 +96,9 @@ export default function ServicesSection({
   const canOrder = false
   const totalPages = Math.max(1, Math.ceil(services.length / ITEMS_PER_PAGE))
 
-  useEffect(() => {
-    setCurrentPage((page) => Math.min(page, totalPages))
-  }, [totalPages])
+  const safePage = Math.min(currentPage, totalPages)
 
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  const startIndex = (safePage - 1) * ITEMS_PER_PAGE
   const visibleServices = services.slice(startIndex, startIndex + ITEMS_PER_PAGE)
   const visibleEnd = Math.min(startIndex + visibleServices.length, services.length)
 
@@ -211,7 +209,7 @@ export default function ServicesSection({
             <button
               type="button"
               onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-              disabled={currentPage === 1}
+              disabled={safePage === 1}
               className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-border hover:text-brand disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronLeft size={12} />
@@ -227,7 +225,7 @@ export default function ServicesSection({
                   type="button"
                   onClick={() => setCurrentPage(page)}
                   className={`h-8 min-w-8 rounded-lg px-2 text-xs font-semibold transition-colors ${
-                    page === currentPage
+                    page === safePage
                       ? 'bg-brand text-bg'
                       : 'border border-gray-200 bg-white text-gray-600 hover:border-border hover:text-brand'
                   }`}
@@ -240,7 +238,7 @@ export default function ServicesSection({
             <button
               type="button"
               onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-              disabled={currentPage === totalPages}
+              disabled={safePage === totalPages}
               className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-border hover:text-brand disabled:cursor-not-allowed disabled:opacity-40"
             >
               <span className="hidden sm:inline">Next</span>
