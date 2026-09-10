@@ -16,10 +16,9 @@ import {
   normalizePhoneOrNull,
   normalizeAppointmentSettings 
 } from '@/lib/listing-content'
-import { 
-  getCanonicalListingUrl, 
-  getListingHref, 
-  shouldRedirectListingToSubdomain 
+import {
+  getCanonicalListingUrl,
+  shouldRedirectListingToSubdomain
 } from '@/lib/listing-url'
 import { buildAbsoluteUrl } from '@/lib/site'
 import { getCachedListingDetail } from '@/lib/data/listing-detail'

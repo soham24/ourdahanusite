@@ -1,5 +1,4 @@
 import {
-  Calendar,
   CheckCircle,
   Clock3,
   IndianRupee,

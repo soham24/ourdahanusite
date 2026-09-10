@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft, Save, Plus, Trash2, Loader2, CheckCircle,
@@ -10,7 +9,6 @@ import {
   Video, Sparkles, Award, Truck, CreditCard, Megaphone, Gift,
 } from 'lucide-react'
 import { updateListing } from '@/app/actions/listings'
-import ImageUploadField from '@/components/ImageUploadField'
 import ImageUpload from '@/components/ImageUpload'
 import ImageCropUpload from '@/components/ImageCropUpload'
 import CompactImageUpload from '@/components/CompactImageUpload'
@@ -65,7 +63,6 @@ const RESPONSE_TIME_OPTIONS = ['Usually replies within 1 hour', 'Within a few ho
 interface Highlight { label: string; value: string }
 
 export default function EditListingForm({ listing }: Props) {
-  const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
   const [activeTab, setActiveTab] = useState<TabId>('basic')
   const [saving, setSaving] = useState(false)

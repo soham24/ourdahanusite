@@ -1,5 +1,4 @@
 import { Check, Plus, Star } from 'lucide-react'
-import SafeAppLink from '@/components/SafeAppLink'
 import Button from '@/components/ui/Button'
 
 interface BusinessOwnerCTAProps {

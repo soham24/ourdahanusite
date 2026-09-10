@@ -25,7 +25,7 @@ export default function NewListingsSection({ newListings }: NewListingsSectionPr
         />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {newListings.slice(0, 6).map((listing, index) => {
+          {newListings.slice(0, 6).map((listing) => {
             const href = getListingHref(listing.id, listing.subdomain)
             const address = summarizeAddress(listing.address, 2)
             const imageUrl = listing.image_url || listing.image_thumb_url

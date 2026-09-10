@@ -2,8 +2,7 @@
 
 import React from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
-import { 
+import {
   Globe, ArrowLeft, Edit2, CheckCircle, CalendarDays, Zap, 
   ExternalLink, Phone, ThumbsUp, Star, AtSign 
 } from 'lucide-react'

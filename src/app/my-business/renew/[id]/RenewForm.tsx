@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  Loader2, Tag, CheckCircle, X, BadgePercent,
+  Loader2, CheckCircle, X, BadgePercent,
   Calendar, Store, ArrowLeft, ShieldCheck, ShieldAlert,
 } from 'lucide-react'
 import { renewListing } from '@/app/actions/listings'

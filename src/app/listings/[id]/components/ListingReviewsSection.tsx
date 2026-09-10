@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState, useTransition } from 'react'
-import Link from 'next/link'
 import { MessageSquare, Star, MessageCircle, Loader2 } from 'lucide-react'
 import { loadMoreReviews } from '@/app/actions/reviews'
 import Card from '@/components/ui/Card'
