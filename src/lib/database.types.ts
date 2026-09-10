@@ -1024,6 +1024,41 @@ export type Database = {
           },
         ]
       }
+      listing_events: {
+        Row: {
+          created_at: string
+          day: string
+          id: string
+          kind: string
+          listing_id: string
+          visitor_key: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          id?: string
+          kind: string
+          listing_id: string
+          visitor_key: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          id?: string
+          kind?: string
+          listing_id?: string
+          visitor_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_events_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_favourites: {
         Row: {
           created_at: string | null
@@ -2235,6 +2270,10 @@ export type Database = {
         Returns: Json
       }
       get_homepage_stats: { Args: never; Returns: Json }
+      increment_listing_views: {
+        Args: { p_listing_id: string }
+        Returns: undefined
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
