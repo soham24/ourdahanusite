@@ -20,7 +20,7 @@ interface RazorpayOptions {
   description: string; order_id: string
   handler: (r: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => void
   modal: { ondismiss: () => void }
-  prefill: { name: string; contact: string }
+  prefill: { name: string; contact: string; email?: string }
   theme: { color: string }
 }
 
@@ -223,7 +223,7 @@ export default function OrderModal({ listing, service, serviceIndex, userEmail =
             setStatus('form')
           },
         },
-        prefill: { name: buyerName, contact: buyerPhone },
+        prefill: { name: buyerName, contact: buyerPhone, email: userEmail },
         theme: { color: '#C4663A' },
       })
 
