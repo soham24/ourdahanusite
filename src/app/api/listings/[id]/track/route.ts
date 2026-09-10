@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { getIndiaToday } from '@/lib/india-time'
-import { rateLimit, tooManyRequests } from '@/lib/rate-limit'
+import { getClientIp, rateLimit, tooManyRequests } from '@/lib/rate-limit'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
 
@@ -38,9 +38,13 @@ export async function POST(
     return new NextResponse(null, { status: 204 })
   }
 
-  // Cheap ceiling on a single abuser. The unique index is the real defence
-  // against inflated counts; this just stops someone burning invocations.
-  const rl = rateLimit(`track:${visitorKey}`, 60, 60 * 1000)
+  // Keyed on IP, deliberately NOT on visitorKey: the caller invents its own
+  // visitorKey, so a key-based limit is bypassed by rotating it — and rotating
+  // it also mints a fresh row under the unique index, defeating the per-day
+  // dedupe at the same time. IP is the only identifier here the caller does
+  // not simply choose. Matches check-subdomain and newsletter, which key the
+  // same limiter the same way.
+  const rl = rateLimit(`track:${getClientIp(request)}`, 60, 60 * 1000)
   if (!rl.ok) return tooManyRequests(rl.resetAt)
 
   const adminClient = createAdminClient()
