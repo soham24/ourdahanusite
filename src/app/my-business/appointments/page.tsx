@@ -385,18 +385,26 @@ export default function MyBusinessAppointmentsPage() {
         </p>
       )}
 
-      {tab === 'availability' && selectedListing && (
-        <AvailabilityTab
-          key={selectedListing.id}
-          listingId={selectedListing.id}
-          listingName={selectedListing.name}
-          rawSettings={selectedListing.appointment_settings}
-          onSaved={refreshListings}
-        />
+      {/*
+        Always mounted, hidden when inactive: this tab holds an unsaved draft,
+        and unmounting on tab switch would discard the owner's edits without
+        warning. The key still remounts it when the business changes, which is
+        the reset we do want.
+      */}
+      {selectedListing && (
+        <div hidden={tab !== 'availability'}>
+          <AvailabilityTab
+            key={selectedListing.id}
+            listingId={selectedListing.id}
+            listingName={selectedListing.name}
+            rawSettings={selectedListing.appointment_settings}
+            onSaved={refreshListings}
+          />
+        </div>
       )}
 
       {tab === 'schedule' && selectedListing && (
-        <ScheduleTab listingId={selectedListing.id} listingName={selectedListing.name} />
+        <ScheduleTab key={selectedListing.id} listingId={selectedListing.id} listingName={selectedListing.name} />
       )}
 
       {tab === 'bookings' && (

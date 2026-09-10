@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import {
+  revalidateAppointmentsCache,
   revalidatePublicListingContent,
   revalidatePublicListingDetail,
 } from '@/lib/cache-tags'
@@ -348,6 +349,10 @@ export async function updateListing(
   if (error) return { error: error.message }
 
   revalidatePublicListingContent(id)
+  // The appointments directory caches each listing's name, category and photo
+  // under its own tag, so an ordinary listing edit has to bust it too — or the
+  // booking directory shows the old name for up to a day.
+  revalidateAppointmentsCache(id)
   return {}
 }
 
