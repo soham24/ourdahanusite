@@ -23,9 +23,16 @@ export interface Coupon {
   created_at: string
 }
 
+/**
+ * Used only when the pricing_config read fails. This is NOT display-only:
+ * getSubmissionCharge derives what a customer is actually charged from the
+ * same value, so a stale figure here undercharges rather than merely
+ * misinforming. It sat at the launch price of 210 for two months after the
+ * fee moved to 750. Keep it in step with pricing_config.
+ */
 const FALLBACK_PRICING: PricingConfig = {
-  base_price: 500,
-  current_price: 210,
+  base_price: 1500,
+  current_price: 750,
 }
 
 export async function getCachedPricingConfig(): Promise<PricingConfig> {

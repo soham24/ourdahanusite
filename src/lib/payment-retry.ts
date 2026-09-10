@@ -247,7 +247,15 @@ function isPermanentClientError(message: string): boolean {
     m.includes('sign in') ||
     m.includes('required') ||
     m.includes('invalid') ||
-    m.includes('access denied')
+    m.includes('access denied') ||
+    // Capacity and availability errors cannot improve by being asked again:
+    // a taken seat does not un-fill, and a listing that stopped accepting
+    // appointments has not started again 700ms later. Retrying these burns
+    // ~5s of backoff AFTER the card is charged and lands on the recovery
+    // screen anyway, so the customer just waits longer for the same answer.
+    m.includes('already full') ||
+    m.includes('no longer available') ||
+    m.includes('not available for this listing')
   )
 }
 

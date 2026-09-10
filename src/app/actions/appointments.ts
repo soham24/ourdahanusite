@@ -206,6 +206,34 @@ export async function bookAppointment(
     return { error: 'Required booking details are missing.' }
   }
 
+  // Payment identifiers come from the form, not from the listing config, so
+  // the idempotency check can run before anything else touches availability.
+  const paymentId = String(formData.get('razorpay_payment_id') ?? '').trim() || null
+  const orderId = String(formData.get('razorpay_order_id') ?? '').trim() || null
+  const signature = String(formData.get('razorpay_signature') ?? '').trim() || null
+
+  // Idempotency FIRST — the same position every other paid flow uses
+  // (submitPaidListing, renewListing, placeOrder, placeMarketplaceOrder).
+  //
+  // This used to sit below the availability check, and that ordering was a
+  // bug with real customer impact. When a save succeeded but its response was
+  // lost, attemptWithRetry called this again; by then the seat was taken by
+  // the retry's OWN first attempt, so the availability check returned
+  // "Selected slot is already full" before this guard was ever reached. The
+  // caller then showed the payment-recovery screen — telling someone who had
+  // paid and whose appointment was sitting in the database that they still
+  // owed us a payment. Capacity 1 made it certain rather than occasional.
+  if (paymentId) {
+    const finalized = await findFinalizedIntentByPaymentId(paymentId)
+    if (
+      finalized &&
+      finalized.user_id === user.id &&
+      finalized.entity_table === 'appointments'
+    ) {
+      return { appointmentId: finalized.entity_id ?? undefined }
+    }
+  }
+
   const { config, slots, error: slotsError } = await resolveLiveSlots(listingId, bookingDate)
   if (!config || !config.appointments_enabled || !config.appointment_settings) {
     return { error: slotsError || 'Appointments are not available for this listing.' }
@@ -224,26 +252,10 @@ export async function bookAppointment(
 
   const bookingFee = parseMoney(config.appointment_booking_fee)
   let paymentStatus: 'paid' | 'free' = bookingFee > 0 ? 'paid' : 'free'
-  let orderId: string | null = null
-  let paymentId: string | null = null
-  let signature: string | null = null
 
   if (bookingFee > 0) {
-    paymentId = String(formData.get('razorpay_payment_id') ?? '').trim() || null
-    orderId = String(formData.get('razorpay_order_id') ?? '').trim() || null
-    signature = String(formData.get('razorpay_signature') ?? '').trim() || null
-
     if (!paymentId || !orderId || !signature) {
       return { error: 'Payment details are missing. Please try again.' }
-    }
-
-    const finalized = await findFinalizedIntentByPaymentId(paymentId)
-    if (
-      finalized &&
-      finalized.user_id === user.id &&
-      finalized.entity_table === 'appointments'
-    ) {
-      return { appointmentId: finalized.entity_id ?? undefined }
     }
 
     const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim()
