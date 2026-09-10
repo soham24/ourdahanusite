@@ -46,6 +46,26 @@ const PLAN_COLORS: Record<string, string> = {
   basic:    'bg-gray-100 text-gray-600',
 }
 
+/**
+ * The admin client isn't generated against the Supabase schema, so
+ * `.select('*')` comes back untyped. This mirrors just the columns this page
+ * actually reads off a `listings` row.
+ */
+interface AdminListingRow {
+  id: string
+  name: string
+  approved: boolean
+  plan: string | null
+  category: string | null
+  phone: string | null
+  address: string | null
+  created_at: string | null
+  expires_at: string | null
+  description: string | null
+  image_url: string | null
+  image_thumb_url: string | null
+}
+
 export default async function AdminListingsPage({
   searchParams,
 }: {
@@ -53,7 +73,7 @@ export default async function AdminListingsPage({
 }) {
   const { filter = 'all' } = await searchParams
 
-  let listings: any[]    = []
+  let listings: AdminListingRow[] = []
   let totalCount         = 0
   let pendingCount       = 0
   let liveCount          = 0

@@ -9,14 +9,15 @@ import Button from '@/components/ui/Button'
 import ReviewForm from '../ReviewForm'
 import OwnerReplyForm from '@/components/OwnerReplyForm'
 import { useListingViewer } from '../ListingViewerContext'
+import type { ListingRecord, ReviewRecord } from '@/lib/data/listing-detail'
 
 interface ListingReviewsSectionProps {
-  reviews: any[]
+  reviews: ReviewRecord[]
   /** Exact total across all pages, so the heading does not shrink to a page size. */
   reviewCount: number
   hasMoreReviews: boolean
   rating: number
-  listing: any
+  listing: ListingRecord
   listingId: string
   platformLoginUrl: string
 }
@@ -115,7 +116,7 @@ export default function ListingReviewsSection({
                     </div>
                     <span className="text-xs text-ink-2/40">{formatDate(review.created_at as string)}</span>
                   </div>
-                  {review.comment && (
+                  {Boolean(review.comment) && (
                     <p className="text-sm text-ink-2/70 mt-2 ml-10">{String(review.comment)}</p>
                   )}
 

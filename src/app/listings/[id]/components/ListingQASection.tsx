@@ -8,12 +8,13 @@ import Card from '@/components/ui/Card'
 import QASection from '../QASection'
 import { getListingHref } from '@/lib/listing-url'
 import { useListingViewer } from '../ListingViewerContext'
+import type { QuestionRecord, SimilarListing } from '@/lib/data/listing-detail'
 
 interface ListingQASectionProps {
-  questions: any[]
+  questions: QuestionRecord[]
   listingId: string
   subdomain: string | null
-  similarListings: any[]
+  similarListings: SimilarListing[]
   listingCategory: string
 }
 
@@ -25,6 +26,18 @@ export default function ListingQASection({
   listingCategory,
 }: ListingQASectionProps) {
   const viewer = useListingViewer()
+
+  // QASection expects the concrete question shape; the data layer only
+  // guarantees an opaque record, so narrow field-by-field here rather than
+  // widening QASection's own prop type.
+  const normalizedQuestions = questions.map((q) => ({
+    id: q.id as string,
+    question: q.question as string,
+    answer: (q.answer as string | null) ?? null,
+    answered_at: (q.answered_at as string | null) ?? null,
+    created_at: q.created_at as string,
+    user_id: (q.user_id as string | null) ?? null,
+  }))
 
   return (
     <div className="space-y-5">
@@ -41,7 +54,7 @@ export default function ListingQASection({
         <QASection
           listingId={listingId}
           subdomain={subdomain}
-          questions={questions}
+          questions={normalizedQuestions}
           isOwner={viewer.isOwner}
           isLoggedIn={viewer.isLoggedIn}
         />
@@ -55,27 +68,30 @@ export default function ListingQASection({
             Similar in {listingCategory}
           </h2>
           <div className="grid grid-cols-2 gap-3">
-            {similarListings.map(s => (
-              <Link key={s.id} href={getListingHref(s.id, s.subdomain)}
-                className="flex items-center gap-3 p-3 rounded-xl border border-border/50 hover:border-brand/30 hover:bg-surface-soft/40 transition-all">
-                <div className="w-10 h-10 rounded-lg bg-surface-soft flex-shrink-0 overflow-hidden flex items-center justify-center">
-                  {s.image_thumb_url || s.image_url ? (
-                    <Image src={s.image_thumb_url || s.image_url} alt={s.name} width={40} height={40} className="object-cover w-full h-full" />
-                  ) : (
-                    <span className="text-lg">🏪</span>
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-ink truncate">{s.name}</p>
-                  {s.rating > 0 && (
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <Star size={10} className="text-yellow-400 fill-yellow-400" />
-                      <span className="text-xs text-ink-2/40">{s.rating.toFixed(1)}</span>
-                    </div>
-                  )}
-                </div>
-              </Link>
-            ))}
+            {similarListings.map(s => {
+              const thumb = s.image_thumb_url || s.image_url
+              return (
+                <Link key={s.id} href={getListingHref(s.id, s.subdomain)}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-border/50 hover:border-brand/30 hover:bg-surface-soft/40 transition-all">
+                  <div className="w-10 h-10 rounded-lg bg-surface-soft flex-shrink-0 overflow-hidden flex items-center justify-center">
+                    {thumb ? (
+                      <Image src={thumb} alt={s.name} width={40} height={40} className="object-cover w-full h-full" />
+                    ) : (
+                      <span className="text-lg">🏪</span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-ink truncate">{s.name}</p>
+                    {typeof s.rating === 'number' && s.rating > 0 && (
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Star size={10} className="text-yellow-400 fill-yellow-400" />
+                        <span className="text-xs text-ink-2/40">{s.rating.toFixed(1)}</span>
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </Card>
       )}

@@ -12,9 +12,10 @@ import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import FavouriteButton from '../FavouriteButton'
 import { useListingViewer } from '../ListingViewerContext'
+import type { ListingRecord } from '@/lib/data/listing-detail'
 
 interface ListingHeroProps {
-  listing: any
+  listing: ListingRecord
   subdomain: string | null
   platformListingsUrl: string
   platformEditUrl: string
@@ -99,7 +100,7 @@ export default function ListingHero({
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* ── Pinned Announcement ─────────────────────────────────────────── */}
-        {listing.pinned_announcement && (
+        {Boolean(listing.pinned_announcement) && (
           <div className="relative -mt-4 mb-4 z-10">
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-2.5">
               <span className="text-amber-500 text-lg flex-shrink-0">📢</span>
@@ -133,17 +134,17 @@ export default function ListingHero({
                         </Badge>
                       )}
                     </div>
-                    {listing.tagline && (
+                    {Boolean(listing.tagline) && (
                       <p className="text-ink-2/60 mt-1 text-sm">{String(listing.tagline)}</p>
                     )}
                     {/* Established + Response Time */}
                     <div className="flex flex-wrap items-center gap-3 mt-1">
-                      {listing.established_year && (
+                      {Boolean(listing.established_year) && (
                         <span className="inline-flex items-center gap-1 text-xs text-gray-500">
                           <CalendarDays size={11} /> Est. {String(listing.established_year)}
                         </span>
                       )}
-                      {listing.response_time && (
+                      {Boolean(listing.response_time) && (
                         <span className="inline-flex items-center gap-1 text-xs text-green-600">
                           <Zap size={11} /> {String(listing.response_time)}
                         </span>
@@ -206,12 +207,12 @@ export default function ListingHero({
                   Send Enquiry
                 </Button>
               )}
-              {listing.website && (
+              {Boolean(listing.website) && (
                 <Button variant="outline" size="md" href={String(listing.website)}>
                   <Globe size={14} /> Website
                 </Button>
               )}
-              {listing.instagram && (
+              {Boolean(listing.instagram) && (
                 <Button variant="outline" size="md" href={`https://instagram.com/${String(listing.instagram).replace('@', '')}`} className="hover:border-pink-300 hover:bg-pink-50 hover:text-pink-600">
                   <AtSign size={14} className="text-pink-500" /> Instagram
                 </Button>

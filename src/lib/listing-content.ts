@@ -216,7 +216,7 @@ export function normalizeUrlArray(
   return normalized
 }
 
-type NormalizedService = {
+export type NormalizedService = {
   type?: 'service' | 'product'
   name: string
   desc?: string
