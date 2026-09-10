@@ -212,7 +212,7 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
     })
   }
 
-  void sendNotificationToAdmins('admin.new_submission', {
+  await sendNotificationToAdmins('admin.new_submission', {
     kind: 'listing',
     title: name,
     submitterName: user.email ?? null,
@@ -407,7 +407,7 @@ export async function submitReview(formData: FormData) {
     'Anonymous'
 
   if (listingMeta?.name) {
-    void (async () => {
+    await (async () => {
       try {
         const { data: ownerRow } = await dbClient
           .from('listings')
@@ -525,7 +525,7 @@ export async function replyToReview(
   // 3. Revalidate cached views.
   revalidatePublicListingDetail(listing.id)
 
-  // 4. Fire notifications (fire-and-forget; never break the UX).
+  // 4. Fire notifications (awaited delivery; never break the UX).
   const ownerName =
     (user.user_metadata?.full_name as string | undefined)?.trim() ||
     (listing.name as string | undefined)?.trim() ||
@@ -554,7 +554,7 @@ export async function replyToReview(
     replyText,
   }
 
-  void (async () => {
+  await (async () => {
     try {
       await Promise.allSettled([
         reviewRow.user_id

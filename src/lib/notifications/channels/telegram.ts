@@ -7,7 +7,7 @@ const TG_API = 'https://api.telegram.org'
 
 /**
  * DMs the given chat_id using the bot configured via TELEGRAM_BOT_TOKEN
- * (or TELEGRAM_USER_BOT_TOKEN as an override — in MVP we reuse the admin bot).
+ * (or TELEGRAM_USER_BOT_TOKEN as a fallback), matching the linking webhook.
  * Uses `rendered.telegram.text` if provided, otherwise falls back to title/body/link.
  */
 export async function deliverTelegram(params: {
@@ -15,15 +15,19 @@ export async function deliverTelegram(params: {
   rendered: RenderedNotification
 }): Promise<void> {
   const token =
-    process.env.TELEGRAM_USER_BOT_TOKEN?.trim() ||
-    process.env.TELEGRAM_BOT_TOKEN?.trim()
-  if (!token) return
+    process.env.TELEGRAM_BOT_TOKEN?.trim() ||
+    process.env.TELEGRAM_USER_BOT_TOKEN?.trim()
+  if (!token) {
+    console.error('[notifications:telegram] Bot token is not configured')
+    return
+  }
 
   const text = params.rendered.telegram?.text ?? buildFallbackText(params.rendered)
   if (!text) return
 
   const res = await fetch(`${TG_API}/bot${token}/sendMessage`, {
     method: 'POST',
+    signal: AbortSignal.timeout(10000),
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       chat_id: params.chatId,

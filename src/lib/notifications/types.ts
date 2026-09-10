@@ -181,10 +181,9 @@ export interface DispatchOptions {
   /** Skip channels even if user has them enabled (useful for retries / test mode). */
   channelOverride?: Partial<Record<'email' | 'telegram' | 'in_app' | 'whatsapp', boolean>>
   /**
-   * Await every channel (telegram/email/whatsapp) instead of firing them and
-   * forgetting. Set this when the caller runs inside `after()` (post-response),
-   * so the serverless function stays alive until delivery actually completes —
-   * otherwise the detached fetches are frozen/dropped before they finish.
+   * Defaults to true: await every channel, including inside after(), so the
+   * serverless function stays alive until delivery completes. Only disable if
+   * the caller independently guarantees the runtime will remain alive.
    */
   awaitDelivery?: boolean
 }

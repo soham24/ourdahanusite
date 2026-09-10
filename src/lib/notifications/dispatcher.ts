@@ -20,8 +20,8 @@ import {
  *
  * Contract:
  *   - Always non-throwing (all delivery errors are logged, never propagated).
- *   - Fire-and-forget per channel (Telegram/email/WhatsApp). In-app insert is awaited
- *     so the Realtime INSERT is in-flight before this function returns.
+ *   - Awaits channel delivery by default so serverless requests cannot finish
+ *     while Telegram/email/WhatsApp requests are still pending.
  *   - Respects `notification_preferences.muted_types[]` and per-channel toggles.
  *   - Writes an in-app row unless the user explicitly muted the type OR disabled in_app.
  *
@@ -50,11 +50,8 @@ export async function sendNotification<T extends NotificationType>(
       (override.telegram ?? prefs.telegram_enabled) && Boolean(prefs.telegram_chat_id)
     const useWhatsApp = override.whatsapp ?? prefs.whatsapp_enabled
 
-    // When awaitDelivery is set (caller runs inside `after()`), the channel
-    // promises are collected and awaited before returning so the serverless
-    // function stays alive until delivery completes. Otherwise each channel is
-    // fire-and-forget (best-effort within the request lifetime).
-    const awaitDelivery = options.awaitDelivery ?? false
+    // Keep delivery within the caller's lifetime, including inside after().
+    const awaitDelivery = options.awaitDelivery ?? true
     const pending: Promise<unknown>[] = []
     const track = (p: Promise<unknown>) => {
       if (awaitDelivery) pending.push(p)

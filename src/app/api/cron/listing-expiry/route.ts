@@ -63,10 +63,10 @@ export async function GET(request: Request) {
       .update({ approved: false })
       .in('id', expiredIds)
 
-    // Notifications still need to fire per-listing (fire-and-forget)
+    // Notifications still need to fire per-listing (awaited delivery)
     for (const listing of expiredListings) {
       if (listing.owner_id && listing.name) {
-        void sendNotification(listing.owner_id as string, 'listing.expiring', {
+        await sendNotification(listing.owner_id as string, 'listing.expiring', {
           listingId: listing.id as string,
           listingName: listing.name as string,
           daysLeft: 0,

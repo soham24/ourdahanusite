@@ -38,7 +38,7 @@ export async function submitEvent(formData: FormData) {
 
   if (error) throw new Error(error.message)
 
-  void sendNotificationToAdmins('admin.new_submission', {
+  await sendNotificationToAdmins('admin.new_submission', {
     kind: 'event',
     title,
     submitterName: user.email ?? null,

@@ -240,8 +240,8 @@ export async function placeMarketplaceOrder(
     entityTable: 'orders',
   })
 
-  // Fan out notifications to buyer + owner + admins (fire-and-forget)
-  void (async () => {
+  // Fan out notifications to buyer + owner + admins (awaited delivery)
+  await (async () => {
     const basePayload = {
       orderId: newOrder.id,
       listingId: product.listing_id,
@@ -363,9 +363,9 @@ export async function updateMarketplaceOrderStatus(
 
   if (error) return { error: error.message }
 
-  // Notify the buyer on status change (fire-and-forget)
+  // Notify the buyer on status change (awaited delivery)
   if (order.buyer_id && (status === 'fulfilled' || status === 'cancelled')) {
-    void sendNotification(
+    await sendNotification(
       order.buyer_id,
       status === 'fulfilled' ? 'order.fulfilled' : 'order.cancelled',
       {

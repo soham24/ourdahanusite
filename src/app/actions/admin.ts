@@ -184,12 +184,12 @@ export async function approveContent(formData: FormData) {
   const { error } = await db.from(table).update(update).eq('id', id)
   if (error) throw new Error(error.message)
 
-  // Send approval notification (fire-and-forget)
+  // Send approval notification (awaited delivery)
   // Listings go through the unified sendNotification('listing.approved') which
   // handles in-app + email + whatsapp + telegram in one shot. Other content
   // types fall back to the generic email-only notifier.
   if (table === 'listings') {
-    void (async () => {
+    await (async () => {
       try {
         const db = adminClient ?? supabase
         const { data: listing } = await db
@@ -259,7 +259,7 @@ export async function rejectContent(formData: FormData) {
   if (error) throw new Error(error.message)
 
   if (listingRejectionContext) {
-    void sendNotification(listingRejectionContext.ownerId, 'listing.rejected', {
+    await sendNotification(listingRejectionContext.ownerId, 'listing.rejected', {
       listingId: id,
       listingName: listingRejectionContext.listingName,
       reason,

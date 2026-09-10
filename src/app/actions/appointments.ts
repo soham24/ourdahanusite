@@ -353,9 +353,9 @@ export async function bookAppointment(
 
   revalidateAppointmentsCache(listingId)
 
-  // Fire-and-forget notifications: fan out to owner + buyer + admins via
+  // Await notifications: fan out to owner + buyer + admins via
   // the unified notification engine.
-  void (async () => {
+  await (async () => {
     try {
       const { data: listing } = await adminClient
         .from('listings')
@@ -458,7 +458,7 @@ export async function cancelAppointment(
   if (error) return { error: error.message }
 
   // Fire-and-forget cancellation notifications to the other party
-  void (async () => {
+  await (async () => {
     try {
       const { data: listing } = await adminClient
         .from('listings')
