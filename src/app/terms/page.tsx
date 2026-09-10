@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
+import { getCachedPricingConfig } from '@/lib/data/pricing'
+
 export const metadata: Metadata = {
   title: 'Terms of Service',
   description:
@@ -25,7 +27,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 const linkClass = 'font-semibold text-[#C0582E] underline decoration-[#C0582E]/30 underline-offset-2 hover:decoration-[#C0582E]'
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  // Read the live listing fee rather than hardcoding it. This page is the
+  // document someone points at in a dispute, and a hardcoded figure went
+  // stale the moment the price changed — it said ₹210 for two months while
+  // the real fee was ₹750.
+  const pricing = await getCachedPricingConfig()
+
   return (
     <main className="bg-[#FAFAF7]">
       <div className="mx-auto max-w-[760px] px-5 py-16 md:px-6 md:py-24">
@@ -70,8 +78,9 @@ export default function TermsPage() {
         </Section>
 
         <Section title="Listing your business">
-          <p>Listing a business currently costs ₹210/year (occasionally offered at a discount via coupon codes).
-            This fee covers your listing being visible in the directory and marketplace for one year.</p>
+          <p>Listing a business currently costs ₹{pricing.current_price}/year (occasionally offered at a
+            discount via coupon codes). This fee covers your listing being visible in the directory and
+            marketplace for one year.</p>
           <p><strong className="font-semibold text-[#2E1205]">Refunds.</strong> If you change your mind after
             paying, you can request a refund of the listing fee by contacting us. If we remove your listing for
             breaking these Terms, the fee is not refunded.</p>
