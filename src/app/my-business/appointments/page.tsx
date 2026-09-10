@@ -21,21 +21,10 @@ import {
   getMyAppointmentListings,
   type OwnerAppointmentListing,
 } from '@/app/actions/appointment-overrides'
+import { getIndiaToday } from '@/lib/india-time'
 
 import AvailabilityTab from './AvailabilityTab'
 import ScheduleTab from './ScheduleTab'
-
-function getIndiaToday(): string {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Kolkata',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
-  const parts = formatter.formatToParts(new Date())
-  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]))
-  return `${lookup.year}-${lookup.month}-${lookup.day}`
-}
 
 /** Normalise Postgres time (HH:MM or HH:MM:SS) to HH:MM:SS for Date parsing */
 function normaliseTime(t: string): string {

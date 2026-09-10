@@ -1,3 +1,4 @@
+import { addIndiaDays, getIndiaToday } from '@/lib/india-time'
 import { sendNotification } from '@/lib/notifications'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 
@@ -37,24 +38,6 @@ export type AppointmentReminderStats = {
   customerSent: number
   errors: number
   timestamp: string
-}
-
-function getIndiaToday(): string {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Kolkata',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
-  const parts = formatter.formatToParts(new Date())
-  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]))
-  return `${lookup.year}-${lookup.month}-${lookup.day}`
-}
-
-function addIndiaDays(dateString: string, days: number): string {
-  const base = new Date(`${dateString}T12:00:00+05:30`)
-  base.setUTCDate(base.getUTCDate() + days)
-  return base.toISOString().slice(0, 10)
 }
 
 function getAppointmentInstant(bookingDate: string, slotStart: string): Date {

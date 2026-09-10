@@ -6,6 +6,7 @@ import { generateAvailableSlots } from '@/lib/appointment-slots'
 import { CACHE_TAGS } from '@/lib/cache-tags'
 import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
 import { getOverridesForListings } from '@/lib/data/appointment-overrides'
+import { addIndiaDays, getIndiaToday } from '@/lib/india-time'
 import { logCacheRegeneration } from '@/lib/isr-debug'
 import { normalizeAppointmentSettings, type AppointmentSettings } from '@/lib/listing-content'
 import { createPublicClient } from '@/lib/supabase/public'
@@ -42,24 +43,6 @@ type BookableRow = {
   appointment_settings: unknown
 }
 
-function getIndiaToday(): string {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Kolkata',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
-  const parts = formatter.formatToParts(new Date())
-  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]))
-  return `${lookup.year}-${lookup.month}-${lookup.day}`
-}
-
-function addDays(dateString: string, days: number): string {
-  const base = new Date(`${dateString}T12:00:00+05:30`)
-  base.setUTCDate(base.getUTCDate() + days)
-  return base.toISOString().slice(0, 10)
-}
-
 function toNumber(value: number | string | null | undefined): number {
   const parsed = typeof value === 'number' ? value : Number.parseFloat(String(value ?? '0'))
   return Number.isFinite(parsed) ? parsed : 0
@@ -90,7 +73,7 @@ export async function getAppointmentDirectory(): Promise<AppointmentDirectoryEnt
   if (rows.length === 0) return []
 
   const today = getIndiaToday()
-  const horizon = addDays(today, DIRECTORY_LOOKAHEAD_DAYS)
+  const horizon = addIndiaDays(today, DIRECTORY_LOOKAHEAD_DAYS)
   const listingIds = rows.map((row) => row.id)
 
   const supabase = createPublicClient()
@@ -125,7 +108,7 @@ export async function getAppointmentDirectory(): Promise<AppointmentDirectoryEnt
     if (settings) {
       const days = Math.min(settings.advance_days, DIRECTORY_LOOKAHEAD_DAYS)
       for (let offset = 0; offset <= days && nextSlots.length < SLOTS_SHOWN; offset += 1) {
-        const date = addDays(today, offset)
+        const date = addIndiaDays(today, offset)
         const slots = generateAvailableSlots(
           settings,
           date,
