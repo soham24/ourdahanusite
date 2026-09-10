@@ -254,8 +254,12 @@ test('keeps listings separate', () => {
   assert.equal(out.L2.views, 2)
 })
 
-test('returns an empty object for no rows', () => {
-  assert.deepEqual(summariseListingEvents([], W), {})
+test('returns no listings for no rows', () => {
+  // Compare the keys, not the object itself. The accumulator is built with
+  // Object.create(null) — a deliberate guard, since it is keyed by values
+  // coming out of the database — and node:assert/strict compares prototypes,
+  // so deepEqual against a `{}` literal fails on the prototype alone.
+  assert.deepEqual(Object.keys(summariseListingEvents([], W)), [])
 })
 
 test('EMPTY_LISTING_STATS is all zeroes', () => {
