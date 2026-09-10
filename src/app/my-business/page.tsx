@@ -22,6 +22,8 @@ import {
 } from 'lucide-react'
 import { getListingHref } from '@/lib/listing-url'
 import OwnerReplyForm from '@/components/OwnerReplyForm'
+import { getMyListingStats } from '@/app/actions/listing-stats'
+import { EMPTY_LISTING_STATS } from '@/lib/listing-stats'
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'approved') {
@@ -159,6 +161,7 @@ export default async function MyBusinessPage({
   let totalReviews = 0
   let avgRating    = 0
   let totalViews   = 0
+  let listingStats: Record<string, import('@/lib/listing-stats').ListingStats> = {}
 
   try {
     const { data: listingsData } = await supabase
@@ -176,6 +179,10 @@ export default async function MyBusinessPage({
     avgRating = ratedListings.length
       ? ratedListings.reduce((sum, l) => sum + (l.rating || 0), 0) / ratedListings.length
       : 0
+
+    listingStats = listings.length > 0
+      ? await getMyListingStats(listings.map((l) => l.id))
+      : {}
 
     if (listings.length > 0) {
       const ids = listings.map(l => l.id)
@@ -372,6 +379,27 @@ export default async function MyBusinessPage({
                           </span>
                         )}
                       </div>
+                      {(() => {
+                        const stats = listingStats[listing.id] ?? EMPTY_LISTING_STATS
+                        const hasAny = stats.views > 0 || stats.phone > 0 || stats.whatsapp > 0
+                        if (!hasAny) {
+                          return (
+                            <p className="mt-1.5 text-xs text-gray-400">
+                              No views yet this month
+                            </p>
+                          )
+                        }
+                        return (
+                          <p className="mt-1.5 text-xs text-gray-600">
+                            <span className="font-semibold text-gray-900">{stats.views}</span> views this month
+                            {stats.whatsapp > 0 && <> · <span className="font-semibold text-gray-900">{stats.whatsapp}</span> WhatsApp</>}
+                            {stats.phone > 0 && <> · <span className="font-semibold text-gray-900">{stats.phone}</span> calls</>}
+                            {stats.previousViews > 0 && (
+                              <span className="text-gray-400"> · last month {stats.previousViews}</span>
+                            )}
+                          </p>
+                        )
+                      })()}
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
