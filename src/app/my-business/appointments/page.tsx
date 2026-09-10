@@ -17,7 +17,12 @@ import {
   updateAppointmentStatus,
   type AppointmentRecord,
 } from '@/app/actions/appointments'
+import {
+  getMyAppointmentListings,
+  type OwnerAppointmentListing,
+} from '@/app/actions/appointment-overrides'
 
+import AvailabilityTab from './AvailabilityTab'
 import ScheduleTab from './ScheduleTab'
 
 function getIndiaToday(): string {
@@ -221,7 +226,29 @@ export default function MyBusinessAppointmentsPage() {
   const [appointments, setAppointments] = useState<AppointmentRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
-  const [tab, setTab] = useState<'bookings' | 'schedule'>('bookings')
+  const [tab, setTab] = useState<'bookings' | 'availability' | 'schedule'>('bookings')
+  const [listings, setListings] = useState<OwnerAppointmentListing[]>([])
+  const [listingsLoading, setListingsLoading] = useState(true)
+  const [listingId, setListingId] = useState('')
+
+  useEffect(() => {
+    getMyAppointmentListings().then((result) => {
+      setListings(result.listings)
+      if (result.listings.length > 0) setListingId(result.listings[0].id)
+      setListingsLoading(false)
+    })
+  }, [])
+
+  const selectedListing = listings.find((listing) => listing.id === listingId) ?? null
+
+  // Re-read after a save so the cached settings this page hands to the editor
+  // do not go stale. Without it, switching business away and back would show
+  // the owner their pre-save hours.
+  const refreshListings = async () => {
+    const result = await getMyAppointmentListings()
+    setListings(result.listings)
+  }
+
   const today = useMemo(() => getIndiaToday(), [])
 
   useEffect(() => {
@@ -231,30 +258,44 @@ export default function MyBusinessAppointmentsPage() {
     })
   }, [])
 
+  const applyPatch = (id: string, patch: Partial<AppointmentRecord>) => {
+    setAppointments((current) =>
+      current.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+    )
+  }
+
+  // Scope every booking view to the selected business. When the owner has no
+  // appointment-enabled listing there is nothing to scope by, so historical
+  // bookings still show rather than silently vanishing.
+  const scopedAppointments = useMemo(
+    () => (listingId ? appointments.filter((a) => a.listing_id === listingId) : appointments),
+    [appointments, listingId],
+  )
+
   const todayAppointments = useMemo(
-    () => appointments.filter((appointment) => appointment.booking_date === today),
-    [appointments, today],
+    () => scopedAppointments.filter((appointment) => appointment.booking_date === today),
+    [scopedAppointments, today],
   )
 
   const upcomingAppointments = useMemo(
     () =>
-      appointments.filter(
+      scopedAppointments.filter(
         (appointment) => appointment.status === 'confirmed' && appointment.booking_date > today,
       ),
-    [appointments, today],
+    [scopedAppointments, today],
   )
 
   const nextAppointment = useMemo(
     () =>
-      appointments.find(
+      scopedAppointments.find(
         (appointment) => appointment.status === 'confirmed' && isFutureAppointment(appointment),
       ) ?? null,
-    [appointments],
+    [scopedAppointments],
   )
 
   const recentActivity = useMemo(
     () =>
-      [...appointments]
+      [...scopedAppointments]
         .filter(
           (appointment) =>
             appointment.booking_date !== today &&
@@ -262,32 +303,26 @@ export default function MyBusinessAppointmentsPage() {
         )
         .sort((a, b) => getAppointmentInstant(b).getTime() - getAppointmentInstant(a).getTime())
         .slice(0, 8),
-    [appointments, today],
+    [scopedAppointments, today],
   )
 
   const completedCount = useMemo(
-    () => appointments.filter((appointment) => appointment.status === 'completed').length,
-    [appointments],
+    () => scopedAppointments.filter((appointment) => appointment.status === 'completed').length,
+    [scopedAppointments],
   )
 
   const cancelledCount = useMemo(
-    () => appointments.filter((appointment) => appointment.status === 'cancelled').length,
-    [appointments],
+    () => scopedAppointments.filter((appointment) => appointment.status === 'cancelled').length,
+    [scopedAppointments],
   )
 
   const bookedValue = useMemo(
     () =>
-      appointments
+      scopedAppointments
         .filter((appointment) => appointment.status !== 'cancelled')
         .reduce((total, appointment) => total + appointment.booking_fee, 0),
-    [appointments],
+    [scopedAppointments],
   )
-
-  const applyPatch = (id: string, patch: Partial<AppointmentRecord>) => {
-    setAppointments((current) =>
-      current.map((item) => (item.id === id ? { ...item, ...patch } : item)),
-    )
-  }
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-4 py-10 sm:px-6">
@@ -312,8 +347,25 @@ export default function MyBusinessAppointmentsPage() {
         </div>
       </section>
 
+      {listings.length > 1 && (
+        <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          Business
+          <select
+            value={listingId}
+            onChange={(event) => setListingId(event.target.value)}
+            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-normal normal-case tracking-normal text-gray-800"
+          >
+            {listings.map((listing) => (
+              <option key={listing.id} value={listing.id}>
+                {listing.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+
       <div className="flex gap-2">
-        {(['bookings', 'schedule'] as const).map((id) => (
+        {(['bookings', 'availability', 'schedule'] as const).map((id) => (
           <button
             key={id}
             type="button"
@@ -322,12 +374,38 @@ export default function MyBusinessAppointmentsPage() {
               tab === id ? 'bg-brand text-white' : 'border border-[#e5d3c2] bg-white text-[#7b6254]'
             }`}
           >
-            {id === 'bookings' ? 'Bookings' : 'Schedule'}
+            {id === 'bookings' ? 'Bookings' : id === 'availability' ? 'Availability' : 'Schedule'}
           </button>
         ))}
       </div>
 
-      {tab === 'schedule' && <ScheduleTab />}
+      {tab !== 'bookings' && !listingsLoading && !selectedListing && (
+        <p className="rounded-2xl border border-dashed border-[#e5d3c2] p-6 text-center text-xs text-[#9b7c69]">
+          Appointments are not enabled for any of your businesses yet.
+        </p>
+      )}
+
+      {/*
+        Always mounted, hidden when inactive: this tab holds an unsaved draft,
+        and unmounting on tab switch would discard the owner's edits without
+        warning. The key still remounts it when the business changes, which is
+        the reset we do want.
+      */}
+      {selectedListing && (
+        <div hidden={tab !== 'availability'}>
+          <AvailabilityTab
+            key={selectedListing.id}
+            listingId={selectedListing.id}
+            listingName={selectedListing.name}
+            rawSettings={selectedListing.appointment_settings}
+            onSaved={refreshListings}
+          />
+        </div>
+      )}
+
+      {tab === 'schedule' && selectedListing && (
+        <ScheduleTab key={selectedListing.id} listingId={selectedListing.id} listingName={selectedListing.name} />
+      )}
 
       {tab === 'bookings' && (
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
