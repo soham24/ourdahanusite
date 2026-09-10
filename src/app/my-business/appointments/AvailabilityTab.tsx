@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { Loader2, Save } from 'lucide-react'
 
 import { saveAppointmentSettings } from '@/app/actions/appointment-settings'
@@ -57,14 +57,11 @@ export default function AvailabilityTab({
   const [error, setError] = useState('')
   const [savedAt, setSavedAt] = useState(0)
 
-  // Re-seed when the owner switches business. Carrying one business's
-  // half-finished hours across to another is how the wrong schedule gets saved.
-  useEffect(() => {
-    setSettings(readSettings(rawSettings))
-    setError('')
-    setSavedAt(0)
-  }, [listingId, rawSettings])
-
+  // No re-seed effect: the parent passes key={listingId}, so switching
+  // business unmounts and remounts this component and every piece of state
+  // below is rebuilt from the new listing's settings. Resetting state in an
+  // effect instead trips react-hooks/set-state-in-effect and causes a
+  // cascading render.
   const setDayWindows = (day: AppointmentWeekday, windows: AppointmentDayWindow[]) => {
     setSettings((current) => ({
       ...current,
