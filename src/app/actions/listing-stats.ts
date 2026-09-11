@@ -22,7 +22,7 @@ const EVENT_PAGE_SIZE = 1000
  */
 export async function getMyListingStats(
   listingIds: string[],
-): Promise<Record<string, ListingStats>> {
+): Promise<Record<string, ListingStats> | null> {
   if (listingIds.length === 0) return {}
 
   const supabase = await createClient()
@@ -30,13 +30,15 @@ export async function getMyListingStats(
   if (!user) return {}
 
   const adminClient = createAdminClient()
-  if (!adminClient) return {}
+  if (!adminClient) return null
 
-  const { data: owned } = await adminClient
+  const { data: owned, error: ownedError } = await adminClient
     .from('listings')
     .select('id')
     .eq('owner_id', user.id)
     .in('id', listingIds)
+
+  if (ownedError) return null
 
   const ownedIds = ((owned ?? []) as Array<{ id: string }>).map((row) => row.id)
   if (ownedIds.length === 0) return {}
@@ -59,7 +61,12 @@ export async function getMyListingStats(
       .order('id', { ascending: true })
       .range(from, from + EVENT_PAGE_SIZE - 1)
 
-    if (error || !data || data.length === 0) break
+    // A page error means the totals gathered so far are incomplete. Returning
+    // them anyway would show a paying owner a real-looking but wrong number
+    // ("3 views this month" when the true count is higher) — worse than
+    // admitting the load failed.
+    if (error) return null
+    if (!data || data.length === 0) break
     rows.push(...(data as ListingEventRow[]))
     if (data.length < EVENT_PAGE_SIZE) break
   }

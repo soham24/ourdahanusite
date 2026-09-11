@@ -161,7 +161,7 @@ export default async function MyBusinessPage({
   let totalReviews = 0
   let avgRating    = 0
   let totalViews   = 0
-  let listingStats: Record<string, import('@/lib/listing-stats').ListingStats> = {}
+  let listingStats: Record<string, import('@/lib/listing-stats').ListingStats> | null = {}
 
   try {
     const { data: listingsData } = await supabase
@@ -380,6 +380,10 @@ export default async function MyBusinessPage({
                         )}
                       </div>
                       {(() => {
+                        // null means the stats query itself failed — render no
+                        // line at all rather than a false "No views yet this
+                        // month" that a paying owner would take as fact.
+                        if (listingStats === null) return null
                         const stats = listingStats[listing.id] ?? EMPTY_LISTING_STATS
                         // Every segment is gated, views included. Views can be
                         // zero while a tap is not — a visitor who opens the
@@ -402,6 +406,9 @@ export default async function MyBusinessPage({
                           return (
                             <p className="mt-1.5 text-xs text-gray-400">
                               No views yet this month
+                              {stats.previousViews > 0 && (
+                                <span> · last month: {stats.previousViews} views</span>
+                              )}
                             </p>
                           )
                         }
@@ -411,7 +418,7 @@ export default async function MyBusinessPage({
                               <span key={i}>{i > 0 && ' · '}{part}</span>
                             ))}
                             {stats.previousViews > 0 && (
-                              <span className="text-gray-400"> · last month {stats.previousViews}</span>
+                              <span className="text-gray-400"> · last month: {stats.previousViews} views</span>
                             )}
                           </p>
                         )
