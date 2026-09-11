@@ -45,7 +45,7 @@ export default function AppointmentsLayout({ children }: { children: React.React
         <div className="warli-divider opacity-70" aria-hidden />
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-1.5 px-4 py-6 text-center">
           <p className="text-xs text-[var(--od-muted)]">
-            Booking fees are non-refundable. Cancellations are handled by the business.
+            Cancellations are handled by the business.
           </p>
           <a
             href="https://ourdahanu.in"
