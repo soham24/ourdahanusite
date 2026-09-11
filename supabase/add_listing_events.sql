@@ -18,7 +18,9 @@ CREATE TABLE IF NOT EXISTS listing_events (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_listing_events_daily
   ON listing_events (listing_id, kind, visitor_key, day);
 
--- Serves the owner's month aggregates and the retention prune.
+-- Serves the owner's month aggregates (per-listing, ordered by day). The
+-- retention prune filters on `day` alone and scans instead, which is fine at
+-- this table's size.
 CREATE INDEX IF NOT EXISTS idx_listing_events_listing_day
   ON listing_events (listing_id, day DESC);
 
@@ -34,8 +36,15 @@ ALTER TABLE listing_events ENABLE ROW LEVEL SECURITY;
 CREATE OR REPLACE FUNCTION public.increment_listing_views(p_listing_id uuid)
 RETURNS void
 LANGUAGE sql
+SET search_path = public
 AS $$
   UPDATE listings
   SET views = COALESCE(views, 0) + 1
   WHERE id = p_listing_id;
 $$;
+
+-- Only the service role (the tracking route) may call this. Supabase's
+-- default privileges also grant EXECUTE on new public functions to anon and
+-- authenticated, which would let any API caller bump a listing's counter.
+REVOKE EXECUTE ON FUNCTION public.increment_listing_views(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.increment_listing_views(uuid) TO service_role;
