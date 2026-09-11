@@ -23,6 +23,7 @@ import {
 import { buildAbsoluteUrl } from '@/lib/site'
 import { getCachedListingDetail } from '@/lib/data/listing-detail'
 import { truncateAtWord } from '@/lib/text'
+import ListingTracker from '@/components/listings/ListingTracker'
 import { ListingViewerProvider } from './ListingViewerContext'
 
 // Modular Components
@@ -342,6 +343,7 @@ async function ListingDetailContent({
 
   return (
     <ListingViewerProvider listingId={listingId}>
+    <ListingTracker listingId={listingId} />
     <div className="od-page min-h-screen">
       <StructuredData data={[breadcrumbSchema, localBusinessSchema]} />
 
