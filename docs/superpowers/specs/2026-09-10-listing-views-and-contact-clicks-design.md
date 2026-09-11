@@ -12,9 +12,23 @@ looked at their listing, and how many tapped to call or message them.
 
 `listings.views` already exists as a column, and `src/app/my-business/page.tsx`
 already renders it as a "Views" stat tile (line 257, via `totalViews` at line
-174). **Nothing in the codebase has ever written that column** — no update, no
-increment, no RPC. Every business owner who has opened My Business has been
-shown a views counter reading zero since launch.
+174). **Nothing in the current codebase writes that column.**
+
+It was written once. The initial import (`86586d8`, 2026-04-06) shipped an
+`incrementListingView` server action, called on every visit by a `RecordView`
+component on the listing page, doing a read-then-write `views + 1`. It was
+removed on 2026-04-26 in `11aa6fc`, a commit about thumbnails whose message
+does not mention it. So the tile has not read zero since launch: for the 40
+listings with a non-zero value (checked against production 2026-09-11) it has
+been **frozen at roughly three weeks of April counts** ever since, and it reads
+zero for the rest.
+
+Those April counts came from a different method: every page load, no per-day
+dedupe, the owner's own visits included, and a read-then-write race that could
+drop concurrent increments.
+
+(An earlier draft of this spec said the column had never been written. That
+came from searching only the current tree, not its history.)
 
 So this is not a new feature. It is making a number the product already
 promises stop being false.
@@ -121,8 +135,10 @@ stop trusting the whole figure.
 
 The API route also increments `listings.views` as a **lifetime** total.
 
-Two reasons. The tile the dashboard already renders stops reading zero on the
-day this ships. And lifetime figures survive the retention prune, so pruning
+Two reasons. The tile the dashboard already renders starts moving again on the
+day this ships, after being frozen since April. It carries forward the April
+counts described above, so the lifetime total mixes that older method with the
+new deduped one. And lifetime figures survive the retention prune, so pruning
 old event rows never makes a business's history appear to shrink.
 
 ### 5. What the owner sees
