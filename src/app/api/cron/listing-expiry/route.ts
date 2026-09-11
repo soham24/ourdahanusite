@@ -1,7 +1,7 @@
 /**
- * Daily cron job — Listing Expiry & Reminder System
+ * Weekly cron job — Listing Expiry & Reminder System
  *
- * Vercel runs this at 00:30 UTC (6:00am IST) every day.
+ * Vercel runs this at 00:00 UTC on Mondays (5:30am IST), per `vercel.json`.
  * Secured with CRON_SECRET env var.
  *
  * What it does:
@@ -17,6 +17,7 @@ import { connection, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { runAppointmentReminders } from '@/lib/cron/appointment-reminders'
 import { sendNotification } from '@/lib/notifications'
+import { addIndiaDays, getIndiaToday } from '@/lib/india-time'
 
 const MILESTONES = [30, 15, 5, 3, 1] as const
 const MS_PER_DAY = 24 * 60 * 60 * 1000
@@ -122,6 +123,20 @@ export async function GET(request: Request) {
   }
 
   const appointmentReminders = await runAppointmentReminders(adminClient, now)
+
+  // Retention: listing_events exists to answer "this month vs last month",
+  // so anything older than 180 days is dead weight on a free-tier database.
+  // listings.views keeps the lifetime figure, so pruning never makes a
+  // business's history appear to shrink.
+  const eventCutoff = addIndiaDays(getIndiaToday(), -180)
+  const { error: pruneError } = await adminClient
+    .from('listing_events')
+    .delete()
+    .lt('day', eventCutoff)
+
+  if (pruneError) {
+    console.error('[cron:listing-expiry] listing_events prune failed', pruneError.message)
+  }
 
   console.log('[cron/listing-expiry]', stats)
   console.log('[cron/appointment-reminders]', appointmentReminders)

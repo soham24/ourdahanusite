@@ -94,6 +94,10 @@ export default function PrivacyPolicyPage() {
             used so we can improve it. These tools collect usage and device information as described above. You can learn
             about Google Analytics&rsquo; practices in{' '}
             <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className={linkClass}>Google&rsquo;s Privacy Policy</a>.</p>
+          <p>We also count how many people view each business listing and how many
+            tap to call or message it, so business owners can see how their listing is
+            performing. To avoid counting the same person twice in a day, your browser
+            stores a random identifier that is not linked to your name, email, or account.</p>
         </Section>
 
         <Section title="Your consent choices (EEA, UK & Switzerland)">
