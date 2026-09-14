@@ -76,18 +76,16 @@ export async function GET(request: Request) {
       continue
     }
 
-    try {
-      await sendNotification(
-        post.posted_by,
-        'job.expiring',
-        { postId: post.id, title: post.title, kind: post.kind, daysLeft: daysLeft(post.expires_at, now) },
-        { awaitDelivery: true },
-      )
-      stats.sent += 1
-    } catch (sendError) {
-      stats.failed += 1
-      console.error('[cron/job-reminders] send failed', sendError)
-    }
+    // sendNotification never throws: false means muted, in-app off, or an error
+    // it has already logged. The claim above stands either way, so no double sends.
+    const delivered = await sendNotification(
+      post.posted_by,
+      'job.expiring',
+      { postId: post.id, title: post.title, kind: post.kind, daysLeft: daysLeft(post.expires_at, now) },
+      { awaitDelivery: true },
+    )
+    if (delivered) stats.sent += 1
+    else stats.failed += 1
   }
 
   console.log('[cron/job-reminders]', stats)
