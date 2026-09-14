@@ -1130,6 +1130,9 @@ test('fee words in English, Marathi and Hindi flag a post', () => {
     'फी भरावी लागेल',
     'फीस जमा करें',
     'डिपॉझिट आवश्यक',
+    'Refundable deposit to secure the job',
+    'Advance fee ₹300',
+    'Pay in advance to confirm',
   ]) {
     assert.deepEqual(detectReviewFlags([text]), ['scam_words'], text)
   }
@@ -1142,6 +1145,8 @@ test('ordinary words that merely contain a fee word do not flag', () => {
     'Advanced Excel preferred',
     'B.Com or M.Com graduate',
     'No experience needed',
+    'Apply in advance',
+    'Book your interview slot in advance',
   ]) {
     assert.deepEqual(detectReviewFlags([text]), [], text)
   }
@@ -1267,21 +1272,24 @@ export type ReviewFlag = 'scam_words' | 'link_or_phone' | 'reports'
 // Phrases that turn a job post into a request for money, in English, Marathi
 // and Hindi. Matched as whole words, so "advanced" and "coffee" never match.
 // A false alarm costs one review; a missed scam costs a victim — which is why
-// "No registration fee" deliberately flags too.
+// "No registration fee" deliberately flags too. Bare "advance" is deliberately
+// absent: everyday scheduling ("apply in advance") uses it.
 const SCAM_TERMS = [
   'registration fee',
   'registration fees',
   'registration charge',
   'registration charges',
-  'security deposit',
+  'deposit',
   'processing fee',
   'processing fees',
   'joining fee',
   'joining fees',
   'training fee',
   'training fees',
+  'advance fee',
+  'advance fees',
+  'pay in advance',
   'advance payment',
-  'advance',
   'नोंदणी शुल्क',
   'शुल्क',
   'फीस',

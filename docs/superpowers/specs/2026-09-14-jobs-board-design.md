@@ -403,7 +403,7 @@ respecting each user's preferences:
   Report posts that ask for money."
 - A pure scam check (`src/lib/jobs/scam-signals.ts`) flags:
   - `scam_words`: fee words in English, Marathi and Hindi — "registration fee",
-    "security deposit", "advance", "processing fee", "शुल्क", "फी",
+    "deposit", "advance fee", "pay in advance", "processing fee", "शुल्क", "फी",
     "नोंदणी शुल्क", "डिपॉझिट" — matched as whole words, so "coffee" does not
     match "fee";
   - `link_or_phone`: any URL, or a phone number typed into free-text fields.
