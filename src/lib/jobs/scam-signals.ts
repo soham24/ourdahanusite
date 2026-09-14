@@ -6,12 +6,13 @@ export type ReviewFlag = 'scam_words' | 'link_or_phone' | 'reports'
 // and Hindi. Matched as whole words, so "advanced" and "coffee" never match.
 // A false alarm costs one review; a missed scam costs a victim — which is why
 // "No registration fee" deliberately flags too.
+// Bare "advance" is deliberately absent: everyday scheduling ("apply in advance") uses it.
 const SCAM_TERMS = [
   'registration fee',
   'registration fees',
   'registration charge',
   'registration charges',
-  'security deposit',
+  'deposit',
   'processing fee',
   'processing fees',
   'joining fee',
@@ -19,7 +20,9 @@ const SCAM_TERMS = [
   'training fee',
   'training fees',
   'advance payment',
-  'advance',
+  'advance fee',
+  'advance fees',
+  'pay in advance',
   'नोंदणी शुल्क',
   'शुल्क',
   'फीस',

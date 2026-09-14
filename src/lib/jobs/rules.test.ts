@@ -15,6 +15,9 @@ test('fee words in English, Marathi and Hindi flag a post', () => {
     'Pay a security deposit first',
     'processing fees apply',
     'Advance payment required',
+    'Refundable deposit to secure the job',
+    'Advance fee ₹300',
+    'Pay in advance to confirm',
     'नोंदणी शुल्क ५०० रुपये',
     'फी भरावी लागेल',
     'फीस जमा करें',
@@ -31,6 +34,8 @@ test('ordinary words that merely contain a fee word do not flag', () => {
     'Advanced Excel preferred',
     'B.Com or M.Com graduate',
     'No experience needed',
+    'Apply in advance',
+    'Book your interview slot in advance',
   ]) {
     assert.deepEqual(detectReviewFlags([text]), [], text)
   }
