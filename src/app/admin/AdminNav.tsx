@@ -6,6 +6,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   BadgePercent,
   BarChart3,
+  BriefcaseBusiness,
   Calendar,
   CreditCard,
   LayoutDashboard,
@@ -38,6 +39,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/events', label: 'Events', icon: Calendar, roles: MOD_ROLES },
   { href: '/admin/listings', label: 'Listings', icon: MapPin, roles: MOD_ROLES },
   { href: '/admin/reviews', label: 'Reviews', icon: Star, roles: MOD_ROLES },
+  { href: '/admin/jobs', label: 'Jobs', icon: BriefcaseBusiness, roles: MOD_ROLES },
   { href: '/admin/featured', label: 'Featured', icon: Sparkles, roles: ADMIN_ONLY },
   { href: '/admin/polls', label: 'Polls', icon: BarChart3, roles: ADMIN_ONLY },
   { href: '/admin/appointments', label: 'Appointments', icon: Calendar, roles: ADMIN_ONLY },
