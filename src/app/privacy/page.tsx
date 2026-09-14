@@ -100,6 +100,14 @@ export default function PrivacyPolicyPage() {
             stores a random identifier that is not linked to your name, email, or account.</p>
         </Section>
 
+        <Section title="Jobs board">
+          <p>Posts on OurDahanu Jobs (jobs.ourdahanu.in) are public, except the phone number, which is shown only to
+            people who are logged in. When someone views a number we record that they did, so the person who posted
+            can see how many people viewed it &mdash; never who. &ldquo;Looking for work&rdquo; profiles show only a first
+            name and are hidden from search engines. You can close your post at any time, and deleting your account
+            deletes your posts.</p>
+        </Section>
+
         <Section title="Your consent choices (EEA, UK & Switzerland)">
           <p>If you visit from the European Economic Area, the United Kingdom, or Switzerland, we present a consent
             message (a Google-certified consent management platform) before serving personalized ads or non-essential

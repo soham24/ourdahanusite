@@ -10,6 +10,7 @@ import { SITE_URL } from '@/lib/site'
 import { createPublicClient } from '@/lib/supabase/public'
 import { isValidProfession, professionSlug } from '@/lib/find/professions'
 import { MIN_CATEGORY_SIZE, isProfileIndexable } from '@/lib/seo-thresholds'
+import { isValidJobCategory, jobCategorySlug } from '@/lib/jobs/categories'
 
 const STATIC_LAST_MODIFIED = new Date('2026-01-01T00:00:00.000Z')
 
@@ -28,7 +29,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   cacheLife(PUBLIC_SITEMAP_CACHE)
   cacheTag(CACHE_TAGS.listings)
   cacheTag(CACHE_TAGS.find)
-  logCacheRegeneration({ scope: 'sitemap', tags: [CACHE_TAGS.listings, CACHE_TAGS.find] })
+  cacheTag(CACHE_TAGS.jobs)
+  logCacheRegeneration({ scope: 'sitemap', tags: [CACHE_TAGS.listings, CACHE_TAGS.find, CACHE_TAGS.jobs] })
 
   const base = SITE_URL
 
@@ -193,7 +195,51 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })),
     ]
 
-    return [...staticRoutes, ...categoryRoutes, ...listingRoutes, ...findRoutes]
+    // jobs.ourdahanu.in — the board, category pages with enough live hiring
+    // posts, and each live hiring post. "Looking for work" profiles are left
+    // out on purpose: their pages are noindex, so a person's profile never
+    // lingers in search results. The public client can only read live posts.
+    // An expired post can stay listed until the next write or sitemap refresh;
+    // its page then 404s, and its JobPosting carried validThrough regardless.
+    const { data: jobRows } = await supabase
+      .from('job_posts')
+      .select('id, category, published_at')
+      .eq('status', 'approved')
+      .eq('kind', 'hiring')
+
+    const liveHiring = (jobRows ?? []) as { id: string; category: string; published_at: string | null }[]
+
+    const jobCategoryCounts = new Map<string, number>()
+    for (const row of liveHiring) {
+      if (row.category !== 'Other' && isValidJobCategory(row.category)) {
+        jobCategoryCounts.set(row.category, (jobCategoryCounts.get(row.category) ?? 0) + 1)
+      }
+    }
+
+    const jobRoutes: MetadataRoute.Sitemap = [
+      {
+        url: 'https://jobs.ourdahanu.in/',
+        lastModified: STATIC_LAST_MODIFIED,
+        changeFrequency: 'daily',
+        priority: 0.8,
+      },
+      ...[...jobCategoryCounts.entries()]
+        .filter(([, count]) => count >= MIN_CATEGORY_SIZE)
+        .map(([category]) => ({
+          url: `https://jobs.ourdahanu.in/c/${jobCategorySlug(category)}`,
+          lastModified: STATIC_LAST_MODIFIED,
+          changeFrequency: 'daily' as const,
+          priority: 0.7,
+        })),
+      ...liveHiring.map((row) => ({
+        url: `https://jobs.ourdahanu.in/j/${row.id}`,
+        lastModified: row.published_at ? new Date(row.published_at) : STATIC_LAST_MODIFIED,
+        changeFrequency: 'weekly' as const,
+        priority: 0.6,
+      })),
+    ]
+
+    return [...staticRoutes, ...categoryRoutes, ...listingRoutes, ...findRoutes, ...jobRoutes]
   } catch {
     return staticRoutes
   }
