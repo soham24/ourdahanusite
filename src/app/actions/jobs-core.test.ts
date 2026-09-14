@@ -86,6 +86,15 @@ function harness(overrides: Partial<JobActionDependencies> = {}) {
   return { actions: createJobActions(deps), calls }
 }
 
+function silenceErrors() {
+  const original = console.error
+  const logged: unknown[][] = []
+  console.error = (...args: unknown[]) => {
+    logged.push(args)
+  }
+  return { logged, restore: () => { console.error = original } }
+}
+
 test('an individual post waits for review and tells the admins', async () => {
   const { actions, calls } = harness()
   assert.deepEqual(await actions.createPost(hiringInput()), { ok: true, id: 'new-post', status: 'pending' })
@@ -267,4 +276,58 @@ test('reports are refused for your own post, for an unknown reason, and twice', 
 
   const twice = harness({ async insertReport() { return { error: { code: '23505', message: 'duplicate' } } } })
   assert.deepEqual(await twice.actions.reportPost('post-1', 'fake', null), { error: 'You have already reported this post.' })
+})
+
+test('a failing admin notification never turns a saved post into an error', async () => {
+  const errors = silenceErrors()
+  try {
+    const { actions, calls } = harness({ notifyAdmins() { throw new Error('telegram down') } })
+    assert.deepEqual(await actions.createPost(hiringInput()), { ok: true, id: 'new-post', status: 'pending' })
+    assert.equal(calls.inserted.length, 1)
+    assert.equal(errors.logged.length, 1)
+  } finally {
+    errors.restore()
+  }
+})
+
+test('a failing cache refresh never turns a saved post into an error', async () => {
+  const errors = silenceErrors()
+  try {
+    const { actions } = harness({ revalidate() { throw new Error('cache down') } })
+    assert.deepEqual(await actions.createPost(hiringInput({ listingId: LISTING_ID })), { ok: true, id: 'new-post', status: 'approved' })
+    assert.equal(errors.logged.length, 1)
+  } finally {
+    errors.restore()
+  }
+})
+
+test('the third report still hides the post when the admin notification throws', async () => {
+  const errors = silenceErrors()
+  try {
+    const { actions, calls } = harness({
+      async countReportsSince() { return 3 },
+      notifyAdmins() { throw new Error('telegram down') },
+    })
+    assert.deepEqual(await actions.reportPost('post-1', 'asks_for_money', null), { ok: true })
+    assert.equal(calls.updated[0].fields.status, 'pending')
+    assert.equal(calls.revalidated, 1)
+  } finally {
+    errors.restore()
+  }
+})
+
+test('a failed hide write is logged, the report still succeeds, and the board is not refreshed', async () => {
+  const errors = silenceErrors()
+  try {
+    const { actions, calls } = harness({
+      async countReportsSince() { return 3 },
+      async updatePost() { return { error: { message: 'db down' } } },
+    })
+    assert.deepEqual(await actions.reportPost('post-1', 'asks_for_money', null), { ok: true })
+    assert.equal(calls.revalidated, 0)
+    assert.equal(calls.notified.length, 1)
+    assert.ok(errors.logged.some((args) => String(args[0]).includes('auto-hide')))
+  } finally {
+    errors.restore()
+  }
 })

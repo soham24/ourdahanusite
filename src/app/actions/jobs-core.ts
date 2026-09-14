@@ -86,6 +86,19 @@ function isReportReason(value: string): value is ReportReason {
   return (REPORT_REASONS as readonly string[]).includes(value)
 }
 
+/**
+ * Side effects that run after a write has already succeeded. A failure is
+ * logged, never thrown: the post is saved, so surfacing an error would tell
+ * the user something false.
+ */
+function afterWrite(label: string, effect: () => void): void {
+  try {
+    effect()
+  } catch (error) {
+    console.error(`[jobs-core] ${label} failed`, error)
+  }
+}
+
 export function createJobActions(deps: JobActionDependencies) {
   /** Null when no listing was chosen; 'forbidden' when the user cannot act for it. */
   async function listingFor(listingId: string | null): Promise<ListingAccess | null | 'forbidden'> {
@@ -137,9 +150,11 @@ export function createJobActions(deps: JobActionDependencies) {
     // Pending posts need a reviewer; instant and collected posts are already
     // public, so they refresh the board instead.
     if (status === 'pending') {
-      deps.notifyAdmins({ kind: 'job', title: fields.title, submitterName: displayName(user), reviewPath: '/admin/jobs' })
+      afterWrite('notifyAdmins', () =>
+        deps.notifyAdmins({ kind: 'job', title: fields.title, submitterName: displayName(user), reviewPath: '/admin/jobs' }),
+      )
     } else {
-      deps.revalidate()
+      afterWrite('revalidate', () => deps.revalidate())
     }
     return { ok: true, id, status }
   }
@@ -177,10 +192,12 @@ export function createJobActions(deps: JobActionDependencies) {
     // Only tell reviewers when a post newly enters the queue, not on every
     // edit of a post that is already waiting.
     if (next === 'pending' && post.status !== 'pending') {
-      deps.notifyAdmins({ kind: 'job', title: fields.title, submitterName: displayName(user), reviewPath: '/admin/jobs' })
+      afterWrite('notifyAdmins', () =>
+        deps.notifyAdmins({ kind: 'job', title: fields.title, submitterName: displayName(user), reviewPath: '/admin/jobs' }),
+      )
     }
     // A live post that went back to review must leave the board at once.
-    deps.revalidate()
+    afterWrite('revalidate', () => deps.revalidate())
     return { ok: true, status: next }
   }
 
@@ -200,7 +217,7 @@ export function createJobActions(deps: JobActionDependencies) {
       updated_at: now.toISOString(),
     })
     if (error) return { error: 'Could not renew your post. Please try again.' }
-    deps.revalidate()
+    afterWrite('revalidate', () => deps.revalidate())
     return { ok: true }
   }
 
@@ -213,7 +230,7 @@ export function createJobActions(deps: JobActionDependencies) {
 
     const { error } = await deps.updatePost(postId, { status: 'closed', updated_at: deps.now().toISOString() })
     if (error) return { error: 'Could not close your post. Please try again.' }
-    deps.revalidate()
+    afterWrite('revalidate', () => deps.revalidate())
     return { ok: true }
   }
 
@@ -260,22 +277,34 @@ export function createJobActions(deps: JobActionDependencies) {
       return { error: error.code === '23505' ? 'You have already reported this post.' : 'Could not send your report. Please try again.' }
     }
 
-    deps.notifyAdmins({
-      kind: 'job_report',
-      title: `${post.title} · ${reason}`,
-      submitterName: displayName(user),
-      reviewPath: '/admin/jobs',
-    })
-
-    // Counted since the last review, so a post approved again after a report
-    // hide needs three new reports to be hidden again. The poster is not told:
-    // telling a scammer what tripped the hide teaches them to avoid it.
+    // Hide first, notify second: a notification failure must never skip the
+    // hide. Counted since the last review, so a post approved again after a
+    // report hide needs three new reports to be hidden again. The poster is not
+    // told: telling a scammer what tripped the hide teaches them to avoid it.
     const reports = await deps.countReportsSince(postId, post.reviewed_at)
     if (shouldAutoHide(post.status, reports)) {
       const reviewFlags = post.review_flags.includes('reports') ? post.review_flags : [...post.review_flags, 'reports']
-      await deps.updatePost(postId, { status: 'pending', review_flags: reviewFlags, updated_at: deps.now().toISOString() })
-      deps.revalidate()
+      const { error: hideError } = await deps.updatePost(postId, {
+        status: 'pending',
+        review_flags: reviewFlags,
+        updated_at: deps.now().toISOString(),
+      })
+      if (hideError) {
+        // The report itself is saved and the admin is still notified below.
+        console.error('[jobs-core] auto-hide after reports failed', hideError.message)
+      } else {
+        afterWrite('revalidate', () => deps.revalidate())
+      }
     }
+
+    afterWrite('notifyAdmins', () =>
+      deps.notifyAdmins({
+        kind: 'job_report',
+        title: `${post.title} · ${reason}`,
+        submitterName: displayName(user),
+        reviewPath: '/admin/jobs',
+      }),
+    )
     return { ok: true }
   }
 
