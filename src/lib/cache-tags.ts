@@ -16,6 +16,7 @@ export const CACHE_TAGS = {
   appointments: 'appointments',
   listing: (listingId: string) => `listing:${listingId}`,
   find: 'find-directory',
+  jobs: 'jobs',
 } as const
 
 // All helpers below use `updateTag`, not `revalidateTag(..., 'max')`.
@@ -87,4 +88,10 @@ export function revalidateAppointmentsCache(listingId: string) {
 // simpler and safe at this scale.
 export function revalidateFindCache() {
   updatePublicTag('find', CACHE_TAGS.find)
+}
+
+// One tag covers the whole jobs board: the list, category pages and post pages
+// all read the same cached set of live posts.
+export function revalidateJobsCache() {
+  updatePublicTag('jobs', CACHE_TAGS.jobs)
 }
