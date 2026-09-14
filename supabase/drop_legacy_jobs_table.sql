@@ -4,7 +4,7 @@
 -- this empty table was left behind. Verified 2026-09-14 with the service
 -- role: 0 rows in public.jobs, 0 profiles with role 'job_reviewer'.
 --
--- ORDER MATTERS. get_homepage_stats is LANGUAGE sql with a plain $$ body, so
+-- ORDER MATTERS. get_homepage_stats is LANGUAGE sql with a plain dollar-quoted body, so
 -- Postgres does not record that it reads jobs: DROP TABLE alone would succeed,
 -- and the function would then fail on every call. src/lib/data/home.ts ignores
 -- that error, so the homepage would silently render 0 businesses, no featured
