@@ -905,6 +905,197 @@ export type Database = {
         }
         Relationships: []
       }
+      job_contact_reveals: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_contact_reveals_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "job_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_post_contacts: {
+        Row: {
+          phone: string
+          post_id: string
+          updated_at: string
+          whatsapp: boolean
+        }
+        Insert: {
+          phone: string
+          post_id: string
+          updated_at?: string
+          whatsapp?: boolean
+        }
+        Update: {
+          phone?: string
+          post_id?: string
+          updated_at?: string
+          whatsapp?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_post_contacts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "job_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_post_reports: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          post_id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          post_id: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          post_id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_post_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "job_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_posts: {
+        Row: {
+          area: string
+          category: string
+          collected_source: string | null
+          created_at: string
+          description: string | null
+          display_name: string | null
+          employer_name: string | null
+          experience_years: number | null
+          expires_at: string | null
+          id: string
+          kind: string
+          listing_id: string | null
+          openings: number | null
+          pay_max: number | null
+          pay_min: number | null
+          pay_period: string | null
+          posted_by: string
+          published_at: string | null
+          reject_reason: string | null
+          reminder_sent_at: string | null
+          review_flags: string[]
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          timings: string | null
+          title: string
+          updated_at: string
+          work_types: string[]
+        }
+        Insert: {
+          area: string
+          category: string
+          collected_source?: string | null
+          created_at?: string
+          description?: string | null
+          display_name?: string | null
+          employer_name?: string | null
+          experience_years?: number | null
+          expires_at?: string | null
+          id?: string
+          kind: string
+          listing_id?: string | null
+          openings?: number | null
+          pay_max?: number | null
+          pay_min?: number | null
+          pay_period?: string | null
+          posted_by: string
+          published_at?: string | null
+          reject_reason?: string | null
+          reminder_sent_at?: string | null
+          review_flags?: string[]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          timings?: string | null
+          title: string
+          updated_at?: string
+          work_types: string[]
+        }
+        Update: {
+          area?: string
+          category?: string
+          collected_source?: string | null
+          created_at?: string
+          description?: string | null
+          display_name?: string | null
+          employer_name?: string | null
+          experience_years?: number | null
+          expires_at?: string | null
+          id?: string
+          kind?: string
+          listing_id?: string | null
+          openings?: number | null
+          pay_max?: number | null
+          pay_min?: number | null
+          pay_period?: string | null
+          posted_by?: string
+          published_at?: string | null
+          reject_reason?: string | null
+          reminder_sent_at?: string | null
+          review_flags?: string[]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          timings?: string | null
+          title?: string
+          updated_at?: string
+          work_types?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_posts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_delivery_config: {
         Row: {
           base_fee_paise: number
