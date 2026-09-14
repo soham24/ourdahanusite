@@ -73,7 +73,14 @@ async function buildJobActions() {
         .insert({ post_id: id, phone: contact.phone, whatsapp: contact.whatsapp })
       if (contactError) {
         // Never leave a post without its number: remove the row created just above.
-        await db.from('job_posts').delete().eq('id', id)
+        const { error: deleteError } = await db.from('job_posts').delete().eq('id', id)
+        if (deleteError) {
+          console.error(
+            `[jobs] orphaned job post ${id}: contact insert failed and cleanup delete failed`,
+            contactError,
+            deleteError,
+          )
+        }
         return { id: null, error: toDbError(contactError) }
       }
       return { id, error: null }
@@ -98,7 +105,10 @@ async function buildJobActions() {
             { post_id: postId, phone: contact.phone, whatsapp: contact.whatsapp, updated_at: new Date().toISOString() },
             { onConflict: 'post_id' },
           )
-        if (contactError) return { error: toDbError(contactError) }
+        if (contactError) {
+          console.error(`[jobs] job post ${postId} updated but contact upsert failed`, contactError)
+          return { error: toDbError(contactError) }
+        }
       }
       return { error: null }
     },
