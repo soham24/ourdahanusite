@@ -141,6 +141,9 @@ CREATE POLICY "Posters can read their own job posts" ON public.job_posts
 -- RLS: the public API roles hold no write privileges on job_posts and no
 -- privileges at all on the other three tables.
 REVOKE INSERT, UPDATE, DELETE ON public.job_posts FROM anon, authenticated;
+-- Supabase's default privileges also grant TRUNCATE, TRIGGER and REFERENCES;
+-- TRUNCATE is a write that row-level security does not govern. SELECT stays.
+REVOKE TRUNCATE, TRIGGER, REFERENCES ON public.job_posts FROM anon, authenticated;
 REVOKE ALL ON public.job_post_contacts FROM anon, authenticated;
 REVOKE ALL ON public.job_contact_reveals FROM anon, authenticated;
 REVOKE ALL ON public.job_post_reports FROM anon, authenticated;
