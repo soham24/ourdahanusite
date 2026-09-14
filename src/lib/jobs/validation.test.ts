@@ -166,6 +166,8 @@ const REJECTIONS: Array<[string, JobPostInput, RegExp]> = [
   ['a missing employer', hiring({ employerName: '' }), /employer/],
   ['zero openings', hiring({ openings: 0 }), /Openings/],
   ['fractional pay', hiring({ payMin: 12000.5 }), /whole number of rupees/],
+  ['zero pay', hiring({ payMin: 0, payMax: 0 }), /Leave it empty/],
+  ['negative pay', hiring({ payMin: -500 }), /at least ₹1/],
   ['maximum pay below minimum', hiring({ payMin: 15000, payMax: 12000 }), /less than minimum/],
   ['pay without a period', hiring({ payPeriod: null }), /per month, day or hour/],
   ['a malformed business id', hiring({ listingId: 'not-a-uuid' }), /business/],

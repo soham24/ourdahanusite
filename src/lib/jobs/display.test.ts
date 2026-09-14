@@ -57,3 +57,14 @@ test('JobPosting omits salary when pay is to be discussed, and describes itself 
   assert.equal('baseSalary' in ld, false)
   assert.equal(ld.description, 'Cook — Hotel, Restaurant & Catering job in Dahanu Road, Dahanu.')
 })
+
+test('JobPosting sends pay only as an exact amount or a full range', () => {
+  const url = 'https://jobs.ourdahanu.in/j/post-1'
+  assert.equal('baseSalary' in buildJobPostingLd({ ...SOURCE, pay_min: 500, pay_max: null, pay_period: 'day' }, url), false)
+  assert.equal('baseSalary' in buildJobPostingLd({ ...SOURCE, pay_min: null, pay_max: 90, pay_period: 'hour' }, url), false)
+  assert.deepEqual(buildJobPostingLd({ ...SOURCE, pay_min: 500, pay_max: 500, pay_period: 'day' }, url).baseSalary, {
+    '@type': 'MonetaryAmount',
+    currency: 'INR',
+    value: { '@type': 'QuantitativeValue', value: 500, unitText: 'DAY' },
+  })
+})

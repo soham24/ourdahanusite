@@ -174,13 +174,13 @@ export function validateJobPostInput(input: JobPostInput): ValidationResult {
 
   const payMin = readInt(input.payMin)
   const payMax = readInt(input.payMax)
-  if (
-    !payMin.ok ||
-    !payMax.ok ||
-    (payMin.value !== null && payMin.value < 0) ||
-    (payMax.value !== null && payMax.value < 0)
-  ) {
+  if (!payMin.ok || !payMax.ok) {
     return fail('Pay must be a whole number of rupees.')
+  }
+  // Zero would read as "₹0 / month" on the public board. An unknown amount is
+  // left empty instead, which shows "Pay to be discussed".
+  if ((payMin.value !== null && payMin.value < 1) || (payMax.value !== null && payMax.value < 1)) {
+    return fail('Pay must be at least ₹1. Leave it empty if pay is to be discussed.')
   }
   if (payMin.value !== null && payMax.value !== null && payMax.value < payMin.value) {
     return fail('Maximum pay cannot be less than minimum pay.')

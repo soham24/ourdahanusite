@@ -42,16 +42,22 @@ export function buildJobPostingLd(post: JobPostingSource, url: string): Record<s
     identifier: { '@type': 'PropertyValue', name: 'OurDahanu Jobs', value: post.id },
   }
 
-  if (post.pay_period !== null && (post.pay_min !== null || post.pay_max !== null)) {
+  // Pay goes to Google only as an exact amount or a full range. A lone minimum
+  // or maximum ("From ₹500 / day") is not a shape Google documents, so it is
+  // left out of the markup; the page itself still shows it.
+  if (post.pay_period !== null && post.pay_min !== null && post.pay_max !== null) {
     ld.baseSalary = {
       '@type': 'MonetaryAmount',
       currency: 'INR',
-      value: {
-        '@type': 'QuantitativeValue',
-        ...(post.pay_min !== null ? { minValue: post.pay_min } : {}),
-        ...(post.pay_max !== null ? { maxValue: post.pay_max } : {}),
-        unitText: UNIT_TEXT[post.pay_period],
-      },
+      value:
+        post.pay_min === post.pay_max
+          ? { '@type': 'QuantitativeValue', value: post.pay_min, unitText: UNIT_TEXT[post.pay_period] }
+          : {
+              '@type': 'QuantitativeValue',
+              minValue: post.pay_min,
+              maxValue: post.pay_max,
+              unitText: UNIT_TEXT[post.pay_period],
+            },
     }
   }
 
