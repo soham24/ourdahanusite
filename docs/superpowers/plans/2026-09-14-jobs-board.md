@@ -2854,6 +2854,8 @@ git add src/app/actions/jobs-core.ts src/app/actions/jobs-core.test.ts package.j
 git commit -m "feat(jobs): business rules for posting, reveals and reports"
 ```
 
+**Post-review changes (commit `8989ee1`, approved by the site owner):** side effects that run after a successful write (`notifyAdmins`, `revalidate`) go through an `afterWrite` helper that logs a failure and never throws, so a saved post is never reported as failed. `reportPost` checks the auto-hide write's result and hides before notifying admins, so a notification failure cannot skip the hide. Four tests cover these paths. The 5-posts and 30-reveals limits stay check-then-act soft limits by decision.
+
 ---
 
 ### Task 8: Wiring — cache tag, data layer and server actions
