@@ -1,5 +1,7 @@
 import { headers } from 'next/headers'
 
+import { buildStandaloneLoginHref } from '@/lib/standalone-hosts'
+
 /**
  * Build a login URL that works from the `find` subdomain.
  *
@@ -17,8 +19,5 @@ export async function findLoginHref(returnPath: string): Promise<string> {
   const rawHost = (h.get('x-forwarded-host') ?? h.get('host') ?? 'find.ourdahanu.in')
     .split(',')[0]
     .trim()
-  const proto = rawHost.includes('localhost') ? 'http' : 'https'
-  const returnUrl = `${proto}://${rawHost}${returnPath}`
-  const mainHost = rawHost.replace(/^find\./, '')
-  return `${proto}://${mainHost}/login?next=${encodeURIComponent(returnUrl)}`
+  return buildStandaloneLoginHref(rawHost, returnPath)
 }
