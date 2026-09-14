@@ -157,7 +157,7 @@ Table-level checks:
   `listing_id`, `collected_source`, `openings`, `pay_min`, `pay_max` or
   `pay_period`.
 - **Pay order.** `pay_min IS NULL OR pay_max IS NULL OR pay_max >= pay_min`, and
-  both non-negative.
+  both at least 1.
 - **Approved posts are dated.** `status <> 'approved' OR (published_at IS NOT NULL AND expires_at IS NOT NULL)`.
 
 Indexes:
@@ -279,7 +279,7 @@ Hiring posts emit `JobPosting` with `title`, `description`, `datePosted`
 (`published_at`), `validThrough` (`expires_at`), `employmentType` (mapped work
 types), `hiringOrganization.name` (`employer_name`), `jobLocation` with
 `addressLocality` (area), `addressRegion` "Maharashtra", `addressCountry` "IN",
-and `baseSalary` when pay is given. It never contains a phone number. Validated
+and `baseSalary` only when pay is an exact amount or a full range (a lone minimum or maximum is left out, as Google does not document that shape). It never contains a phone number. Validated
 with Google's Rich Results Test after deploy.
 
 ### On the main site
@@ -332,7 +332,7 @@ treated as an individual.
   valid work type.
 - Length caps: title 80, employer name 100, area 80, timings 80, description
   1,000, display name 40.
-- Pay: non-negative integers, max ≥ min; pay period required when either is set.
+- Pay: whole rupees of at least ₹1 (0 would show "₹0 / month"), max ≥ min; pay period required when either is set.
 - Phone normalises to a valid 10-digit number; WhatsApp only for mobiles.
 - **At most 5 new posts per user per rolling 24 hours**, counted from
   `job_posts` (staff exempt).

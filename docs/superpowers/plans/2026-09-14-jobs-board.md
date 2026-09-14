@@ -103,8 +103,8 @@ CREATE TABLE IF NOT EXISTS public.job_posts (
   description text,
   employer_name text,
   openings int CHECK (openings BETWEEN 1 AND 500),
-  pay_min int CHECK (pay_min >= 0),
-  pay_max int CHECK (pay_max >= 0),
+  pay_min int CHECK (pay_min >= 1),
+  pay_max int CHECK (pay_max >= 1),
   pay_period text CHECK (pay_period IN ('month', 'day', 'hour')),
   timings text,
   display_name text,
@@ -656,6 +656,8 @@ const REJECTIONS: Array<[string, JobPostInput, RegExp]> = [
   ['a missing employer', hiring({ employerName: '' }), /employer/],
   ['zero openings', hiring({ openings: 0 }), /Openings/],
   ['fractional pay', hiring({ payMin: 12000.5 }), /whole number of rupees/],
+  ['zero pay', hiring({ payMin: 0, payMax: 0 }), /Leave it empty/],
+  ['negative pay', hiring({ payMin: -500 }), /at least ₹1/],
   ['maximum pay below minimum', hiring({ payMin: 15000, payMax: 12000 }), /less than minimum/],
   ['pay without a period', hiring({ payPeriod: null }), /per month, day or hour/],
   ['a malformed business id', hiring({ listingId: 'not-a-uuid' }), /business/],
@@ -1016,13 +1018,13 @@ export function validateJobPostInput(input: JobPostInput): ValidationResult {
 
   const payMin = readInt(input.payMin)
   const payMax = readInt(input.payMax)
-  if (
-    !payMin.ok ||
-    !payMax.ok ||
-    (payMin.value !== null && payMin.value < 0) ||
-    (payMax.value !== null && payMax.value < 0)
-  ) {
+  if (!payMin.ok || !payMax.ok) {
     return fail('Pay must be a whole number of rupees.')
+  }
+  // Zero would read as "₹0 / month" on the public board. An unknown amount is
+  // left empty instead, which shows "Pay to be discussed".
+  if ((payMin.value !== null && payMin.value < 1) || (payMax.value !== null && payMax.value < 1)) {
+    return fail('Pay must be at least ₹1. Leave it empty if pay is to be discussed.')
   }
   if (payMin.value !== null && payMax.value !== null && payMax.value < payMin.value) {
     return fail('Maximum pay cannot be less than minimum pay.')
@@ -1573,6 +1575,17 @@ test('JobPosting omits salary when pay is to be discussed, and describes itself 
   assert.equal('baseSalary' in ld, false)
   assert.equal(ld.description, 'Cook — Hotel, Restaurant & Catering job in Dahanu Road, Dahanu.')
 })
+
+test('JobPosting sends pay only as an exact amount or a full range', () => {
+  const url = 'https://jobs.ourdahanu.in/j/post-1'
+  assert.equal('baseSalary' in buildJobPostingLd({ ...SOURCE, pay_min: 500, pay_max: null, pay_period: 'day' }, url), false)
+  assert.equal('baseSalary' in buildJobPostingLd({ ...SOURCE, pay_min: null, pay_max: 90, pay_period: 'hour' }, url), false)
+  assert.deepEqual(buildJobPostingLd({ ...SOURCE, pay_min: 500, pay_max: 500, pay_period: 'day' }, url).baseSalary, {
+    '@type': 'MonetaryAmount',
+    currency: 'INR',
+    value: { '@type': 'QuantitativeValue', value: 500, unitText: 'DAY' },
+  })
+})
 ```
 
 - [ ] **Step 2: Register the test file**
@@ -1657,16 +1670,22 @@ export function buildJobPostingLd(post: JobPostingSource, url: string): Record<s
     identifier: { '@type': 'PropertyValue', name: 'OurDahanu Jobs', value: post.id },
   }
 
-  if (post.pay_period !== null && (post.pay_min !== null || post.pay_max !== null)) {
+  // Pay goes to Google only as an exact amount or a full range. A lone minimum
+  // or maximum ("From ₹500 / day") is not a shape Google documents, so it is
+  // left out of the markup; the page itself still shows it.
+  if (post.pay_period !== null && post.pay_min !== null && post.pay_max !== null) {
     ld.baseSalary = {
       '@type': 'MonetaryAmount',
       currency: 'INR',
-      value: {
-        '@type': 'QuantitativeValue',
-        ...(post.pay_min !== null ? { minValue: post.pay_min } : {}),
-        ...(post.pay_max !== null ? { maxValue: post.pay_max } : {}),
-        unitText: UNIT_TEXT[post.pay_period],
-      },
+      value:
+        post.pay_min === post.pay_max
+          ? { '@type': 'QuantitativeValue', value: post.pay_min, unitText: UNIT_TEXT[post.pay_period] }
+          : {
+              '@type': 'QuantitativeValue',
+              minValue: post.pay_min,
+              maxValue: post.pay_max,
+              unitText: UNIT_TEXT[post.pay_period],
+            },
     }
   }
 
