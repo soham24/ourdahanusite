@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "npm run test:existing && npm run test:game",
-    "test:existing": "tsx --test src/lib/notifications/delivery.test.ts src/app/actions/find-notifications.test.ts src/lib/find/safe-submission.test.ts src/lib/supabase/auth-regression.test.ts src/lib/safe-redirect.test.ts src/lib/coupon-reporting.test.ts src/lib/category-groups.test.ts src/lib/appointment-settings.test.ts src/lib/appointment-slots.test.ts src/lib/appointment-conflicts.test.ts src/lib/subdomain.test.ts src/lib/payment-retry.test.ts src/lib/listing-stats.test.ts src/lib/track-request.test.ts src/lib/jobs/validation.test.ts",
+    "test:existing": "tsx --test src/lib/notifications/delivery.test.ts src/app/actions/find-notifications.test.ts src/lib/find/safe-submission.test.ts src/lib/supabase/auth-regression.test.ts src/lib/safe-redirect.test.ts src/lib/coupon-reporting.test.ts src/lib/category-groups.test.ts src/lib/appointment-settings.test.ts src/lib/appointment-slots.test.ts src/lib/appointment-conflicts.test.ts src/lib/subdomain.test.ts src/lib/payment-retry.test.ts src/lib/listing-stats.test.ts src/lib/track-request.test.ts src/lib/jobs/validation.test.ts src/lib/jobs/rules.test.ts",
     "test:game": "node scripts/run-game-tests.mjs"
   },
   "dependencies": {
