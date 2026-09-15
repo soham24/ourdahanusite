@@ -1,227 +1,154 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import {
-  ArrowLeft,
-  CheckCircle,
-  CreditCard,
-  ExternalLink,
-  Info,
-  ShieldCheck,
-  Store,
-} from 'lucide-react'
+import { notFound, redirect } from 'next/navigation'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 
+import { classifyRazorpayKeyId } from '@/lib/selling/keys'
 import { createClient } from '@/lib/supabase/server'
 
-import { RazorpaySetupForm } from './RazorpaySetupForm'
+import ConnectRazorpay, { type PaymentView } from './ConnectRazorpay'
 
-type Listing = {
+type OwnerListing = {
   id: string
   name: string
   category: string | null
-  payments_enabled: boolean | null
+  approved: boolean | null
+  payments_suspended_at: string | null
+  payments_suspended_reason: string | null
 }
 
-type PaymentConfig = {
+type OwnerConfig = {
   listing_id: string
   razorpay_key_id: string
   razorpay_key_last4: string
-  test_mode: boolean
   verified_at: string | null
   updated_at: string
 }
 
-function formatDate(iso: string | null) {
-  if (!iso) return null
-  return new Date(iso).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
+function paymentViewFor(listing: OwnerListing, config: OwnerConfig | null): PaymentView {
+  if (listing.payments_suspended_at) return { kind: 'suspended', reason: listing.payments_suspended_reason }
+  if (!listing.approved) return { kind: 'not_approved' }
+  if (!config) return { kind: 'not_connected' }
+  if (!config.verified_at) return { kind: 'rejected' }
+  return {
+    kind: 'connected',
+    mode: classifyRazorpayKeyId(config.razorpay_key_id) === 'live' ? 'live' : 'test',
+    keyLast4: config.razorpay_key_last4,
+    connectedAt: config.updated_at,
+  }
 }
 
-export default async function MyBusinessPaymentsPage() {
+function statusText(view: PaymentView): string {
+  switch (view.kind) {
+    case 'connected':
+      return view.mode === 'live' ? 'Live' : 'Test'
+    case 'rejected':
+      return 'Reconnect needed'
+    case 'suspended':
+      return 'Paused'
+    case 'not_approved':
+      return 'Listing not live yet'
+    case 'not_connected':
+      return 'Not connected'
+  }
+}
+
+export default async function MyBusinessPaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ listing?: string }>
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) redirect(`/login?next=${encodeURIComponent('/my-business/payments')}`)
+
+  const { listing: requestedId } = await searchParams
 
   const { data: listingsData } = await supabase
     .from('listings')
-    .select('id, name, category, payments_enabled')
+    .select('id, name, category, approved, payments_suspended_at, payments_suspended_reason')
     .eq('owner_id', user.id)
     .order('name', { ascending: true })
+  const listings = (listingsData ?? []) as OwnerListing[]
 
-  const listings = (listingsData ?? []) as Listing[]
+  if (requestedId && !listings.some((listing) => listing.id === requestedId)) notFound()
 
-  let configs: PaymentConfig[] = []
+  let configs: OwnerConfig[] = []
   if (listings.length > 0) {
     const { data } = await supabase
       .from('listing_payment_configs')
-      .select('listing_id, razorpay_key_id, razorpay_key_last4, test_mode, verified_at, updated_at')
-      .in('listing_id', listings.map((l) => l.id))
-    configs = (data ?? []) as PaymentConfig[]
+      .select('listing_id, razorpay_key_id, razorpay_key_last4, verified_at, updated_at')
+      .in('listing_id', listings.map((listing) => listing.id))
+    configs = (data ?? []) as OwnerConfig[]
   }
-  const configByListing = new Map(configs.map((c) => [c.listing_id, c]))
+  const configByListing = new Map(configs.map((config) => [config.listing_id, config]))
 
-  const enabledListings = listings.filter((l) => l.payments_enabled)
-  const lockedListings = listings.filter((l) => !l.payments_enabled)
+  const selected = requestedId
+    ? listings.find((listing) => listing.id === requestedId) ?? null
+    : listings.length === 1
+      ? listings[0]
+      : null
+  const backToList = selected !== null && listings.length > 1
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-10 sm:px-6">
-      <div>
+    <div className="od-page min-h-screen py-8 md:py-10">
+      <div className="od-shell max-w-2xl space-y-5">
         <Link
-          href="/my-business"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand transition-colors"
+          href={backToList ? '/my-business/payments' : '/my-business'}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--od-muted)] transition-colors hover:text-[var(--od-brand)]"
         >
-          <ArrowLeft size={14} />
-          Back to My Business
+          <ArrowLeft size={14} aria-hidden />
+          {backToList ? 'All businesses' : 'My Business'}
         </Link>
-      </div>
 
-      <header className="rounded-[30px] border border-[#ecd8c5] bg-gradient-to-br from-[#fff7ef] via-white to-[#f4ede4] px-6 py-7 shadow-sm sm:px-8">
-        <div className="flex items-start gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/10 text-brand">
-            <CreditCard size={24} />
-          </span>
-          <div>
-            <h1 className="text-2xl font-bold text-[#2d160b]">Accept Payments</h1>
-            <p className="mt-2 text-sm leading-6 text-[#6f584a]">
-              Connect your own Razorpay account to sell products and services directly from your
-              business page. Money goes straight to your Razorpay account &mdash; OurDahanu never
-              holds or touches it.
-            </p>
-          </div>
-        </div>
-      </header>
-
-      <section className="rounded-2xl border border-blue-100 bg-blue-50/60 px-5 py-4 text-sm text-blue-900">
-        <div className="flex items-start gap-2">
-          <Info size={16} className="mt-0.5 flex-shrink-0" />
-          <div className="space-y-2">
-            <p className="font-semibold">How to get your Razorpay keys</p>
-            <ol className="list-decimal space-y-1 pl-5 text-[13px] leading-6">
-              <li>
-                Sign in to your Razorpay dashboard at{' '}
-                <a
-                  href="https://dashboard.razorpay.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 font-semibold underline underline-offset-2"
-                >
-                  dashboard.razorpay.com <ExternalLink size={11} />
-                </a>
-                .
-              </li>
-              <li>
-                Go to <span className="font-semibold">Account &amp; Settings &rarr; API Keys</span> and click{' '}
-                <span className="font-semibold">Generate Key</span> (use <span className="font-semibold">Test Mode</span> first).
-              </li>
-              <li>
-                Copy the <span className="font-semibold">Key ID</span> (starts with <code className="rounded bg-white px-1 py-0.5 text-xs">rzp_test_</code> or <code className="rounded bg-white px-1 py-0.5 text-xs">rzp_live_</code>) and the <span className="font-semibold">Key Secret</span> and paste them below. We encrypt the secret at rest.
-              </li>
-              <li>
-                When you&apos;re ready to accept real money, generate <span className="font-semibold">Live Keys</span> in Razorpay and update them here.
-              </li>
-            </ol>
-          </div>
-        </div>
-      </section>
-
-      {lockedListings.length > 0 && (
-        <section className="rounded-2xl border border-amber-100 bg-amber-50/60 px-5 py-4">
-          <div className="flex items-start gap-2">
-            <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-amber-700" />
-            <div>
-              <p className="text-sm font-semibold text-amber-900">
-                Pending admin approval ({lockedListings.length})
-              </p>
-              <p className="mt-1 text-[13px] text-amber-800">
-                These listings haven&apos;t been enabled for payments yet. An admin has to flip
-                the feature on before you can configure Razorpay.
-              </p>
-              <ul className="mt-2 flex flex-wrap gap-2">
-                {lockedListings.map((l) => (
-                  <li
-                    key={l.id}
-                    className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-medium text-amber-900 ring-1 ring-amber-200"
-                  >
-                    <Store size={11} />
-                    {l.name}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {enabledListings.length === 0 ? (
-        <section className="rounded-[28px] border border-[#eee2d7] bg-white px-6 py-14 text-center shadow-sm">
-          <p className="text-lg font-semibold text-[#2d160b]">No listings ready for payments yet.</p>
-          <p className="mt-2 text-sm text-[#7c6253]">
-            {listings.length === 0
-              ? 'Submit a listing first, then an admin can enable payments for it.'
-              : 'Ask an admin to enable payments on one of your listings to begin.'}
+        <header>
+          <p className="od-eyebrow">Sell online</p>
+          <h1 className="od-section-title mt-1 text-3xl md:text-4xl">
+            {selected ? selected.name : 'Online payments'}
+          </h1>
+          <p className="od-muted mt-2 text-sm leading-relaxed">
+            Connect your own Razorpay account. Customers pay you directly — OurDahanu never holds your money.
           </p>
-        </section>
-      ) : (
-        <div className="space-y-5">
-          {enabledListings.map((listing) => {
-            const config = configByListing.get(listing.id) ?? null
-            const verified = !!config?.verified_at
+        </header>
 
-            return (
-              <section
-                key={listing.id}
-                className="rounded-[28px] border border-[#eee2d7] bg-white p-6 shadow-sm"
-              >
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-xl font-bold text-[#2d160b]">{listing.name}</h2>
-                      {verified && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
-                          <CheckCircle size={11} />
-                          Verified
-                        </span>
-                      )}
-                      {config && !verified && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                          Pending verification
-                        </span>
-                      )}
-                      {config?.test_mode && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
-                          Test mode
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-1 text-sm text-[#8b7264]">{listing.category ?? 'Uncategorized'}</p>
-                  </div>
-
-                  {config?.razorpay_key_last4 && (
-                    <p className="text-xs text-[#7c6253]">
-                      Key ending <span className="font-semibold text-[#2d160b]">…{config.razorpay_key_last4}</span>
-                      {' '}· updated {formatDate(config.updated_at) ?? '—'}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mt-5">
-                  <RazorpaySetupForm
-                    listingId={listing.id}
-                    existing={config ? {
-                      keyId: config.razorpay_key_id,
-                      keyLast4: config.razorpay_key_last4,
-                      testMode: config.test_mode,
-                      verifiedAt: config.verified_at,
-                    } : null}
-                  />
-                </div>
-              </section>
-            )
-          })}
-        </div>
-      )}
+        {listings.length === 0 ? (
+          <section className="od-card p-6 text-center">
+            <p className="text-base font-bold text-[var(--od-ink)]">Add your business first</p>
+            <p className="od-muted mt-1 text-sm">Once your listing is live, you can start selling online.</p>
+            <Link href="/listings/submit" className="od-button-primary mt-4 px-4 py-2.5 text-sm">
+              Add your business
+            </Link>
+          </section>
+        ) : selected ? (
+          <ConnectRazorpay
+            key={selected.id}
+            listingId={selected.id}
+            view={paymentViewFor(selected, configByListing.get(selected.id) ?? null)}
+          />
+        ) : (
+          <ul className="space-y-3">
+            {listings.map((listing) => {
+              const view = paymentViewFor(listing, configByListing.get(listing.id) ?? null)
+              return (
+                <li key={listing.id}>
+                  <Link
+                    href={`/my-business/payments?listing=${listing.id}`}
+                    className="od-card od-card-hover flex items-center justify-between gap-3 p-4"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate font-bold text-[var(--od-ink)]">{listing.name}</span>
+                      <span className="od-muted block text-xs">{listing.category ?? 'Business'}</span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-1.5 text-xs font-bold text-[var(--od-brand-strong)]">
+                      {statusText(view)}
+                      <ArrowRight size={14} aria-hidden />
+                    </span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft, Package } from 'lucide-react'
 
 import { listOwnerProducts } from '@/app/actions/products'
+import { LISTING_NOT_LIVE_MESSAGE } from '@/lib/selling/shop-mode'
 import { createClient } from '@/lib/supabase/server'
 
 import { ProductsManager } from './ProductsManager'
@@ -20,7 +21,7 @@ export default async function ListingProductsPage({
 
   const { data: listing } = await supabase
     .from('listings')
-    .select('id, name, category, payments_enabled, owner_id')
+    .select('id, name, category, approved, owner_id')
     .eq('id', listingId)
     .maybeSingle()
 
@@ -30,8 +31,19 @@ export default async function ListingProductsPage({
     redirect('/my-business/products')
   }
 
-  if (!listing.payments_enabled) {
-    redirect('/my-business/payments')
+  if (!listing.approved) {
+    return (
+      <div className="od-page min-h-screen py-8 md:py-10">
+        <div className="od-shell max-w-2xl">
+          <section className="od-card p-6 text-center">
+            <p className="text-base font-bold text-[var(--od-ink)]">{LISTING_NOT_LIVE_MESSAGE}</p>
+            <Link href="/my-business" className="od-button-secondary mt-4 px-4 py-2.5 text-sm">
+              Back to My Business
+            </Link>
+          </section>
+        </div>
+      </div>
+    )
   }
 
   const products = await listOwnerProducts(listingId)
