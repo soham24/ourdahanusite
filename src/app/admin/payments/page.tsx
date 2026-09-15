@@ -1,47 +1,67 @@
 import Link from 'next/link'
-import {
-  CheckCircle,
-  CreditCard,
-  KeyRound,
-  Package,
-  ShieldCheck,
-  Sparkles,
-  Store,
-} from 'lucide-react'
+import { Package } from 'lucide-react'
 
 import { requireAdmin } from '@/app/actions/admin'
-import { updateListingPaymentsFromForm } from '@/app/actions/listing-payments'
+import { deriveSellingStatus, type SellingStatus } from '@/lib/selling/shop-mode'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
+
+import SellingControls from './SellingControls'
+import SellingStatusBadge from './SellingStatusBadge'
 
 type AdminListingRow = {
   id: string
   name: string
   category: string | null
+  subdomain: string | null
+  approved: boolean | null
   payments_enabled: boolean | null
+  payments_suspended_at: string | null
+  payments_suspended_reason: string | null
 }
 
 type PaymentConfigRow = {
   listing_id: string
   razorpay_key_id: string
   razorpay_key_last4: string
-  test_mode: boolean
   verified_at: string | null
   updated_at: string
 }
 
-function formatDate(iso: string | null) {
-  if (!iso) return null
-  return new Date(iso).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
+type Filter = 'all' | SellingStatus
+
+const FILTERS: Array<{ value: Filter; label: string }> = [
+  { value: 'all', label: 'All' },
+  { value: 'live', label: 'Live' },
+  { value: 'test', label: 'Test' },
+  { value: 'suspended', label: 'Suspended' },
+  { value: 'not_connected', label: 'Not connected' },
+]
+
+const STATUS_ORDER: Record<SellingStatus, number> = { live: 0, test: 1, suspended: 2, not_connected: 3 }
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export default async function AdminPaymentsPage() {
+function detailFor(listing: AdminListingRow, config: PaymentConfigRow | null, status: SellingStatus): string {
+  if (status === 'suspended') return `Paused: ${listing.payments_suspended_reason ?? 'no reason given'}`
+  if (!listing.approved) return 'Listing not approved'
+  if (config && !config.verified_at) return 'Razorpay rejected the saved keys'
+  if (config) return `Key …${config.razorpay_key_last4} · connected ${formatDate(config.updated_at)}`
+  return 'Owner has not connected Razorpay'
+}
+
+export default async function AdminPaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>
+}) {
   const supabase = await createClient()
   await requireAdmin(supabase)
+
+  const { status: requested } = await searchParams
+  const filter: Filter = FILTERS.find((option) => option.value === requested)?.value ?? 'all'
 
   const adminClient = createAdminClient()
   if (!adminClient) {
@@ -51,217 +71,114 @@ export default async function AdminPaymentsPage() {
   const [{ data: listingsData }, { data: configsData }] = await Promise.all([
     adminClient
       .from('listings')
-      .select('id, name, category, payments_enabled')
+      .select('id, name, category, subdomain, approved, payments_enabled, payments_suspended_at, payments_suspended_reason')
       .order('name', { ascending: true }),
     adminClient
       .from('listing_payment_configs')
-      .select('listing_id, razorpay_key_id, razorpay_key_last4, test_mode, verified_at, updated_at'),
+      .select('listing_id, razorpay_key_id, razorpay_key_last4, verified_at, updated_at'),
   ])
 
   const listings = (listingsData ?? []) as AdminListingRow[]
   const configs = (configsData ?? []) as PaymentConfigRow[]
-  const configByListing = new Map(configs.map((c) => [c.listing_id, c]))
+  const configByListing = new Map(configs.map((config) => [config.listing_id, config]))
 
   const rows = listings
     .map((listing) => {
       const config = configByListing.get(listing.id) ?? null
-      return {
-        ...listing,
-        isEnabled: listing.payments_enabled === true,
-        hasConfig: !!config,
-        isVerified: !!config?.verified_at,
-        testMode: config?.test_mode ?? null,
-        keyLast4: config?.razorpay_key_last4 ?? null,
+      const status = deriveSellingStatus({
+        approved: listing.approved === true,
+        paymentsEnabled: listing.payments_enabled === true,
+        suspendedAt: listing.payments_suspended_at,
         verifiedAt: config?.verified_at ?? null,
-      }
+        keyId: config?.razorpay_key_id ?? null,
+      })
+      return { listing, config, status }
     })
     .sort(
       (a, b) =>
-        Number(b.isEnabled) - Number(a.isEnabled) ||
-        Number(b.isVerified) - Number(a.isVerified) ||
-        a.name.localeCompare(b.name),
+        STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.listing.name.localeCompare(b.listing.name),
     )
 
-  const totalListings = rows.length
-  const enabledCount = rows.filter((r) => r.isEnabled).length
-  const configuredCount = rows.filter((r) => r.hasConfig).length
-  const liveCount = rows.filter((r) => r.isEnabled && r.isVerified).length
-  const testModeCount = rows.filter((r) => r.testMode === true).length
-  const enableRate = totalListings > 0 ? Math.round((enabledCount / totalListings) * 100) : 0
+  const counts: Record<SellingStatus, number> = { live: 0, test: 0, suspended: 0, not_connected: 0 }
+  for (const row of rows) counts[row.status] += 1
+  const visible = filter === 'all' ? rows : rows.filter((row) => row.status === filter)
+
+  const stats: Array<{ status: SellingStatus; hint: string }> = [
+    { status: 'live', hint: 'Customers can pay' },
+    { status: 'test', hint: 'Only the owner sees the shop' },
+    { status: 'suspended', hint: 'Paused by an admin' },
+    { status: 'not_connected', hint: 'No working Razorpay keys' },
+  ]
 
   return (
-    <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[30px] border border-[#ecd8c5] bg-gradient-to-br from-[#34160a] via-[#4b2210] to-[#8a4b26] px-6 py-7 text-bg shadow-[0_24px_60px_rgba(61,26,8,0.22)] lg:px-8">
-        <div className="absolute -right-16 top-0 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute left-0 top-16 h-40 w-40 rounded-full bg-[#d28b5f]/30 blur-3xl" />
-
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#f6dfca]">
-              <Sparkles size={13} />
-              Listing Payments Control
-            </span>
-            <h1 className="mt-4 text-3xl font-bold tracking-tight">Listing Payments</h1>
-            <p className="mt-3 text-sm leading-6 text-[#f2d6c0] sm:text-[15px]">
-              Enable a listing to accept direct payments through its owner&apos;s Razorpay account.
-              Once enabled, the owner will see a setup page under My Business to submit their
-              Key ID and Key Secret (encrypted at rest) and list products or services for sale.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:w-[360px]">
-            <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#e8c8af]">Coverage</p>
-              <p className="mt-1 text-2xl font-bold">{enableRate}%</p>
-              <p className="mt-1 text-sm text-[#f2d6c0]">{enabledCount} of {totalListings} listings enabled</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#e8c8af]">Live</p>
-              <p className="mt-1 text-2xl font-bold">{liveCount}</p>
-              <p className="mt-1 text-sm text-[#f2d6c0]">enabled + owner keys verified</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff3e7] text-brand">
-              <Store size={20} />
-            </span>
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Enabled</span>
-          </div>
-          <p className="mt-4 text-3xl font-bold text-[#2d160b]">{enabledCount}</p>
-          <p className="mt-2 text-sm text-[#7c6253]">Listings admin has allowed to collect payments.</p>
-        </div>
-
-        <div className="rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#eef8f0] text-green-700">
-              <KeyRound size={20} />
-            </span>
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Configured</span>
-          </div>
-          <p className="mt-4 text-3xl font-bold text-[#2d160b]">{configuredCount}</p>
-          <p className="mt-2 text-sm text-[#7c6253]">Owners who have submitted Razorpay credentials.</p>
-        </div>
-
-        <div className="rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#eef2ff] text-blue-700">
-              <ShieldCheck size={20} />
-            </span>
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Live</span>
-          </div>
-          <p className="mt-4 text-3xl font-bold text-[#2d160b]">{liveCount}</p>
-          <p className="mt-2 text-sm text-[#7c6253]">Enabled listings with verified owner keys.</p>
-        </div>
-
-        <div className="rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff6e8] text-amber-700">
-              <CreditCard size={20} />
-            </span>
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Test Mode</span>
-          </div>
-          <p className="mt-4 text-3xl font-bold text-[#2d160b]">{testModeCount}</p>
-          <p className="mt-2 text-sm text-[#7c6253]">Listings still on Razorpay test keys.</p>
-        </div>
-      </section>
-
-      <section className="rounded-[28px] border border-[#eee2d7] bg-white p-6 shadow-sm">
-        <div className="flex items-center gap-2">
-          <CreditCard size={18} className="text-brand" />
-          <h2 className="text-lg font-bold text-[#2d160b]">Per-Listing Controls</h2>
-        </div>
-        <p className="mt-2 text-sm text-[#7c6253]">
-          Toggle the feature for each listing. The owner must still submit their Razorpay keys
-          separately before checkout is actually usable on their page.
+    <div className="space-y-6">
+      <header>
+        <p className="od-eyebrow">Sell online</p>
+        <h1 className="od-section-title mt-1 text-3xl">Payments</h1>
+        <p className="od-muted mt-2 max-w-2xl text-sm leading-relaxed">
+          Businesses connect their own Razorpay account. Suspend one to stop new payments; paid orders
+          in progress are still saved.
         </p>
+      </header>
 
-        <div className="mt-5 space-y-4">
-          {rows.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-[#ead8c8] bg-[#fcf7f2] px-4 py-8 text-center text-sm text-[#8c7364]">
-              No listings yet.
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <div key={stat.status} className="od-card p-4">
+            <SellingStatusBadge status={stat.status} />
+            <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--od-ink)]">{counts[stat.status]}</p>
+            <p className="od-muted text-xs">{stat.hint}</p>
+          </div>
+        ))}
+      </section>
+
+      <nav aria-label="Filter by status" className="flex flex-wrap gap-2">
+        {FILTERS.map((option) => (
+          <Link
+            key={option.value}
+            href={option.value === 'all' ? '/admin/payments' : `/admin/payments?status=${option.value}`}
+            aria-current={filter === option.value ? 'page' : undefined}
+            className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+              filter === option.value
+                ? 'border-[var(--od-brand-strong)] bg-[var(--od-brand-strong)] text-white'
+                : 'border-[var(--od-border)] bg-white text-[var(--od-ink-2)] hover:text-[var(--od-brand-strong)]'
+            }`}
+          >
+            {option.label}
+            {option.value !== 'all' && <span className="ml-1 tabular-nums">({counts[option.value]})</span>}
+          </Link>
+        ))}
+      </nav>
+
+      <section className="space-y-3">
+        {visible.length === 0 ? (
+          <p className="od-card p-6 text-center text-sm text-[var(--od-muted)]">No businesses in this view.</p>
+        ) : (
+          visible.map(({ listing, config, status }) => (
+            <div
+              key={listing.id}
+              className="od-card flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between"
+            >
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="truncate font-bold text-[var(--od-ink)]">{listing.name}</p>
+                  <SellingStatusBadge status={status} />
+                </div>
+                <p className="od-muted mt-0.5 text-xs">
+                  {listing.category ?? 'Uncategorized'}
+                  {listing.subdomain ? ` · ${listing.subdomain}.ourdahanu.in` : ''}
+                </p>
+                <p className="mt-1.5 text-sm text-[var(--od-ink-2)]">{detailFor(listing, config, status)}</p>
+              </div>
+              <div className="flex flex-shrink-0 flex-wrap items-start gap-2">
+                <SellingControls listingId={listing.id} suspended={status === 'suspended'} />
+                <Link href={`/admin/products/${listing.id}`} className="od-button-secondary px-3 py-2 text-sm">
+                  <Package size={14} aria-hidden />
+                  Products
+                </Link>
+              </div>
             </div>
-          ) : (
-            rows.map((row) => {
-              const action = async (formData: FormData) => {
-                'use server'
-                await updateListingPaymentsFromForm(row.id, formData)
-              }
-
-              const configStatusLabel = !row.hasConfig
-                ? 'Owner has not submitted keys yet.'
-                : row.isVerified
-                  ? `Keys verified ${formatDate(row.verifiedAt) ?? 'recently'} · ${row.testMode ? 'Test mode' : 'Live mode'} · ${row.keyLast4 ? `…${row.keyLast4}` : ''}`
-                  : 'Keys submitted but not verified.'
-
-              return (
-                <form
-                  key={row.id}
-                  action={action}
-                  className="rounded-[24px] border border-[#efe2d6] bg-[#fffdfb] p-5"
-                >
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-lg font-bold text-[#2d160b]">{row.name}</p>
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                            row.isEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                          }`}
-                        >
-                          {row.isEnabled ? 'Enabled' : 'Disabled'}
-                        </span>
-                        {row.hasConfig && (
-                          <span
-                            className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
-                              row.isVerified ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
-                            }`}
-                          >
-                            <CheckCircle size={11} />
-                            {row.isVerified ? 'Verified' : 'Pending'}
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-1 text-sm text-[#8b7264]">{row.category ?? 'Uncategorized'}</p>
-                      <p className="mt-3 text-sm text-[#6f584a]">{configStatusLabel}</p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                      <label className="inline-flex items-center gap-2 rounded-xl border border-[#e9d7c8] bg-white px-3 py-2 text-sm font-medium text-gray-700">
-                        <input
-                          type="checkbox"
-                          name="payments_enabled"
-                          defaultChecked={row.isEnabled}
-                          className="rounded border-gray-300 text-brand focus:ring-brand"
-                        />
-                        Enable payments
-                      </label>
-
-                      <button
-                        type="submit"
-                        className="inline-flex items-center justify-center rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong"
-                      >
-                        Save
-                      </button>
-
-                      <Link
-                        href={`/admin/products/${row.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-[#dfcdbd] bg-white px-3 py-2.5 text-sm font-semibold text-[#6f584a] transition-colors hover:border-brand hover:text-brand"
-                      >
-                        <Package size={14} />
-                        Manage products
-                      </Link>
-                    </div>
-                  </div>
-                </form>
-              )
-            })
-          )}
-        </div>
+          ))
+        )}
       </section>
     </div>
   )

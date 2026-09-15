@@ -1,16 +1,15 @@
 import Link from 'next/link'
 import {
   ArrowRight,
-  CheckCircle,
   CreditCard,
-  Eye,
-  EyeOff,
   Package,
   Sparkles,
   Store,
 } from 'lucide-react'
 
 import { requireAdmin } from '@/app/actions/admin'
+import SellingStatusBadge from '@/app/admin/payments/SellingStatusBadge'
+import { deriveSellingStatus } from '@/lib/selling/shop-mode'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
 
@@ -20,6 +19,7 @@ type AdminListingRow = {
   category: string | null
   subdomain: string | null
   payments_enabled: boolean | null
+  payments_suspended_at: string | null
   approved: boolean | null
 }
 
@@ -31,6 +31,7 @@ type ProductRow = {
 type PaymentConfigRow = {
   listing_id: string
   verified_at: string | null
+  razorpay_key_id: string
 }
 
 export default async function AdminProductsIndex() {
@@ -46,10 +47,10 @@ export default async function AdminProductsIndex() {
     await Promise.all([
       adminClient
         .from('listings')
-        .select('id, name, category, subdomain, payments_enabled, approved')
+        .select('id, name, category, subdomain, payments_enabled, payments_suspended_at, approved')
         .order('name', { ascending: true }),
       adminClient.from('listing_products').select('listing_id, is_active'),
-      adminClient.from('listing_payment_configs').select('listing_id, verified_at'),
+      adminClient.from('listing_payment_configs').select('listing_id, verified_at, razorpay_key_id'),
     ])
 
   const listings = (listingsData ?? []) as AdminListingRow[]
@@ -65,11 +66,7 @@ export default async function AdminProductsIndex() {
     }
   }
 
-  const verifiedByListing = new Map(
-    configs
-      .filter((c) => c.verified_at)
-      .map((c) => [c.listing_id, c.verified_at!]),
-  )
+  const configByListing = new Map(configs.map((c) => [c.listing_id, c]))
 
   const rows = listings
     .map((listing) => {
@@ -80,28 +77,29 @@ export default async function AdminProductsIndex() {
         name: listing.name,
         category: listing.category,
         subdomain: listing.subdomain,
-        paymentsEnabled: listing.payments_enabled === true,
         approved: listing.approved === true,
-        keysVerified: verifiedByListing.has(listing.id),
+        sellingStatus: deriveSellingStatus({
+          approved: listing.approved === true,
+          paymentsEnabled: listing.payments_enabled === true,
+          suspendedAt: listing.payments_suspended_at,
+          verifiedAt: configByListing.get(listing.id)?.verified_at ?? null,
+          keyId: configByListing.get(listing.id)?.razorpay_key_id ?? null,
+        }),
         totalProducts,
         activeProducts,
-        marketplaceReady:
-          listing.payments_enabled === true &&
-          verifiedByListing.has(listing.id) &&
-          activeProducts > 0,
       }
     })
     .sort(
       (a, b) =>
-        Number(b.paymentsEnabled) - Number(a.paymentsEnabled) ||
+        Number(b.sellingStatus !== 'not_connected') - Number(a.sellingStatus !== 'not_connected') ||
         b.totalProducts - a.totalProducts ||
         a.name.localeCompare(b.name),
     )
 
   const totalListings = rows.length
-  const enabledCount = rows.filter((r) => r.paymentsEnabled).length
+  const testCount = rows.filter((r) => r.sellingStatus === 'test').length
   const listingsWithProducts = rows.filter((r) => r.totalProducts > 0).length
-  const liveCount = rows.filter((r) => r.marketplaceReady).length
+  const liveCount = rows.filter((r) => r.sellingStatus === 'live').length
   const totalProductsCount = rows.reduce((acc, r) => acc + r.totalProducts, 0)
   const totalActiveCount = rows.reduce((acc, r) => acc + r.activeProducts, 0)
 
@@ -157,10 +155,10 @@ export default async function AdminProductsIndex() {
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#eef8f0] text-green-700">
               <CreditCard size={20} />
             </span>
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Payments On</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b7c69]">Test Mode</span>
           </div>
-          <p className="mt-4 text-3xl font-bold text-[#2d160b]">{enabledCount}</p>
-          <p className="mt-2 text-sm text-[#7c6253]">Listings that can accept direct payments.</p>
+          <p className="mt-4 text-3xl font-bold text-[#2d160b]">{testCount}</p>
+          <p className="mt-2 text-sm text-[#7c6253]">Shops only their owner can see so far.</p>
         </div>
 
         <div className="rounded-[24px] border border-[#eee2d7] bg-white p-5 shadow-sm">
@@ -192,7 +190,7 @@ export default async function AdminProductsIndex() {
           <h2 className="text-lg font-bold text-[#2d160b]">All Listings</h2>
         </div>
         <p className="mt-2 text-sm text-[#7c6253]">
-          Sorted by payments-enabled first, then by item count. Click Manage to add, edit,
+          Sorted by selling status first, then by item count. Click Manage to add, edit,
           hide, or delete products on behalf of the owner. Admin mutations still send
           read-your-own-writes cache updates, so changes appear on the public page immediately.
         </p>
@@ -214,34 +212,7 @@ export default async function AdminProductsIndex() {
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="truncate text-base font-bold text-[#2d160b]">{row.name}</p>
 
-                      {row.paymentsEnabled ? (
-                        <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-semibold text-green-700">
-                          Payments On
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-semibold text-gray-600">
-                          Payments Off
-                        </span>
-                      )}
-
-                      {row.keysVerified && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">
-                          <CheckCircle size={10} />
-                          Keys Verified
-                        </span>
-                      )}
-
-                      {row.marketplaceReady ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
-                          <Eye size={10} />
-                          Shop Live
-                        </span>
-                      ) : row.totalProducts > 0 ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700">
-                          <EyeOff size={10} />
-                          Not Live
-                        </span>
-                      ) : null}
+                      <SellingStatusBadge status={row.sellingStatus} />
 
                       {!row.approved && (
                         <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-semibold text-red-700">

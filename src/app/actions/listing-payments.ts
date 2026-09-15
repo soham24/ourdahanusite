@@ -20,39 +20,6 @@ import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
 
 /* ------------------------------------------------------------------ */
-/*  Admin: toggle payments_enabled per listing                         */
-/* ------------------------------------------------------------------ */
-
-export async function toggleListingPaymentsEnabled(
-  listingId: string,
-  enabled: boolean,
-): Promise<{ error?: string }> {
-  const supabase = await createClient()
-  await requireAdmin(supabase)
-
-  const adminClient = createAdminClient()
-  if (!adminClient) return { error: 'Server configuration error.' }
-
-  const { error } = await adminClient
-    .from('listings')
-    .update({ payments_enabled: enabled })
-    .eq('id', listingId)
-
-  if (error) return { error: error.message }
-
-  revalidatePublicListingDetail(listingId)
-  return {}
-}
-
-export async function updateListingPaymentsFromForm(
-  listingId: string,
-  formData: FormData,
-): Promise<{ error?: string }> {
-  const enabled = formData.get('payments_enabled') === 'on'
-  return toggleListingPaymentsEnabled(listingId, enabled)
-}
-
-/* ------------------------------------------------------------------ */
 /*  Owner: connect and disconnect Razorpay                             */
 /* ------------------------------------------------------------------ */
 
