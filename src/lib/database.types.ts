@@ -1242,17 +1242,61 @@ export type Database = {
           },
         ]
       }
+      listing_product_options: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          price_paise: number
+          product_id: string
+          quantity_in_stock: number | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          price_paise: number
+          product_id: string
+          quantity_in_stock?: number | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          price_paise?: number
+          product_id?: string
+          quantity_in_stock?: number | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_product_options_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "listing_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_products: {
         Row: {
           created_at: string
           description: string | null
           id: string
+          image_aspect: string
           image_thumb_url: string | null
           image_url: string | null
           is_active: boolean
+          legacy_service_index: number | null
           listing_id: string
           name: string
-          price_paise: number
+          price_note: string | null
+          price_paise: number | null
           quantity_in_stock: number | null
           sort_order: number
           type: string
@@ -1262,12 +1306,15 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_aspect?: string
           image_thumb_url?: string | null
           image_url?: string | null
           is_active?: boolean
+          legacy_service_index?: number | null
           listing_id: string
           name: string
-          price_paise: number
+          price_note?: string | null
+          price_paise?: number | null
           quantity_in_stock?: number | null
           sort_order?: number
           type: string
@@ -1277,12 +1324,15 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_aspect?: string
           image_thumb_url?: string | null
           image_url?: string | null
           is_active?: boolean
+          legacy_service_index?: number | null
           listing_id?: string
           name?: string
-          price_paise?: number
+          price_note?: string | null
+          price_paise?: number | null
           quantity_in_stock?: number | null
           sort_order?: number
           type?: string
@@ -1752,9 +1802,10 @@ export type Database = {
           created_at: string | null
           delivery_address: string | null
           id: string
+          is_test: boolean
           listing_id: string | null
           notes: string | null
-          is_test: boolean
+          option_label: string | null
           owner_razorpay_order_id: string | null
           owner_razorpay_payment_id: string | null
           owner_razorpay_signature: string | null
@@ -1763,6 +1814,7 @@ export type Database = {
           payout_error: string | null
           payout_status: string | null
           product_id: string | null
+          product_option_id: string | null
           quantity: number | null
           razorpay_order_id: string | null
           razorpay_payment_id: string | null
@@ -1785,9 +1837,10 @@ export type Database = {
           created_at?: string | null
           delivery_address?: string | null
           id?: string
+          is_test?: boolean
           listing_id?: string | null
           notes?: string | null
-          is_test?: boolean
+          option_label?: string | null
           owner_razorpay_order_id?: string | null
           owner_razorpay_payment_id?: string | null
           owner_razorpay_signature?: string | null
@@ -1796,6 +1849,7 @@ export type Database = {
           payout_error?: string | null
           payout_status?: string | null
           product_id?: string | null
+          product_option_id?: string | null
           quantity?: number | null
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
@@ -1818,9 +1872,10 @@ export type Database = {
           created_at?: string | null
           delivery_address?: string | null
           id?: string
+          is_test?: boolean
           listing_id?: string | null
           notes?: string | null
-          is_test?: boolean
+          option_label?: string | null
           owner_razorpay_order_id?: string | null
           owner_razorpay_payment_id?: string | null
           owner_razorpay_signature?: string | null
@@ -1829,6 +1884,7 @@ export type Database = {
           payout_error?: string | null
           payout_status?: string | null
           product_id?: string | null
+          product_option_id?: string | null
           quantity?: number | null
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
@@ -1861,6 +1917,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "listing_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_product_option_id_fkey"
+            columns: ["product_option_id"]
+            isOneToOne: false
+            referencedRelation: "listing_product_options"
             referencedColumns: ["id"]
           },
         ]
@@ -2411,6 +2474,10 @@ export type Database = {
         }
         Returns: string
       }
+      decrement_option_stock: {
+        Args: { p_option_id: string; p_quantity: number }
+        Returns: boolean
+      }
       decrement_product_stock: {
         Args: { p_product_id: string; p_quantity: number }
         Returns: boolean
@@ -2445,12 +2512,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2474,11 +2541,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2499,11 +2566,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2524,11 +2591,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2541,11 +2608,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
