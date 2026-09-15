@@ -11,6 +11,7 @@ import {
 } from '@/lib/notifications'
 import {
   findFinalizedIntentByPaymentId,
+  getIntentByOrderId,
   markIntentCaptured,
   markIntentFinalized,
   recordIntentError,
@@ -98,7 +99,8 @@ export async function placeMarketplaceOrder(
     .eq('id', productId)
     .maybeSingle()
 
-  if (!product || !product.is_active) {
+  // Inactive items are accepted: this runs after capture, and create-marketplace-order already stops inactive items before payment.
+  if (!product) {
     return { error: 'Product is no longer available.' }
   }
 
@@ -141,7 +143,20 @@ export async function placeMarketplaceOrder(
   })
 
   // 3. Re-fetch Razorpay order to confirm amount + notes (defense in depth)
-  const expectedAmountPaise = product.price_paise * quantity
+  // The unit price and amount the buyer agreed to were recorded on the
+  // payment intent when the Razorpay order was created. Check against those,
+  // not the live price: an owner editing the price mid-payment must not
+  // refuse a genuine paid order.
+  const intent = await getIntentByOrderId(razorpayOrderId)
+  if (intent && intent.user_id !== user.id) {
+    return { error: 'Order details do not match the original request.' }
+  }
+  const intentUnitPrice = intent?.payload?.product_price_paise
+  const unitPricePaise =
+    typeof intentUnitPrice === 'number' && Number.isInteger(intentUnitPrice) && intentUnitPrice > 0
+      ? intentUnitPrice
+      : product.price_paise
+  const expectedAmountPaise = intent?.amount_paise ?? unitPricePaise * quantity
   const credentials = Buffer.from(`${ownerKeys.keyId}:${ownerKeys.keySecret}`).toString('base64')
   const orderRes = await fetch(`https://api.razorpay.com/v1/orders/${razorpayOrderId}`, {
     headers: { Authorization: `Basic ${credentials}` },
@@ -202,8 +217,8 @@ export async function placeMarketplaceOrder(
   }
 
   // 5. Insert the order
-  const priceRupees = product.price_paise / 100
-  const totalRupees = priceRupees * quantity
+  const priceRupees = unitPricePaise / 100
+  const totalRupees = expectedAmountPaise / 100
 
   const { data: newOrder, error: insertError } = await adminClient
     .from('orders')
