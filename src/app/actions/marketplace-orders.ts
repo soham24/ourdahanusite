@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 
 import { loadOwnerRazorpayKeys } from '@/app/actions/listing-payments'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
+import { classifyRazorpayKeyId } from '@/lib/selling/keys'
 import {
   sendNotification,
   sendNotificationToAdmins,
@@ -38,6 +39,8 @@ export interface MarketplaceOrder {
   razorpay_payment_id: string | null
   payment_status: string
   status: string
+  /** Paid with Razorpay test keys: a practice purchase, no real money. */
+  is_test: boolean
   created_at: string
   updated_at: string
   listing?: { name: string; subdomain: string | null } | null
@@ -101,16 +104,23 @@ export async function placeMarketplaceOrder(
 
   const { data: listing } = await adminClient
     .from('listings')
-    .select('id, name, approved, payments_enabled, owner_id')
+    .select('id, name, owner_id')
     .eq('id', product.listing_id)
     .maybeSingle()
 
-  if (!listing || !listing.approved || !listing.payments_enabled) {
-    return { error: 'Listing is not accepting orders.' }
+  if (!listing) {
+    return { error: 'Listing not found.' }
   }
 
-  // 2. Load owner keys and verify HMAC with OWNER's secret
-  const ownerKeys = await loadOwnerRazorpayKeys(product.listing_id)
+  // Deliberately no approved / payments_enabled / suspension check here: this
+  // runs after Razorpay captured the buyer's money. Those gates only stop new
+  // payments from starting (create-marketplace-order). A payment proven
+  // genuine below is always saved.
+
+  // 2. Load owner keys and verify HMAC with OWNER's secret. Unverified keys
+  // are accepted: Razorpay may have started rejecting them for *new* orders
+  // after this payment was created, and the signature still needs the secret.
+  const ownerKeys = await loadOwnerRazorpayKeys(product.listing_id, { allowUnverified: true })
   if (!ownerKeys) {
     return { error: 'Payment setup is incomplete for this business.' }
   }
@@ -173,8 +183,11 @@ export async function placeMarketplaceOrder(
     return { error: 'Order details do not match the original request.' }
   }
 
+  // Test keys move no real money: label the order and leave real stock alone.
+  const isTest = classifyRazorpayKeyId(ownerKeys.keyId) === 'test'
+
   // 4. Atomic stock decrement
-  if (product.quantity_in_stock !== null) {
+  if (!isTest && product.quantity_in_stock !== null) {
     const { data: decOk, error: decError } = await adminClient.rpc(
       'decrement_product_stock',
       { p_product_id: product.id, p_quantity: quantity },
@@ -217,6 +230,7 @@ export async function placeMarketplaceOrder(
       payment_status: 'paid',
       payout_status: 'not_applicable',
       status: 'confirmed',
+      is_test: isTest,
     })
     .select('id')
     .single()
@@ -250,6 +264,7 @@ export async function placeMarketplaceOrder(
       quantity,
       amountTotal: totalRupees,
       buyerName,
+      isTest,
     } as const
 
     await Promise.allSettled([
@@ -263,10 +278,12 @@ export async function placeMarketplaceOrder(
             recipient: 'owner',
           })
         : Promise.resolve(),
-      sendNotificationToAdmins('order.placed', {
-        ...basePayload,
-        recipient: 'admin',
-      }),
+      isTest
+        ? Promise.resolve()
+        : sendNotificationToAdmins('order.placed', {
+            ...basePayload,
+            recipient: 'admin',
+          }),
     ])
   })().catch((err) => console.error('[marketplace:order.placed notify]', err))
 
