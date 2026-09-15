@@ -103,3 +103,35 @@ export async function fetchProductAndListing(productId: string): Promise<{
 
   return { product, listing, shopMode }
 }
+
+/** Where an old /s/<position> share link should go now. */
+export async function fetchLegacyServiceTarget(
+  subdomain: string,
+  index: number,
+): Promise<{ listingId: string; productId: string | null } | null> {
+  'use cache'
+
+  cacheLife(PUBLIC_CONTENT_CACHE)
+
+  const supabase = createPublicClient()
+  const { data: listingData } = await supabase
+    .from('listings')
+    .select('id')
+    .eq('subdomain', subdomain)
+    .eq('approved', true)
+    .maybeSingle()
+  const listingId = (listingData as { id: string } | null)?.id
+  if (!listingId) return null
+
+  cacheTag(CACHE_TAGS.listing(listingId))
+
+  const { data: productData } = await supabase
+    .from('listing_products')
+    .select('id')
+    .eq('listing_id', listingId)
+    .eq('legacy_service_index', index)
+    .eq('is_active', true)
+    .maybeSingle()
+
+  return { listingId, productId: (productData as { id: string } | null)?.id ?? null }
+}
