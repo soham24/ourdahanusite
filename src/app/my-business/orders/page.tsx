@@ -258,10 +258,11 @@ export default function MyOrdersPage() {
     cancelled: realFiltered.filter((o) => o.status === 'cancelled').length,
   }
 
+  const realOrders = orders.filter((o) => !o.is_test)
   const flowCounts = {
-    all: visibleOrders.length,
-    owner_razorpay: visibleOrders.filter((o) => o.payment_flow === 'owner_razorpay').length,
-    platform_upi_payout: visibleOrders.filter((o) => o.payment_flow === 'platform_upi_payout').length,
+    all: realOrders.length,
+    owner_razorpay: realOrders.filter((o) => o.payment_flow === 'owner_razorpay').length,
+    platform_upi_payout: realOrders.filter((o) => o.payment_flow === 'platform_upi_payout').length,
   }
 
   const totalEarnings = realFiltered

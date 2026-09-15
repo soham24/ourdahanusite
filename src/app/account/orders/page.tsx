@@ -87,7 +87,7 @@ export default async function MyAccountOrdersPage() {
         <>
           <div className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-white border border-gray-100 rounded-xl p-3 text-center">
-              <div className="text-xl font-bold text-gray-900">{orders.length}</div>
+              <div className="text-xl font-bold text-gray-900">{orders.filter((order) => !order.is_test).length}</div>
               <div className="text-xs text-gray-400">Orders placed</div>
             </div>
             <div className="bg-white border border-gray-100 rounded-xl p-3 text-center">
