@@ -38,6 +38,8 @@ export interface CheckoutFormProps {
   buyerName: string
   buyerPhone: string
   buyerEmail: string
+  /** The business is on Razorpay test keys: this is a practice purchase. */
+  testMode: boolean
 }
 
 interface RazorpayOptions {
@@ -101,6 +103,7 @@ export default function CheckoutForm({
   buyerName: initialName,
   buyerPhone: initialPhone,
   buyerEmail,
+  testMode,
 }: CheckoutFormProps) {
   const [quantity, setQuantity] = useState(1)
   const [buyerName, setBuyerName] = useState(initialName)
@@ -610,6 +613,15 @@ export default function CheckoutForm({
         <ShieldCheck size={12} className="text-[var(--od-success)]" aria-hidden />
         Payment goes straight to {listing.name}
       </p>
+
+      {testMode && (
+        <p
+          role="note"
+          className="rounded-xl border border-[rgba(200,136,30,0.35)] bg-[rgba(200,136,30,0.07)] px-3.5 py-2.5 text-[13px] leading-relaxed text-[var(--od-ink-2)]"
+        >
+          Practice purchase · use test UPI success@razorpay or card 4111 1111 1111 1111 with any future date and CVV.
+        </p>
+      )}
 
       {status === 'error' && error && (
         <div className="rounded-xl border border-[rgba(200,60,40,0.25)] bg-[rgba(200,60,40,0.06)] px-4 py-3 text-sm text-[var(--od-ink-2)]">

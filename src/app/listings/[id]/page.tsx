@@ -210,7 +210,7 @@ async function ListingDetailContent({
   const favouriteCount = publicData?.favouriteCount ?? 0
   const similarListings = publicData?.similarListings ?? []
   const marketplaceProducts = publicData?.products ?? []
-  const marketplaceReady = publicData?.marketplaceReady ?? false
+  const shopMode = publicData?.shopMode ?? 'off'
 
   if (!listing) {
     return (
@@ -383,7 +383,7 @@ async function ListingDetailContent({
               listingId={listingId}
               whatsappNum={whatsappNum}
               businessUrl={businessUrl}
-              marketplaceReady={marketplaceReady}
+              shopMode={shopMode}
               marketplaceProducts={marketplaceProducts}
               appointmentsEnabled={appointmentsEnabled}
               appointmentSettings={appointmentSettings}
