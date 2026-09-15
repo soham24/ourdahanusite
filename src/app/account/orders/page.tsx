@@ -52,7 +52,7 @@ export default async function MyAccountOrdersPage() {
   const orders = await getMyMarketplaceOrders()
 
   const totalSpend = orders
-    .filter((order) => order.status !== 'cancelled')
+    .filter((order) => order.status !== 'cancelled' && !order.is_test)
     .reduce((sum, order) => sum + Number(order.amount_total || 0), 0)
 
   return (
@@ -115,6 +115,11 @@ export default async function MyAccountOrdersPage() {
                           {order.service_name}
                         </span>
                         <StatusBadge status={order.status} />
+                        {order.is_test && (
+                          <span className="inline-flex items-center rounded-full bg-[rgba(200,136,30,0.14)] px-2 py-0.5 text-xs font-bold text-[var(--od-brand-strong)]">
+                            Test
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500">
                         from{' '}
