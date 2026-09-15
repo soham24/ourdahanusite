@@ -67,7 +67,7 @@ export const JOB_TEXT_LIMITS = {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-// ₹1 crore. The int column this becomes would overflow above it.
+// ₹1 crore: no real local wage comes close, and it keeps typos far below the int column's limit.
 const PAY_RUPEES_MAX = 10_000_000
 
 function clean(value: string | null | undefined): string | null {
