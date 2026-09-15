@@ -47,7 +47,7 @@ export async function generateMetadata({
     return { title: 'Business Listing' }
   }
 
-  // Parse tags and services for keywords
+  // Parse tags for keywords
   const parsedTags: string[] = (() => {
     try {
       const r = listing.tags
@@ -55,14 +55,6 @@ export async function generateMetadata({
       return typeof r === 'string' ? JSON.parse(r) : []
     } catch { return [] }
   })()
-  const parsedServices: { name: string }[] = (() => {
-    try {
-      const r = listing.services
-      if (Array.isArray(r)) return r as { name: string }[]
-      return typeof r === 'string' ? JSON.parse(r) : []
-    } catch { return [] }
-  })()
-
   // Build rich description (≤160 chars)
   const descParts: string[] = []
   if (listing.tagline) descParts.push(String(listing.tagline))
@@ -75,7 +67,7 @@ export async function generateMetadata({
 
   // Build keyword list
   const nearbyAreas = ['Dahanu', 'Bordi', 'Gholvad', 'Palghar', 'Dahanu Road', 'Maharashtra']
-  const serviceNames = parsedServices.slice(0, 5).map(s => s.name).filter(Boolean)
+  const serviceNames = (listingDetail?.products ?? []).slice(0, 5).map((item) => item.name)
   const keywords = [
     String(listing.name),
     String(listing.category),
@@ -209,7 +201,7 @@ async function ListingDetailContent({
   const recommendCount = publicData?.recommendCount ?? 0
   const favouriteCount = publicData?.favouriteCount ?? 0
   const similarListings = publicData?.similarListings ?? []
-  const marketplaceProducts = publicData?.products ?? []
+  const catalogItems = publicData?.products ?? []
   const shopMode = publicData?.shopMode ?? 'off'
 
   if (!listing) {
@@ -250,7 +242,6 @@ async function ListingDetailContent({
   }
 
   // Parse all JSON fields
-  const services      = parseJson(listing.services, [])
   const tags          = parseJson(listing.tags, [])
   const photos        = parseJson(listing.photos, [])
   const highlights    = parseJson(listing.highlights, [])
@@ -365,9 +356,8 @@ async function ListingDetailContent({
       />
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <ListingNavigation 
-          services={services}
-          marketplaceProducts={marketplaceProducts}
+        <ListingNavigation
+          hasCatalog={catalogItems.length > 0}
           photos={photos}
         />
 
@@ -379,12 +369,11 @@ async function ListingDetailContent({
               beforeAfter={beforeAfter}
               videoEmbedId={videoEmbedId}
               highlights={highlights}
-              services={services}
               listingId={listingId}
               whatsappNum={whatsappNum}
               businessUrl={businessUrl}
               shopMode={shopMode}
-              marketplaceProducts={marketplaceProducts}
+              catalogItems={catalogItems}
               appointmentsEnabled={appointmentsEnabled}
               appointmentSettings={appointmentSettings}
               appointmentBookingFee={appointmentBookingFee}

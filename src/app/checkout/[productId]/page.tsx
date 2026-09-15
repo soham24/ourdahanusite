@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { ArrowLeft, PackageX, Store } from 'lucide-react'
 
 import { getUserRole } from '@/app/actions/admin'
+import { isBuyable } from '@/lib/catalog/catalog'
 import { fetchProductAndListing } from '@/lib/data/product-detail'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
 import { SHOP_NOT_OPEN_MESSAGE, canBuyFromShop } from '@/lib/selling/shop-mode'
@@ -54,6 +55,13 @@ export default async function CheckoutPage({
   const data = await fetchProductAndListing(productId)
   if (!data?.product || !data.listing) notFound()
   const { product, listing } = data
+
+  // Items without a fixed price are enquiries, and option picking isn't on
+  // this page yet: send both to the item page, which offers the right button.
+  const pricePaise = product.price_paise
+  if (!isBuyable(product) || product.options.length > 0 || pricePaise === null) {
+    redirect(`/p/${product.id}`)
+  }
 
   // Reading auth cookies makes this route dynamic automatically — no
   // `export const dynamic` needed.
@@ -110,7 +118,7 @@ export default async function CheckoutPage({
         product={{
           id: product.id,
           name: product.name,
-          pricePaise: product.price_paise,
+          pricePaise,
           quantityInStock: product.quantity_in_stock,
           type: product.type,
           imageUrl: product.image_thumb_url || product.image_url,

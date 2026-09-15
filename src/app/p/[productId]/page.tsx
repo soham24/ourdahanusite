@@ -3,18 +3,17 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { ArrowLeft, Package, Wrench } from 'lucide-react'
-import { getCanonicalListingUrl } from '@/lib/listing-url'
+
+import { CatalogActionButton } from '@/components/catalog/CatalogItemCard'
+import {
+  catalogItemAction,
+  catalogPriceLine,
+  catalogWhatsAppHref,
+  formatPaise,
+} from '@/lib/catalog/catalog'
 import { fetchProductAndListing } from '@/lib/data/product-detail'
-
-function formatPrice(paise: number) {
-  return `₹${(paise / 100).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
-}
-
-const WA_ICON = (
-  <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-  </svg>
-)
+import { getCanonicalListingUrl } from '@/lib/listing-url'
+import { getServiceImageAspectOption } from '@/lib/service-image'
 
 export async function generateMetadata({
   params,
@@ -23,13 +22,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { productId } = await params
   const data = await fetchProductAndListing(productId)
-  if (!data?.product) return { title: 'Product' }
+  if (!data?.listing) return { title: 'Product' }
 
   const { product, listing } = data
-  const price = formatPrice(product.price_paise)
-  const businessUrl = getCanonicalListingUrl(String(listing?.id ?? ''), listing?.subdomain ?? null)
-  const title = listing?.name ? `${product.name} — ${price} | ${listing.name}` : `${product.name} — ${price}`
-  const description = product.description ?? `${product.name} for ${price}`
+  const price = catalogPriceLine(product)
+  const businessUrl = getCanonicalListingUrl(listing.id, listing.subdomain)
+  const title = `${product.name} — ${price} | ${listing.name}`
+  const description = product.description ?? `${product.name} (${price}) from ${listing.name} in Dahanu.`
   return {
     title,
     description,
@@ -56,111 +55,97 @@ export default function StandaloneProductPage({
   params: Promise<{ productId: string }>
 }) {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+    <Suspense fallback={<div className="od-page min-h-screen" />}>
       <ProductContent params={params} />
     </Suspense>
   )
 }
 
-async function ProductContent({
-  params,
-}: {
-  params: Promise<{ productId: string }>
-}) {
+async function ProductContent({ params }: { params: Promise<{ productId: string }> }) {
   const { productId } = await params
   const data = await fetchProductAndListing(productId)
-  if (!data?.product) notFound()
   if (!data?.listing) notFound()
 
-  const { product, listing } = data
-
-  const businessUrl = getCanonicalListingUrl(String(listing.id), listing.subdomain as string | null)
-  const whatsappNum = ((listing.whatsapp || listing.phone) as string | null)
-  const price = formatPrice(product.price_paise)
-  const waMsg = encodeURIComponent(
-    `Hi! I'm interested in your ${product.type === 'product' ? 'product' : 'service'} — *${product.name}* (${price}).\n\nCan you share more details?\n\n${businessUrl}/p/${product.id}`,
-  )
-  const waLink = whatsappNum
-    ? `https://wa.me/${whatsappNum.replace(/\D/g, '')}?text=${waMsg}`
-    : null
-  const isOutOfStock = product.quantity_in_stock === 0
-  const imageUrl = (product.image_thumb_url || product.image_url) as string | null
+  const { product, listing, shopMode } = data
+  const businessUrl = getCanonicalListingUrl(listing.id, listing.subdomain)
+  const itemUrl = `${businessUrl}/p/${product.id}`
+  const whatsappNum = listing.whatsapp || listing.phone
+  const priceLine = catalogPriceLine(product)
+  // This page is cached for everyone, so it never knows the viewer: only a
+  // live shop shows Buy here. Owners practise on test keys from the business page.
+  const action = catalogItemAction(product, shopMode, { isOwner: false, isAdmin: false }, Boolean(whatsappNum))
+  const whatsappHref =
+    action.kind === 'whatsapp' ? catalogWhatsAppHref(whatsappNum, product, priceLine, itemUrl) : null
+  const aspect = getServiceImageAspectOption(product.image_aspect, 'square')
+  const imageUrl = product.image_url || product.image_thumb_url
+  const isService = product.type === 'service'
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="od-page min-h-screen">
       <div className="mx-auto max-w-lg px-4 py-6">
-        {/* Back to listing */}
         <Link
           href={businessUrl}
-          className="mb-5 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand transition-colors"
+          className="mb-5 inline-flex min-h-10 items-center gap-1.5 text-sm font-medium text-[var(--od-muted)] transition-colors hover:text-[var(--od-brand)]"
         >
-          <ArrowLeft size={14} />
-          {String(listing.name)}
+          <ArrowLeft size={14} aria-hidden />
+          {listing.name}
         </Link>
 
-        <div className="overflow-hidden rounded-2xl border border-border/50 bg-white shadow-sm">
-          {/* Image */}
+        <div className="od-card overflow-hidden">
           {imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrl} alt={product.name} className="aspect-square w-full object-cover" />
-          ) : (
-            <div className="flex aspect-square w-full items-center justify-center bg-[#fdf7f0] text-[#c4a990]">
-              {product.type === 'service' ? <Wrench size={64} /> : <Package size={64} />}
+            <div className="bg-[var(--od-surface-soft)]">
+              <div
+                className={`relative overflow-hidden ${aspect.value === 'portrait' ? 'mx-auto w-3/4' : 'w-full'}`}
+                style={{ aspectRatio: aspect.cssAspectRatio }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={imageUrl} alt={product.name} className="h-full w-full object-cover" />
+              </div>
             </div>
-          )}
+          ) : null}
 
-          <div className="p-5 space-y-3">
-            {/* Type badge */}
-            <span
-              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
-                product.type === 'service'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'bg-orange-50 text-brand'
-              }`}
-            >
-              {product.type === 'service' ? <Wrench size={10} /> : <Package size={10} />}
-              {product.type}
+          <div className="space-y-3.5 p-6">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--od-surface-soft)] px-2.5 py-1 text-[11px] font-bold text-[var(--od-brand-strong)]">
+              {isService ? <Wrench size={11} aria-hidden /> : <Package size={11} aria-hidden />}
+              {isService ? 'Service' : 'Product'}
             </span>
 
-            <h1 className="text-xl font-extrabold text-gray-900">{product.name}</h1>
+            <h1 className="font-display text-2xl leading-tight text-[var(--od-ink)]">{product.name}</h1>
 
             {product.description && (
-              <p className="text-sm leading-relaxed text-gray-500">{product.description}</p>
+              <p className="whitespace-pre-line text-sm leading-relaxed text-[var(--od-muted)]">{product.description}</p>
             )}
 
-            <p className="text-2xl font-extrabold text-gray-900">{price}</p>
+            <p className="font-display text-[28px] leading-none text-[var(--od-brand-strong)]">{priceLine}</p>
 
-            {isOutOfStock && (
-              <p className="text-sm font-semibold text-red-500">Currently out of stock</p>
+            {product.options.length > 0 && (
+              <ul className="divide-y divide-[var(--od-border)] rounded-xl border border-[var(--od-border)]">
+                {product.options.map((option) => (
+                  <li key={option.id} className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-sm">
+                    <span className="font-semibold text-[var(--od-ink-2)]">{option.label}</span>
+                    <span className="font-bold text-[var(--od-ink)]">
+                      {formatPaise(option.price_paise)}
+                      {option.quantity_in_stock === 0 && (
+                        <span className="ml-1.5 font-semibold text-[var(--od-muted)]">· Sold out</span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
 
-            {/* CTA buttons */}
-            <div className="space-y-2 pt-1">
-              {waLink && !isOutOfStock && (
-                <a
-                  href={waLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-green-700"
-                >
-                  {WA_ICON}
-                  {product.type === 'service' ? 'Enquire on WhatsApp' : 'Order on WhatsApp'}
-                </a>
-              )}
-              <Link
-                href={businessUrl}
-                className="flex w-full items-center justify-center rounded-xl border border-border px-4 py-3 text-sm font-semibold text-gray-600 transition-colors hover:border-brand/40 hover:text-brand"
-              >
+            <div className="space-y-2.5 pt-2">
+              <CatalogActionButton action={action} whatsappHref={whatsappHref} size="lg" />
+              <Link href={businessUrl} className="od-button-secondary min-h-12 w-full text-sm">
                 View full business page
               </Link>
             </div>
           </div>
         </div>
 
-        {/* Powered by */}
-        <p className="mt-6 text-center text-xs text-gray-400">
+        <p className="mt-6 text-center text-xs text-[var(--od-muted)]">
           Listed on{' '}
-          <Link href="https://ourdahanu.in" className="hover:text-brand">
+          <Link href="https://ourdahanu.in" className="font-semibold hover:text-[var(--od-brand)]">
             OurDahanu
           </Link>
         </p>

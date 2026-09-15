@@ -4,23 +4,15 @@ import { cacheLife, cacheTag } from 'next/cache'
 
 import { CACHE_TAGS } from '@/lib/cache-tags'
 import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
+import { CATALOG_ITEM_SELECT, toCatalogItem, type CatalogRow } from '@/lib/catalog/catalog'
+import type { CatalogItem } from '@/lib/catalog/types'
 import { logCacheRegeneration } from '@/lib/isr-debug'
+import { deriveShopMode, type ShopMode } from '@/lib/selling/shop-mode'
+import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createPublicClient } from '@/lib/supabase/public'
 
-export interface StandaloneProduct {
-  id: string
+export interface StandaloneProduct extends CatalogItem {
   listing_id: string
-  type: 'product' | 'service'
-  name: string
-  description: string | null
-  price_paise: number
-  quantity_in_stock: number | null
-  image_url: string | null
-  image_thumb_url: string | null
-  is_active: boolean
-  sort_order: number
-  created_at: string
-  updated_at: string
 }
 
 export interface StandaloneProductListing {
@@ -32,7 +24,11 @@ export interface StandaloneProductListing {
   approved: boolean
 }
 
-export async function fetchProductAndListing(productId: string) {
+export async function fetchProductAndListing(productId: string): Promise<{
+  product: StandaloneProduct
+  listing: StandaloneProductListing | null
+  shopMode: ShopMode
+} | null> {
   'use cache'
 
   cacheLife(PUBLIC_CONTENT_CACHE)
@@ -40,12 +36,12 @@ export async function fetchProductAndListing(productId: string) {
   const supabase = createPublicClient()
   const { data: productData } = await supabase
     .from('listing_products')
-    .select('id, listing_id, type, name, description, price_paise, quantity_in_stock, image_url, image_thumb_url, is_active, sort_order, created_at, updated_at')
+    .select(`listing_id, ${CATALOG_ITEM_SELECT}`)
     .eq('id', productId)
     .eq('is_active', true)
     .maybeSingle()
-  const product = productData as StandaloneProduct | null
-  if (!product) return null
+  if (!productData) return null
+  const product = toCatalogItem(productData as unknown as CatalogRow & { listing_id: string })
 
   // Tagged with the owning listing, which is only known once the product is
   // fetched — the same after-the-fetch tagging getCachedListingDetail uses.
@@ -66,10 +62,44 @@ export async function fetchProductAndListing(productId: string) {
 
   const { data: listingData } = await supabase
     .from('listings')
-    .select('id, name, subdomain, whatsapp, phone, approved')
+    .select('id, name, subdomain, whatsapp, phone, approved, payments_enabled, payments_suspended_at')
     .eq('id', product.listing_id)
     .eq('approved', true)
     .maybeSingle()
-  const listing = listingData as StandaloneProductListing | null
-  return { product, listing }
+  const listingRow = (listingData ?? null) as
+    | (StandaloneProductListing & { payments_enabled: boolean | null; payments_suspended_at: string | null })
+    | null
+
+  // Payment configs have no public read policy; the key id is read only to
+  // tell test keys from live keys and never leaves this function.
+  const adminClient = listingRow?.payments_enabled ? createAdminClient() : null
+  const { data: configData } = adminClient
+    ? await adminClient
+        .from('listing_payment_configs')
+        .select('verified_at, razorpay_key_id')
+        .eq('listing_id', product.listing_id)
+        .maybeSingle()
+    : { data: null }
+  const config = (configData ?? null) as { verified_at: string | null; razorpay_key_id: string } | null
+
+  const shopMode = deriveShopMode({
+    approved: listingRow?.approved === true,
+    paymentsEnabled: listingRow?.payments_enabled === true,
+    suspendedAt: listingRow?.payments_suspended_at ?? null,
+    verifiedAt: config?.verified_at ?? null,
+    keyId: config?.razorpay_key_id ?? null,
+  })
+
+  const listing: StandaloneProductListing | null = listingRow
+    ? {
+        id: listingRow.id,
+        name: listingRow.name,
+        subdomain: listingRow.subdomain,
+        whatsapp: listingRow.whatsapp,
+        phone: listingRow.phone,
+        approved: listingRow.approved,
+      }
+    : null
+
+  return { product, listing, shopMode }
 }
