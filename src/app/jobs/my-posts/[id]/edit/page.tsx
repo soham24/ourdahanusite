@@ -10,7 +10,7 @@ import { jobsLoginHref } from '../../../jobs-server'
 import JobPostForm, { type JobPostFormValues, type OwnedBusiness } from '../../../post/JobPostForm'
 
 export const metadata: Metadata = {
-  title: 'Edit post — OurDahanu Jobs',
+  title: { absolute: 'Edit post — OurDahanu Jobs' },
   robots: { index: false, follow: false },
 }
 

@@ -12,7 +12,7 @@ import { kindLabel, shortDate } from '../jobs-ui'
 import MyPostActions from './MyPostActions'
 
 export const metadata: Metadata = {
-  title: 'My posts — OurDahanu Jobs',
+  title: { absolute: 'My posts — OurDahanu Jobs' },
   robots: { index: false, follow: false },
 }
 

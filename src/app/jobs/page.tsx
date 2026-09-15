@@ -19,7 +19,7 @@ interface BoardParams {
 }
 
 export const metadata: Metadata = {
-  title: 'OurDahanu Jobs — Local Jobs in Dahanu',
+  title: { absolute: 'OurDahanu Jobs — Local Jobs in Dahanu' },
   description:
     'Local jobs in Dahanu, Bordi, Gholvad and Palghar — shops, hotels, farms, clinics and homes hiring. Free to post a job, or to say you are looking for work.',
   alternates: { canonical: 'https://jobs.ourdahanu.in/' },
