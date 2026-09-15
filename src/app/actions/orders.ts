@@ -27,6 +27,7 @@ export interface Order {
   delivery_address: string | null
   notes: string | null
   service_name: string
+  option_label: string | null
   service_price: number
   quantity: number
   amount_total: number

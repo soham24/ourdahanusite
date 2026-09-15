@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 
 import { loadOwnerRazorpayKeys } from '@/app/actions/listing-payments'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
+import { orderItemName } from '@/lib/catalog/catalog'
 import { classifyRazorpayKeyId } from '@/lib/selling/keys'
 import {
   sendNotification,
@@ -23,6 +24,8 @@ export interface MarketplaceOrder {
   id: string
   listing_id: string | null
   product_id: string | null
+  product_option_id: string | null
+  option_label: string | null
   buyer_id: string | null
   buyer_name: string
   buyer_phone: string
@@ -75,6 +78,7 @@ export async function placeMarketplaceOrder(
 
   const productId = sanitizeString(formData.get('product_id'), 80)
   if (!productId) return { error: 'Missing product.' }
+  const optionId = sanitizeString(formData.get('option_id'), 80)
 
   const quantity = Math.max(
     1,
@@ -103,6 +107,20 @@ export async function placeMarketplaceOrder(
   if (!product) {
     return { error: 'Product is no longer available.' }
   }
+
+  // The option may have been renamed, repriced or deleted since payment
+  // started; the intent below still carries what the buyer agreed to.
+  const { data: optionData } = optionId
+    ? await adminClient
+        .from('listing_product_options')
+        .select('id, product_id, label, price_paise, quantity_in_stock')
+        .eq('id', optionId)
+        .maybeSingle()
+    : { data: null }
+  const option =
+    optionData && optionData.product_id === product.id
+      ? (optionData as { id: string; label: string; price_paise: number; quantity_in_stock: number | null })
+      : null
 
   const { data: listing } = await adminClient
     .from('listings')
@@ -152,11 +170,18 @@ export async function placeMarketplaceOrder(
     return { error: 'Order details do not match the original request.' }
   }
   const intentUnitPrice = intent?.payload?.product_price_paise
+  const fallbackUnitPrice: number | null = option?.price_paise ?? product.price_paise ?? null
   const unitPricePaise =
     typeof intentUnitPrice === 'number' && Number.isInteger(intentUnitPrice) && intentUnitPrice > 0
       ? intentUnitPrice
-      : product.price_paise
+      : fallbackUnitPrice
+  if (unitPricePaise === null) {
+    return { error: 'Order details do not match the original request.' }
+  }
   const expectedAmountPaise = intent?.amount_paise ?? unitPricePaise * quantity
+  const intentOptionLabel = intent?.payload?.option_label
+  const optionLabel =
+    typeof intentOptionLabel === 'string' && intentOptionLabel ? intentOptionLabel : option?.label ?? null
   const credentials = Buffer.from(`${ownerKeys.keyId}:${ownerKeys.keySecret}`).toString('base64')
   const orderRes = await fetch(`https://api.razorpay.com/v1/orders/${razorpayOrderId}`, {
     headers: { Authorization: `Basic ${credentials}` },
@@ -177,6 +202,7 @@ export async function placeMarketplaceOrder(
       product_id?: string
       listing_id?: string
       quantity?: string
+      option_id?: string
     }
   }
 
@@ -193,7 +219,8 @@ export async function placeMarketplaceOrder(
     n.buyer_id !== user.id ||
     n.product_id !== product.id ||
     n.listing_id !== product.listing_id ||
-    n.quantity !== String(quantity)
+    n.quantity !== String(quantity) ||
+    (n.option_id ?? '') !== optionId
   ) {
     return { error: 'Order details do not match the original request.' }
   }
@@ -201,12 +228,19 @@ export async function placeMarketplaceOrder(
   // Test keys move no real money: label the order and leave real stock alone.
   const isTest = classifyRazorpayKeyId(ownerKeys.keyId) === 'test'
 
-  // 4. Atomic stock decrement
-  if (!isTest && product.quantity_in_stock !== null) {
-    const { data: decOk, error: decError } = await adminClient.rpc(
-      'decrement_product_stock',
-      { p_product_id: product.id, p_quantity: quantity },
-    )
+  // 4. Atomic stock decrement (the option's stock when an option was bought)
+  const stockRpc =
+    isTest
+      ? null
+      : optionId
+        ? option && option.quantity_in_stock !== null
+          ? { fn: 'decrement_option_stock', args: { p_option_id: option.id, p_quantity: quantity } }
+          : null
+        : product.quantity_in_stock !== null
+          ? { fn: 'decrement_product_stock', args: { p_product_id: product.id, p_quantity: quantity } }
+          : null
+  if (stockRpc) {
+    const { data: decOk, error: decError } = await adminClient.rpc(stockRpc.fn, stockRpc.args)
     if (decError) {
       console.error('[marketplace] stock rpc error:', decError)
       return { error: 'Could not reserve stock. Please try again.' }
@@ -225,6 +259,8 @@ export async function placeMarketplaceOrder(
     .insert({
       listing_id: product.listing_id,
       product_id: product.id,
+      product_option_id: option?.id ?? null,
+      option_label: optionLabel,
       buyer_id: user.id,
       buyer_name: buyerName,
       buyer_phone: buyerPhone,
@@ -275,7 +311,7 @@ export async function placeMarketplaceOrder(
       orderId: newOrder.id,
       listingId: product.listing_id,
       listingName: listing.name,
-      productName: product.name,
+      productName: orderItemName(product.name, optionLabel),
       quantity,
       amountTotal: totalRupees,
       buyerName,
@@ -364,7 +400,7 @@ export async function updateMarketplaceOrderStatus(
 
   const { data: order } = await adminClient
     .from('orders')
-    .select('id, listing_id, buyer_id, service_name, payment_flow')
+    .select('id, listing_id, buyer_id, service_name, option_label, payment_flow')
     .eq('id', orderId)
     .maybeSingle()
 
@@ -403,7 +439,7 @@ export async function updateMarketplaceOrderStatus(
       {
         orderId: order.id,
         listingName: listing.name,
-        productName: order.service_name,
+        productName: orderItemName(order.service_name, order.option_label),
       },
     ).catch((err) => console.error('[marketplace:order.status notify]', err))
   }

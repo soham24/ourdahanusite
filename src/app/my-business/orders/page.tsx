@@ -14,6 +14,7 @@ import {
 import { getMyListingOrders, updateOrderStatus } from '@/app/actions/orders'
 import type { Order } from '@/app/actions/orders'
 import { updateMarketplaceOrderStatus } from '@/app/actions/marketplace-orders'
+import { orderItemName } from '@/lib/catalog/catalog'
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -120,7 +121,9 @@ function OrderRow({
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className="font-semibold text-gray-900 text-sm">{order.service_name}</span>
+            <span className="font-semibold text-gray-900 text-sm">
+              {orderItemName(order.service_name, order.option_label)}
+            </span>
             <StatusBadge status={order.status} />
             <PayoutBadge status={order.payout_status} />
             <FlowBadge flow={order.payment_flow} />

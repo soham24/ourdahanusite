@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 
 import { getMyMarketplaceOrder } from '@/app/actions/marketplace-orders'
+import { orderItemName } from '@/lib/catalog/catalog'
 import { createClient } from '@/lib/supabase/server'
 
 interface PageProps {
@@ -88,9 +89,10 @@ export default async function MyOrderDetailPage({ params }: PageProps) {
   const subdomain = order.listing?.subdomain
   const phone = order.listing?.phone
   const whatsapp = order.listing?.whatsapp || phone
+  const itemName = orderItemName(order.service_name, order.option_label)
 
   const whatsappMessage = encodeURIComponent(
-    `Hi ${listingName},\n\nI'm following up on my order #${order.id.slice(0, 8)} for "${order.service_name}" × ${order.quantity}.\n\nThanks!`,
+    `Hi ${listingName},\n\nI'm following up on my order #${order.id.slice(0, 8)} for "${itemName}" × ${order.quantity}.\n\nThanks!`,
   )
 
   return (
@@ -110,7 +112,7 @@ export default async function MyOrderDetailPage({ params }: PageProps) {
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
               Order #{order.id.slice(0, 8)}
             </p>
-            <h1 className="text-xl font-bold text-gray-900 mt-1">{order.service_name}</h1>
+            <h1 className="text-xl font-bold text-gray-900 mt-1">{itemName}</h1>
             <p className="text-xs text-gray-500 mt-1">
               Placed on {formatDateTime(order.created_at)}
             </p>
@@ -153,7 +155,7 @@ export default async function MyOrderDetailPage({ params }: PageProps) {
           <div className="flex justify-between">
             <dt className="text-gray-500">Item</dt>
             <dd className="text-gray-900 font-medium">
-              {order.service_name} × {order.quantity}
+              {itemName} × {order.quantity}
             </dd>
           </div>
           <div className="flex justify-between">

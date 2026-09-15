@@ -25,11 +25,13 @@ export async function POST(request: Request) {
   if (!rl.ok) return tooManyRequests(rl.resetAt)
 
   let productId = ''
+  let optionId = ''
   let quantity = 1
 
   try {
-    const body = (await request.json()) as { productId?: string; quantity?: number }
+    const body = (await request.json()) as { productId?: string; optionId?: string; quantity?: number }
     productId = body.productId?.trim() ?? ''
+    optionId = typeof body.optionId === 'string' ? body.optionId.trim() : ''
     quantity = Math.max(1, Math.min(99, Math.floor(Number(body.quantity) || 1)))
   } catch {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 })
@@ -47,7 +49,7 @@ export async function POST(request: Request) {
 
   const { data: product } = await adminClient
     .from('listing_products')
-    .select('id, listing_id, type, name, price_paise, quantity_in_stock, is_active')
+    .select('id, listing_id, type, name, price_paise, quantity_in_stock, is_active, options:listing_product_options(id, label, price_paise, quantity_in_stock)')
     .eq('id', productId)
     .maybeSingle()
 
@@ -55,9 +57,42 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Product is not available.' }, { status: 404 })
   }
 
-  if (product.quantity_in_stock !== null && product.quantity_in_stock < quantity) {
+  type OptionRow = { id: string; label: string; price_paise: number; quantity_in_stock: number | null }
+  const options = (product.options ?? []) as OptionRow[]
+  let option: OptionRow | null = null
+
+  if (options.length > 0) {
+    if (!optionId) {
+      return NextResponse.json({ error: 'Choose an option.' }, { status: 400 })
+    }
+    option = options.find((row) => row.id === optionId) ?? null
+    if (!option) {
+      return NextResponse.json(
+        { error: 'That option is no longer available. Please pick another.', code: 'option_unavailable' },
+        { status: 409 },
+      )
+    }
+  } else if (optionId) {
+    // The owner removed the options while the customer was choosing.
     return NextResponse.json(
-      { error: `Only ${product.quantity_in_stock} in stock.` },
+      { error: 'That option is no longer available. Please pick another.', code: 'option_unavailable' },
+      { status: 409 },
+    )
+  } else if (product.price_paise === null) {
+    return NextResponse.json({ error: "This item can't be bought online." }, { status: 422 })
+  }
+
+  const unitPricePaise: number = option ? option.price_paise : product.price_paise
+  const stock: number | null = option ? option.quantity_in_stock : product.quantity_in_stock
+  if (stock !== null && stock < quantity) {
+    if (option && stock === 0) {
+      return NextResponse.json(
+        { error: 'That option just sold out. Please pick another.', code: 'option_sold_out' },
+        { status: 409 },
+      )
+    }
+    return NextResponse.json(
+      { error: stock === 0 ? 'Sorry, this item just sold out.' : `Only ${stock} left.` },
       { status: 409 },
     )
   }
@@ -88,7 +123,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const amountPaise = product.price_paise * quantity
+  const amountPaise = unitPricePaise * quantity
   if (amountPaise < MIN_AMOUNT_PAISE) {
     return NextResponse.json({ error: 'Minimum order amount is ₹1.' }, { status: 400 })
   }
@@ -109,6 +144,7 @@ export async function POST(request: Request) {
         listing_name: listing.name,
         product_id: product.id,
         product_name: product.name,
+        ...(option ? { option_id: option.id, option_label: option.label } : {}),
         quantity: String(quantity),
         buyer_id: user.id,
       },
@@ -193,7 +229,9 @@ export async function POST(request: Request) {
       listing_id: product.listing_id,
       quantity,
       product_name: product.name,
-      product_price_paise: product.price_paise,
+      product_price_paise: unitPricePaise,
+      option_id: option?.id ?? null,
+      option_label: option?.label ?? null,
     },
     listingId: product.listing_id,
   })
@@ -205,7 +243,8 @@ export async function POST(request: Request) {
     keyId: ownerKeys.keyId,
     listingName: listing.name,
     productName: product.name,
-    productPricePaise: product.price_paise,
+    productPricePaise: unitPricePaise,
+    optionLabel: option?.label ?? null,
     testMode: ownerKeys.testMode,
   })
 }
