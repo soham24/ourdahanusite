@@ -292,6 +292,16 @@ test('reports are refused for your own post, for an unknown reason, and twice', 
   assert.deepEqual(await twice.actions.reportPost('post-1', 'fake', null), { error: 'You have already reported this post.' })
 })
 
+test('reporting a closed or expired post is refused and writes nothing', async () => {
+  const closed = harness({ async getPost() { return storedPost({ status: 'closed' }) } })
+  assert.deepEqual(await closed.actions.reportPost('post-1', 'fake', null), { error: 'This post is no longer live.' })
+  assert.equal(closed.calls.reports.length, 0)
+
+  const expired = harness({ async getPost() { return storedPost({ expires_at: inDays(-1) }) } })
+  assert.deepEqual(await expired.actions.reportPost('post-1', 'fake', null), { error: 'This post is no longer live.' })
+  assert.equal(expired.calls.reports.length, 0)
+})
+
 test('a failing admin notification never turns a saved post into an error', async () => {
   const errors = silenceErrors()
   try {

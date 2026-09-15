@@ -274,6 +274,7 @@ export function createJobActions(deps: JobActionDependencies) {
     const post = await deps.getPost(postId)
     if (!post) return { error: 'Post not found.' }
     if (post.posted_by === user.id) return { error: 'You cannot report your own post.' }
+    if (!isLive(post, deps.now())) return { error: 'This post is no longer live.' }
 
     const cleanNote = note?.trim().slice(0, 500) || null
     const { error } = await deps.insertReport({ post_id: postId, user_id: user.id, reason, note: cleanNote })
