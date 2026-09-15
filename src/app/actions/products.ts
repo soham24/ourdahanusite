@@ -3,6 +3,7 @@
 import { getUserRole } from '@/app/actions/admin'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
 import { LISTING_NOT_LIVE_MESSAGE, sellingPausedMessage } from '@/lib/selling/shop-mode'
+import { loadSuspensionReason } from '@/lib/selling/suspension-reasons'
 import { normalizeInlineText, normalizeMultilineText } from '@/lib/listing-content'
 import { normalizeOptionalUrlOrNull } from '@/lib/url'
 import { createAdminClient } from '@/lib/supabase/admin-client'
@@ -65,7 +66,6 @@ async function assertListingOwner(listingId: string): Promise<
     owner_id: string
     approved: boolean | null
     payments_suspended_at: string | null
-    payments_suspended_reason: string | null
   }
   let listing: ListingRow | null = null
   if (role === 'admin') {
@@ -73,14 +73,14 @@ async function assertListingOwner(listingId: string): Promise<
     if (!adminClient) return { ok: false, error: 'Server configuration error.' }
     const { data } = await adminClient
       .from('listings')
-      .select('id, owner_id, approved, payments_suspended_at, payments_suspended_reason')
+      .select('id, owner_id, approved, payments_suspended_at')
       .eq('id', listingId)
       .maybeSingle()
     listing = (data ?? null) as ListingRow | null
   } else {
     const { data } = await supabase
       .from('listings')
-      .select('id, owner_id, approved, payments_suspended_at, payments_suspended_reason')
+      .select('id, owner_id, approved, payments_suspended_at')
       .eq('id', listingId)
       .maybeSingle()
     listing = (data ?? null) as ListingRow | null
@@ -96,7 +96,7 @@ async function assertListingOwner(listingId: string): Promise<
   // them once the shop is live. Admins manage any listing.
   if (role !== 'admin') {
     if (listing.payments_suspended_at) {
-      return { ok: false, error: sellingPausedMessage(listing.payments_suspended_reason) }
+      return { ok: false, error: sellingPausedMessage(await loadSuspensionReason(listingId)) }
     }
     if (!listing.approved) {
       return { ok: false, error: LISTING_NOT_LIVE_MESSAGE }

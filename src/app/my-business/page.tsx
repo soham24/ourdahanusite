@@ -22,6 +22,7 @@ import OwnerReplyForm from '@/components/OwnerReplyForm'
 import { getMyListingStats } from '@/app/actions/listing-stats'
 import { EMPTY_LISTING_STATS } from '@/lib/listing-stats'
 import { deriveSellingChecklist } from '@/lib/selling/checklist'
+import { loadSuspensionReasons } from '@/lib/selling/suspension-reasons'
 import SellOnlineCard, { type SellOnlineRow } from './SellOnlineCard'
 
 function StatusBadge({ status }: { status: string }) {
@@ -93,8 +94,8 @@ type Listing = {
   review_count: number | null
   views:        number | null
   expires_at:   string | null
+  payments_enabled:          boolean | null
   payments_suspended_at:     string | null
-  payments_suspended_reason: string | null
 }
 
 function getListingStatus(listing: Listing): string {
@@ -167,7 +168,7 @@ export default async function MyBusinessPage({
   try {
     const { data: listingsData } = await supabase
       .from('listings')
-      .select('id, name, category, subdomain, plan, approved, rating, review_count, views, expires_at, payments_suspended_at, payments_suspended_reason')
+      .select('id, name, category, subdomain, plan, approved, rating, review_count, views, expires_at, payments_enabled, payments_suspended_at')
       .eq('owner_id', user.id)
       .order('created_at', { ascending: false })
 
@@ -220,7 +221,7 @@ export default async function MyBusinessPage({
   let sellRows: SellOnlineRow[] = []
   if (listings.length > 0) {
     const ids = listings.map((l) => l.id)
-    const [{ data: configData }, { data: productData }, { data: orderData }] = await Promise.all([
+    const [{ data: configData }, { data: productData }, { data: orderData }, reasons] = await Promise.all([
       supabase
         .from('listing_payment_configs')
         .select('listing_id, razorpay_key_id, verified_at')
@@ -235,6 +236,7 @@ export default async function MyBusinessPage({
         .select('listing_id, is_test, status')
         .eq('payment_flow', 'owner_razorpay')
         .in('listing_id', ids),
+      loadSuspensionReasons(listings.filter((l) => l.payments_suspended_at).map((l) => l.id)),
     ])
 
     const configs = new Map(
@@ -254,7 +256,7 @@ export default async function MyBusinessPage({
         listingId: listing.id,
         listingName: listing.name,
         shopHref: getListingHref(listing.id, listing.subdomain),
-        suspendedReason: listing.payments_suspended_reason,
+        suspendedReason: reasons.get(listing.id) ?? null,
         newOrderCount: listingOrders.filter((order) => !order.is_test && order.status === 'confirmed').length,
         checklist: deriveSellingChecklist({
           approved: listing.approved === true,

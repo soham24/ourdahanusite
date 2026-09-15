@@ -3,6 +3,7 @@ import { Package } from 'lucide-react'
 
 import { requireAdmin } from '@/app/actions/admin'
 import { deriveSellingStatus, type SellingStatus } from '@/lib/selling/shop-mode'
+import { loadSuspensionReasons } from '@/lib/selling/suspension-reasons'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
 
@@ -17,7 +18,6 @@ type AdminListingRow = {
   approved: boolean | null
   payments_enabled: boolean | null
   payments_suspended_at: string | null
-  payments_suspended_reason: string | null
 }
 
 type PaymentConfigRow = {
@@ -44,8 +44,13 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-function detailFor(listing: AdminListingRow, config: PaymentConfigRow | null, status: SellingStatus): string {
-  if (status === 'suspended') return `Paused: ${listing.payments_suspended_reason ?? 'no reason given'}`
+function detailFor(
+  listing: AdminListingRow,
+  config: PaymentConfigRow | null,
+  status: SellingStatus,
+  reason: string | null,
+): string {
+  if (status === 'suspended') return `Paused: ${reason ?? 'no reason given'}`
   if (!listing.approved) return 'Listing not approved'
   if (config && !config.verified_at) return 'Razorpay rejected the saved keys'
   if (config) return `Key …${config.razorpay_key_last4} · connected ${formatDate(config.updated_at)}`
@@ -71,7 +76,7 @@ export default async function AdminPaymentsPage({
   const [{ data: listingsData }, { data: configsData }] = await Promise.all([
     adminClient
       .from('listings')
-      .select('id, name, category, subdomain, approved, payments_enabled, payments_suspended_at, payments_suspended_reason')
+      .select('id, name, category, subdomain, approved, payments_enabled, payments_suspended_at')
       .order('name', { ascending: true }),
     adminClient
       .from('listing_payment_configs')
@@ -81,6 +86,9 @@ export default async function AdminPaymentsPage({
   const listings = (listingsData ?? []) as AdminListingRow[]
   const configs = (configsData ?? []) as PaymentConfigRow[]
   const configByListing = new Map(configs.map((config) => [config.listing_id, config]))
+  const reasons = await loadSuspensionReasons(
+    listings.filter((listing) => listing.payments_suspended_at).map((listing) => listing.id),
+  )
 
   const rows = listings
     .map((listing) => {
@@ -167,7 +175,7 @@ export default async function AdminPaymentsPage({
                   {listing.category ?? 'Uncategorized'}
                   {listing.subdomain ? ` · ${listing.subdomain}.ourdahanu.in` : ''}
                 </p>
-                <p className="mt-1.5 text-sm text-[var(--od-ink-2)]">{detailFor(listing, config, status)}</p>
+                <p className="mt-1.5 text-sm text-[var(--od-ink-2)]">{detailFor(listing, config, status, reasons.get(listing.id) ?? null)}</p>
               </div>
               <div className="flex flex-shrink-0 flex-wrap items-start gap-2">
                 <SellingControls listingId={listing.id} suspended={status === 'suspended'} />

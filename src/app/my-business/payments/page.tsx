@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 
 import { classifyRazorpayKeyId } from '@/lib/selling/keys'
+import { loadSuspensionReasons } from '@/lib/selling/suspension-reasons'
 import { createClient } from '@/lib/supabase/server'
 
 import ConnectRazorpay, { type PaymentView } from './ConnectRazorpay'
@@ -13,7 +14,6 @@ type OwnerListing = {
   category: string | null
   approved: boolean | null
   payments_suspended_at: string | null
-  payments_suspended_reason: string | null
 }
 
 type OwnerConfig = {
@@ -24,8 +24,12 @@ type OwnerConfig = {
   updated_at: string
 }
 
-function paymentViewFor(listing: OwnerListing, config: OwnerConfig | null): PaymentView {
-  if (listing.payments_suspended_at) return { kind: 'suspended', reason: listing.payments_suspended_reason }
+function paymentViewFor(
+  listing: OwnerListing,
+  config: OwnerConfig | null,
+  reason: string | null,
+): PaymentView {
+  if (listing.payments_suspended_at) return { kind: 'suspended', reason }
   if (!listing.approved) return { kind: 'not_approved' }
   if (!config) return { kind: 'not_connected' }
   if (!config.verified_at) return { kind: 'rejected' }
@@ -65,12 +69,16 @@ export default async function MyBusinessPaymentsPage({
 
   const { data: listingsData } = await supabase
     .from('listings')
-    .select('id, name, category, approved, payments_suspended_at, payments_suspended_reason')
+    .select('id, name, category, approved, payments_suspended_at')
     .eq('owner_id', user.id)
     .order('name', { ascending: true })
   const listings = (listingsData ?? []) as OwnerListing[]
 
   if (requestedId && !listings.some((listing) => listing.id === requestedId)) notFound()
+
+  const reasons = await loadSuspensionReasons(
+    listings.filter((listing) => listing.payments_suspended_at).map((listing) => listing.id),
+  )
 
   let configs: OwnerConfig[] = []
   if (listings.length > 0) {
@@ -122,12 +130,20 @@ export default async function MyBusinessPaymentsPage({
           <ConnectRazorpay
             key={selected.id}
             listingId={selected.id}
-            view={paymentViewFor(selected, configByListing.get(selected.id) ?? null)}
+            view={paymentViewFor(
+              selected,
+              configByListing.get(selected.id) ?? null,
+              reasons.get(selected.id) ?? null,
+            )}
           />
         ) : (
           <ul className="space-y-3">
             {listings.map((listing) => {
-              const view = paymentViewFor(listing, configByListing.get(listing.id) ?? null)
+              const view = paymentViewFor(
+                listing,
+                configByListing.get(listing.id) ?? null,
+                reasons.get(listing.id) ?? null,
+              )
               return (
                 <li key={listing.id}>
                   <Link

@@ -16,6 +16,7 @@ import {
   becameLive,
   sellingPausedMessage,
 } from '@/lib/selling/shop-mode'
+import { loadSuspensionReason } from '@/lib/selling/suspension-reasons'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
 
@@ -48,7 +49,6 @@ type SellingListing = {
   owner_id: string | null
   approved: boolean | null
   payments_suspended_at: string | null
-  payments_suspended_reason: string | null
 }
 
 /**
@@ -68,7 +68,7 @@ async function loadOwnedListing(
 
   const { data } = await adminClient
     .from('listings')
-    .select('id, name, owner_id, approved, payments_suspended_at, payments_suspended_reason')
+    .select('id, name, owner_id, approved, payments_suspended_at')
     .eq('id', listingId)
     .maybeSingle()
 
@@ -98,7 +98,7 @@ export async function saveRazorpayConfig(
   const { listing } = owned
 
   if (listing.payments_suspended_at) {
-    return { error: sellingPausedMessage(listing.payments_suspended_reason) }
+    return { error: sellingPausedMessage(await loadSuspensionReason(listingId)) }
   }
   if (!listing.approved) return { error: LISTING_NOT_LIVE_MESSAGE }
 
@@ -214,12 +214,12 @@ export async function suspendListingSelling(
   const adminClient = createAdminClient()
   if (!adminClient) return { error: 'Server configuration error.' }
 
+  const suspendedAt = new Date().toISOString()
   const { data, error } = await adminClient
     .from('listings')
     .update({
       payments_enabled: false,
-      payments_suspended_at: new Date().toISOString(),
-      payments_suspended_reason: trimmed,
+      payments_suspended_at: suspendedAt,
     })
     .eq('id', listingId)
     .select('id, name, owner_id')
@@ -228,6 +228,16 @@ export async function suspendListingSelling(
   if (error) return { error: error.message }
   const listing = (data ?? null) as { id: string; name: string; owner_id: string | null } | null
   if (!listing) return { error: 'Listing not found.' }
+
+  // The reason is private to the owner and admins, so it lives in a table
+  // only the service role can read.
+  const { error: reasonError } = await adminClient
+    .from('listing_selling_suspensions')
+    .upsert(
+      { listing_id: listingId, reason: trimmed, suspended_at: suspendedAt },
+      { onConflict: 'listing_id' },
+    )
+  if (reasonError) return { error: reasonError.message }
 
   revalidatePublicListingDetail(listingId)
 
@@ -269,6 +279,7 @@ export async function resumeListingSelling(listingId: string): Promise<{ error?:
     .update({
       payments_enabled: hasVerifiedKeys,
       payments_suspended_at: null,
+      // Legacy: reasons used to be stored on the public row.
       payments_suspended_reason: null,
     })
     .eq('id', listingId)
@@ -278,6 +289,14 @@ export async function resumeListingSelling(listingId: string): Promise<{ error?:
   if (error) return { error: error.message }
   const listing = (data ?? null) as { id: string; name: string; owner_id: string | null } | null
   if (!listing) return { error: 'Listing not found.' }
+
+  const { error: reasonError } = await adminClient
+    .from('listing_selling_suspensions')
+    .delete()
+    .eq('listing_id', listingId)
+  if (reasonError) {
+    console.error('[listing-payments] clearing suspension reason failed', reasonError)
+  }
 
   revalidatePublicListingDetail(listingId)
 

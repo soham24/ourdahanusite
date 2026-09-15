@@ -1362,6 +1362,32 @@ export type Database = {
           },
         ]
       }
+      listing_selling_suspensions: {
+        Row: {
+          listing_id: string
+          reason: string
+          suspended_at: string
+        }
+        Insert: {
+          listing_id: string
+          reason: string
+          suspended_at?: string
+        }
+        Update: {
+          listing_id?: string
+          reason?: string
+          suspended_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_selling_suspensions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listings: {
         Row: {
           address: string | null
