@@ -9,8 +9,8 @@ import {
 
 import { requireAdmin } from '@/app/actions/admin'
 import SellingStatusBadge from '@/app/admin/payments/SellingStatusBadge'
-import { deriveSellingStatus } from '@/lib/selling/shop-mode'
-import { type ListingProduct } from '@/app/actions/products'
+import { deriveSellingStatus, deriveShopMode } from '@/lib/selling/shop-mode'
+import { OWNER_CATALOG_ITEM_SELECT, toCatalogItem, type OwnerCatalogRow } from '@/lib/catalog/catalog'
 import { ProductsManager } from '@/app/my-business/products/[listingId]/ProductsManager'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
@@ -24,6 +24,8 @@ type AdminListing = {
   payments_suspended_at: string | null
   approved: boolean | null
   owner_id: string | null
+  whatsapp: string | null
+  phone: string | null
 }
 
 type OwnerProfile = {
@@ -57,14 +59,16 @@ export default async function AdminListingProductsPage({
     await Promise.all([
       adminClient
         .from('listings')
-        .select('id, name, category, subdomain, payments_enabled, payments_suspended_at, approved, owner_id')
+        .select(
+          'id, name, category, subdomain, payments_enabled, payments_suspended_at, approved, owner_id, whatsapp, phone',
+        )
         .eq('id', listingId)
         .maybeSingle(),
       // Use admin client so we see ALL products (active + inactive),
       // bypassing the RLS policy that hides inactive items from non-owners.
       adminClient
         .from('listing_products')
-        .select('*')
+        .select(OWNER_CATALOG_ITEM_SELECT)
         .eq('listing_id', listingId)
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: true }),
@@ -78,7 +82,7 @@ export default async function AdminListingProductsPage({
   const listing = (listingData ?? null) as AdminListing | null
   if (!listing) notFound()
 
-  const products = (productsData ?? []) as ListingProduct[]
+  const items = ((productsData ?? []) as unknown as OwnerCatalogRow[]).map((row) => toCatalogItem(row))
   const config = (configData ?? null) as PaymentConfigRow | null
 
   let owner: OwnerProfile | null = null
@@ -92,6 +96,14 @@ export default async function AdminListingProductsPage({
   }
 
   const sellingStatus = deriveSellingStatus({
+    approved: listing.approved === true,
+    paymentsEnabled: listing.payments_enabled === true,
+    suspendedAt: listing.payments_suspended_at,
+    verifiedAt: config?.verified_at ?? null,
+    keyId: config?.razorpay_key_id ?? null,
+  })
+
+  const shopMode = deriveShopMode({
     approved: listing.approved === true,
     paymentsEnabled: listing.payments_enabled === true,
     suspendedAt: listing.payments_suspended_at,
@@ -166,8 +178,9 @@ export default async function AdminListingProductsPage({
           <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             <p className="font-semibold">Customers can&apos;t buy these items yet.</p>
             <p className="mt-1 leading-5">
-              The Shop is public once the owner connects live Razorpay keys; with test keys only the
-              owner sees it. You can still add or edit items here.{' '}
+              Customers see these items with WhatsApp buttons. Buy buttons appear once the owner
+              connects live Razorpay keys; with test keys only the owner sees them. You can still add
+              or edit items here.{' '}
               <Link href="/admin/payments" className="font-semibold underline underline-offset-2">
                 Open payments
               </Link>
@@ -177,7 +190,12 @@ export default async function AdminListingProductsPage({
         )}
       </header>
 
-      <ProductsManager listingId={listingId} initialProducts={products} />
+      <ProductsManager
+        listingId={listingId}
+        shopMode={shopMode}
+        whatsappNumber={listing.whatsapp || listing.phone || null}
+        initialItems={items}
+      />
     </div>
   )
 }
