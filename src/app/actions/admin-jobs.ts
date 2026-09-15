@@ -59,7 +59,14 @@ export async function approveJobPost(postId: string): Promise<Result> {
       updated_at: now.toISOString(),
     })
     .eq('id', postId)
-  if (error) return { error: error.message }
+  if (error) {
+    return {
+      error:
+        error.code === '23505'
+          ? 'This person already has another active "looking for work" profile. Reject or remove that one first.'
+          : error.message,
+    }
+  }
 
   revalidateJobsCache()
   after(() =>
