@@ -93,6 +93,11 @@ test('becameLive fires on the first verified live key only', () => {
   assert.equal(becameLive(null, 'rzp_test_AbC123'), false)
 })
 
+test('becameLive stays quiet when the same live key is reconnected after Razorpay cleared it', () => {
+  assert.equal(becameLive({ keyId: 'rzp_live_AbC123', verifiedAt: null }, 'rzp_live_AbC123'), false)
+  assert.equal(becameLive({ keyId: 'rzp_live_Old999', verifiedAt: null }, 'rzp_live_AbC123'), true)
+})
+
 test('shared copy', () => {
   assert.equal(SHOP_NOT_OPEN_MESSAGE, "This shop isn't taking online payments yet.")
   assert.equal(LISTING_NOT_LIVE_MESSAGE, 'Your listing needs to be live before you can sell online.')
@@ -102,10 +107,15 @@ test('shared copy', () => {
   )
   assert.equal(sellingPausedMessage('  '), 'Selling is paused by OurDahanu: no reason given. Contact us to resume.')
   assert.equal(sellingPausedMessage(null), 'Selling is paused by OurDahanu: no reason given. Contact us to resume.')
+  assert.equal(
+    sellingPausedMessage('Repeated complaints.'),
+    'Selling is paused by OurDahanu: Repeated complaints. Contact us to resume.',
+  )
 })
 
 const newOwner: ChecklistInput = {
   approved: true,
+  paymentsEnabled: false,
   suspendedAt: null,
   hasConfig: false,
   verifiedAt: null,
@@ -143,7 +153,7 @@ test('checklist blocks everything until the listing is approved', () => {
 })
 
 test('checklist accepts keys before items and items before keys', () => {
-  const testKeys = { ...newOwner, hasConfig: true, verifiedAt: '2026-09-15T10:00:00Z', keyId: 'rzp_test_AbC123' }
+  const testKeys = { ...newOwner, paymentsEnabled: true, hasConfig: true, verifiedAt: '2026-09-15T10:00:00Z', keyId: 'rzp_test_AbC123' }
   assert.deepEqual(states(testKeys), {
     listing: 'done',
     connect: 'done',
@@ -163,6 +173,7 @@ test('checklist accepts keys before items and items before keys', () => {
 test('a practice order completes the practice step but not going live', () => {
   const practised = {
     ...newOwner,
+    paymentsEnabled: true,
     hasConfig: true,
     verifiedAt: '2026-09-15T10:00:00Z',
     keyId: 'rzp_test_AbC123',
@@ -178,6 +189,7 @@ test('a practice order completes the practice step but not going live', () => {
 test('connecting live keys directly skips the practice step and completes', () => {
   const live = {
     ...newOwner,
+    paymentsEnabled: true,
     hasConfig: true,
     verifiedAt: '2026-09-15T10:00:00Z',
     keyId: 'rzp_live_AbC123',
@@ -189,9 +201,24 @@ test('connecting live keys directly skips the practice step and completes', () =
   assert.equal(states({ ...live, orderCount: 3 }).practice, 'done')
 })
 
+test('checklist is not live while payments are switched off', () => {
+  const switchedOff = {
+    ...newOwner,
+    paymentsEnabled: false,
+    hasConfig: true,
+    verifiedAt: '2026-09-15T10:00:00Z',
+    keyId: 'rzp_live_AbC123',
+    activeItemCount: 1,
+  }
+  assert.equal(states(switchedOff).connect, 'todo')
+  assert.equal(states(switchedOff).live, 'blocked')
+  assert.notEqual(deriveSellingChecklist(switchedOff).status, 'complete')
+})
+
 test('suspension and rejected keys override the status', () => {
   const live = {
     ...newOwner,
+    paymentsEnabled: true,
     hasConfig: true,
     verifiedAt: '2026-09-15T10:00:00Z',
     keyId: 'rzp_live_AbC123',

@@ -260,6 +260,7 @@ export default async function MyBusinessPage({
         newOrderCount: listingOrders.filter((order) => !order.is_test && order.status === 'confirmed').length,
         checklist: deriveSellingChecklist({
           approved: listing.approved === true,
+          paymentsEnabled: listing.payments_enabled === true,
           suspendedAt: listing.payments_suspended_at,
           hasConfig: config !== null,
           verifiedAt: config?.verified_at ?? null,

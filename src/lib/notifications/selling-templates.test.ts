@@ -17,6 +17,16 @@ test('selling.paused by an admin quotes the reason and links to payments', () =>
   assert.equal((rendered.email?.html ?? '').includes('<items>'), false)
 })
 
+test('selling.paused does not double the full stop after the reason', () => {
+  const rendered = renderNotification('selling.paused', {
+    listingId: 'l1',
+    listingName: 'Organic Farm',
+    reason: 'Repeated complaints.',
+    byAdmin: true,
+  })
+  assert.equal(rendered.body, 'Selling is paused by OurDahanu: Repeated complaints. Contact us to resume.')
+})
+
 test('selling.paused after Razorpay rejects keys asks the owner to reconnect', () => {
   const rendered = renderNotification('selling.paused', {
     listingId: 'l1',

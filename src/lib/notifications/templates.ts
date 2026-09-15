@@ -492,10 +492,16 @@ function renderJobExpiring(p: NotificationPayload<'job.expiring'>): RenderedNoti
   }
 }
 
+/** The sentence adds its own full stop, so drop any trailing punctuation. */
+function stripTrailingPunctuation(text: string): string {
+  return text.trim().replace(/[.!?\s]+$/, '')
+}
+
 function renderSellingPaused(p: NotificationPayload<'selling.paused'>): RenderedNotification {
+  const reason = stripTrailingPunctuation(p.reason)
   const body = p.byAdmin
-    ? `Selling is paused by OurDahanu: ${p.reason}. Contact us to resume.`
-    : `${p.reason}. Reconnect Razorpay to keep selling.`
+    ? `Selling is paused by OurDahanu: ${reason}. Contact us to resume.`
+    : `${reason}. Reconnect Razorpay to keep selling.`
   return {
     title: `Selling paused · ${p.listingName}`,
     body,

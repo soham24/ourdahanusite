@@ -19,7 +19,8 @@ export const SHOP_NOT_OPEN_MESSAGE = "This shop isn't taking online payments yet
 export const LISTING_NOT_LIVE_MESSAGE = 'Your listing needs to be live before you can sell online.'
 
 export function sellingPausedMessage(reason: string | null): string {
-  const why = reason?.trim() || 'no reason given'
+  // The sentence adds its own full stop, so drop any the admin typed.
+  const why = reason?.trim().replace(/[.!?\s]+$/, '') || 'no reason given'
   return `Selling is paused by OurDahanu: ${why}. Contact us to resume.`
 }
 
@@ -51,13 +52,16 @@ export function canBuyFromShop(
 /**
  * True when saving `nextKeyId` makes the shop live for the first time, or
  * moves it from test (or unverified) keys to live keys. Replacing one live
- * key with another is not news.
+ * key with another is not news, and neither is reconnecting the same live
+ * key after Razorpay cleared its verification.
  */
 export function becameLive(
   previous: { keyId: string | null; verifiedAt: string | null } | null,
   nextKeyId: string,
 ): boolean {
   if (classifyRazorpayKeyId(nextKeyId) !== 'live') return false
-  const wasLive = Boolean(previous?.verifiedAt) && classifyRazorpayKeyId(previous?.keyId) === 'live'
+  const previousKind = classifyRazorpayKeyId(previous?.keyId)
+  const wasLive =
+    previousKind === 'live' && (Boolean(previous?.verifiedAt) || previous?.keyId === nextKeyId)
   return !wasLive
 }

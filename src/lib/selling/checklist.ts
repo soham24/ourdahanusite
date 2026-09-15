@@ -6,6 +6,7 @@ export type ChecklistStatus = 'setup' | 'complete' | 'suspended' | 'keys_rejecte
 
 export interface ChecklistInput {
   approved: boolean
+  paymentsEnabled: boolean
   suspendedAt: string | null
   /** A listing_payment_configs row exists, verified or not. */
   hasConfig: boolean
@@ -29,7 +30,8 @@ export interface SellingChecklist {
 
 export function deriveSellingChecklist(input: ChecklistInput): SellingChecklist {
   const kind = classifyRazorpayKeyId(input.keyId)
-  const connected = Boolean(input.verifiedAt) && (kind === 'test' || kind === 'live')
+  const connected =
+    input.paymentsEnabled && Boolean(input.verifiedAt) && (kind === 'test' || kind === 'live')
   const live = connected && kind === 'live'
 
   const listing: ChecklistStepState = input.approved ? 'done' : 'todo'
