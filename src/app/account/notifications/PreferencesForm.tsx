@@ -45,6 +45,8 @@ const TYPE_LABELS: Record<NotificationType, { label: string; hint: string }> = {
   'job.approved': { label: 'Job post approved', hint: 'When your job post goes live' },
   'job.rejected': { label: 'Job post rejected', hint: 'When a job submission needs edits' },
   'job.expiring': { label: 'Job post expiring', hint: 'When your job post is about to expire' },
+  'selling.paused': { label: 'Selling paused', hint: 'When online payments stop for your business' },
+  'selling.resumed': { label: 'Selling resumed', hint: 'When a pause on selling is lifted' },
   'review.new': { label: 'New reviews', hint: 'When someone reviews your listing' },
   'review.reply_posted': { label: 'Review replies', hint: 'When an owner replies to your review (or, for admins, any reply)' },
   'admin.new_submission': { label: 'New admin submissions', hint: 'Admins only — new pending items' },

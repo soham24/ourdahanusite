@@ -46,16 +46,18 @@ function getListingUrl(listingId: string, subdomain?: string | null): string {
 function renderOrderPlaced(p: NotificationPayload<'order.placed'>): RenderedNotification {
   const amount = formatCurrency(p.amountTotal)
   const qty = p.quantity
+  const testPrefix = p.isTest ? 'Test order · ' : ''
+  const testSubject = p.isTest ? '[Test] ' : ''
 
   if (p.recipient === 'buyer') {
     return {
-      title: `Order confirmed · ${p.listingName}`,
+      title: `${testPrefix}Order confirmed · ${p.listingName}`,
       body: `Thanks! We received your order for ${p.productName} × ${qty} (${amount}).`,
       link: `/account/orders/${p.orderId}`,
       icon: 'ShoppingBag',
       metadata: { orderId: p.orderId, listingId: p.listingId },
       email: {
-        subject: `Order confirmed at ${p.listingName}`,
+        subject: `${testSubject}Order confirmed at ${p.listingName}`,
         html: renderEmailLayout({
           eyebrow: 'Order Confirmed',
           headline: `Your order at ${p.listingName} is confirmed`,
@@ -87,13 +89,13 @@ function renderOrderPlaced(p: NotificationPayload<'order.placed'>): RenderedNoti
 
   if (p.recipient === 'owner') {
     return {
-      title: `New order · ${p.productName}`,
+      title: `${testPrefix}New order · ${p.productName}`,
       body: `${p.buyerName} just ordered ${p.productName} × ${qty} (${amount}).`,
       link: `/my-business/orders`,
       icon: 'ShoppingBag',
       metadata: { orderId: p.orderId, listingId: p.listingId },
       email: {
-        subject: `🛒 New order — ${p.productName} (${amount})`,
+        subject: `${testSubject}🛒 New order — ${p.productName} (${amount})`,
         html: renderEmailLayout({
           eyebrow: 'New Order',
           headline: `A customer just placed an order`,
@@ -490,6 +492,57 @@ function renderJobExpiring(p: NotificationPayload<'job.expiring'>): RenderedNoti
   }
 }
 
+function renderSellingPaused(p: NotificationPayload<'selling.paused'>): RenderedNotification {
+  const body = p.byAdmin
+    ? `Selling is paused by OurDahanu: ${p.reason}. Contact us to resume.`
+    : `${p.reason}. Reconnect Razorpay to keep selling.`
+  return {
+    title: `Selling paused · ${p.listingName}`,
+    body,
+    link: '/my-business/payments',
+    icon: 'AlertCircle',
+    metadata: { listingId: p.listingId },
+    email: {
+      subject: `Online payments paused for ${p.listingName}`,
+      html: renderEmailLayout({
+        eyebrow: 'Selling paused',
+        headline: "Customers can't pay online right now",
+        introHtml: escapeHtml(body),
+        ctaUrl: `${SITE_URL}/my-business/payments`,
+        ctaText: p.byAdmin ? 'Open payments' : 'Reconnect Razorpay',
+      }),
+    },
+    telegram: {
+      text: `⏸️ <b>Selling paused</b>\n${escapeHtml(p.listingName)}: ${escapeHtml(body)}`,
+    },
+  }
+}
+
+function renderSellingResumed(p: NotificationPayload<'selling.resumed'>): RenderedNotification {
+  const body =
+    'OurDahanu has lifted the pause. If your Razorpay keys are still connected, customers can buy from your shop again.'
+  return {
+    title: `Selling resumed · ${p.listingName}`,
+    body,
+    link: '/my-business',
+    icon: 'CheckCircle',
+    metadata: { listingId: p.listingId },
+    email: {
+      subject: `Online payments resumed for ${p.listingName}`,
+      html: renderEmailLayout({
+        eyebrow: 'Selling resumed',
+        headline: 'Your shop can take payments again',
+        introHtml: escapeHtml(body),
+        ctaUrl: `${SITE_URL}/my-business`,
+        ctaText: 'Open My Business',
+      }),
+    },
+    telegram: {
+      text: `▶️ <b>Selling resumed</b>\n${escapeHtml(p.listingName)}: ${escapeHtml(body)}`,
+    },
+  }
+}
+
 function renderReviewNew(p: NotificationPayload<'review.new'>): RenderedNotification {
   const name = (p.reviewerName || 'Someone').trim() || 'Someone'
   const stars = '⭐'.repeat(Math.max(1, Math.min(5, Math.round(p.rating))))
@@ -628,6 +681,25 @@ function renderAdminSubmission(
     professional_review: 'Professional review',
     job: 'Job post',
     job_report: 'Job report',
+    shop_live: 'Shop',
+  }
+  if (p.kind === 'shop_live') {
+    return {
+      title: `${p.title} is now selling online`,
+      body: 'Live Razorpay keys connected. Take a quick look at their shop.',
+      link: p.reviewPath,
+      icon: 'ShoppingBag',
+      email: {
+        subject: `${p.title} is now selling online`,
+        html: renderEmailLayout({
+          eyebrow: 'Admin Alert',
+          headline: `${p.title} is now selling online`,
+          introHtml: `<strong>${escapeHtml(p.title)}</strong> connected live Razorpay keys. Customers can now pay on their page.`,
+          ctaUrl: `${SITE_URL}${p.reviewPath}`,
+          ctaText: 'Open payments',
+        }),
+      },
+    }
   }
   const label = labels[p.kind]
   return {
@@ -693,6 +765,10 @@ export function renderNotification<T extends NotificationType>(
       return renderJobRejected(payload as NotificationPayload<'job.rejected'>)
     case 'job.expiring':
       return renderJobExpiring(payload as NotificationPayload<'job.expiring'>)
+    case 'selling.paused':
+      return renderSellingPaused(payload as NotificationPayload<'selling.paused'>)
+    case 'selling.resumed':
+      return renderSellingResumed(payload as NotificationPayload<'selling.resumed'>)
     case 'review.new':
       return renderReviewNew(payload as NotificationPayload<'review.new'>)
     case 'review.reply_posted':
