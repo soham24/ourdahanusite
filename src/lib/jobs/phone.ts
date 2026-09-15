@@ -8,8 +8,8 @@
  */
 export function normalizeIndianPhone(raw: string): string | null {
   let digits = (raw ?? '').replace(/\D/g, '')
-  if (digits.length === 12 && digits.startsWith('91')) digits = digits.slice(2)
-  else if (digits.length === 11 && digits.startsWith('0')) digits = digits.slice(1)
+  if ((digits.length === 12 || digits.length === 13) && digits.startsWith('91')) digits = digits.slice(2)
+  if (digits.length === 11 && digits.startsWith('0')) digits = digits.slice(1)
   return /^[1-9]\d{9}$/.test(digits) ? digits : null
 }
 

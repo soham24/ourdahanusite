@@ -32,7 +32,14 @@ test('every category has a Marathi label', () => {
 })
 
 test('phone numbers normalise to 10 digits whatever the formatting', () => {
-  for (const raw of ['+91 98765 43210', '098765 43210', '9876543210', '91-98765-43210', '(987) 654-3210']) {
+  for (const raw of [
+    '+91 98765 43210',
+    '098765 43210',
+    '9876543210',
+    '91-98765-43210',
+    '(987) 654-3210',
+    '+91 098765 43210',
+  ]) {
     assert.equal(normalizeIndianPhone(raw), '9876543210', raw)
   }
 })
