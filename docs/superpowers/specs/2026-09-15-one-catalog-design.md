@@ -119,9 +119,9 @@ When an item has options, each option's price and stock apply and the item's own
   - **Order on WhatsApp** (product) or **Book on WhatsApp** (service) in every other case, prefilled with the item name and its `/p/` link, using the listing's WhatsApp number or, failing that, its phone number, as today. With neither number, no action button is shown.
 - An item is **buyable** when it has options, or when it has no options and `price_paise >= 100`.
 
-**`/p/[productId]`:** the photo in its shape, the price line, the full description, the option labels with their prices ("Sold out" beside empty ones), the same action as the card, and a link back to the business.
+**`/p/[productId]`:** the photo in its shape, the price line, the full description, the option labels with their prices ("Sold out" beside empty ones), the same action as the card, and a link back to the business. This page is cached for everyone and never knows who is viewing, so it shows Buy only for a live shop; owners make practice purchases on test keys from the business page.
 
-**`/s/[index]`:** looks up the item with that `legacy_service_index` on the host's listing and permanently redirects to `/p/<id>`. If the index is not a whole number or no item matches, it returns the not-found page. `fetchListingAndService` and the old page's rendering are removed.
+**`/s/[index]`:** a route handler (so the redirect is a real HTTP redirect, not one streamed to the browser) looks up the visible item with that `legacy_service_index` on the host's listing and permanently redirects (308) to `/p/<id>`. If the listing exists but no visible item matches, it redirects (307) to the business page. An unknown business or an index that is not a whole number returns 404. `fetchListingAndService` and the old page are removed.
 
 **Keywords metadata:** `src/app/listings/[id]/page.tsx` builds keywords from catalog item names instead of `listings.services`.
 
@@ -173,7 +173,7 @@ Redesigned in the `od-` design system and built phone-first. The page keeps piec
 - **Name** (80 characters) and **Description** (600 characters).
 - **Photo:** `CompactImageUpload` with its Square, Portrait and Landscape choice. The uploaded URL is saved as both `image_url` and `image_thumb_url`, and the choice as `image_aspect`. New items default to square.
 - **Pricing**, one of three:
-  1. **One price:** price in rupees (at least ₹1, up to the existing ₹10 crore cap) and optional stock (blank means no limit).
+  1. **One price:** price in rupees (at least ₹1, at most ₹1 crore — the old ₹10 crore cap did not fit the 32-bit `price_paise` column) and optional stock (blank means no limit).
   2. **Options:** 1 to 6 rows, each with a label (up to 40 characters, unique within the item, ignoring case), a price (at least ₹1) and optional stock; add, remove, ↑ and ↓ per row.
   3. **No fixed price:** optional price note (up to 32 characters). Customers use WhatsApp.
 - **Preview tab** ("How customers see it"): renders `CatalogItemCard` with the unsaved values and the listing's current shop mode.
@@ -209,7 +209,7 @@ Redesigned in the `od-` design system and built phone-first. The page keeps piec
 | Item loses its price while the customer is at checkout | 422 "This item can't be bought online."; the page links to the item |
 | Option renamed, repriced or deleted after Razorpay created the order | The order saves with the intent's price and label; `product_option_id` is null if deleted |
 | Option stock runs out between creating the Razorpay order and saving | Same as item stock today (`src/app/actions/marketplace-orders.ts:205-217`): the save returns "Sorry — this item just went out of stock." and the buyer sees the existing recovery screen with WhatsApp. Refunding that payment belongs to piece 4 |
-| `/s/` link with no copied item | Not-found page |
+| `/s/` link with no visible copied item | Redirect to the business page; unknown business → 404 |
 
 ## Testing
 
