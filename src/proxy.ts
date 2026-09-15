@@ -43,6 +43,24 @@ export function proxy(request: NextRequest) {
     return NextResponse.rewrite(url)
   }
 
+  // jobs.ourdahanu.in → /jobs/* (standalone jobs board, own layout). Same
+  // shape as the find and appointments branches above.
+  if (findHost === 'jobs.ourdahanu.in' || findHost === 'jobs.localhost') {
+    const pathname = request.nextUrl.pathname
+    const isInternalOrAsset =
+      pathname.startsWith('/_next') ||
+      pathname.startsWith('/api') ||
+      /\.[^/]+$/.test(pathname)
+    if (isInternalOrAsset) {
+      return NextResponse.next()
+    }
+    const url = request.nextUrl.clone()
+    if (!url.pathname.startsWith('/jobs')) {
+      url.pathname = url.pathname === '/' ? '/jobs' : `/jobs${url.pathname}`
+    }
+    return NextResponse.rewrite(url)
+  }
+
   const subdomain = getBusinessSubdomain(host)
 
   const pathname = request.nextUrl.pathname
@@ -171,6 +189,17 @@ export const config = {
           type: 'header',
           key: 'host',
           value: '(?:appointments\\.ourdahanu\\.in|appointments\\.localhost(?::\\d+)?)',
+        },
+      ],
+    },
+    {
+      // jobs.ourdahanu.in — standalone jobs board
+      source: '/:path*',
+      has: [
+        {
+          type: 'header',
+          key: 'host',
+          value: '(?:jobs\\.ourdahanu\\.in|jobs\\.localhost(?::\\d+)?)',
         },
       ],
     },

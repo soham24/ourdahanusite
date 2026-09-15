@@ -20,6 +20,10 @@ export const NOTIFICATION_TYPES = [
   'listing.approved',
   'listing.rejected',
   'listing.expiring',
+  // Jobs board
+  'job.approved',
+  'job.rejected',
+  'job.expiring',
   // Reviews
   'review.new',
   'review.reply_posted',
@@ -99,6 +103,26 @@ interface ListingExpiringPayload {
   daysLeft: number
 }
 
+interface JobApprovedPayload {
+  postId: string
+  title: string
+  kind: 'hiring' | 'seeking'
+}
+
+interface JobRejectedPayload {
+  postId: string
+  title: string
+  kind: 'hiring' | 'seeking'
+  reason: string
+}
+
+interface JobExpiringPayload {
+  postId: string
+  title: string
+  kind: 'hiring' | 'seeking'
+  daysLeft: number
+}
+
 interface ReviewNewPayload {
   listingId: string
   listingName: string
@@ -128,6 +152,8 @@ interface AdminSubmissionPayload {
     | 'event'
     | 'professional'
     | 'professional_review'
+    | 'job'
+    | 'job_report'
   title: string
   submitterName?: string | null
   reviewPath: string
@@ -143,6 +169,9 @@ export interface NotificationPayloadMap {
   'listing.approved': ListingApprovedPayload
   'listing.rejected': ListingRejectedPayload
   'listing.expiring': ListingExpiringPayload
+  'job.approved': JobApprovedPayload
+  'job.rejected': JobRejectedPayload
+  'job.expiring': JobExpiringPayload
   'review.new': ReviewNewPayload
   'review.reply_posted': ReviewReplyPostedPayload
   'admin.new_submission': AdminSubmissionPayload

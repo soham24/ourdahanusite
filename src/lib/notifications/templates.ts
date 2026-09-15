@@ -11,6 +11,7 @@ import type {
 } from './types'
 
 const SITE_URL = 'https://ourdahanu.in'
+const JOBS_URL = 'https://jobs.ourdahanu.in'
 
 function formatDate(dateStr: string): string {
   const date = new Date(`${dateStr}T00:00:00+05:30`)
@@ -405,6 +406,90 @@ function renderListingExpiring(
   }
 }
 
+function jobNoun(kind: 'hiring' | 'seeking'): string {
+  return kind === 'hiring' ? 'job post' : 'profile'
+}
+
+function renderJobApproved(p: NotificationPayload<'job.approved'>): RenderedNotification {
+  const postUrl = `${JOBS_URL}/j/${p.postId}`
+  const noun = jobNoun(p.kind)
+  return {
+    title: `✅ Your ${noun} is live · ${p.title}`,
+    body: `"${p.title}" is now live on OurDahanu Jobs for 30 days.`,
+    link: `/jobs/j/${p.postId}`,
+    icon: 'CheckCircle',
+    metadata: { postId: p.postId },
+    email: {
+      subject: `Your ${noun} "${p.title}" is live on OurDahanu Jobs`,
+      html: renderEmailLayout({
+        eyebrow: 'OurDahanu Jobs',
+        headline: `Your ${noun} is live`,
+        introHtml: `<strong>${escapeHtml(p.title)}</strong> was approved and is now visible on OurDahanu Jobs for 30 days.`,
+        detailRows: buildDetailRow(
+          'Your post',
+          `<a href="${postUrl}" style="color:#C4663A;text-decoration:none;">${escapeHtml(postUrl)}</a>`,
+          false,
+        ),
+        ctaUrl: `${JOBS_URL}/my-posts`,
+        ctaText: 'Open my posts',
+      }),
+    },
+    telegram: {
+      text: `✅ <b>Jobs post approved</b>\n${escapeHtml(p.title)} is live: <a href="${postUrl}">open</a>`,
+    },
+  }
+}
+
+function renderJobRejected(p: NotificationPayload<'job.rejected'>): RenderedNotification {
+  const noun = jobNoun(p.kind)
+  return {
+    title: `Your ${noun} was not approved · ${p.title}`,
+    body: `Reason: ${p.reason}. Edit it from My posts to resubmit.`,
+    link: '/jobs/my-posts',
+    icon: 'XCircle',
+    metadata: { postId: p.postId },
+    email: {
+      subject: `Your ${noun} "${p.title}" was not approved`,
+      html: renderEmailLayout({
+        eyebrow: 'OurDahanu Jobs',
+        headline: `Your ${noun} was not approved`,
+        introHtml: `We could not approve <strong>${escapeHtml(p.title)}</strong> yet. You can edit it and resubmit.`,
+        detailRows: buildDetailRow('Reason', escapeHtml(p.reason), false),
+        ctaUrl: `${JOBS_URL}/my-posts`,
+        ctaText: 'Edit and resubmit',
+      }),
+    },
+    telegram: {
+      text: `❌ <b>Jobs post not approved</b>\n${escapeHtml(p.title)}\nReason: ${escapeHtml(p.reason)}`,
+    },
+  }
+}
+
+function renderJobExpiring(p: NotificationPayload<'job.expiring'>): RenderedNotification {
+  const noun = jobNoun(p.kind)
+  const when = p.daysLeft === 1 ? '1 day' : `${p.daysLeft} days`
+  return {
+    title: `⏳ Your ${noun} expires in ${when} · ${p.title}`,
+    body: `Renew "${p.title}" to keep it on OurDahanu Jobs for another 30 days.`,
+    link: '/jobs/my-posts',
+    icon: 'Clock',
+    metadata: { postId: p.postId, daysLeft: p.daysLeft },
+    email: {
+      subject: `Your ${noun} "${p.title}" expires in ${when}`,
+      html: renderEmailLayout({
+        eyebrow: 'OurDahanu Jobs',
+        headline: p.kind === 'hiring' ? 'Still hiring?' : 'Still looking for work?',
+        introHtml: `<strong>${escapeHtml(p.title)}</strong> comes off OurDahanu Jobs in ${when}. Renew it in one tap to keep it live for another 30 days.`,
+        ctaUrl: `${JOBS_URL}/my-posts`,
+        ctaText: 'Renew my post',
+      }),
+    },
+    telegram: {
+      text: `⏳ <b>Jobs post expiring</b>\n${escapeHtml(p.title)} expires in ${when}. <a href="${JOBS_URL}/my-posts">Renew</a>`,
+    },
+  }
+}
+
 function renderReviewNew(p: NotificationPayload<'review.new'>): RenderedNotification {
   const name = (p.reviewerName || 'Someone').trim() || 'Someone'
   const stars = '⭐'.repeat(Math.max(1, Math.min(5, Math.round(p.rating))))
@@ -541,6 +626,8 @@ function renderAdminSubmission(
     event: 'Event',
     professional: 'Professional',
     professional_review: 'Professional review',
+    job: 'Job post',
+    job_report: 'Job report',
   }
   const label = labels[p.kind]
   return {
@@ -600,6 +687,12 @@ export function renderNotification<T extends NotificationType>(
       return renderListingRejected(payload as NotificationPayload<'listing.rejected'>)
     case 'listing.expiring':
       return renderListingExpiring(payload as NotificationPayload<'listing.expiring'>)
+    case 'job.approved':
+      return renderJobApproved(payload as NotificationPayload<'job.approved'>)
+    case 'job.rejected':
+      return renderJobRejected(payload as NotificationPayload<'job.rejected'>)
+    case 'job.expiring':
+      return renderJobExpiring(payload as NotificationPayload<'job.expiring'>)
     case 'review.new':
       return renderReviewNew(payload as NotificationPayload<'review.new'>)
     case 'review.reply_posted':

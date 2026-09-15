@@ -17,6 +17,9 @@
 -- added in add_listings_homepage_indexes.sql for fast count / group-by paths.
 --
 -- Run in the Supabase SQL editor. Safe to re-run (CREATE OR REPLACE).
+--
+-- 2026-09-14: the total_jobs key was removed along with the legacy jobs
+-- table (see drop_legacy_jobs_table.sql). Nothing on the web read it.
 
 CREATE OR REPLACE FUNCTION public.get_homepage_stats()
 RETURNS jsonb
@@ -39,11 +42,6 @@ AS $$
       SELECT count(*)::int
       FROM listings
       WHERE approved = true
-    ), 0),
-    'total_jobs', COALESCE((
-      SELECT count(*)::int
-      FROM jobs
-      WHERE approved = true AND status IN ('open', 'hiring')
     ), 0),
     -- Only expose the columns the homepage actually renders. `to_jsonb(l.*)`
     -- would leak every column (including admin/private fields) to anon.
