@@ -11,7 +11,7 @@ import {
   type JobStatus,
   type ListingAccess,
 } from '../../lib/jobs/rules'
-import { detectPostFlags } from '../../lib/jobs/scam-signals'
+import { detectPostFlags, type ReviewFlag } from '../../lib/jobs/scam-signals'
 import {
   validateJobPostInput,
   type ContactFields,
@@ -178,7 +178,11 @@ export function createJobActions(deps: JobActionDependencies) {
     const listing = await listingFor(fields.listing_id)
     if (listing === 'forbidden') return { error: 'You can only post for a business you own.' }
 
-    const flags = collectedByStaff ? [] : detectPostFlags(fields)
+    const detected: ReviewFlag[] = collectedByStaff ? [] : detectPostFlags(fields)
+    // Editing re-scans free text for scam signals, but a report-driven hide
+    // must survive an edit: otherwise a scammer clears it just by re-saving.
+    const flags: ReviewFlag[] =
+      post.review_flags.includes('reports') && !detected.includes('reports') ? [...detected, 'reports'] : detected
     const next = decideEditStatus({ current: post.status, collectedByStaff, listing, flags })
     if (next === null) return { error: 'This post is closed and can no longer be edited.' }
 

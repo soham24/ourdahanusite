@@ -192,6 +192,20 @@ test('editing an approved individual post sends it back to review; a business po
   assert.equal(business.calls.notified.length, 0)
 })
 
+test('an edit keeps the reports flag from a report-hidden post, alongside any newly detected flags', async () => {
+  const reported = harness({
+    async getPost() { return storedPost({ posted_by: 'user-1', status: 'pending', review_flags: ['reports'] }) },
+  })
+  await reported.actions.updatePost('post-1', hiringInput())
+  assert.deepEqual(reported.calls.updated[0].fields.review_flags, ['reports'])
+
+  const reportedAndFlagged = harness({
+    async getPost() { return storedPost({ posted_by: 'user-1', status: 'pending', review_flags: ['reports'] }) },
+  })
+  await reportedAndFlagged.actions.updatePost('post-1', hiringInput({ description: 'Registration fee ₹500.' }))
+  assert.deepEqual(reportedAndFlagged.calls.updated[0].fields.review_flags, ['scam_words', 'reports'])
+})
+
 test('nobody else can edit a post, and closed posts cannot be edited', async () => {
   const stranger = harness()
   assert.deepEqual(await stranger.actions.updatePost('post-1', hiringInput()), { error: 'Post not found.' })
