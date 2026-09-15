@@ -77,8 +77,8 @@ async function buildJobActions() {
         if (deleteError) {
           console.error(
             `[jobs] orphaned job post ${id}: contact insert failed and cleanup delete failed`,
-            contactError,
-            deleteError,
+            { code: contactError.code, message: contactError.message },
+            { code: deleteError.code, message: deleteError.message },
           )
         }
         return { id: null, error: toDbError(contactError) }
@@ -106,7 +106,10 @@ async function buildJobActions() {
             { onConflict: 'post_id' },
           )
         if (contactError) {
-          console.error(`[jobs] job post ${postId} updated but contact upsert failed`, contactError)
+          console.error(`[jobs] job post ${postId} updated but contact upsert failed`, {
+            code: contactError.code,
+            message: contactError.message,
+          })
           return { error: toDbError(contactError) }
         }
       }
