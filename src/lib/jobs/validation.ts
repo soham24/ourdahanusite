@@ -67,6 +67,9 @@ export const JOB_TEXT_LIMITS = {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+// ₹1 crore. The int column this becomes would overflow above it.
+const PAY_RUPEES_MAX = 10_000_000
+
 function clean(value: string | null | undefined): string | null {
   const trimmed = (value ?? '').trim()
   return trimmed === '' ? null : trimmed
@@ -181,6 +184,9 @@ export function validateJobPostInput(input: JobPostInput): ValidationResult {
   // left empty instead, which shows "Pay to be discussed".
   if ((payMin.value !== null && payMin.value < 1) || (payMax.value !== null && payMax.value < 1)) {
     return fail('Pay must be at least ₹1. Leave it empty if pay is to be discussed.')
+  }
+  if ((payMin.value !== null && payMin.value > PAY_RUPEES_MAX) || (payMax.value !== null && payMax.value > PAY_RUPEES_MAX)) {
+    return fail('Pay must be ₹1,00,00,000 or less.')
   }
   if (payMin.value !== null && payMax.value !== null && payMax.value < payMin.value) {
     return fail('Maximum pay cannot be less than minimum pay.')
