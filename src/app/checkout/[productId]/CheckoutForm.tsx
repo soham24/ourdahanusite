@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   CheckCircle,
   Copy,
@@ -15,6 +16,8 @@ import {
 } from 'lucide-react'
 
 import { placeMarketplaceOrder } from '@/app/actions/marketplace-orders'
+import { firstAvailableOptionId, isAvailable, orderLineLabel } from '@/lib/catalog/catalog'
+import type { CatalogOption } from '@/lib/catalog/types'
 import {
   attemptWithRetry,
   clearRecoveryDraft,
@@ -28,10 +31,12 @@ export interface CheckoutFormProps {
   product: {
     id: string
     name: string
-    pricePaise: number
+    pricePaise: number | null
     quantityInStock: number | null
     type: 'product' | 'service'
     imageUrl: string | null
+    /** When present the buyer picks one; its price and stock apply. */
+    options: CatalogOption[]
   }
   listing: { id: string; name: string; whatsapp: string | null }
   businessUrl: string
@@ -106,6 +111,7 @@ export default function CheckoutForm({
   testMode,
 }: CheckoutFormProps) {
   const [quantity, setQuantity] = useState(1)
+  const [chosenOptionId, setChosenOptionId] = useState<string | null>(null)
   const [buyerName, setBuyerName] = useState(initialName)
   const [buyerPhone, setBuyerPhone] = useState(initialPhone)
   const [deliveryAddress, setDeliveryAddress] = useState('')
@@ -138,9 +144,19 @@ export default function CheckoutForm({
 
   const busy = status === 'ordering' || status === 'paying' || status === 'submitting'
 
+  const router = useRouter()
   const isService = product.type === 'service'
-  const maxQuantity = product.quantityInStock ?? 99
-  const totalPaise = product.pricePaise * quantity
+  // A choice that has since sold out (after a reload) falls back to the first option still available.
+  const selectedOption =
+    product.options.find((option) => option.id === chosenOptionId && isAvailable(option.quantity_in_stock)) ??
+    product.options.find((option) => option.id === firstAvailableOptionId(product.options)) ??
+    null
+  const optionLabel = selectedOption?.label ?? null
+  const unitPricePaise = selectedOption?.price_paise ?? product.pricePaise ?? 0
+  const stockLimit = selectedOption ? selectedOption.quantity_in_stock : product.quantityInStock
+  const maxQuantity = Math.max(1, stockLimit ?? 99)
+  const orderQuantity = Math.min(quantity, maxQuantity)
+  const totalPaise = unitPricePaise * orderQuantity
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -155,7 +171,7 @@ export default function CheckoutForm({
 
     const existing = document.getElementById('razorpay-script')
     if (existing) {
-      // `#razorpay-script` is a shared id: OrderModal, AppointmentBooking,
+      // `#razorpay-script` is a shared id: AppointmentBooking,
       // ListingSubmitForm and RenewForm all inject the same tag onto
       // `document.body`, which survives client-side navigation into this
       // route. It may still be mid-flight, so listen on the element that's
@@ -213,12 +229,16 @@ export default function CheckoutForm({
       const orderRes = await fetch('/api/razorpay/create-marketplace-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: product.id, quantity }),
+        body: JSON.stringify({ productId: product.id, optionId: selectedOption?.id, quantity: orderQuantity }),
       })
       const orderData = await orderRes.json()
       if (!orderRes.ok || orderData.error) {
         setError(orderData.error || 'Could not start the payment. Please try again.')
         setStatus('error')
+        // Stock or options changed since the page loaded: fetch them again.
+        if (orderData.code === 'option_sold_out' || orderData.code === 'option_unavailable') {
+          router.refresh()
+        }
         return
       }
 
@@ -226,7 +246,8 @@ export default function CheckoutForm({
 
       const baseFields: Record<string, string> = {
         product_id: product.id,
-        quantity: String(quantity),
+        quantity: String(orderQuantity),
+        option_id: selectedOption?.id ?? '',
         buyer_name: buyerName.trim(),
         buyer_phone: buyerPhone.trim(),
         delivery_address: deliveryAddress.trim(),
@@ -249,7 +270,7 @@ export default function CheckoutForm({
         amount: orderData.amount,
         currency: orderData.currency || 'INR',
         name: orderData.listingName || listing.name,
-        description: `${product.name} ×${quantity}`,
+        description: orderLineLabel(product.name, optionLabel, orderQuantity),
         order_id: orderData.orderId,
         handler: async (response) => {
           // Set before anything else — including before the state update on
@@ -354,7 +375,7 @@ export default function CheckoutForm({
           </div>
           <div className="flex justify-between text-[13px]">
             <span className="text-[var(--od-muted)]">
-              {product.name} ×{quantity}
+              {orderLineLabel(product.name, optionLabel, orderQuantity)}
             </span>
             <span className="font-bold text-[var(--od-ink)]">
               {formatInr(done.amountPaise ?? totalPaise)}
@@ -384,7 +405,7 @@ export default function CheckoutForm({
   if (status === 'recovery' && recovery) {
     const waHref = listing.whatsapp
       ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(
-          `Hi ${listing.name}, I paid for ${product.name} ×${quantity} (${formatInr(totalPaise)}) but the order did not save. My payment reference is ${recovery.paymentId}.`,
+          `Hi ${listing.name}, I paid for ${orderLineLabel(product.name, optionLabel, orderQuantity)} (${formatInr(totalPaise)}) but the order did not save. My payment reference is ${recovery.paymentId}.`,
         )}`
       : null
 
@@ -461,9 +482,52 @@ export default function CheckoutForm({
           <p className="truncate text-[11px] text-[var(--od-muted)]">{listing.name}</p>
         </div>
         <p className="shrink-0 text-base font-extrabold text-[var(--od-brand)]">
-          {formatInr(product.pricePaise)}
+          {formatInr(unitPricePaise)}
         </p>
       </div>
+
+      {product.options.length > 0 && (
+        <fieldset>
+          <legend className={labelCls}>Choose an option</legend>
+          <div className="space-y-2">
+            {product.options.map((option) => {
+              const available = isAvailable(option.quantity_in_stock)
+              const checked = selectedOption?.id === option.id
+              return (
+                <label
+                  key={option.id}
+                  className={`flex min-h-12 items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 text-sm transition-colors ${
+                    checked
+                      ? 'border-[var(--od-brand)] bg-[rgba(192,88,46,0.06)]'
+                      : 'border-[var(--od-border)] bg-white'
+                  } ${available ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <input
+                      type="radio"
+                      name="option"
+                      value={option.id}
+                      checked={checked}
+                      disabled={!available || busy}
+                      onChange={() => {
+                        setChosenOptionId(option.id)
+                        setQuantity(1)
+                      }}
+                      className="h-4 w-4 accent-[var(--od-brand)]"
+                    />
+                    <span className="font-semibold text-[var(--od-ink)]">{option.label}</span>
+                  </span>
+                  <span
+                    className={available ? 'font-bold text-[var(--od-ink)]' : 'text-xs font-semibold text-[var(--od-muted)]'}
+                  >
+                    {available ? formatInr(option.price_paise) : 'Sold out'}
+                  </span>
+                </label>
+              )
+            })}
+          </div>
+        </fieldset>
+      )}
 
       {/* Quantity */}
       <div>
@@ -471,29 +535,27 @@ export default function CheckoutForm({
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            disabled={quantity <= 1 || busy}
+            onClick={() => setQuantity(Math.max(1, orderQuantity - 1))}
+            disabled={orderQuantity <= 1 || busy}
             aria-label="Decrease quantity"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--od-border)] text-[var(--od-ink-2)] transition-colors hover:border-[var(--od-brand)] hover:text-[var(--od-brand)] disabled:opacity-40"
           >
             <Minus size={14} aria-hidden />
           </button>
           <span className="w-6 text-center text-base font-bold tabular-nums text-[var(--od-ink)]">
-            {quantity}
+            {orderQuantity}
           </span>
           <button
             type="button"
-            onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
-            disabled={quantity >= maxQuantity || busy}
+            onClick={() => setQuantity(Math.min(maxQuantity, orderQuantity + 1))}
+            disabled={orderQuantity >= maxQuantity || busy}
             aria-label="Increase quantity"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--od-border)] text-[var(--od-ink-2)] transition-colors hover:border-[var(--od-brand)] hover:text-[var(--od-brand)] disabled:opacity-40"
           >
             <Plus size={14} aria-hidden />
           </button>
-          {product.quantityInStock !== null && (
-            <span className="ml-auto text-xs text-[var(--od-muted)]">
-              {product.quantityInStock} available
-            </span>
+          {stockLimit !== null && (
+            <span className="ml-auto text-xs text-[var(--od-muted)]">{stockLimit} available</span>
           )}
         </div>
       </div>
