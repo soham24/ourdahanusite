@@ -24,6 +24,9 @@ export const NOTIFICATION_TYPES = [
   'job.approved',
   'job.rejected',
   'job.expiring',
+  // Selling online
+  'selling.paused',
+  'selling.resumed',
   // Reviews
   'review.new',
   'review.reply_posted',
@@ -47,6 +50,8 @@ interface OrderPlacedPayload {
   buyerName: string
   /** Which recipient is this rendered for? */
   recipient: 'buyer' | 'owner' | 'admin'
+  /** Paid with Razorpay test keys: a practice purchase, no real money moved. */
+  isTest?: boolean
 }
 
 interface OrderStatusPayload {
@@ -123,6 +128,20 @@ interface JobExpiringPayload {
   daysLeft: number
 }
 
+interface SellingPausedPayload {
+  listingId: string
+  listingName: string
+  /** Shown to the owner: written by an admin, or a fixed system reason. */
+  reason: string
+  /** True when an admin paused selling; false when Razorpay rejected the keys. */
+  byAdmin: boolean
+}
+
+interface SellingResumedPayload {
+  listingId: string
+  listingName: string
+}
+
 interface ReviewNewPayload {
   listingId: string
   listingName: string
@@ -154,6 +173,7 @@ interface AdminSubmissionPayload {
     | 'professional_review'
     | 'job'
     | 'job_report'
+    | 'shop_live'
   title: string
   submitterName?: string | null
   reviewPath: string
@@ -172,6 +192,8 @@ export interface NotificationPayloadMap {
   'job.approved': JobApprovedPayload
   'job.rejected': JobRejectedPayload
   'job.expiring': JobExpiringPayload
+  'selling.paused': SellingPausedPayload
+  'selling.resumed': SellingResumedPayload
   'review.new': ReviewNewPayload
   'review.reply_posted': ReviewReplyPostedPayload
   'admin.new_submission': AdminSubmissionPayload

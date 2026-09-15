@@ -11,6 +11,7 @@ import BuyButton from '@/components/BuyButton'
 import BookingWidget from '@/components/appointments/BookingWidget'
 import { useListingViewer } from '../ListingViewerContext'
 import type { ListingRecord, ListingProductPublic } from '@/lib/data/listing-detail'
+import type { ShopMode } from '@/lib/selling/shop-mode'
 import type { NormalizedService, AppointmentSettings } from '@/lib/listing-content'
 
 interface ListingContentProps {
@@ -23,7 +24,7 @@ interface ListingContentProps {
   listingId: string
   whatsappNum: string | null
   businessUrl: string
-  marketplaceReady: boolean
+  shopMode: ShopMode
   marketplaceProducts: ListingProductPublic[]
   appointmentsEnabled: boolean
   appointmentSettings: AppointmentSettings | null
@@ -40,13 +41,19 @@ export default function ListingContent({
   listingId,
   whatsappNum,
   businessUrl,
-  marketplaceReady,
+  shopMode,
   marketplaceProducts,
   appointmentsEnabled,
   appointmentSettings,
   appointmentBookingFee,
 }: ListingContentProps) {
   const viewer = useListingViewer()
+  // A shop on test keys is a rehearsal: only its owner sees it. The server
+  // refuses checkout for anyone else too (see /checkout and
+  // create-marketplace-order), so this is presentation, not the safeguard.
+  const showShop =
+    marketplaceProducts.length > 0 &&
+    (shopMode === 'live' || (shopMode === 'test' && viewer.isOwner))
 
   return (
     <div className="lg:col-span-2 space-y-5">
@@ -148,18 +155,32 @@ export default function ListingContent({
       )}
 
       {/* Marketplace — shoppable products & services */}
-      {marketplaceReady && marketplaceProducts.length > 0 && (
+      {showShop && (
         <Card id={services.length > 0 ? undefined : 'services'} className="scroll-mt-32">
           <div className="flex items-center justify-between mb-4 gap-2">
             <h2 className="text-base font-bold text-ink flex items-center gap-2">
               <span className="w-1 h-4 bg-brand rounded-full inline-block" />
               Shop
             </h2>
-            <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-[11px] font-semibold text-green-700">
-              <CheckCircle size={11} />
-              Direct payment to {String(listing.name)}
-            </span>
+            {shopMode === 'live' ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-[11px] font-semibold text-green-700">
+                <CheckCircle size={11} />
+                Direct payment to {String(listing.name)}
+              </span>
+            ) : (
+              <span className="inline-flex items-center rounded-full bg-[rgba(200,136,30,0.14)] px-2.5 py-1 text-[11px] font-bold text-[var(--od-brand-strong)]">
+                Test mode
+              </span>
+            )}
           </div>
+          {shopMode === 'test' && (
+            <p
+              role="note"
+              className="mb-4 rounded-xl border border-[rgba(200,136,30,0.35)] bg-[rgba(200,136,30,0.07)] px-3.5 py-2.5 text-[13px] leading-relaxed text-[var(--od-ink-2)]"
+            >
+              Test mode · only you can see your shop. Try a practice purchase — no real money moves.
+            </p>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
             {marketplaceProducts.map((product) => (
               <ProductCard

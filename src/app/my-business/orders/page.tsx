@@ -36,6 +36,14 @@ function FlowBadge({ flow }: { flow: Order['payment_flow'] }) {
   )
 }
 
+function TestBadge() {
+  return (
+    <span className="inline-flex items-center rounded-full bg-[rgba(200,136,30,0.14)] px-2 py-0.5 text-xs font-bold text-[var(--od-brand-strong)]">
+      Test
+    </span>
+  )
+}
+
 function PayoutBadge({ status }: { status: string }) {
   if (status === 'not_applicable') {
     return (
@@ -116,6 +124,7 @@ function OrderRow({
             <StatusBadge status={order.status} />
             <PayoutBadge status={order.payout_status} />
             <FlowBadge flow={order.payment_flow} />
+            {order.is_test && <TestBadge />}
           </div>
           <p className="text-xs text-gray-400">{formatDate(order.created_at)}</p>
         </div>
@@ -202,10 +211,12 @@ export default function MyOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [flowFilter, setFlowFilter] = useState<FlowFilter>('all')
+  const [showTest, setShowTest] = useState(true)
 
   useEffect(() => {
-    getMyListingOrders().then(({ orders }) => {
+    getMyListingOrders().then(({ orders, hideTestByDefault }) => {
       setOrders(orders)
+      setShowTest(!hideTestByDefault)
       setLoading(false)
     })
   }, [])
@@ -220,28 +231,41 @@ export default function MyOrdersPage() {
     }
   }
 
-  const flowFiltered = useMemo(
-    () => (flowFilter === 'all' ? orders : orders.filter((o) => o.payment_flow === flowFilter)),
-    [orders, flowFilter],
+  const testCount = orders.filter((o) => o.is_test).length
+  const visibleOrders = useMemo(
+    () => (showTest ? orders : orders.filter((o) => !o.is_test)),
+    [orders, showTest],
   )
+
+  const flowFiltered = useMemo(
+    () =>
+      flowFilter === 'all'
+        ? visibleOrders
+        : visibleOrders.filter((o) => o.payment_flow === flowFilter),
+    [visibleOrders, flowFilter],
+  )
+
+  // Test orders can be shown, but they never count as sales.
+  const realFiltered = flowFiltered.filter((o) => !o.is_test)
 
   const filtered =
     statusFilter === 'all' ? flowFiltered : flowFiltered.filter((o) => o.status === statusFilter)
 
   const counts = {
-    all: flowFiltered.length,
-    confirmed: flowFiltered.filter((o) => o.status === 'confirmed').length,
-    fulfilled: flowFiltered.filter((o) => o.status === 'fulfilled').length,
-    cancelled: flowFiltered.filter((o) => o.status === 'cancelled').length,
+    all: realFiltered.length,
+    confirmed: realFiltered.filter((o) => o.status === 'confirmed').length,
+    fulfilled: realFiltered.filter((o) => o.status === 'fulfilled').length,
+    cancelled: realFiltered.filter((o) => o.status === 'cancelled').length,
   }
 
+  const realOrders = orders.filter((o) => !o.is_test)
   const flowCounts = {
-    all: orders.length,
-    owner_razorpay: orders.filter((o) => o.payment_flow === 'owner_razorpay').length,
-    platform_upi_payout: orders.filter((o) => o.payment_flow === 'platform_upi_payout').length,
+    all: realOrders.length,
+    owner_razorpay: realOrders.filter((o) => o.payment_flow === 'owner_razorpay').length,
+    platform_upi_payout: realOrders.filter((o) => o.payment_flow === 'platform_upi_payout').length,
   }
 
-  const totalEarnings = flowFiltered
+  const totalEarnings = realFiltered
     .filter((o) => o.status !== 'cancelled')
     .reduce((sum, o) => sum + Number(o.seller_payout_amount || 0), 0)
 
@@ -320,6 +344,18 @@ export default function MyOrdersPage() {
                 </button>
               ))}
             </div>
+          )}
+
+          {testCount > 0 && (
+            <label className="mb-3 inline-flex items-center gap-2 text-xs font-semibold text-gray-600">
+              <input
+                type="checkbox"
+                checked={showTest}
+                onChange={(event) => setShowTest(event.target.checked)}
+                className="rounded border-gray-300 text-brand focus:ring-brand"
+              />
+              Show test orders ({testCount})
+            </label>
           )}
 
           {/* Status filter tabs */}

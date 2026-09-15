@@ -1,10 +1,13 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { ArrowLeft, PackageX } from 'lucide-react'
+import { ArrowLeft, PackageX, Store } from 'lucide-react'
 
+import { getUserRole } from '@/app/actions/admin'
 import { fetchProductAndListing } from '@/lib/data/product-detail'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
+import { SHOP_NOT_OPEN_MESSAGE, canBuyFromShop } from '@/lib/selling/shop-mode'
+import { loadShopState } from '@/lib/selling/shop-state'
 import { createClient } from '@/lib/supabase/server'
 import CheckoutForm from './CheckoutForm'
 
@@ -12,6 +15,33 @@ import CheckoutForm from './CheckoutForm'
 export const metadata: Metadata = {
   title: 'Checkout',
   robots: { index: false, follow: false },
+}
+
+function CheckoutUnavailable({
+  icon,
+  title,
+  message,
+  businessUrl,
+  listingName,
+}: {
+  icon: React.ReactNode
+  title: string
+  message: string
+  businessUrl: string
+  listingName: string
+}) {
+  return (
+    <div className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
+      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-surface-soft)] text-[var(--od-muted)]">
+        {icon}
+      </span>
+      <h1 className="font-display text-2xl">{title}</h1>
+      <p className="max-w-xs text-sm leading-relaxed text-[var(--od-muted)]">{message}</p>
+      <Link href={businessUrl} className="od-button-primary mt-1 px-4 py-2 text-sm">
+        Back to {listingName}
+      </Link>
+    </div>
+  )
 }
 
 export default async function CheckoutPage({
@@ -33,28 +63,36 @@ export default async function CheckoutPage({
     redirect(`/login?next=${encodeURIComponent(`/checkout/${productId}`)}`)
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, phone')
-    .eq('id', user.id)
-    .maybeSingle()
-
   const businessUrl = getCanonicalListingUrl(String(listing.id), listing.subdomain)
+
+  // Uncached: a shop on test keys sells only to its owner (and admins).
+  const [shop, { role }, { data: profile }] = await Promise.all([
+    loadShopState(String(listing.id)),
+    getUserRole(supabase),
+    supabase.from('profiles').select('full_name, phone').eq('id', user.id).maybeSingle(),
+  ])
+
+  if (!shop || !canBuyFromShop(shop.mode, { isOwner: shop.ownerId === user.id, isAdmin: role === 'admin' })) {
+    return (
+      <CheckoutUnavailable
+        icon={<Store size={30} aria-hidden />}
+        title="Not open yet"
+        message={SHOP_NOT_OPEN_MESSAGE}
+        businessUrl={businessUrl}
+        listingName={listing.name}
+      />
+    )
+  }
 
   if (product.quantity_in_stock === 0) {
     return (
-      <div className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
-        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-surface-soft)] text-[var(--od-muted)]">
-          <PackageX size={30} aria-hidden />
-        </span>
-        <h1 className="font-display text-2xl">Sold out</h1>
-        <p className="max-w-xs text-sm leading-relaxed text-[var(--od-muted)]">
-          {product.name} is out of stock right now. {listing.name} may restock it soon.
-        </p>
-        <Link href={businessUrl} className="od-button-primary mt-1 px-4 py-2 text-sm">
-          Back to {listing.name}
-        </Link>
-      </div>
+      <CheckoutUnavailable
+        icon={<PackageX size={30} aria-hidden />}
+        title="Sold out"
+        message={`${product.name} is out of stock right now. ${listing.name} may restock it soon.`}
+        businessUrl={businessUrl}
+        listingName={listing.name}
+      />
     )
   }
 
@@ -82,6 +120,7 @@ export default async function CheckoutPage({
         buyerName={profile?.full_name || user.email?.split('@')[0] || ''}
         buyerPhone={profile?.phone || ''}
         buyerEmail={user.email ?? ''}
+        testMode={shop.mode === 'test'}
       />
     </div>
   )

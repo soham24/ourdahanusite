@@ -120,6 +120,12 @@ export default async function MyOrderDetailPage({ params }: PageProps) {
 
         <StatusRow status={order.status} />
 
+        {order.is_test && (
+          <p className="rounded-xl border border-[rgba(200,136,30,0.35)] bg-[rgba(200,136,30,0.07)] px-4 py-3 text-sm leading-relaxed text-[var(--od-ink-2)]">
+            <strong className="font-bold">Test order</strong> · a practice purchase made with Razorpay test keys. No real money moved.
+          </p>
+        )}
+
         <div className="bg-surface-soft/40 border border-border/60 rounded-xl p-4 space-y-1.5">
           <p className="text-xs text-gray-500">Purchased from</p>
           <p className="font-semibold text-ink-2">{listingName}</p>

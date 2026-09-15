@@ -14,6 +14,7 @@ import {
   resolveListingService,
   validateRazorpayOrder,
 } from '@/lib/payment-security'
+import { classifyRazorpayKeyId } from '@/lib/selling/keys'
 import { createClient } from '@/lib/supabase/server'
 
 export interface Order {
@@ -44,6 +45,8 @@ export interface Order {
   razorpay_payout_id: string | null
   payout_error: string | null
   status: string
+  /** Paid with Razorpay test keys: a practice purchase, no real money. */
+  is_test: boolean
   created_at: string
   updated_at: string
   listing?: { name: string; subdomain: string | null } | null
@@ -270,10 +273,15 @@ export async function getListingOrders(listingId: string): Promise<Order[]> {
   return (data ?? []) as Order[]
 }
 
-export async function getMyListingOrders(): Promise<{ orders: Order[]; listingId: string | null }> {
+export async function getMyListingOrders(): Promise<{
+  orders: Order[]
+  listingId: string | null
+  /** Live keys connected: practice orders are old news, so hide them by default. */
+  hideTestByDefault: boolean
+}> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { orders: [], listingId: null }
+  if (!user) return { orders: [], listingId: null, hideTestByDefault: false }
 
   const { data: listing } = await supabase
     .from('listings')
@@ -283,10 +291,21 @@ export async function getMyListingOrders(): Promise<{ orders: Order[]; listingId
     .limit(1)
     .maybeSingle()
 
-  if (!listing) return { orders: [], listingId: null }
+  if (!listing) return { orders: [], listingId: null, hideTestByDefault: false }
 
-  const orders = await getListingOrders(listing.id)
-  return { orders, listingId: listing.id }
+  const [orders, { data: configData }] = await Promise.all([
+    getListingOrders(listing.id),
+    supabase
+      .from('listing_payment_configs')
+      .select('razorpay_key_id, verified_at')
+      .eq('listing_id', listing.id)
+      .maybeSingle(),
+  ])
+  const config = (configData ?? null) as { razorpay_key_id: string; verified_at: string | null } | null
+  const hideTestByDefault =
+    Boolean(config?.verified_at) && classifyRazorpayKeyId(config?.razorpay_key_id) === 'live'
+
+  return { orders, listingId: listing.id, hideTestByDefault }
 }
 
 export async function updateOrderStatus(

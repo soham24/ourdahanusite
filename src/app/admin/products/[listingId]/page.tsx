@@ -3,14 +3,13 @@ import { notFound } from 'next/navigation'
 import {
   AlertTriangle,
   ArrowLeft,
-  CheckCircle,
-  CreditCard,
   ExternalLink,
   Package,
-  ShieldAlert,
 } from 'lucide-react'
 
 import { requireAdmin } from '@/app/actions/admin'
+import SellingStatusBadge from '@/app/admin/payments/SellingStatusBadge'
+import { deriveSellingStatus } from '@/lib/selling/shop-mode'
 import { type ListingProduct } from '@/app/actions/products'
 import { ProductsManager } from '@/app/my-business/products/[listingId]/ProductsManager'
 import { createAdminClient } from '@/lib/supabase/admin-client'
@@ -22,6 +21,7 @@ type AdminListing = {
   category: string | null
   subdomain: string | null
   payments_enabled: boolean | null
+  payments_suspended_at: string | null
   approved: boolean | null
   owner_id: string | null
 }
@@ -34,7 +34,7 @@ type OwnerProfile = {
 
 type PaymentConfigRow = {
   verified_at: string | null
-  test_mode: boolean
+  razorpay_key_id: string
   razorpay_key_last4: string | null
 }
 
@@ -57,7 +57,7 @@ export default async function AdminListingProductsPage({
     await Promise.all([
       adminClient
         .from('listings')
-        .select('id, name, category, subdomain, payments_enabled, approved, owner_id')
+        .select('id, name, category, subdomain, payments_enabled, payments_suspended_at, approved, owner_id')
         .eq('id', listingId)
         .maybeSingle(),
       // Use admin client so we see ALL products (active + inactive),
@@ -70,7 +70,7 @@ export default async function AdminListingProductsPage({
         .order('created_at', { ascending: true }),
       adminClient
         .from('listing_payment_configs')
-        .select('verified_at, test_mode, razorpay_key_last4')
+        .select('verified_at, razorpay_key_id, razorpay_key_last4')
         .eq('listing_id', listingId)
         .maybeSingle(),
     ])
@@ -91,9 +91,13 @@ export default async function AdminListingProductsPage({
     owner = (ownerData ?? null) as OwnerProfile | null
   }
 
-  const paymentsEnabled = listing.payments_enabled === true
-  const keysVerified = !!config?.verified_at
-  const marketplaceReady = paymentsEnabled && keysVerified
+  const sellingStatus = deriveSellingStatus({
+    approved: listing.approved === true,
+    paymentsEnabled: listing.payments_enabled === true,
+    suspendedAt: listing.payments_suspended_at,
+    verifiedAt: config?.verified_at ?? null,
+    keyId: config?.razorpay_key_id ?? null,
+  })
 
   // Public site URL: prefer the subdomain rewrite if the listing has one.
   const publicHref = listing.subdomain
@@ -143,29 +147,10 @@ export default async function AdminListingProductsPage({
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-          {paymentsEnabled ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 font-semibold text-green-700">
-              <CreditCard size={11} />
-              Payments enabled
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 font-semibold text-gray-600">
-              <CreditCard size={11} />
-              Payments disabled
-            </span>
-          )}
-
-          {keysVerified ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-1 font-semibold text-blue-700">
-              <CheckCircle size={11} />
-              Razorpay verified
-              {config?.razorpay_key_last4 ? ` · …${config.razorpay_key_last4}` : ''}
-              {config?.test_mode ? ' · Test mode' : ''}
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 font-semibold text-amber-700">
-              <ShieldAlert size={11} />
-              Owner has not submitted Razorpay keys
+          <SellingStatusBadge status={sellingStatus} />
+          {config?.razorpay_key_last4 && (
+            <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 font-semibold text-gray-600">
+              Key …{config.razorpay_key_last4}
             </span>
           )}
 
@@ -177,25 +162,16 @@ export default async function AdminListingProductsPage({
           )}
         </div>
 
-        {!marketplaceReady && (
+        {sellingStatus !== 'live' && (
           <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            <p className="font-semibold">Items will not appear on the public page yet.</p>
+            <p className="font-semibold">Customers can&apos;t buy these items yet.</p>
             <p className="mt-1 leading-5">
-              The Shop section requires both <strong>payments enabled</strong> and{' '}
-              <strong>verified Razorpay keys</strong>. You can still add or edit items here so
-              they go live the moment those flip — useful for onboarding.
-              {!paymentsEnabled && (
-                <>
-                  {' '}
-                  <Link
-                    href="/admin/payments"
-                    className="font-semibold underline underline-offset-2"
-                  >
-                    Toggle payments
-                  </Link>
-                  .
-                </>
-              )}
+              The Shop is public once the owner connects live Razorpay keys; with test keys only the
+              owner sees it. You can still add or edit items here.{' '}
+              <Link href="/admin/payments" className="font-semibold underline underline-offset-2">
+                Open payments
+              </Link>
+              .
             </p>
           </div>
         )}

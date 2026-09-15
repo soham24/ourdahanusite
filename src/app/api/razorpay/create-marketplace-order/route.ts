@@ -1,9 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { revalidateTag } from 'next/cache'
 
+import { getUserRole } from '@/app/actions/admin'
 import { loadOwnerRazorpayKeys } from '@/app/actions/listing-payments'
 import { CACHE_TAGS } from '@/lib/cache-tags'
+import { sendNotification } from '@/lib/notifications'
 import { recordPaymentIntent } from '@/lib/payment-intents'
+import { SHOP_NOT_OPEN_MESSAGE, canBuyFromShop } from '@/lib/selling/shop-mode'
+import { loadShopState } from '@/lib/selling/shop-state'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { rateLimit, tooManyRequests } from '@/lib/rate-limit'
@@ -68,8 +72,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Listing is not available.' }, { status: 404 })
   }
 
-  if (!listing.payments_enabled) {
-    return NextResponse.json({ error: 'This business is not accepting payments yet.' }, { status: 422 })
+  // Test-key shops sell only to their owner (and admins), for practice.
+  const shop = await loadShopState(product.listing_id)
+  const { role } = await getUserRole(supabase)
+  if (!shop || !canBuyFromShop(shop.mode, { isOwner: shop.ownerId === user.id, isAdmin: role === 'admin' })) {
+    return NextResponse.json({ error: SHOP_NOT_OPEN_MESSAGE }, { status: 422 })
   }
 
   // Load owner Razorpay keys
@@ -129,11 +136,36 @@ export async function POST(request: Request) {
     // the account was paused). Auto-clear verified_at so the Shop section
     // hides itself on the public page until the owner re-saves keys.
     if (response.status === 401) {
-      await adminClient
+      // Only the request that actually clears verified_at tells the owner,
+      // so a burst of buyers produces one "Selling paused" notice, not many.
+      const { data: cleared } = await adminClient
         .from('listing_payment_configs')
         .update({ verified_at: null, updated_at: new Date().toISOString() })
         .eq('listing_id', product.listing_id)
+        .not('verified_at', 'is', null)
+        .select('listing_id')
       revalidateTag(CACHE_TAGS.listing(product.listing_id), 'max')
+
+      const ownerId = shop.ownerId
+      if (ownerId && Array.isArray(cleared) && cleared.length > 0) {
+        after(async () => {
+          try {
+            await sendNotification(
+              ownerId,
+              'selling.paused',
+              {
+                listingId: product.listing_id,
+                listingName: listing.name,
+                reason: 'Razorpay stopped accepting your keys',
+                byAdmin: false,
+              },
+              { awaitDelivery: true },
+            )
+          } catch (error) {
+            console.error('[marketplace order] selling.paused notification failed', error)
+          }
+        })
+      }
 
       return NextResponse.json(
         {

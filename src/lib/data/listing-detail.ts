@@ -5,6 +5,7 @@ import { cacheLife, cacheTag } from 'next/cache'
 import { CACHE_TAGS } from '@/lib/cache-tags'
 import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
 import { logCacheRegeneration } from '@/lib/isr-debug'
+import { deriveShopMode, type ShopMode } from '@/lib/selling/shop-mode'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createPublicClient } from '@/lib/supabase/public'
 import {
@@ -13,6 +14,8 @@ import {
 } from '@/lib/data/reviews'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+type PaymentConfigSummary = { verified_at: string | null; razorpay_key_id: string }
 
 export type ListingRecord = Record<string, unknown>
 export type ReviewRecord = Record<string, unknown>
@@ -51,8 +54,11 @@ export interface ListingDetailData {
   favouriteCount: number
   similarListings: SimilarListing[]
   products: ListingProductPublic[]
-  /** True only when both admin-enabled AND the owner's keys are verified. */
-  marketplaceReady: boolean
+  /**
+   * off: no online selling · test: only the owner may see and use the shop ·
+   * live: everyone. Derived from approval, suspension and the key prefix.
+   */
+  shopMode: ShopMode
 }
 
 export async function getCachedListingDetail(idOrSubdomain: string): Promise<ListingDetailData | null> {
@@ -73,7 +79,10 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
       return null
     }
 
-    const listing = listingData as ListingRecord
+    // The suspension reason is written for the owner, not the public, and this
+    // record is serialised to the browser — so it is dropped here.
+    const listing: ListingRecord = { ...(listingData as ListingRecord) }
+    delete listing.payments_suspended_reason
     const listingId = String(listing.id)
     const listingCategory = typeof listing.category === 'string' ? listing.category : ''
 
@@ -136,21 +145,21 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
         : Promise.resolve({ data: [] as ListingProductPublic[] }),
       // RLS on listing_payment_configs only permits the listing owner to
       // SELECT — there is no public/anon policy. Use the service-role admin
-      // client so public visitors can resolve marketplaceReady. We only read
-      // the verified_at timestamp (no secrets like key_id/key_secret).
+      // client so public visitors can resolve shopMode. The key ID is read
+      // only to tell test keys from live keys; it never leaves this function.
       paymentsEnabled
         ? (() => {
             const adminClient = createAdminClient()
             if (!adminClient) {
-              return Promise.resolve({ data: null as { verified_at: string | null } | null })
+              return Promise.resolve({ data: null as PaymentConfigSummary | null })
             }
             return adminClient
               .from('listing_payment_configs')
-              .select('verified_at')
+              .select('verified_at, razorpay_key_id')
               .eq('listing_id', listingId)
               .maybeSingle()
           })()
-        : Promise.resolve({ data: null as { verified_at: string | null } | null }),
+        : Promise.resolve({ data: null as PaymentConfigSummary | null }),
     ])
 
     // Reviews arrive already paged and name-enriched from the shared helper,
@@ -159,8 +168,14 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
     const reviews = reviewPage.reviews
 
     const products = (productsResult.data ?? []) as ListingProductPublic[]
-    const paymentConfig = (paymentConfigResult.data ?? null) as { verified_at: string | null } | null
-    const marketplaceReady = paymentsEnabled && !!paymentConfig?.verified_at
+    const paymentConfig = (paymentConfigResult.data ?? null) as PaymentConfigSummary | null
+    const shopMode = deriveShopMode({
+      approved: listing.approved === true,
+      paymentsEnabled,
+      suspendedAt: typeof listing.payments_suspended_at === 'string' ? listing.payments_suspended_at : null,
+      verifiedAt: paymentConfig?.verified_at ?? null,
+      keyId: paymentConfig?.razorpay_key_id ?? null,
+    })
 
     return {
       listing,
@@ -172,7 +187,7 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
       favouriteCount: favCountResult.count ?? 0,
       similarListings: (similarResult.data ?? []) as SimilarListing[],
       products,
-      marketplaceReady,
+      shopMode,
     }
   } catch {
     return null

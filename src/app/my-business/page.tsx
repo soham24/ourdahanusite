@@ -16,14 +16,14 @@ import {
   AlertTriangle,
   RefreshCw,
   Calendar,
-  ShoppingBag,
-  Package,
-  CreditCard,
 } from 'lucide-react'
 import { getListingHref } from '@/lib/listing-url'
 import OwnerReplyForm from '@/components/OwnerReplyForm'
 import { getMyListingStats } from '@/app/actions/listing-stats'
 import { EMPTY_LISTING_STATS } from '@/lib/listing-stats'
+import { deriveSellingChecklist } from '@/lib/selling/checklist'
+import { loadSuspensionReasons } from '@/lib/selling/suspension-reasons'
+import SellOnlineCard, { type SellOnlineRow } from './SellOnlineCard'
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'approved') {
@@ -94,6 +94,8 @@ type Listing = {
   review_count: number | null
   views:        number | null
   expires_at:   string | null
+  payments_enabled:          boolean | null
+  payments_suspended_at:     string | null
 }
 
 function getListingStatus(listing: Listing): string {
@@ -166,7 +168,7 @@ export default async function MyBusinessPage({
   try {
     const { data: listingsData } = await supabase
       .from('listings')
-      .select('id, name, category, subdomain, plan, approved, rating, review_count, views, expires_at')
+      .select('id, name, category, subdomain, plan, approved, rating, review_count, views, expires_at, payments_enabled, payments_suspended_at')
       .eq('owner_id', user.id)
       .order('created_at', { ascending: false })
 
@@ -212,6 +214,63 @@ export default async function MyBusinessPage({
     }
   } catch {
     // table may not exist yet
+  }
+
+  // One batched set of reads for the "Sell online" card. Owners can read
+  // their own configs, products and orders through RLS.
+  let sellRows: SellOnlineRow[] = []
+  if (listings.length > 0) {
+    const ids = listings.map((l) => l.id)
+    const [{ data: configData }, { data: productData }, { data: orderData }, reasons] = await Promise.all([
+      supabase
+        .from('listing_payment_configs')
+        .select('listing_id, razorpay_key_id, verified_at')
+        .in('listing_id', ids),
+      supabase
+        .from('listing_products')
+        .select('listing_id')
+        .eq('is_active', true)
+        .in('listing_id', ids),
+      supabase
+        .from('orders')
+        .select('listing_id, is_test, status')
+        .eq('payment_flow', 'owner_razorpay')
+        .in('listing_id', ids),
+      loadSuspensionReasons(listings.filter((l) => l.payments_suspended_at).map((l) => l.id)),
+    ])
+
+    const configs = new Map(
+      ((configData ?? []) as { listing_id: string; razorpay_key_id: string; verified_at: string | null }[])
+        .map((config) => [config.listing_id, config]),
+    )
+    const activeItems = new Map<string, number>()
+    for (const row of (productData ?? []) as { listing_id: string }[]) {
+      activeItems.set(row.listing_id, (activeItems.get(row.listing_id) ?? 0) + 1)
+    }
+    const orderRows = (orderData ?? []) as { listing_id: string | null; is_test: boolean; status: string }[]
+
+    sellRows = listings.map((listing) => {
+      const config = configs.get(listing.id) ?? null
+      const listingOrders = orderRows.filter((order) => order.listing_id === listing.id)
+      return {
+        listingId: listing.id,
+        listingName: listing.name,
+        shopHref: getListingHref(listing.id, listing.subdomain),
+        suspendedReason: reasons.get(listing.id) ?? null,
+        newOrderCount: listingOrders.filter((order) => !order.is_test && order.status === 'confirmed').length,
+        checklist: deriveSellingChecklist({
+          approved: listing.approved === true,
+          paymentsEnabled: listing.payments_enabled === true,
+          suspendedAt: listing.payments_suspended_at,
+          hasConfig: config !== null,
+          verifiedAt: config?.verified_at ?? null,
+          keyId: config?.razorpay_key_id ?? null,
+          activeItemCount: activeItems.get(listing.id) ?? 0,
+          orderCount: listingOrders.length,
+          testOrderCount: listingOrders.filter((order) => order.is_test).length,
+        }),
+      }
+    })
   }
 
   const hasExpiring = listings.some(l => {
@@ -462,25 +521,7 @@ export default async function MyBusinessPage({
         )}
       </div>
 
-      {/* Orders shortcut */}
-      <div className="od-card mb-4 flex items-center justify-between gap-4 p-5">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-surface-soft rounded-xl flex items-center justify-center">
-            <ShoppingBag size={18} className="text-brand" />
-          </div>
-          <div>
-            <p className="font-semibold text-gray-900 text-sm">Customer Orders</p>
-            <p className="text-xs text-gray-400">View and manage orders placed on your listings</p>
-          </div>
-        </div>
-        <Link
-          href="/my-business/orders"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-strong border border-border hover:border-brand px-3 py-2 rounded-xl transition-colors"
-        >
-          <ArrowUpRight size={14} />
-          View Orders
-        </Link>
-      </div>
+      <SellOnlineCard rows={sellRows} />
 
       <div className="od-card mb-4 flex items-center justify-between gap-4 p-5">
         <div className="flex items-center gap-3">
@@ -498,44 +539,6 @@ export default async function MyBusinessPage({
         >
           <ArrowUpRight size={14} />
           View Appointments
-        </Link>
-      </div>
-
-      <div className="od-card mb-4 flex items-center justify-between gap-4 p-5">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-surface-soft rounded-xl flex items-center justify-center">
-            <Package size={18} className="text-brand" />
-          </div>
-          <div>
-            <p className="font-semibold text-gray-900 text-sm">Products &amp; Services</p>
-            <p className="text-xs text-gray-400">Add items customers can buy from your business page</p>
-          </div>
-        </div>
-        <Link
-          href="/my-business/products"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-strong border border-border hover:border-brand px-3 py-2 rounded-xl transition-colors"
-        >
-          <ArrowUpRight size={14} />
-          Manage Catalog
-        </Link>
-      </div>
-
-      <div className="od-card mb-6 flex items-center justify-between gap-4 p-5">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-surface-soft rounded-xl flex items-center justify-center">
-            <CreditCard size={18} className="text-brand" />
-          </div>
-          <div>
-            <p className="font-semibold text-gray-900 text-sm">Accept Payments</p>
-            <p className="text-xs text-gray-400">Connect your Razorpay account to sell directly</p>
-          </div>
-        </div>
-        <Link
-          href="/my-business/payments"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-strong border border-border hover:border-brand px-3 py-2 rounded-xl transition-colors"
-        >
-          <ArrowUpRight size={14} />
-          Payment Setup
         </Link>
       </div>
 

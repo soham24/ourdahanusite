@@ -1362,6 +1362,32 @@ export type Database = {
           },
         ]
       }
+      listing_selling_suspensions: {
+        Row: {
+          listing_id: string
+          reason: string
+          suspended_at: string
+        }
+        Insert: {
+          listing_id: string
+          reason: string
+          suspended_at?: string
+        }
+        Update: {
+          listing_id?: string
+          reason?: string
+          suspended_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_selling_suspensions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listings: {
         Row: {
           address: string | null
@@ -1399,6 +1425,8 @@ export type Database = {
           payment_methods: Json | null
           payment_status: string | null
           payments_enabled: boolean | null
+          payments_suspended_at: string | null
+          payments_suspended_reason: string | null
           phone: string | null
           photos: Json | null
           pinned_announcement: string | null
@@ -1455,6 +1483,8 @@ export type Database = {
           payment_methods?: Json | null
           payment_status?: string | null
           payments_enabled?: boolean | null
+          payments_suspended_at?: string | null
+          payments_suspended_reason?: string | null
           phone?: string | null
           photos?: Json | null
           pinned_announcement?: string | null
@@ -1511,6 +1541,8 @@ export type Database = {
           payment_methods?: Json | null
           payment_status?: string | null
           payments_enabled?: boolean | null
+          payments_suspended_at?: string | null
+          payments_suspended_reason?: string | null
           phone?: string | null
           photos?: Json | null
           pinned_announcement?: string | null
@@ -1722,6 +1754,7 @@ export type Database = {
           id: string
           listing_id: string | null
           notes: string | null
+          is_test: boolean
           owner_razorpay_order_id: string | null
           owner_razorpay_payment_id: string | null
           owner_razorpay_signature: string | null
@@ -1754,6 +1787,7 @@ export type Database = {
           id?: string
           listing_id?: string | null
           notes?: string | null
+          is_test?: boolean
           owner_razorpay_order_id?: string | null
           owner_razorpay_payment_id?: string | null
           owner_razorpay_signature?: string | null
@@ -1786,6 +1820,7 @@ export type Database = {
           id?: string
           listing_id?: string | null
           notes?: string | null
+          is_test?: boolean
           owner_razorpay_order_id?: string | null
           owner_razorpay_payment_id?: string | null
           owner_razorpay_signature?: string | null

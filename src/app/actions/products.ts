@@ -2,6 +2,8 @@
 
 import { getUserRole } from '@/app/actions/admin'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
+import { LISTING_NOT_LIVE_MESSAGE, sellingPausedMessage } from '@/lib/selling/shop-mode'
+import { loadSuspensionReason } from '@/lib/selling/suspension-reasons'
 import { normalizeInlineText, normalizeMultilineText } from '@/lib/listing-content'
 import { normalizeOptionalUrlOrNull } from '@/lib/url'
 import { createAdminClient } from '@/lib/supabase/admin-client'
@@ -59,21 +61,26 @@ async function assertListingOwner(listingId: string): Promise<
   // policy hides unapproved listings from non-owners, so use the admin
   // client for the lookup when the caller is an admin. Owners always satisfy
   // RLS via the owner_id check.
-  type ListingRow = { id: string; owner_id: string; payments_enabled: boolean }
+  type ListingRow = {
+    id: string
+    owner_id: string
+    approved: boolean | null
+    payments_suspended_at: string | null
+  }
   let listing: ListingRow | null = null
   if (role === 'admin') {
     const adminClient = createAdminClient()
     if (!adminClient) return { ok: false, error: 'Server configuration error.' }
     const { data } = await adminClient
       .from('listings')
-      .select('id, owner_id, payments_enabled')
+      .select('id, owner_id, approved, payments_suspended_at')
       .eq('id', listingId)
       .maybeSingle()
     listing = (data ?? null) as ListingRow | null
   } else {
     const { data } = await supabase
       .from('listings')
-      .select('id, owner_id, payments_enabled')
+      .select('id, owner_id, approved, payments_suspended_at')
       .eq('id', listingId)
       .maybeSingle()
     listing = (data ?? null) as ListingRow | null
@@ -85,8 +92,15 @@ async function assertListingOwner(listingId: string): Promise<
     return { ok: false, error: 'You do not own this listing.' }
   }
 
-  if (!listing.payments_enabled && role !== 'admin') {
-    return { ok: false, error: 'Payments are not enabled for this listing yet.' }
+  // Owners can prepare items before connecting Razorpay; customers only see
+  // them once the shop is live. Admins manage any listing.
+  if (role !== 'admin') {
+    if (listing.payments_suspended_at) {
+      return { ok: false, error: sellingPausedMessage(await loadSuspensionReason(listingId)) }
+    }
+    if (!listing.approved) {
+      return { ok: false, error: LISTING_NOT_LIVE_MESSAGE }
+    }
   }
 
   return { ok: true, userId: user.id }
