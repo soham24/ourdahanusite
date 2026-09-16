@@ -34,6 +34,8 @@ interface Props {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   listing: Record<string, any>
   catalogItemCount: number
+  /** Where "Manage items" links: owners go to their own item manager, admins to the admin one (owner-only route would bounce them). */
+  manageHref: string
 }
 
 type TabId = 'basic' | 'contact' | 'services' | 'branding' | 'media' | 'extras'
@@ -43,7 +45,7 @@ const RESPONSE_TIME_OPTIONS = ['Usually replies within 1 hour', 'Within a few ho
 
 interface Highlight { label: string; value: string }
 
-export default function EditListingForm({ listing, catalogItemCount }: Props) {
+export default function EditListingForm({ listing, catalogItemCount, manageHref }: Props) {
   const formRef = useRef<HTMLFormElement>(null)
   const [activeTab, setActiveTab] = useState<TabId>('basic')
   const [saving, setSaving] = useState(false)
@@ -426,7 +428,7 @@ export default function EditListingForm({ listing, catalogItemCount }: Props) {
             {catalogItemCount} {catalogItemCount === 1 ? 'item' : 'items'}
           </p>
           <Link
-            href={`/my-business/products/${listing.id}`}
+            href={manageHref}
             className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong"
           >
             Manage items

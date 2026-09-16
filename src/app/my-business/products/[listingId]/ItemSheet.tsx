@@ -23,7 +23,7 @@ import OptionsEditor from './OptionsEditor'
 
 const labelCls = 'mb-1.5 block text-[11px] font-bold uppercase tracking-[0.04em] text-[var(--od-muted)]'
 const inputCls = 'od-input w-full px-3.5 py-2.5 text-sm'
-const errorCls = 'mt-1 text-xs font-semibold text-[var(--color-danger-strong,#a33)]'
+const errorCls = 'mt-1 text-xs font-semibold text-[var(--od-danger)]'
 
 const PRICING_CHOICES: { value: PricingMode; title: string; hint: string }[] = [
   { value: 'fixed', title: 'One price', hint: 'Customers can buy it online.' },

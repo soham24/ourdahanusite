@@ -61,7 +61,11 @@ export default async function AdminEditListingPage({
         <p className="text-gray-500 text-sm mt-1">{listing.name} · ID: {id}</p>
       </div>
 
-      <EditListingForm listing={listing} catalogItemCount={catalogItemCount ?? 0} />
+      <EditListingForm
+        listing={listing}
+        catalogItemCount={catalogItemCount ?? 0}
+        manageHref={`/admin/products/${id}`}
+      />
 
       <AssignOwner
         listingId={id}

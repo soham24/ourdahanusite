@@ -238,7 +238,7 @@ export function ProductsManager({
                 </div>
 
                 {rowErrors[item.id] && (
-                  <p role="alert" className="mt-2 text-xs font-semibold text-[var(--color-danger-strong,#a33)]">
+                  <p role="alert" className="mt-2 text-xs font-semibold text-[var(--od-danger)]">
                     {rowErrors[item.id]}
                   </p>
                 )}

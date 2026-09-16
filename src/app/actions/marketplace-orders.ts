@@ -78,7 +78,12 @@ export async function placeMarketplaceOrder(
 
   const productId = sanitizeString(formData.get('product_id'), 80)
   if (!productId) return { error: 'Missing product.' }
-  const optionId = sanitizeString(formData.get('option_id'), 80)
+  // Form-supplied value only; used for the option row lookup below. The
+  // authoritative option id used for the notes check, stock decision and
+  // insert is resolved later, once the intent and Razorpay notes are loaded
+  // (see `optionId` further down) — never trust the form alone to refuse a
+  // captured payment.
+  const formOptionId = sanitizeString(formData.get('option_id'), 80)
 
   const quantity = Math.max(
     1,
@@ -110,11 +115,11 @@ export async function placeMarketplaceOrder(
 
   // The option may have been renamed, repriced or deleted since payment
   // started; the intent below still carries what the buyer agreed to.
-  const { data: optionData } = optionId
+  const { data: optionData } = formOptionId
     ? await adminClient
         .from('listing_product_options')
         .select('id, product_id, label, price_paise, quantity_in_stock')
-        .eq('id', optionId)
+        .eq('id', formOptionId)
         .maybeSingle()
     : { data: null }
   const option =
@@ -214,6 +219,20 @@ export async function placeMarketplaceOrder(
   }
 
   const n = razorpayOrder.notes ?? {}
+
+  // Like unit price and option label, option_id must never be able to
+  // refuse a captured payment because the client's form data changed or
+  // went missing mid-flow. Prefer the form value (the normal case), then
+  // the payment intent recorded when the Razorpay order was created, then
+  // Razorpay's own notes — so a blank form value can't fail this check when
+  // the intent or notes both agree an option was bought (and an order with
+  // no option at all still resolves to '' from all three sources).
+  const intentOptionId = intent?.payload?.option_id
+  const optionId =
+    formOptionId ||
+    (typeof intentOptionId === 'string' ? intentOptionId : '') ||
+    (n.option_id ?? '')
+
   if (
     n.flow !== 'marketplace' ||
     n.buyer_id !== user.id ||

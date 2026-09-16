@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
 import { MAX_OPTIONS } from '@/lib/catalog/catalog'
 import { OPTION_LABEL_MAX, type CatalogOptionInput, type OptionFieldErrors } from '@/lib/catalog/validate'
 
-const errorCls = 'mt-1 text-xs font-semibold text-[var(--color-danger-strong,#a33)]'
+const errorCls = 'mt-1 text-xs font-semibold text-[var(--od-danger)]'
 const smallIcon =
   'inline-flex h-10 w-10 items-center justify-center rounded-lg text-[var(--od-muted)] transition-colors hover:bg-[var(--od-surface-soft)] hover:text-[var(--od-brand)] disabled:opacity-40'
 

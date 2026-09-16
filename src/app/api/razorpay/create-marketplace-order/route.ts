@@ -82,6 +82,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "This item can't be bought online." }, { status: 422 })
   }
 
+  // Safe: when option is null, the if/else-if chain above has already
+  // returned for the options-required and "can't be bought online" (null
+  // price) cases, so product.price_paise is guaranteed non-null here.
   const unitPricePaise: number = option ? option.price_paise : product.price_paise
   const stock: number | null = option ? option.quantity_in_stock : product.quantity_in_stock
   if (stock !== null && stock < quantity) {

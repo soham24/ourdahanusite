@@ -113,7 +113,14 @@ export async function listOwnerCatalogItems(listingId: string): Promise<OwnerCat
   const { role } = await getUserRole(supabase)
   if (listing.owner_id !== user.id && role !== 'admin') return []
 
-  const { data } = await supabase
+  // Admins manage items on any listing, including unapproved ones or items
+  // hidden by RLS from non-owners; read through the admin client so they see
+  // the same rows an owner would. Owners keep reading through their own
+  // RLS-scoped client. Fall back to the session client if the admin client
+  // is unavailable (matches assertListingOwner's pattern).
+  const client = role === 'admin' ? createAdminClient() ?? supabase : supabase
+
+  const { data } = await client
     .from('listing_products')
     .select(OWNER_CATALOG_ITEM_SELECT)
     .eq('listing_id', listingId)

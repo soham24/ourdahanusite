@@ -26,5 +26,11 @@ export default async function EditListingPage({
     .select('id', { count: 'exact', head: true })
     .eq('listing_id', id)
 
-  return <EditListingForm listing={listing} catalogItemCount={catalogItemCount ?? 0} />
+  return (
+    <EditListingForm
+      listing={listing}
+      catalogItemCount={catalogItemCount ?? 0}
+      manageHref={`/my-business/products/${id}`}
+    />
+  )
 }
