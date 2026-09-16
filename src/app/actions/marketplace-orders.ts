@@ -227,7 +227,23 @@ export async function placeMarketplaceOrder(
     // Genuinely impossible: the intent, the product/option, and both of
     // Razorpay's own amount fields are all missing or invalid. There is no
     // number left to save the order with — this is the one case left where
-    // a captured payment can't be saved automatically.
+    // a captured payment can't be saved automatically. Unlike every other
+    // refusal above, the money here really was captured, so this must leave
+    // a server-side trace for support to find rather than relying on
+    // whatever the buyer reads out over the phone.
+    console.error('[marketplace:order.placed no usable amount]', {
+      razorpayPaymentId,
+      razorpayOrderId,
+      intentUnitPricePaise: intentUnitPriceRaw,
+      fallbackUnitPricePaise: fallbackUnitPriceRaw,
+      intentAmountPaise: intentAmountRaw,
+      razorpayAmountPaise: razorpayOrder.amount,
+      razorpayAmountPaidPaise: razorpayOrder.amount_paid,
+    })
+    await recordIntentError({
+      razorpayOrderId,
+      message: `Captured payment ${razorpayPaymentId} has no usable amount on the intent, product/option, or Razorpay order — order not saved.`,
+    })
     return {
       error:
         'Could not confirm the paid amount with Razorpay. Please contact support with your payment ID: ' +
