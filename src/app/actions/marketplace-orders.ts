@@ -38,8 +38,6 @@ export interface MarketplaceOrder {
   owner_razorpay_order_id: string | null
   owner_razorpay_payment_id: string | null
   owner_razorpay_signature: string | null
-  razorpay_order_id: string | null
-  razorpay_payment_id: string | null
   payment_status: string
   status: string
   /** Paid with Razorpay test keys: a practice purchase, no real money. */
