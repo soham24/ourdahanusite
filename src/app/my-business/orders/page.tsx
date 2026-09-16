@@ -73,7 +73,10 @@ function OrderRow({
             <span className="font-semibold text-gray-900 text-sm">
               {orderItemName(order.service_name, order.option_label)}
             </span>
-            {order.fulfillment_issue ? <span className="text-xs font-semibold text-amber-800">Needs attention</span> : <StatusBadge status={order.status} />}
+            <StatusBadge status={order.status} />
+            {order.fulfillment_issue && (
+              <span className="text-xs font-semibold text-amber-800">Needs attention</span>
+            )}
             {order.is_test && <TestBadge />}
           </div>
           <p className="text-xs text-gray-400">{formatDate(order.created_at)}</p>

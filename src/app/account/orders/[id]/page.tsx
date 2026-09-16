@@ -120,12 +120,14 @@ export default async function MyOrderDetailPage({ params }: PageProps) {
           <Package size={28} className="text-brand" />
         </div>
 
-        {order.fulfillment_issue ? (
+        <StatusRow status={order.status} />
+
+        {order.fulfillment_issue && (
           <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            <strong>Payment received — fulfillment needs attention</strong>
-            <p className="mt-1">The business needs to arrange your item or a refund. Do not pay again. Contact the business using the details below.</p>
+            <strong>Needs attention</strong>
+            <p className="mt-1">The business needs to arrange your item or a refund. Do not pay again if asked. Contact the business using the details below.</p>
           </div>
-        ) : <StatusRow status={order.status} />}
+        )}
 
         {order.is_test && (
           <p className="rounded-xl border border-[rgba(200,136,30,0.35)] bg-[rgba(200,136,30,0.07)] px-4 py-3 text-sm leading-relaxed text-[var(--od-ink-2)]">

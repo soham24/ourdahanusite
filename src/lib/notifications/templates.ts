@@ -48,6 +48,9 @@ function renderOrderPlaced(p: NotificationPayload<'order.placed'>): RenderedNoti
   const qty = p.quantity
   const testPrefix = p.isTest ? 'Test order · ' : ''
   const testSubject = p.isTest ? '[Test] ' : ''
+  // Only ever shown to the owner/admin: the buyer's own confirmation never
+  // reads this, since their payment did go through regardless.
+  const issueLine = p.fulfillmentIssue ? ` Needs attention: ${p.fulfillmentIssue}` : ''
 
   if (p.recipient === 'buyer') {
     return {
@@ -90,7 +93,7 @@ function renderOrderPlaced(p: NotificationPayload<'order.placed'>): RenderedNoti
   if (p.recipient === 'owner') {
     return {
       title: `${testPrefix}New order · ${p.productName}`,
-      body: `${p.buyerName} just ordered ${p.productName} × ${qty} (${amount}).`,
+      body: `${p.buyerName} just ordered ${p.productName} × ${qty} (${amount}).${issueLine}`,
       link: `/my-business/orders`,
       icon: 'ShoppingBag',
       metadata: { orderId: p.orderId, listingId: p.listingId },
@@ -105,6 +108,7 @@ function renderOrderPlaced(p: NotificationPayload<'order.placed'>): RenderedNoti
             buildDetailRow('Quantity', String(qty)),
             buildDetailRow('Amount received', `<strong>${escapeHtml(amount)}</strong>`),
             buildDetailRow('Buyer', escapeHtml(p.buyerName)),
+            ...(p.fulfillmentIssue ? [buildDetailRow('Needs attention', escapeHtml(p.fulfillmentIssue))] : []),
           ].join(''),
           ctaUrl: `${SITE_URL}/my-business/orders`,
           ctaText: 'Manage Orders',
@@ -119,6 +123,7 @@ function renderOrderPlaced(p: NotificationPayload<'order.placed'>): RenderedNoti
           `<b>Item:</b> ${escapeHtml(p.productName)} × ${qty}`,
           `<b>Amount:</b> ${escapeHtml(amount)}`,
           `<b>Buyer:</b> ${escapeHtml(p.buyerName)}`,
+          ...(p.fulfillmentIssue ? [`<b>⚠️ Needs attention:</b> ${escapeHtml(p.fulfillmentIssue)}`] : []),
           '',
           `<a href="${SITE_URL}/my-business/orders">Manage orders</a>`,
         ].join('\n'),
@@ -129,7 +134,7 @@ function renderOrderPlaced(p: NotificationPayload<'order.placed'>): RenderedNoti
   // admin recipient
   return {
     title: `Order placed at ${p.listingName}`,
-    body: `${p.buyerName} · ${p.productName} × ${qty} · ${amount}`,
+    body: `${p.buyerName} · ${p.productName} × ${qty} · ${amount}${issueLine}`,
     link: `/admin/orders`,
     icon: 'ShoppingBag',
     metadata: { orderId: p.orderId, listingId: p.listingId },
@@ -141,6 +146,7 @@ function renderOrderPlaced(p: NotificationPayload<'order.placed'>): RenderedNoti
         `<b>Item:</b> ${escapeHtml(p.productName)} × ${qty}`,
         `<b>Amount:</b> ${escapeHtml(amount)}`,
         `<b>Buyer:</b> ${escapeHtml(p.buyerName)}`,
+        ...(p.fulfillmentIssue ? [`<b>⚠️ Needs attention:</b> ${escapeHtml(p.fulfillmentIssue)}`] : []),
         '',
         `<a href="${SITE_URL}/admin/orders">Admin orders</a>`,
       ].join('\n'),

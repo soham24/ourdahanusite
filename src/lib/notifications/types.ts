@@ -52,6 +52,13 @@ interface OrderPlacedPayload {
   recipient: 'buyer' | 'owner' | 'admin'
   /** Paid with Razorpay test keys: a practice purchase, no real money moved. */
   isTest?: boolean
+  /**
+   * Set when the order was saved despite a problem (stock ran out, the item
+   * was deleted, price couldn't be confirmed, etc). The payment always went
+   * through — this only tells the owner/admin the fulfillment needs a look.
+   * Never changes the buyer's own confirmation copy.
+   */
+  fulfillmentIssue?: string
 }
 
 interface OrderStatusPayload {

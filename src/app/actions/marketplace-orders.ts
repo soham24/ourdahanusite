@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 
 import { loadOwnerRazorpayKeys } from '@/lib/payments/owner-keys'
+import { resolveOrderAmounts } from '@/lib/payments/order-amounts'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
 import { orderItemName } from '@/lib/catalog/catalog'
 import { classifyRazorpayKeyId } from '@/lib/selling/keys'
@@ -53,7 +54,7 @@ function sanitizeString(value: unknown, maxLength: number): string {
 
 export async function placeMarketplaceOrder(
   formData: FormData,
-): Promise<{ error?: string; orderId?: string }> {
+): Promise<{ error?: string; orderId?: string; issue?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Please sign in to place an order.' }
@@ -178,16 +179,9 @@ export async function placeMarketplaceOrder(
   // payment intent when the Razorpay order was created. Check against those,
   // not the live price: an owner editing the price mid-payment must not
   // refuse a genuine paid order.
-  const intentUnitPrice = intent?.payload?.product_price_paise
-  const fallbackUnitPrice: number | null = option?.price_paise ?? product.price_paise ?? null
-  const unitPricePaise =
-    typeof intentUnitPrice === 'number' && Number.isInteger(intentUnitPrice) && intentUnitPrice > 0
-      ? intentUnitPrice
-      : fallbackUnitPrice
-  if (unitPricePaise === null) {
-    return { error: 'Order details do not match the original request.' }
-  }
-  const expectedAmountPaise = intent?.amount_paise ?? unitPricePaise * quantity
+  const intentUnitPriceRaw = intent?.payload?.product_price_paise
+  const fallbackUnitPriceRaw: unknown = option?.price_paise ?? product.price_paise ?? null
+  const intentAmountRaw = intent?.amount_paise
   const intentOptionLabel = intent?.payload?.option_label
   const optionLabel =
     typeof intentOptionLabel === 'string' && intentOptionLabel ? intentOptionLabel : option?.label ?? null
@@ -216,10 +210,60 @@ export async function placeMarketplaceOrder(
     }
   }
 
-  if (razorpayOrder.amount !== expectedAmountPaise || razorpayOrder.currency !== 'INR') {
+  // Resolves the unit price and total from, in order: the intent's recorded
+  // price/amount, the live product/option price, and finally Razorpay's own
+  // (unvalidated) report of this signature-verified order — never letting a
+  // missing/NaN field anywhere in that chain reach the database as `null` or
+  // `NaN`. See src/lib/payments/order-amounts.ts for the (unit tested) logic.
+  const resolvedAmounts = resolveOrderAmounts({
+    quantity,
+    intentUnitPricePaise: intentUnitPriceRaw,
+    fallbackUnitPricePaise: fallbackUnitPriceRaw,
+    intentAmountPaise: intentAmountRaw,
+    razorpayAmountPaise: razorpayOrder.amount,
+    razorpayAmountPaidPaise: razorpayOrder.amount_paid,
+  })
+  if (!resolvedAmounts) {
+    // Genuinely impossible: the intent, the product/option, and both of
+    // Razorpay's own amount fields are all missing or invalid. There is no
+    // number left to save the order with — this is the one case left where
+    // a captured payment can't be saved automatically. Unlike every other
+    // refusal above, the money here really was captured, so this must leave
+    // a server-side trace for support to find rather than relying on
+    // whatever the buyer reads out over the phone.
+    console.error('[marketplace:order.placed no usable amount]', {
+      razorpayPaymentId,
+      razorpayOrderId,
+      intentUnitPricePaise: intentUnitPriceRaw,
+      fallbackUnitPricePaise: fallbackUnitPriceRaw,
+      intentAmountPaise: intentAmountRaw,
+      razorpayAmountPaise: razorpayOrder.amount,
+      razorpayAmountPaidPaise: razorpayOrder.amount_paid,
+    })
+    await recordIntentError({
+      razorpayOrderId,
+      message: `Captured payment ${razorpayPaymentId} has no usable amount on the intent, product/option, or Razorpay order — order not saved.`,
+    })
+    return {
+      error:
+        'Could not confirm the paid amount with Razorpay. Please contact support with your payment ID: ' +
+        razorpayPaymentId,
+    }
+  }
+  const { unitPricePaise, amountTotalPaise, confirmedAmountPaise, priceUnconfirmed, amountUnconfirmed } =
+    resolvedAmounts
+
+  // When the amount itself was seeded from Razorpay's own report
+  // (amountUnconfirmed), comparing `confirmedAmountPaise` back against
+  // `razorpayOrder.amount` is circular — it was either read from that exact
+  // field (trivially equal) or from `amount_paid` because `amount` itself
+  // was unusable (in which case this comparison would wrongly refuse a
+  // captured payment). Skip it only in that case; the amount_paid check just
+  // below still guards against a genuinely incomplete capture either way.
+  if ((!amountUnconfirmed && razorpayOrder.amount !== confirmedAmountPaise) || razorpayOrder.currency !== 'INR') {
     return { error: 'Order amount mismatch. Please contact support.' }
   }
-  if (razorpayOrder.status !== 'paid' || razorpayOrder.amount_paid !== expectedAmountPaise) {
+  if (razorpayOrder.status !== 'paid' || razorpayOrder.amount_paid !== confirmedAmountPaise) {
     return { error: 'Payment has not completed. Please retry.' }
   }
 
@@ -264,7 +308,12 @@ export async function placeMarketplaceOrder(
   const isTest = classifyRazorpayKeyId(ownerKeys.keyId) === 'test'
 
   // One transaction serializes retries, updates stock and finalizes the intent.
-  const totalRupees = expectedAmountPaise / 100
+  // amountTotalPaise already guarantees unitPricePaise * quantity === amountTotalPaise
+  // exactly (see order-amounts.ts) — the database function requires that.
+  const totalRupees = amountTotalPaise / 100
+  const priceIssueNote = priceUnconfirmed
+    ? 'Unit price could not be confirmed after payment; the amount charged was used to estimate it, so the recorded total may differ from the amount captured by a few paise. Verify pricing and the total with the buyer.'
+    : null
   const { data: finalizedOrder, error: insertError } = await adminClient.rpc('finalize_marketplace_order', {
     p_order: {
       listing_id: product.listing_id,
@@ -293,7 +342,34 @@ export async function placeMarketplaceOrder(
     return { error: 'Payment received but confirmation is pending. Do not pay again. Reference: ' + razorpayPaymentId }
   }
   const newOrder = { id: result.orderId }
-  if (!result.created) return { orderId: newOrder.id }
+
+  // The database function only records an issue it detects itself (item/option
+  // removed, insufficient stock). A price it could not confirm is our own
+  // finding, so fold it into the same column on first creation — never on a
+  // replay, since the row (and its issue text) was already finalized then.
+  // (Reaching this branch always changes the text — `result.issue` never
+  // already contains `priceIssueNote`, since the database function has no
+  // way to know about it — so there's nothing to gate the write on.)
+  let issue = result.issue ?? null
+  if (result.created && priceIssueNote) {
+    issue = issue ? `${issue} ${priceIssueNote}` : priceIssueNote
+    const { error: issueUpdateError } = await adminClient
+      .from('orders')
+      .update({ fulfillment_issue: issue })
+      .eq('id', newOrder.id)
+    if (issueUpdateError) {
+      // The order itself is safely saved either way; only the note describing
+      // *why* it needs a look failed to persist. Record it so this doesn't
+      // silently show as a clean order while owner/admin were told otherwise.
+      console.error('[marketplace:order.placed fulfillment_issue write]', issueUpdateError)
+      await recordIntentError({
+        razorpayOrderId,
+        message: `Order ${newOrder.id} saved but fulfillment_issue update failed: ${issueUpdateError.message}`,
+      })
+    }
+  }
+
+  if (!result.created) return { orderId: newOrder.id, issue: issue ?? undefined }
 
   // Fan out notifications to buyer + owner + admins (awaited delivery)
   await (async () => {
@@ -306,6 +382,9 @@ export async function placeMarketplaceOrder(
       amountTotal: totalRupees,
       buyerName,
       isTest,
+      // Owner/admin templates render this as an extra line; the buyer
+      // template never reads it, so their confirmation stays positive.
+      fulfillmentIssue: issue ?? undefined,
     } as const
 
     await Promise.allSettled([
@@ -329,7 +408,7 @@ export async function placeMarketplaceOrder(
   })().catch((err) => console.error('[marketplace:order.placed notify]', err))
 
   revalidatePublicListingDetail(product.listing_id)
-  return { orderId: newOrder.id }
+  return { orderId: newOrder.id, issue: issue ?? undefined }
 }
 
 export async function getMyMarketplaceOrders(): Promise<MarketplaceOrder[]> {
@@ -411,7 +490,14 @@ export async function updateMarketplaceOrderStatus(
 
   const { error } = await adminClient
     .from('orders')
-    .update({ status, ...(status === 'fulfilled' ? { fulfillment_issue: null } : {}), updated_at: new Date().toISOString() })
+    .update({
+      status,
+      // A settled order — fulfilled or cancelled — no longer needs the
+      // "needs attention" flag: it either resolved fine or won't be
+      // fulfilled at all, so the banner shouldn't keep following it around.
+      ...(status === 'fulfilled' || status === 'cancelled' ? { fulfillment_issue: null } : {}),
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', orderId)
 
   if (error) return { error: error.message }
