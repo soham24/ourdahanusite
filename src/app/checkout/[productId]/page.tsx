@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { ArrowLeft, PackageX, Store } from 'lucide-react'
 
 import { getUserRole } from '@/app/actions/admin'
+import { isBuyable, isSoldOut } from '@/lib/catalog/catalog'
 import { fetchProductAndListing } from '@/lib/data/product-detail'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
 import { SHOP_NOT_OPEN_MESSAGE, canBuyFromShop } from '@/lib/selling/shop-mode'
@@ -55,6 +56,9 @@ export default async function CheckoutPage({
   if (!data?.product || !data.listing) notFound()
   const { product, listing } = data
 
+  // Items without a fixed price or options are enquiries: the item page offers WhatsApp.
+  if (!isBuyable(product)) redirect(`/p/${product.id}`)
+
   // Reading auth cookies makes this route dynamic automatically — no
   // `export const dynamic` needed.
   const supabase = await createClient()
@@ -84,7 +88,7 @@ export default async function CheckoutPage({
     )
   }
 
-  if (product.quantity_in_stock === 0) {
+  if (isSoldOut(product)) {
     return (
       <CheckoutUnavailable
         icon={<PackageX size={30} aria-hidden />}
@@ -114,6 +118,7 @@ export default async function CheckoutPage({
           quantityInStock: product.quantity_in_stock,
           type: product.type,
           imageUrl: product.image_thumb_url || product.image_url,
+          options: product.options,
         }}
         listing={{ id: String(listing.id), name: listing.name, whatsapp: listing.whatsapp }}
         businessUrl={businessUrl}

@@ -12,6 +12,7 @@ export interface ChecklistInput {
   hasConfig: boolean
   verifiedAt: string | null
   keyId: string | null
+  /** Visible items customers can buy online (a price of at least ₹1, or options). */
   activeItemCount: number
   /** All owner_razorpay orders for the listing, test orders included. */
   orderCount: number

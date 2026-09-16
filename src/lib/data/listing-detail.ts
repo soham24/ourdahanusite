@@ -4,6 +4,8 @@ import { cacheLife, cacheTag } from 'next/cache'
 
 import { CACHE_TAGS } from '@/lib/cache-tags'
 import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
+import { CATALOG_ITEM_SELECT, toCatalogItem, type CatalogRow } from '@/lib/catalog/catalog'
+import type { CatalogItem } from '@/lib/catalog/types'
 import { logCacheRegeneration } from '@/lib/isr-debug'
 import { deriveShopMode, type ShopMode } from '@/lib/selling/shop-mode'
 import { createAdminClient } from '@/lib/supabase/admin-client'
@@ -31,17 +33,7 @@ export interface SimilarListing {
   rating: number | null
 }
 
-export interface ListingProductPublic {
-  id: string
-  type: 'product' | 'service'
-  name: string
-  description: string | null
-  price_paise: number
-  quantity_in_stock: number | null
-  image_url: string | null
-  image_thumb_url: string | null
-  sort_order: number
-}
+export type ListingProductPublic = CatalogItem
 
 export interface ListingDetailData {
   listing: ListingRecord
@@ -133,16 +125,15 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
             .order('id', { ascending: true })
             .limit(4)
         : Promise.resolve({ data: [] as SimilarListing[] }),
-      paymentsEnabled
-        ? supabase
-            .from('listing_products')
-            .select('id, type, name, description, price_paise, quantity_in_stock, image_url, image_thumb_url, sort_order')
-            .eq('listing_id', listingId)
-            .eq('is_active', true)
-            .order('sort_order', { ascending: true })
-            .order('created_at', { ascending: true })
-            .order('id', { ascending: true })
-        : Promise.resolve({ data: [] as ListingProductPublic[] }),
+      // Every approved listing shows its catalog; shopMode decides Buy or WhatsApp.
+      supabase
+        .from('listing_products')
+        .select(CATALOG_ITEM_SELECT)
+        .eq('listing_id', listingId)
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true })
+        .order('id', { ascending: true }),
       // RLS on listing_payment_configs only permits the listing owner to
       // SELECT — there is no public/anon policy. Use the service-role admin
       // client so public visitors can resolve shopMode. The key ID is read
@@ -167,7 +158,9 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
     // cannot drift in ordering or in how reviewer names are resolved.
     const reviews = reviewPage.reviews
 
-    const products = (productsResult.data ?? []) as ListingProductPublic[]
+    const products: ListingProductPublic[] = ((productsResult.data ?? []) as unknown as CatalogRow[]).map(
+      (row) => toCatalogItem(row),
+    )
     const paymentConfig = (paymentConfigResult.data ?? null) as PaymentConfigSummary | null
     const shopMode = deriveShopMode({
       approved: listing.approved === true,

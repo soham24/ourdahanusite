@@ -21,5 +21,16 @@ export default async function EditListingPage({
 
   if (!listing) notFound()
 
-  return <EditListingForm listing={listing} />
+  const { count: catalogItemCount } = await supabase
+    .from('listing_products')
+    .select('id', { count: 'exact', head: true })
+    .eq('listing_id', id)
+
+  return (
+    <EditListingForm
+      listing={listing}
+      catalogItemCount={catalogItemCount ?? 0}
+      manageHref={`/my-business/products/${id}`}
+    />
+  )
 }

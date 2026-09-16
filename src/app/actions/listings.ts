@@ -18,7 +18,6 @@ import {
   normalizeInlineText,
   normalizeMultilineText,
   normalizePhoneOrNull,
-  normalizeServiceItems,
   normalizeStringArray,
   normalizeUrlArray,
 } from '@/lib/listing-content'
@@ -265,7 +264,6 @@ export async function updateListing(
   const image_thumb_url_new  = normalizeOptionalUrlOrNull(formData.get('image_thumb_url') as string)
   const cover_image_new      = normalizeOptionalUrlOrNull(formData.get('cover_image') as string)
   const cover_image_thumb_url_new = normalizeOptionalUrlOrNull(formData.get('cover_image_thumb_url') as string)
-  const servicesRaw = (formData.get('services')      as string) || '[]'
   const tagsRaw     = (formData.get('tags')          as string) || '[]'
   const map_url     = normalizeOptionalUrlOrNull(formData.get('map_url') as string)
 
@@ -291,7 +289,6 @@ export async function updateListing(
 
   if (!name || !category) return { error: 'Business name and category are required.' }
 
-  let services = []
   let tags = []
   let photos = []
   let highlights = []
@@ -299,7 +296,6 @@ export async function updateListing(
   let payment_methods = []
   let delivery_info = null
   let before_after = null
-  try { services = JSON.parse(servicesRaw) } catch { /* ignore */ }
   try { tags = JSON.parse(tagsRaw) } catch { /* ignore */ }
   try { photos = JSON.parse(photosRaw) } catch { /* ignore */ }
   try { highlights = JSON.parse(highlightsRaw) } catch { /* ignore */ }
@@ -308,7 +304,6 @@ export async function updateListing(
   try { delivery_info = JSON.parse(delivery_infoRaw) } catch { /* ignore */ }
   try { before_after = JSON.parse(before_afterRaw) } catch { /* ignore */ }
 
-  services = normalizeServiceItems(services)
   tags = normalizeStringArray(tags, 12, 30)
   photos = normalizeUrlArray(photos, 12)
   highlights = normalizeHighlightItems(highlights)
@@ -333,7 +328,7 @@ export async function updateListing(
     name, tagline, description, category, phone, address, website,
     whatsapp, instagram, facebook, upi_id, hours,
     ...imageFields,
-    services, tags,
+    tags,
     map_url,
     offer_text, offer_expires_at, pinned_announcement, established_year,
     response_time, video_url, photos, highlights, certifications,

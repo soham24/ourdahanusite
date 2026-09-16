@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 
 import { loadOwnerRazorpayKeys } from '@/app/actions/listing-payments'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
+import { orderItemName } from '@/lib/catalog/catalog'
 import { classifyRazorpayKeyId } from '@/lib/selling/keys'
 import {
   sendNotification,
@@ -23,6 +24,8 @@ export interface MarketplaceOrder {
   id: string
   listing_id: string | null
   product_id: string | null
+  product_option_id: string | null
+  option_label: string | null
   buyer_id: string | null
   buyer_name: string
   buyer_phone: string
@@ -75,6 +78,12 @@ export async function placeMarketplaceOrder(
 
   const productId = sanitizeString(formData.get('product_id'), 80)
   if (!productId) return { error: 'Missing product.' }
+  // Form-supplied value only; used for the option row lookup below. The
+  // authoritative option id used for the notes check, stock decision and
+  // insert is resolved later, once the intent and Razorpay notes are loaded
+  // (see `optionId` further down) — never trust the form alone to refuse a
+  // captured payment.
+  const formOptionId = sanitizeString(formData.get('option_id'), 80)
 
   const quantity = Math.max(
     1,
@@ -103,6 +112,27 @@ export async function placeMarketplaceOrder(
   if (!product) {
     return { error: 'Product is no longer available.' }
   }
+
+  type OptionRow = { id: string; label: string; price_paise: number; quantity_in_stock: number | null }
+
+  // Loads an option row and confirms it belongs to this item; a stale,
+  // deleted, cross-product or blank id is treated as "no option" rather
+  // than an error, since a captured payment must still be saved.
+  const loadOptionRow = async (id: string): Promise<OptionRow | null> => {
+    if (!id) return null
+    const { data } = await adminClient
+      .from('listing_product_options')
+      .select('id, product_id, label, price_paise, quantity_in_stock')
+      .eq('id', id)
+      .maybeSingle()
+    return data && (data as { product_id: string }).product_id === product.id
+      ? (data as OptionRow & { product_id: string })
+      : null
+  }
+
+  // The option may have been renamed, repriced or deleted since payment
+  // started; the intent below still carries what the buyer agreed to.
+  const option = await loadOptionRow(formOptionId)
 
   const { data: listing } = await adminClient
     .from('listings')
@@ -152,11 +182,18 @@ export async function placeMarketplaceOrder(
     return { error: 'Order details do not match the original request.' }
   }
   const intentUnitPrice = intent?.payload?.product_price_paise
+  const fallbackUnitPrice: number | null = option?.price_paise ?? product.price_paise ?? null
   const unitPricePaise =
     typeof intentUnitPrice === 'number' && Number.isInteger(intentUnitPrice) && intentUnitPrice > 0
       ? intentUnitPrice
-      : product.price_paise
+      : fallbackUnitPrice
+  if (unitPricePaise === null) {
+    return { error: 'Order details do not match the original request.' }
+  }
   const expectedAmountPaise = intent?.amount_paise ?? unitPricePaise * quantity
+  const intentOptionLabel = intent?.payload?.option_label
+  const optionLabel =
+    typeof intentOptionLabel === 'string' && intentOptionLabel ? intentOptionLabel : option?.label ?? null
   const credentials = Buffer.from(`${ownerKeys.keyId}:${ownerKeys.keySecret}`).toString('base64')
   const orderRes = await fetch(`https://api.razorpay.com/v1/orders/${razorpayOrderId}`, {
     headers: { Authorization: `Basic ${credentials}` },
@@ -177,6 +214,7 @@ export async function placeMarketplaceOrder(
       product_id?: string
       listing_id?: string
       quantity?: string
+      option_id?: string
     }
   }
 
@@ -188,25 +226,56 @@ export async function placeMarketplaceOrder(
   }
 
   const n = razorpayOrder.notes ?? {}
+
+  // Like unit price and option label, option_id must never be able to
+  // refuse a captured payment because the client's form data changed or
+  // went missing mid-flow. Prefer the form value (the normal case), then
+  // the payment intent recorded when the Razorpay order was created, then
+  // Razorpay's own notes — so a blank form value can't fail this check when
+  // the intent or notes both agree an option was bought (and an order with
+  // no option at all still resolves to '' from all three sources).
+  const intentOptionId = intent?.payload?.option_id
+  const optionId =
+    formOptionId ||
+    (typeof intentOptionId === 'string' ? intentOptionId : '') ||
+    (n.option_id ?? '')
+
   if (
     n.flow !== 'marketplace' ||
     n.buyer_id !== user.id ||
     n.product_id !== product.id ||
     n.listing_id !== product.listing_id ||
-    n.quantity !== String(quantity)
+    n.quantity !== String(quantity) ||
+    (n.option_id ?? '') !== optionId
   ) {
     return { error: 'Order details do not match the original request.' }
   }
 
+  // `option` above was loaded from the client's form value. When the
+  // authoritative id resolved just above differs from it (the form value
+  // was blank or stale but the intent or notes carried the real option),
+  // re-fetch the row for that id so the stock decrement and the order
+  // insert reflect what the buyer actually paid for, not what a stale form
+  // implied. Still never refuses the payment: if the resolved option no
+  // longer exists, this simply falls back to null, same as today.
+  const resolvedOption = optionId === formOptionId ? option : await loadOptionRow(optionId)
+
   // Test keys move no real money: label the order and leave real stock alone.
   const isTest = classifyRazorpayKeyId(ownerKeys.keyId) === 'test'
 
-  // 4. Atomic stock decrement
-  if (!isTest && product.quantity_in_stock !== null) {
-    const { data: decOk, error: decError } = await adminClient.rpc(
-      'decrement_product_stock',
-      { p_product_id: product.id, p_quantity: quantity },
-    )
+  // 4. Atomic stock decrement (the option's stock when an option was bought)
+  const stockRpc =
+    isTest
+      ? null
+      : optionId
+        ? resolvedOption && resolvedOption.quantity_in_stock !== null
+          ? { fn: 'decrement_option_stock', args: { p_option_id: resolvedOption.id, p_quantity: quantity } }
+          : null
+        : product.quantity_in_stock !== null
+          ? { fn: 'decrement_product_stock', args: { p_product_id: product.id, p_quantity: quantity } }
+          : null
+  if (stockRpc) {
+    const { data: decOk, error: decError } = await adminClient.rpc(stockRpc.fn, stockRpc.args)
     if (decError) {
       console.error('[marketplace] stock rpc error:', decError)
       return { error: 'Could not reserve stock. Please try again.' }
@@ -225,6 +294,8 @@ export async function placeMarketplaceOrder(
     .insert({
       listing_id: product.listing_id,
       product_id: product.id,
+      product_option_id: resolvedOption?.id ?? null,
+      option_label: optionLabel,
       buyer_id: user.id,
       buyer_name: buyerName,
       buyer_phone: buyerPhone,
@@ -275,7 +346,7 @@ export async function placeMarketplaceOrder(
       orderId: newOrder.id,
       listingId: product.listing_id,
       listingName: listing.name,
-      productName: product.name,
+      productName: orderItemName(product.name, optionLabel),
       quantity,
       amountTotal: totalRupees,
       buyerName,
@@ -364,7 +435,7 @@ export async function updateMarketplaceOrderStatus(
 
   const { data: order } = await adminClient
     .from('orders')
-    .select('id, listing_id, buyer_id, service_name, payment_flow')
+    .select('id, listing_id, buyer_id, service_name, option_label, payment_flow')
     .eq('id', orderId)
     .maybeSingle()
 
@@ -403,7 +474,7 @@ export async function updateMarketplaceOrderStatus(
       {
         orderId: order.id,
         listingName: listing.name,
-        productName: order.service_name,
+        productName: orderItemName(order.service_name, order.option_label),
       },
     ).catch((err) => console.error('[marketplace:order.status notify]', err))
   }

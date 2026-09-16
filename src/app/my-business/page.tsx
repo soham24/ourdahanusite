@@ -18,6 +18,7 @@ import {
   Calendar,
 } from 'lucide-react'
 import { getListingHref } from '@/lib/listing-url'
+import { isBuyable } from '@/lib/catalog/catalog'
 import OwnerReplyForm from '@/components/OwnerReplyForm'
 import { getMyListingStats } from '@/app/actions/listing-stats'
 import { EMPTY_LISTING_STATS } from '@/lib/listing-stats'
@@ -228,7 +229,7 @@ export default async function MyBusinessPage({
         .in('listing_id', ids),
       supabase
         .from('listing_products')
-        .select('listing_id')
+        .select('listing_id, price_paise, options:listing_product_options(id)')
         .eq('is_active', true)
         .in('listing_id', ids),
       supabase
@@ -244,7 +245,10 @@ export default async function MyBusinessPage({
         .map((config) => [config.listing_id, config]),
     )
     const activeItems = new Map<string, number>()
-    for (const row of (productData ?? []) as { listing_id: string }[]) {
+    type ItemRow = { listing_id: string; price_paise: number | null; options: { id: string }[] | null }
+    for (const row of (productData ?? []) as unknown as ItemRow[]) {
+      // Copied items without a price are enquiries, not something to sell online yet.
+      if (!isBuyable({ price_paise: row.price_paise, options: row.options ?? [] })) continue
       activeItems.set(row.listing_id, (activeItems.get(row.listing_id) ?? 0) + 1)
     }
     const orderRows = (orderData ?? []) as { listing_id: string | null; is_test: boolean; status: string }[]

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { CheckCircle, Clock, Package, ShoppingBag, XCircle } from 'lucide-react'
 
 import { getMyMarketplaceOrders } from '@/app/actions/marketplace-orders'
+import { orderItemName } from '@/lib/catalog/catalog'
 import { createClient } from '@/lib/supabase/server'
 import { buildAbsoluteUrl } from '@/lib/site'
 
@@ -112,7 +113,7 @@ export default async function MyAccountOrdersPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <span className="font-semibold text-gray-900 text-sm">
-                          {order.service_name}
+                          {orderItemName(order.service_name, order.option_label)}
                         </span>
                         <StatusBadge status={order.status} />
                         {order.is_test && (

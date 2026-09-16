@@ -2,22 +2,13 @@
 
 import React from 'react'
 import Badge from '@/components/ui/Badge'
-import type { ListingProductPublic } from '@/lib/data/listing-detail'
-import type { NormalizedService } from '@/lib/listing-content'
 
 interface ListingNavigationProps {
-  services: NormalizedService[]
-  marketplaceProducts: ListingProductPublic[]
+  hasCatalog: boolean
   photos: string[]
 }
 
-export default function ListingNavigation({
-  services,
-  marketplaceProducts,
-  photos,
-}: ListingNavigationProps) {
-  const hasServices = services && services.length > 0
-  const hasMarketplace = marketplaceProducts && marketplaceProducts.length > 0
+export default function ListingNavigation({ hasCatalog, photos }: ListingNavigationProps) {
   const hasPhotos = photos && photos.length > 0
 
   return (
@@ -26,14 +17,9 @@ export default function ListingNavigation({
         <a href="#overview">
           <Badge variant="outline" size="md" className="cursor-pointer hover:border-brand hover:text-brand font-medium">Overview</Badge>
         </a>
-        {hasServices && (
+        {hasCatalog && (
           <a href="#services">
-            <Badge variant="outline" size="md" className="cursor-pointer hover:border-brand hover:text-brand font-medium">Services</Badge>
-          </a>
-        )}
-        {hasMarketplace && (
-          <a href="#shop">
-            <Badge variant="outline" size="md" className="cursor-pointer hover:border-brand hover:text-brand font-medium">Shop</Badge>
+            <Badge variant="outline" size="md" className="cursor-pointer hover:border-brand hover:text-brand font-medium">Products &amp; Services</Badge>
           </a>
         )}
         {hasPhotos && (

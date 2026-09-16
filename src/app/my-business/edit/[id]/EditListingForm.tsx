@@ -11,21 +11,10 @@ import {
 import { updateListing } from '@/app/actions/listings'
 import ImageUpload from '@/components/ImageUpload'
 import ImageCropUpload from '@/components/ImageCropUpload'
-import CompactImageUpload from '@/components/CompactImageUpload'
 import PhoneInput from '@/components/PhoneInput'
 import LocationPicker from '@/components/LocationPicker'
-import {
-  MAX_SERVICE_ITEMS,
-} from '@/lib/listing-content'
 import { normalizeOptionalUrl } from '@/lib/url'
 import { getListingHref } from '@/lib/listing-url'
-import {
-  DEFAULT_SERVICE_IMAGE_ASPECT,
-  NEW_SERVICE_IMAGE_ASPECT,
-  SERVICE_IMAGE_ASPECT_OPTIONS,
-  normalizeServiceImageAspect,
-  type ServiceImageAspect,
-} from '@/lib/service-image'
 import { LISTING_CATEGORY_GROUPS, LISTING_CATEGORY_EMOJIS } from '@/lib/listing-category'
 
 const SUGGESTED_TAGS: Record<string, string[]> = {
@@ -41,18 +30,12 @@ const SUGGESTED_TAGS: Record<string, string[]> = {
   'Freelancers & Digital': ['remote', 'web-design', 'SEO', 'social-media', 'logo'],
 }
 
-interface Service {
-  type: 'service' | 'product'
-  name: string
-  desc: string
-  price: string
-  image?: string
-  imageAspect: ServiceImageAspect
-}
-
 interface Props {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   listing: Record<string, any>
+  catalogItemCount: number
+  /** Where "Manage items" links: owners go to their own item manager, admins to the admin one (owner-only route would bounce them). */
+  manageHref: string
 }
 
 type TabId = 'basic' | 'contact' | 'services' | 'branding' | 'media' | 'extras'
@@ -62,7 +45,7 @@ const RESPONSE_TIME_OPTIONS = ['Usually replies within 1 hour', 'Within a few ho
 
 interface Highlight { label: string; value: string }
 
-export default function EditListingForm({ listing }: Props) {
+export default function EditListingForm({ listing, catalogItemCount, manageHref }: Props) {
   const formRef = useRef<HTMLFormElement>(null)
   const [activeTab, setActiveTab] = useState<TabId>('basic')
   const [saving, setSaving] = useState(false)
@@ -75,38 +58,6 @@ export default function EditListingForm({ listing }: Props) {
 
   // Category state
   const [category, setCategory] = useState<string>(String(listing.category || ''))
-
-  // Services state
-  const initialServices: Service[] = (() => {
-    let parsed: unknown = []
-
-    try {
-      const raw = listing.services
-      if (Array.isArray(raw)) parsed = raw
-      else if (typeof raw === 'string') parsed = JSON.parse(raw)
-    } catch { /* ignore */ }
-
-    if (!Array.isArray(parsed)) return []
-
-    return parsed
-      .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object')
-      .map((entry) => {
-        const image = typeof entry.image === 'string' ? entry.image : ''
-
-        return {
-          type: entry.type === 'product' ? 'product' : 'service',
-          name: typeof entry.name === 'string' ? entry.name : '',
-          desc: typeof entry.desc === 'string' ? entry.desc : '',
-          price: typeof entry.price === 'string' ? entry.price : '',
-          image,
-          imageAspect: normalizeServiceImageAspect(
-            entry.imageAspect,
-            image ? DEFAULT_SERVICE_IMAGE_ASPECT : NEW_SERVICE_IMAGE_ASPECT,
-          ),
-        }
-      })
-  })()
-  const [services, setServices] = useState<Service[]>(initialServices)
 
   // Tags state
   const initialTags: string[] = (() => {
@@ -187,19 +138,6 @@ export default function EditListingForm({ listing }: Props) {
   })()
   const [deliveryInfo, setDeliveryInfo] = useState<{ areas: string; note: string }>(initialDeliveryInfo)
 
-  const addService = () =>
-    setServices((current) => {
-      if (current.length >= MAX_SERVICE_ITEMS) return current
-
-      return [
-        ...current,
-        { type: 'service', name: '', desc: '', price: '', image: '', imageAspect: NEW_SERVICE_IMAGE_ASPECT },
-      ]
-    })
-  const removeService = (i: number) => setServices(s => s.filter((_, idx) => idx !== i))
-  const updateService = (i: number, field: keyof Service, val: Service[keyof Service]) =>
-    setServices(s => s.map((svc, idx) => idx === i ? { ...svc, [field]: val } : svc))
-
   const addTag = () => {
     const t = tagInput.trim()
     if (t && !tags.includes(t)) { setTags(tgs => [...tgs, t]); setTagInput('') }
@@ -221,7 +159,6 @@ export default function EditListingForm({ listing }: Props) {
     setSaving(true)
     normalizeWebsiteField()
     const fd = new FormData(formRef.current!)
-    fd.set('services', JSON.stringify(services))
     fd.set('tags', JSON.stringify(tags))
     if (newProfileUrl) fd.set('image_url', newProfileUrl)
     if (newProfileThumbUrl) fd.set('image_thumb_url', newProfileThumbUrl)
@@ -247,7 +184,7 @@ export default function EditListingForm({ listing }: Props) {
   const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
     { id: 'basic',    label: 'Basic',    icon: <Info size={15} /> },
     { id: 'contact',  label: 'Contact',  icon: <Phone size={15} /> },
-    { id: 'services', label: 'Services', icon: <Briefcase size={15} /> },
+    { id: 'services', label: 'Items', icon: <Briefcase size={15} /> },
     { id: 'branding', label: 'Brand',    icon: <ImageIcon size={15} /> },
     { id: 'media',    label: 'Media',    icon: <Video size={15} /> },
     { id: 'extras',   label: 'Extras',   icon: <Sparkles size={15} /> },
@@ -481,113 +418,21 @@ export default function EditListingForm({ listing }: Props) {
             </div>
         </div>
 
-        {/* ── SERVICES / PRICING ─────────────────────────────────────────── */}
-        <div className={activeTab === 'services' ? 'bg-white border border-gray-100 rounded-2xl p-6 space-y-4' : 'hidden'}>
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <h3 className="font-semibold text-gray-800">Services & Products</h3>
-                <p className="text-xs text-gray-400 mt-0.5">List what you offer — customers see these on your profile page. Service photos can be square, horizontal, or vertical.</p>
-                <p className="text-xs text-gray-400 mt-1">Up to {MAX_SERVICE_ITEMS} items per listing.</p>
-              </div>
-              <button type="button" onClick={addService} disabled={services.length >= MAX_SERVICE_ITEMS}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand border border-brand px-3 py-1.5 rounded-xl hover:bg-surface-soft transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent">
-                <Plus size={14} /> {services.length >= MAX_SERVICE_ITEMS ? 'Limit Reached' : 'Add Item'}
-              </button>
-            </div>
-
-            {services.length === 0 ? (
-              <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-2xl">
-                <Briefcase size={28} className="text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-400">No services or products added yet</p>
-                <button type="button" onClick={addService}
-                  className="mt-3 text-sm text-brand font-semibold hover:underline">+ Add your first item</button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {services.map((svc, i) => (
-                  <div key={i} className="border border-gray-100 rounded-xl p-4 space-y-3 bg-gray-50/50">
-                    <div className="flex items-center justify-between">
-                      {/* Service / Product toggle */}
-                      <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
-                        <button
-                          type="button"
-                          onClick={() => updateService(i, 'type', 'service')}
-                          className={`text-xs font-semibold px-3 py-1 rounded-md transition-all ${
-                            (svc.type ?? 'service') === 'service'
-                              ? 'bg-white text-brand shadow-sm'
-                              : 'text-gray-400 hover:text-gray-600'
-                          }`}
-                        >
-                          🛠 Service
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateService(i, 'type', 'product')}
-                          className={`text-xs font-semibold px-3 py-1 rounded-md transition-all ${
-                            svc.type === 'product'
-                              ? 'bg-white text-blue-600 shadow-sm'
-                              : 'text-gray-400 hover:text-gray-600'
-                          }`}
-                        >
-                          📦 Product
-                        </button>
-                      </div>
-                      <button type="button" onClick={() => removeService(i)}
-                        className="text-gray-300 hover:text-red-500 transition-colors">
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                    <div className="flex items-start gap-2.5">
-                      <CompactImageUpload
-                        value={svc.image || ''}
-                        aspect={svc.imageAspect}
-                        onUpload={url => updateService(i, 'image', url)}
-                        onClear={() => updateService(i, 'image', '')}
-                        onAspectChange={(nextAspect) => updateService(i, 'imageAspect', nextAspect)}
-                        showAspect={false}
-                      />
-                      <div className="flex-1 min-w-0 space-y-2">
-                        <input type="text" value={svc.name}
-                          onChange={e => updateService(i, 'name', e.target.value)}
-                          placeholder={svc.type === 'product' ? 'Product name' : 'Service name'}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white" />
-                        <input type="text" value={svc.price}
-                          onChange={e => updateService(i, 'price', e.target.value)}
-                          placeholder="Price (e.g. ₹200)"
-                          className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {SERVICE_IMAGE_ASPECT_OPTIONS.map((option) => {
-                        const active = option.value === svc.imageAspect
-                        return (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => updateService(i, 'imageAspect', option.value)}
-                            className={`rounded-lg border px-2 py-1.5 text-left transition-colors ${
-                              active
-                                ? 'border-border bg-surface-soft text-brand'
-                                : 'border-gray-200 bg-white text-gray-500 hover:border-border hover:text-gray-700'
-                            }`}
-                          >
-                            <span className="block text-[11px] font-semibold leading-tight">{option.label}</span>
-                            <span className="block text-[10px] opacity-75">{option.shortLabel}</span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                    <textarea value={svc.desc} rows={2}
-                      onChange={e => updateService(i, 'desc', e.target.value)}
-                      placeholder={svc.type === 'product' ? 'Short description (e.g. Fresh from the farm, 1kg pack)' : 'Short description of this service...'}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none bg-white" />
-                  </div>
-                ))}
-              </div>
-            )}
-            {services.length > 0 && (
-              <p className="text-right text-xs text-gray-400">{services.length}/{MAX_SERVICE_ITEMS} items</p>
-            )}
+        {/* ── PRODUCTS & SERVICES ─────────────────────────────────────────── */}
+        <div className={activeTab === 'services' ? 'bg-white border border-gray-100 rounded-2xl p-6' : 'hidden'}>
+          <h3 className="font-semibold text-gray-800">Products &amp; Services</h3>
+          <p className="mt-1 text-sm leading-relaxed text-gray-500">
+            Your products and services now live in the item manager, where you can set prices, options and stock.
+          </p>
+          <p className="mt-3 text-sm font-semibold text-gray-700">
+            {catalogItemCount} {catalogItemCount === 1 ? 'item' : 'items'}
+          </p>
+          <Link
+            href={manageHref}
+            className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong"
+          >
+            Manage items
+          </Link>
         </div>
 
         {/* ── BRANDING ───────────────────────────────────────────────────── */}
