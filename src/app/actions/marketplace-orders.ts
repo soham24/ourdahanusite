@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 
 import { loadOwnerRazorpayKeys } from '@/lib/payments/owner-keys'
+import { resolveOrderAmounts } from '@/lib/payments/order-amounts'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
 import { orderItemName } from '@/lib/catalog/catalog'
 import { classifyRazorpayKeyId } from '@/lib/selling/keys'
@@ -179,29 +180,8 @@ export async function placeMarketplaceOrder(
   // not the live price: an owner editing the price mid-payment must not
   // refuse a genuine paid order.
   const intentUnitPriceRaw = intent?.payload?.product_price_paise
-  const intentUnitPrice =
-    typeof intentUnitPriceRaw === 'number' && Number.isFinite(intentUnitPriceRaw) && intentUnitPriceRaw > 0
-      ? intentUnitPriceRaw
-      : null
-  const fallbackUnitPriceRaw: number | null = option?.price_paise ?? product.price_paise ?? null
-  const fallbackUnitPrice =
-    typeof fallbackUnitPriceRaw === 'number' && Number.isFinite(fallbackUnitPriceRaw) && fallbackUnitPriceRaw > 0
-      ? fallbackUnitPriceRaw
-      : null
-  // A payment Razorpay captured is always saved, so an unusable price here
-  // (e.g. the intent's payload is missing the field, or the item was deleted
-  // and the live price is unavailable) is never a refusal — it falls through
-  // to the Razorpay-verified amount below instead, and `priceUnconfirmed`
-  // records that the price still needs a human look.
-  let unitPricePaise: number | null = intentUnitPrice ?? fallbackUnitPrice
-  let priceUnconfirmed = false
+  const fallbackUnitPriceRaw: unknown = option?.price_paise ?? product.price_paise ?? null
   const intentAmountRaw = intent?.amount_paise
-  const intentAmount =
-    typeof intentAmountRaw === 'number' && Number.isFinite(intentAmountRaw) && intentAmountRaw > 0
-      ? intentAmountRaw
-      : null
-  let expectedAmountPaise: number | null =
-    intentAmount ?? (unitPricePaise !== null ? unitPricePaise * quantity : null)
   const intentOptionLabel = intent?.payload?.option_label
   const optionLabel =
     typeof intentOptionLabel === 'string' && intentOptionLabel ? intentOptionLabel : option?.label ?? null
@@ -230,27 +210,44 @@ export async function placeMarketplaceOrder(
     }
   }
 
-  if (expectedAmountPaise === null) {
-    // Neither the intent nor any product/option price could establish what
-    // this order should cost. Rather than refuse a payment Razorpay already
-    // captured, trust Razorpay's own record of the amount for this
-    // signature-verified order.
-    expectedAmountPaise =
-      typeof razorpayOrder.amount_paid === 'number' && Number.isFinite(razorpayOrder.amount_paid) && razorpayOrder.amount_paid > 0
-        ? razorpayOrder.amount_paid
-        : razorpayOrder.amount
+  // Resolves the unit price and total from, in order: the intent's recorded
+  // price/amount, the live product/option price, and finally Razorpay's own
+  // (unvalidated) report of this signature-verified order — never letting a
+  // missing/NaN field anywhere in that chain reach the database as `null` or
+  // `NaN`. See src/lib/payments/order-amounts.ts for the (unit tested) logic.
+  const resolvedAmounts = resolveOrderAmounts({
+    quantity,
+    intentUnitPricePaise: intentUnitPriceRaw,
+    fallbackUnitPricePaise: fallbackUnitPriceRaw,
+    intentAmountPaise: intentAmountRaw,
+    razorpayAmountPaise: razorpayOrder.amount,
+    razorpayAmountPaidPaise: razorpayOrder.amount_paid,
+  })
+  if (!resolvedAmounts) {
+    // Genuinely impossible: the intent, the product/option, and both of
+    // Razorpay's own amount fields are all missing or invalid. There is no
+    // number left to save the order with — this is the one case left where
+    // a captured payment can't be saved automatically.
+    return {
+      error:
+        'Could not confirm the paid amount with Razorpay. Please contact support with your payment ID: ' +
+        razorpayPaymentId,
+    }
   }
-  if (unitPricePaise === null) {
-    // Still no usable per-unit price (intent and product/option price both
-    // unusable): back one out of the confirmed total instead of refusing.
-    unitPricePaise = Math.max(1, Math.round(expectedAmountPaise / quantity))
-    priceUnconfirmed = true
-  }
+  const { unitPricePaise, amountTotalPaise, confirmedAmountPaise, priceUnconfirmed, amountUnconfirmed } =
+    resolvedAmounts
 
-  if (razorpayOrder.amount !== expectedAmountPaise || razorpayOrder.currency !== 'INR') {
+  // When the amount itself was seeded from Razorpay's own report
+  // (amountUnconfirmed), comparing `confirmedAmountPaise` back against
+  // `razorpayOrder.amount` is circular — it was either read from that exact
+  // field (trivially equal) or from `amount_paid` because `amount` itself
+  // was unusable (in which case this comparison would wrongly refuse a
+  // captured payment). Skip it only in that case; the amount_paid check just
+  // below still guards against a genuinely incomplete capture either way.
+  if ((!amountUnconfirmed && razorpayOrder.amount !== confirmedAmountPaise) || razorpayOrder.currency !== 'INR') {
     return { error: 'Order amount mismatch. Please contact support.' }
   }
-  if (razorpayOrder.status !== 'paid' || razorpayOrder.amount_paid !== expectedAmountPaise) {
+  if (razorpayOrder.status !== 'paid' || razorpayOrder.amount_paid !== confirmedAmountPaise) {
     return { error: 'Payment has not completed. Please retry.' }
   }
 
@@ -295,14 +292,11 @@ export async function placeMarketplaceOrder(
   const isTest = classifyRazorpayKeyId(ownerKeys.keyId) === 'test'
 
   // One transaction serializes retries, updates stock and finalizes the intent.
-  // When the per-unit price had to be backed out of the captured total
-  // (priceUnconfirmed), derive amount_total from that same rounded unit
-  // price rather than from expectedAmountPaise directly: the database
-  // function requires amount_total === service_price * quantity exactly,
-  // and rounding during that back-out can leave a paise or two of slack.
-  const totalRupees = priceUnconfirmed ? (unitPricePaise * quantity) / 100 : expectedAmountPaise / 100
+  // amountTotalPaise already guarantees unitPricePaise * quantity === amountTotalPaise
+  // exactly (see order-amounts.ts) — the database function requires that.
+  const totalRupees = amountTotalPaise / 100
   const priceIssueNote = priceUnconfirmed
-    ? 'Unit price could not be confirmed after payment; the amount charged was used instead. Verify pricing with the buyer.'
+    ? 'Unit price could not be confirmed after payment; the amount charged was used to estimate it, so the recorded total may differ from the amount captured by a few paise. Verify pricing and the total with the buyer.'
     : null
   const { data: finalizedOrder, error: insertError } = await adminClient.rpc('finalize_marketplace_order', {
     p_order: {
@@ -337,11 +331,25 @@ export async function placeMarketplaceOrder(
   // removed, insufficient stock). A price it could not confirm is our own
   // finding, so fold it into the same column on first creation — never on a
   // replay, since the row (and its issue text) was already finalized then.
+  // (Reaching this branch always changes the text — `result.issue` never
+  // already contains `priceIssueNote`, since the database function has no
+  // way to know about it — so there's nothing to gate the write on.)
   let issue = result.issue ?? null
   if (result.created && priceIssueNote) {
     issue = issue ? `${issue} ${priceIssueNote}` : priceIssueNote
-    if (issue !== result.issue) {
-      await adminClient.from('orders').update({ fulfillment_issue: issue }).eq('id', newOrder.id)
+    const { error: issueUpdateError } = await adminClient
+      .from('orders')
+      .update({ fulfillment_issue: issue })
+      .eq('id', newOrder.id)
+    if (issueUpdateError) {
+      // The order itself is safely saved either way; only the note describing
+      // *why* it needs a look failed to persist. Record it so this doesn't
+      // silently show as a clean order while owner/admin were told otherwise.
+      console.error('[marketplace:order.placed fulfillment_issue write]', issueUpdateError)
+      await recordIntentError({
+        razorpayOrderId,
+        message: `Order ${newOrder.id} saved but fulfillment_issue update failed: ${issueUpdateError.message}`,
+      })
     }
   }
 

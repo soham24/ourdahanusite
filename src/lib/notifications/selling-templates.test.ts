@@ -132,6 +132,8 @@ test('order.placed with a fulfillment issue tells the owner and admin, but not t
   assert.equal(buyer.title, 'Order confirmed · Organic Farm')
   assert.equal(buyer.body, 'Thanks! We received your order for Chikoo × 2 (₹300).')
   assert.equal(buyer.body.includes('Needs attention'), false)
+  assert.equal((buyer.email?.html ?? '').includes('Needs attention'), false)
+  assert.equal((buyer.telegram?.text ?? '').includes('Needs attention'), false)
 })
 
 test('admin shop_live alert names the business', () => {
