@@ -8,7 +8,6 @@ import { CheckCircle, Loader2, RefreshCw, ShieldAlert, ShieldCheck } from 'lucid
 import { bookAppointment } from '@/app/actions/appointments'
 import { renewListing, submitPaidListing } from '@/app/actions/listings'
 import { placeMarketplaceOrder } from '@/app/actions/marketplace-orders'
-import { placeOrder } from '@/app/actions/orders'
 import {
   attemptWithRetry,
   buildFormDataFromSnapshot,
@@ -48,7 +47,6 @@ interface ServerIntent {
 const FLOW_LABEL: Record<PaymentRecoveryFlow, string> = {
   listing: 'Business Listing',
   renew: 'Listing Renewal',
-  order: 'Service Order',
   marketplace: 'Marketplace Order',
   appointment: 'Appointment Booking',
 }
@@ -56,7 +54,6 @@ const FLOW_LABEL: Record<PaymentRecoveryFlow, string> = {
 const successHomeFor: Record<PaymentRecoveryFlow, string> = {
   listing: '/listings?submitted=1',
   renew: '/my-business?renewed=1',
-  order: '/account/orders',
   marketplace: '/account/orders',
   appointment: '/dashboard/appointments',
 }
@@ -92,8 +89,6 @@ export default function RecoverClient({ orderId }: { orderId: string }) {
               }
               return renewListing(listingId, fd)
             }
-            case 'order':
-              return placeOrder(fd)
             case 'marketplace':
               return placeMarketplaceOrder(fd)
             case 'appointment':
