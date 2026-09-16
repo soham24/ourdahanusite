@@ -80,6 +80,60 @@ test('real orders keep their titles', () => {
   assert.equal(renderNotification('order.placed', { ...base, recipient: 'owner' }).title, 'New order · Chikoo')
 })
 
+test('order.placed without a fulfillment issue keeps today\'s title and body exactly', () => {
+  const base = {
+    orderId: 'o1',
+    listingId: 'l1',
+    listingName: 'Organic Farm',
+    productName: 'Chikoo',
+    quantity: 2,
+    amountTotal: 300,
+    buyerName: 'Asha',
+  }
+  const owner = renderNotification('order.placed', { ...base, recipient: 'owner' })
+  assert.equal(owner.title, 'New order · Chikoo')
+  assert.equal(owner.body, 'Asha just ordered Chikoo × 2 (₹300).')
+  assert.equal(owner.email?.html.includes('Needs attention'), false)
+
+  const admin = renderNotification('order.placed', { ...base, recipient: 'admin' })
+  assert.equal(admin.title, 'Order placed at Organic Farm')
+  assert.equal(admin.body, 'Asha · Chikoo × 2 · ₹300')
+
+  const buyer = renderNotification('order.placed', { ...base, recipient: 'buyer' })
+  assert.equal(buyer.title, 'Order confirmed · Organic Farm')
+  assert.equal(buyer.body, 'Thanks! We received your order for Chikoo × 2 (₹300).')
+})
+
+test('order.placed with a fulfillment issue tells the owner and admin, but not the buyer', () => {
+  const base = {
+    orderId: 'o1',
+    listingId: 'l1',
+    listingName: 'Organic Farm',
+    productName: 'Chikoo',
+    quantity: 2,
+    amountTotal: 300,
+    buyerName: 'Asha',
+    fulfillmentIssue: 'Insufficient stock after payment. Contact the buyer to arrange fulfillment or a refund.',
+  }
+
+  const owner = renderNotification('order.placed', { ...base, recipient: 'owner' })
+  assert.equal(owner.title, 'New order · Chikoo')
+  assert.match(owner.body, /Needs attention: Insufficient stock after payment/)
+  assert.match(owner.email?.html ?? '', /Needs attention/)
+  assert.match(owner.email?.html ?? '', /Insufficient stock after payment/)
+  assert.match(owner.telegram?.text ?? '', /Needs attention/)
+
+  const admin = renderNotification('order.placed', { ...base, recipient: 'admin' })
+  assert.match(admin.body, /Needs attention: Insufficient stock after payment/)
+  assert.match(admin.telegram?.text ?? '', /Needs attention/)
+
+  // The buyer's own confirmation stays positive — their payment did go through.
+  const buyer = renderNotification('order.placed', { ...base, recipient: 'buyer' })
+  assert.equal(buyer.title, 'Order confirmed · Organic Farm')
+  assert.equal(buyer.body, 'Thanks! We received your order for Chikoo × 2 (₹300).')
+  assert.equal(buyer.body.includes('Needs attention'), false)
+})
+
 test('admin shop_live alert names the business', () => {
   const rendered = renderNotification('admin.new_submission', {
     kind: 'shop_live',

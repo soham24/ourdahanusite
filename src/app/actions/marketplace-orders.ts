@@ -53,7 +53,7 @@ function sanitizeString(value: unknown, maxLength: number): string {
 
 export async function placeMarketplaceOrder(
   formData: FormData,
-): Promise<{ error?: string; orderId?: string }> {
+): Promise<{ error?: string; orderId?: string; issue?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Please sign in to place an order.' }
@@ -178,16 +178,30 @@ export async function placeMarketplaceOrder(
   // payment intent when the Razorpay order was created. Check against those,
   // not the live price: an owner editing the price mid-payment must not
   // refuse a genuine paid order.
-  const intentUnitPrice = intent?.payload?.product_price_paise
-  const fallbackUnitPrice: number | null = option?.price_paise ?? product.price_paise ?? null
-  const unitPricePaise =
-    typeof intentUnitPrice === 'number' && Number.isInteger(intentUnitPrice) && intentUnitPrice > 0
-      ? intentUnitPrice
-      : fallbackUnitPrice
-  if (unitPricePaise === null) {
-    return { error: 'Order details do not match the original request.' }
-  }
-  const expectedAmountPaise = intent?.amount_paise ?? unitPricePaise * quantity
+  const intentUnitPriceRaw = intent?.payload?.product_price_paise
+  const intentUnitPrice =
+    typeof intentUnitPriceRaw === 'number' && Number.isFinite(intentUnitPriceRaw) && intentUnitPriceRaw > 0
+      ? intentUnitPriceRaw
+      : null
+  const fallbackUnitPriceRaw: number | null = option?.price_paise ?? product.price_paise ?? null
+  const fallbackUnitPrice =
+    typeof fallbackUnitPriceRaw === 'number' && Number.isFinite(fallbackUnitPriceRaw) && fallbackUnitPriceRaw > 0
+      ? fallbackUnitPriceRaw
+      : null
+  // A payment Razorpay captured is always saved, so an unusable price here
+  // (e.g. the intent's payload is missing the field, or the item was deleted
+  // and the live price is unavailable) is never a refusal — it falls through
+  // to the Razorpay-verified amount below instead, and `priceUnconfirmed`
+  // records that the price still needs a human look.
+  let unitPricePaise: number | null = intentUnitPrice ?? fallbackUnitPrice
+  let priceUnconfirmed = false
+  const intentAmountRaw = intent?.amount_paise
+  const intentAmount =
+    typeof intentAmountRaw === 'number' && Number.isFinite(intentAmountRaw) && intentAmountRaw > 0
+      ? intentAmountRaw
+      : null
+  let expectedAmountPaise: number | null =
+    intentAmount ?? (unitPricePaise !== null ? unitPricePaise * quantity : null)
   const intentOptionLabel = intent?.payload?.option_label
   const optionLabel =
     typeof intentOptionLabel === 'string' && intentOptionLabel ? intentOptionLabel : option?.label ?? null
@@ -214,6 +228,23 @@ export async function placeMarketplaceOrder(
       quantity?: string
       option_id?: string
     }
+  }
+
+  if (expectedAmountPaise === null) {
+    // Neither the intent nor any product/option price could establish what
+    // this order should cost. Rather than refuse a payment Razorpay already
+    // captured, trust Razorpay's own record of the amount for this
+    // signature-verified order.
+    expectedAmountPaise =
+      typeof razorpayOrder.amount_paid === 'number' && Number.isFinite(razorpayOrder.amount_paid) && razorpayOrder.amount_paid > 0
+        ? razorpayOrder.amount_paid
+        : razorpayOrder.amount
+  }
+  if (unitPricePaise === null) {
+    // Still no usable per-unit price (intent and product/option price both
+    // unusable): back one out of the confirmed total instead of refusing.
+    unitPricePaise = Math.max(1, Math.round(expectedAmountPaise / quantity))
+    priceUnconfirmed = true
   }
 
   if (razorpayOrder.amount !== expectedAmountPaise || razorpayOrder.currency !== 'INR') {
@@ -264,7 +295,15 @@ export async function placeMarketplaceOrder(
   const isTest = classifyRazorpayKeyId(ownerKeys.keyId) === 'test'
 
   // One transaction serializes retries, updates stock and finalizes the intent.
-  const totalRupees = expectedAmountPaise / 100
+  // When the per-unit price had to be backed out of the captured total
+  // (priceUnconfirmed), derive amount_total from that same rounded unit
+  // price rather than from expectedAmountPaise directly: the database
+  // function requires amount_total === service_price * quantity exactly,
+  // and rounding during that back-out can leave a paise or two of slack.
+  const totalRupees = priceUnconfirmed ? (unitPricePaise * quantity) / 100 : expectedAmountPaise / 100
+  const priceIssueNote = priceUnconfirmed
+    ? 'Unit price could not be confirmed after payment; the amount charged was used instead. Verify pricing with the buyer.'
+    : null
   const { data: finalizedOrder, error: insertError } = await adminClient.rpc('finalize_marketplace_order', {
     p_order: {
       listing_id: product.listing_id,
@@ -293,7 +332,20 @@ export async function placeMarketplaceOrder(
     return { error: 'Payment received but confirmation is pending. Do not pay again. Reference: ' + razorpayPaymentId }
   }
   const newOrder = { id: result.orderId }
-  if (!result.created) return { orderId: newOrder.id }
+
+  // The database function only records an issue it detects itself (item/option
+  // removed, insufficient stock). A price it could not confirm is our own
+  // finding, so fold it into the same column on first creation — never on a
+  // replay, since the row (and its issue text) was already finalized then.
+  let issue = result.issue ?? null
+  if (result.created && priceIssueNote) {
+    issue = issue ? `${issue} ${priceIssueNote}` : priceIssueNote
+    if (issue !== result.issue) {
+      await adminClient.from('orders').update({ fulfillment_issue: issue }).eq('id', newOrder.id)
+    }
+  }
+
+  if (!result.created) return { orderId: newOrder.id, issue: issue ?? undefined }
 
   // Fan out notifications to buyer + owner + admins (awaited delivery)
   await (async () => {
@@ -306,6 +358,9 @@ export async function placeMarketplaceOrder(
       amountTotal: totalRupees,
       buyerName,
       isTest,
+      // Owner/admin templates render this as an extra line; the buyer
+      // template never reads it, so their confirmation stays positive.
+      fulfillmentIssue: issue ?? undefined,
     } as const
 
     await Promise.allSettled([
@@ -329,7 +384,7 @@ export async function placeMarketplaceOrder(
   })().catch((err) => console.error('[marketplace:order.placed notify]', err))
 
   revalidatePublicListingDetail(product.listing_id)
-  return { orderId: newOrder.id }
+  return { orderId: newOrder.id, issue: issue ?? undefined }
 }
 
 export async function getMyMarketplaceOrders(): Promise<MarketplaceOrder[]> {
@@ -411,7 +466,14 @@ export async function updateMarketplaceOrderStatus(
 
   const { error } = await adminClient
     .from('orders')
-    .update({ status, ...(status === 'fulfilled' ? { fulfillment_issue: null } : {}), updated_at: new Date().toISOString() })
+    .update({
+      status,
+      // A settled order — fulfilled or cancelled — no longer needs the
+      // "needs attention" flag: it either resolved fine or won't be
+      // fulfilled at all, so the banner shouldn't keep following it around.
+      ...(status === 'fulfilled' || status === 'cancelled' ? { fulfillment_issue: null } : {}),
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', orderId)
 
   if (error) return { error: error.message }
