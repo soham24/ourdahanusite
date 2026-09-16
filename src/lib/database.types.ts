@@ -1,5 +1,5 @@
 // AUTO-GENERATED from Supabase (project slmbqngmxketyxjauxxk).
-// Regenerate with the Supabase generate_typescript_types tool. Shared with the native app for typed models.
+// Regenerate with the Supabase generate_typescript_types tool.
 
 export type Json =
   | string
@@ -504,33 +504,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      device_tokens: {
-        Row: {
-          created_at: string
-          id: string
-          platform: string
-          token: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          platform: string
-          token: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          platform?: string
-          token?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       emergency_alerts: {
         Row: {
@@ -1485,7 +1458,6 @@ export type Database = {
           reminders_sent: number[] | null
           response_time: string | null
           review_count: number | null
-          services: Json | null
           subdomain: string | null
           tagline: string | null
           tags: Json | null
@@ -1543,7 +1515,6 @@ export type Database = {
           reminders_sent?: number[] | null
           response_time?: string | null
           review_count?: number | null
-          services?: Json | null
           subdomain?: string | null
           tagline?: string | null
           tags?: Json | null
@@ -1601,7 +1572,6 @@ export type Database = {
           reminders_sent?: number[] | null
           response_time?: string | null
           review_count?: number | null
-          services?: Json | null
           subdomain?: string | null
           tagline?: string | null
           tags?: Json | null
@@ -1797,8 +1767,6 @@ export type Database = {
           buyer_id: string | null
           buyer_name: string
           buyer_phone: string
-          commission_amount: number
-          commission_rate: number | null
           created_at: string | null
           delivery_address: string | null
           id: string
@@ -1809,19 +1777,10 @@ export type Database = {
           owner_razorpay_order_id: string | null
           owner_razorpay_payment_id: string | null
           owner_razorpay_signature: string | null
-          payment_flow: string
           payment_status: string | null
-          payout_error: string | null
-          payout_status: string | null
           product_id: string | null
           product_option_id: string | null
           quantity: number | null
-          razorpay_order_id: string | null
-          razorpay_payment_id: string | null
-          razorpay_payout_id: string | null
-          razorpay_signature: string | null
-          seller_payout_amount: number
-          seller_upi_id: string
           service_name: string
           service_price: number
           status: string | null
@@ -1832,8 +1791,6 @@ export type Database = {
           buyer_id?: string | null
           buyer_name: string
           buyer_phone: string
-          commission_amount: number
-          commission_rate?: number | null
           created_at?: string | null
           delivery_address?: string | null
           id?: string
@@ -1844,19 +1801,10 @@ export type Database = {
           owner_razorpay_order_id?: string | null
           owner_razorpay_payment_id?: string | null
           owner_razorpay_signature?: string | null
-          payment_flow?: string
           payment_status?: string | null
-          payout_error?: string | null
-          payout_status?: string | null
           product_id?: string | null
           product_option_id?: string | null
           quantity?: number | null
-          razorpay_order_id?: string | null
-          razorpay_payment_id?: string | null
-          razorpay_payout_id?: string | null
-          razorpay_signature?: string | null
-          seller_payout_amount: number
-          seller_upi_id: string
           service_name: string
           service_price: number
           status?: string | null
@@ -1867,8 +1815,6 @@ export type Database = {
           buyer_id?: string | null
           buyer_name?: string
           buyer_phone?: string
-          commission_amount?: number
-          commission_rate?: number | null
           created_at?: string | null
           delivery_address?: string | null
           id?: string
@@ -1879,19 +1825,10 @@ export type Database = {
           owner_razorpay_order_id?: string | null
           owner_razorpay_payment_id?: string | null
           owner_razorpay_signature?: string | null
-          payment_flow?: string
           payment_status?: string | null
-          payout_error?: string | null
-          payout_status?: string | null
           product_id?: string | null
           product_option_id?: string | null
           quantity?: number | null
-          razorpay_order_id?: string | null
-          razorpay_payment_id?: string | null
-          razorpay_payout_id?: string | null
-          razorpay_signature?: string | null
-          seller_payout_amount?: number
-          seller_upi_id?: string
           service_name?: string
           service_price?: number
           status?: string | null
