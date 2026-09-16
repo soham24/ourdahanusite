@@ -30,6 +30,11 @@ export default async function AdminEditListingPage({
 
   if (!listing) notFound()
 
+  const { count: catalogItemCount } = await adminClient
+    .from('listing_products')
+    .select('id', { count: 'exact', head: true })
+    .eq('listing_id', id)
+
   // Fetch current owner email from auth.users
   let ownerEmail: string | null = null
   if (listing.owner_id) {
@@ -56,7 +61,7 @@ export default async function AdminEditListingPage({
         <p className="text-gray-500 text-sm mt-1">{listing.name} · ID: {id}</p>
       </div>
 
-      <EditListingForm listing={listing} />
+      <EditListingForm listing={listing} catalogItemCount={catalogItemCount ?? 0} />
 
       <AssignOwner
         listingId={id}
