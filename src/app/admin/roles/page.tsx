@@ -16,6 +16,11 @@ const ROLE_OPTIONS = [
   { value: 'admin', label: 'Admin', color: 'bg-red-100 text-red-700', icon: '⚡', desc: 'Full access including emergency & newsletter' },
 ]
 
+// Single source of truth for which `profiles.role` values are valid — the
+// server action below validates against this instead of a separately
+// maintained list, so the two can never drift out of sync again.
+const ROLE_VALUES = ROLE_OPTIONS.map((option) => option.value)
+
 type RolesSearchParams = {
   page?: string
   q?: string
@@ -41,7 +46,7 @@ async function updateUserRole(formData: FormData) {
   const role = formData.get('role') as string
   const verified = formData.get('verified') === 'true'
 
-  if (!['user', 'business_owner', 'moderator', 'job_reviewer', 'admin'].includes(role)) throw new Error('Invalid role.')
+  if (!ROLE_VALUES.includes(role)) throw new Error('Invalid role.')
   const admin = createAdminClient()
   if (!admin) throw new Error('Admin client unavailable.')
   const { error } = await admin.from('profiles').upsert({
@@ -343,10 +348,11 @@ export default async function RolesPage({
                   defaultValue={member.role || 'user'}
                   className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand bg-white"
                 >
-                  <option value="user">👤 User</option>
-                  <option value="business_owner">🏪 Business Owner</option>
-                  <option value="moderator">🛡️ Moderator</option>
-                  <option value="admin">⚡ Admin</option>
+                  {ROLE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.icon} {option.label}
+                    </option>
+                  ))}
                 </select>
                 <button
                   type="submit"
