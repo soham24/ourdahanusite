@@ -3,6 +3,7 @@ import { MapPin, Phone } from 'lucide-react'
 
 import { getCachedListingDetail } from '@/lib/data/listing-detail'
 import { formatAddressForDisplay, formatPhoneForDisplay, normalizePhoneOrNull } from '@/lib/listing-content'
+import BottomViewportSpacer from '@/components/BottomViewportSpacer'
 
 /**
  * Footer for business subdomain pages (e.g. organic.ourdahanu.in).
@@ -58,6 +59,7 @@ export default async function BusinessFooter({ subdomain }: { subdomain: string 
             </Link>
           </p>
         </div>
+        <BottomViewportSpacer until="md" />
       </div>
     </footer>
   )

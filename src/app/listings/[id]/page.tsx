@@ -360,6 +360,7 @@ async function ListingDetailContent({
         <ListingNavigation
           hasCatalog={catalogItems.length > 0}
           photos={photos}
+          hasSiteNavbar={!subdomain}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-32 md:pb-20">

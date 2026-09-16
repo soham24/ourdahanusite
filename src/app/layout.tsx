@@ -169,7 +169,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <SiteNavbar />
           </Suspense>
           {/* Navbar is sticky (not fixed), so <main> no longer needs top padding */}
-          <main className="pb-safe-bottom min-h-screen">
+          <main className="min-h-screen">
             {children}
           </main>
           <Suspense fallback={null}>

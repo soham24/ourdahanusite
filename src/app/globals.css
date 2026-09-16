@@ -1064,16 +1064,6 @@ html.loader-fonts-ready .our-dahanu-loader__logo-arc-bottom text {
   animation: skeleton-shimmer 1.8s ease-in-out infinite;
 }
 
-/* Safe-area-aware bottom padding for pages that sit above the tab bar */
-.pb-safe-bottom {
-  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
-}
-@media (min-width: 1024px) {
-  .pb-safe-bottom {
-    padding-bottom: 0;
-  }
-}
-
 @layer components {
   /* Article body rendered from markdown (src/lib/guides.ts). Styled here
      rather than with a typography plugin so guide copy inherits the same

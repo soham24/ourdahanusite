@@ -15,6 +15,7 @@ export default function MobileContactBar({
 
   return (
     <div
+      data-mobile-bottom-chrome
       className="fixed inset-x-0 z-40 px-3 md:hidden"
       style={{
         bottom: hasSiteTabs

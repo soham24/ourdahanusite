@@ -12,6 +12,7 @@ import {
   RECOVERY_DRAFTS_CHANGED_EVENT,
   type PaymentRecoveryDraft,
 } from '@/lib/payment-retry'
+import { paymentRecoveryBottom } from '@/lib/mobile-layout'
 
 const FLOW_LABEL = {
   listing: 'business listing',
@@ -92,9 +93,15 @@ export default function PaymentRecoveryWatcher() {
 
   const flowLabel = FLOW_LABEL[draft.flow] ?? 'submission'
   const amountRupees = Math.round(draft.amountPaise / 100)
+  const hasBottomChrome = typeof document !== 'undefined'
+    && !window.matchMedia('(min-width: 1024px)').matches
+    && Boolean(document.querySelector('[data-mobile-bottom-chrome]'))
 
   return (
-    <div className="fixed inset-x-3 z-[60] bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] sm:left-auto sm:right-4 sm:max-w-sm lg:bottom-4">
+    <div
+      className="fixed inset-x-3 z-[60] sm:left-auto sm:right-4 sm:max-w-sm"
+      style={{ bottom: paymentRecoveryBottom(hasBottomChrome) }}
+    >
       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-lg">
         <div className="flex items-start gap-3">
           <ShieldAlert size={20} className="mt-0.5 flex-shrink-0 text-amber-700" />

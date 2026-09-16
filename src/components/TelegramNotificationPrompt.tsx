@@ -5,6 +5,7 @@ import { Loader2, Send, X } from 'lucide-react'
 import { createTelegramLinkToken } from '@/app/actions/notifications'
 import { useAuth } from '@/lib/auth-context'
 import { createClient } from '@/lib/supabase/client'
+import { floatingPanelBottomClasses } from '@/lib/mobile-layout'
 
 const SNOOZE_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -105,7 +106,7 @@ function AccountPrompt({ userId }: { userId: string }) {
   return (
     <aside
       aria-labelledby="telegram-prompt-title"
-      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-4 right-4 z-50 rounded-2xl border border-border bg-white p-5 shadow-xl sm:bottom-6 sm:left-auto sm:right-6 sm:w-96"
+      className={`fixed left-4 right-4 z-50 rounded-2xl border border-border bg-white p-5 shadow-xl sm:left-auto sm:right-6 sm:w-96 ${floatingPanelBottomClasses()}`}
     >
       <button type="button" aria-label="Dismiss Telegram reminder for seven days" onClick={dismiss} className="absolute right-2 top-2 rounded-lg p-2 text-gray-500 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand">
         <X size={18} />
