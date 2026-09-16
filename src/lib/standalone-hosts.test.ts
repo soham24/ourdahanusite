@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { buildStandaloneLoginHref, getStandaloneSubdomain } from './standalone-hosts'
+import { buildStandaloneLoginHref, buildStandaloneUrl, getStandaloneSubdomain } from './standalone-hosts'
 
 test('recognises the standalone products on production and local hosts', () => {
   assert.equal(getStandaloneSubdomain('find.ourdahanu.in'), 'find')
@@ -37,4 +37,10 @@ test('login from the main domain stays on the main domain', () => {
     buildStandaloneLoginHref('ourdahanu.in', '/jobs/post'),
     `https://ourdahanu.in/login?next=${encodeURIComponent('https://ourdahanu.in/jobs/post')}`,
   )
+})
+
+test('buildStandaloneUrl points at the product\'s own host, not the apex', () => {
+  assert.equal(buildStandaloneUrl('jobs'), 'https://jobs.ourdahanu.in/')
+  assert.equal(buildStandaloneUrl('appointments', '/'), 'https://appointments.ourdahanu.in/')
+  assert.equal(buildStandaloneUrl('find', '/submit'), 'https://find.ourdahanu.in/submit')
 })

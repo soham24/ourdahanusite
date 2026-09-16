@@ -5,22 +5,23 @@ import NavbarAuthControls from '@/components/NavbarAuthControls'
 import SafeAppLink from '@/components/SafeAppLink'
 import NavbarFrame from '@/components/NavbarFrame'
 import { buildAbsoluteUrl } from '@/lib/site'
+import { buildStandaloneUrl } from '@/lib/standalone-hosts'
 
 const NAV_LINKS = [
   { href: buildAbsoluteUrl('/listings'), label: 'Businesses' },
   { href: buildAbsoluteUrl('/guides'), label: 'Guides' },
   { href: buildAbsoluteUrl('/search'), label: 'Search' },
-  { href: buildAbsoluteUrl('/appointments'), label: 'Book' },
-  { href: buildAbsoluteUrl('/jobs'), label: 'Jobs' },
+  { href: buildStandaloneUrl('appointments'), label: 'Book' },
+  { href: buildStandaloneUrl('jobs'), label: 'Jobs' },
 ]
 
 const MOBILE_NAV = [
   { href: buildAbsoluteUrl('/listings'), label: 'Explore Businesses', icon: Store },
   { href: buildAbsoluteUrl('/guides'), label: 'Dahanu Guides', icon: BookOpen },
   { href: buildAbsoluteUrl('/search'), label: 'Search Businesses', icon: Search },
-  { href: buildAbsoluteUrl('/appointments'), label: 'Book an Appointment', icon: CalendarDays },
-  { href: buildAbsoluteUrl('/jobs'), label: 'Local Jobs', icon: BriefcaseBusiness },
-  { href: buildAbsoluteUrl('/find'), label: 'Find Professionals', icon: UsersRound },
+  { href: buildStandaloneUrl('appointments'), label: 'Book an Appointment', icon: CalendarDays },
+  { href: buildStandaloneUrl('jobs'), label: 'Local Jobs', icon: BriefcaseBusiness },
+  { href: buildStandaloneUrl('find'), label: 'Find Professionals', icon: UsersRound },
   { href: buildAbsoluteUrl('/play'), label: 'Chikoo Catcher Game', icon: Gamepad2 },
   { href: buildAbsoluteUrl('/about'), label: 'About OurDahanu', icon: UsersRound },
   { href: buildAbsoluteUrl('/listings/submit'), label: 'Add Business', icon: Plus },
