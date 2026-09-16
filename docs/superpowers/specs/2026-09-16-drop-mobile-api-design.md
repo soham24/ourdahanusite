@@ -63,13 +63,14 @@ Checked before writing this: no RLS policy, function, trigger, view or index dep
 
 ## Order of work
 
-The columns are `NOT NULL` with defaults that today's insert satisfies, so dropping them before the new code ships would break order saving. Therefore:
+`commission_amount`, `seller_payout_amount` and `seller_upi_id` are `NOT NULL` with **no default**, and `payment_flow` still defaults to the old route's value. The insert therefore cannot simply stop writing them while the columns exist: every captured payment would fail to save, after stock had already been reduced. The order is:
 
-1. Ship the code removal, merge, let it deploy.
-2. Apply the migration, with pre-checks confirming the counts above are still zero.
-3. Regenerate `src/lib/database.types.ts` and commit.
+1. **Before merging:** apply `supabase/relax_legacy_order_columns.sql` — it makes those three columns optional and points `payment_flow`'s default at the surviving route, so the site keeps saving orders in the window between deploy and the drop. Applied to production on 2026-09-16.
+2. Ship the code removal, merge, let it deploy.
+3. Apply `supabase/drop_mobile_api.sql`, with pre-checks confirming the counts above are still zero.
+4. Regenerate `src/lib/database.types.ts` and commit.
 
-If the counts are not zero at step 2 — an order through the old route, or a registered device — stop and report instead of dropping.
+If the counts are not zero at step 3 — an order through the old route, or a registered device — stop and report instead of dropping.
 
 ## Error handling
 
