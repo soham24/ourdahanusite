@@ -2,13 +2,13 @@ import type { Metadata } from 'next'
 
 import DirectoryList from './DirectoryList'
 import { getAppointmentDirectory } from '@/lib/data/appointment-directory'
-import { buildAbsoluteUrl } from '@/lib/site'
+import { buildStandaloneUrl } from '@/lib/standalone-hosts'
 
 export const metadata: Metadata = {
   title: 'Book an Appointment in Dahanu',
   description:
     'Book appointments with clinics, dentists, salons and tutors in Dahanu. See the next free slot and book online.',
-  alternates: { canonical: buildAbsoluteUrl('/appointments') },
+  alternates: { canonical: buildStandaloneUrl('appointments') },
 }
 
 export default async function AppointmentsDirectoryPage() {

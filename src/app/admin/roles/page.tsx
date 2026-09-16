@@ -8,18 +8,30 @@ import { getUserRole, requireAdmin } from '@/app/actions/admin'
 
 const USERS_PER_PAGE = 50
 
+// The four values profiles.role can actually hold — both live DB check
+// constraints (profiles_role_check, profiles_role_valid) only allow these.
+// This is the single source of truth: the server action's whitelist and the
+// role <select>'s options are both derived from it, so they can never drift
+// out of sync with each other or with what the database will accept.
 const ROLE_OPTIONS = [
   { value: 'user', label: 'User', color: 'bg-gray-100 text-gray-600', icon: '👤', desc: 'Standard community member' },
-  { value: 'verified', label: 'Verified', color: 'bg-green-100 text-green-700', icon: '✅', desc: 'Trusted verified member' },
   { value: 'business_owner', label: 'Business Owner', color: 'bg-amber-100 text-amber-700', icon: '🏪', desc: 'Can manage own listings' },
   { value: 'moderator', label: 'Moderator', color: 'bg-blue-100 text-blue-700', icon: '🛡️', desc: 'Can approve/reject all content' },
   { value: 'admin', label: 'Admin', color: 'bg-red-100 text-red-700', icon: '⚡', desc: 'Full access including emergency & newsletter' },
 ]
 
-// Single source of truth for which `profiles.role` values are valid — the
-// server action below validates against this instead of a separately
-// maintained list, so the two can never drift out of sync again.
 const ROLE_VALUES = ROLE_OPTIONS.map((option) => option.value)
+
+// "Verified" is not a role — it's the separate `profiles.verified` boolean
+// that the verify toggle button sets. It is shown alongside the role tiles
+// and permissions grid for context only: it must never be offered in the
+// role <select> or accepted by updateUserRole's whitelist, since the
+// database would reject it as a role value.
+const VERIFIED_STAT = { value: 'verified', label: 'Verified', color: 'bg-green-100 text-green-700', icon: '✅', desc: 'Has the separate "verified" flag set — not a role' }
+
+// Display-only list for the stat tiles and permissions grid, in the
+// original on-screen order (User, Verified, Business Owner, Moderator, Admin).
+const DISPLAY_TILES = [ROLE_OPTIONS[0], VERIFIED_STAT, ROLE_OPTIONS[1], ROLE_OPTIONS[2], ROLE_OPTIONS[3]]
 
 type RolesSearchParams = {
   page?: string
@@ -259,7 +271,7 @@ export default async function RolesPage({
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-8">
-        {ROLE_OPTIONS.map((roleOption) => (
+        {DISPLAY_TILES.map((roleOption) => (
           <div key={roleOption.value} className="bg-white border border-gray-100 rounded-xl p-4 text-center">
             <div className="text-2xl mb-1">{roleOption.icon}</div>
             <div className="text-xl font-bold text-gray-900">
@@ -275,7 +287,7 @@ export default async function RolesPage({
       <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-6">
         <h2 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wide">Role Permissions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {ROLE_OPTIONS.map((roleOption) => (
+          {DISPLAY_TILES.map((roleOption) => (
             <div key={roleOption.value} className="flex items-start gap-3 p-3 rounded-xl bg-gray-50">
               <span className="text-lg mt-0.5">{roleOption.icon}</span>
               <div>
