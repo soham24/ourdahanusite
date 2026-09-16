@@ -54,7 +54,6 @@ export function ProductsManager({
     )
 
   const handleMove = (itemId: string, direction: 'up' | 'down') => {
-    const previous = items
     const nextIds = moveId(items.map((item) => item.id), itemId, direction)
     const byId = new Map(items.map((item) => [item.id, item]))
     setItems(nextIds.flatMap((id) => byId.get(id) ?? []))
@@ -62,7 +61,14 @@ export function ProductsManager({
     startTransition(async () => {
       const result = await moveCatalogItems(listingId, nextIds)
       if (result.error) {
-        setItems(previous)
+        // Undo only this item's move on whatever the list looks like now —
+        // another row's action may have landed while this one was in flight.
+        const opposite = direction === 'up' ? 'down' : 'up'
+        setItems((current) => {
+          const revertedIds = moveId(current.map((item) => item.id), itemId, opposite)
+          const currentById = new Map(current.map((item) => [item.id, item]))
+          return revertedIds.flatMap((id) => currentById.get(id) ?? [])
+        })
         setRowError(itemId, result.error)
       }
     })
@@ -84,12 +90,18 @@ export function ProductsManager({
 
   const handleDelete = (item: OwnerCatalogItem) => {
     if (!window.confirm(`Delete "${item.name}"? This can't be undone.`)) return
-    const previous = items
-    setItems(items.filter((existing) => existing.id !== item.id))
+    const index = items.findIndex((existing) => existing.id === item.id)
+    setItems((current) => current.filter((existing) => existing.id !== item.id))
     startTransition(async () => {
       const result = await deleteCatalogItem(item.id)
       if (result.error) {
-        setItems(previous)
+        // Re-insert just this item at its old spot — don't clobber any other
+        // row change that may have landed on the list while this was in flight.
+        setItems((current) => {
+          const next = [...current]
+          next.splice(Math.min(index, next.length), 0, item)
+          return next
+        })
         setRowError(item.id, result.error)
       }
     })
