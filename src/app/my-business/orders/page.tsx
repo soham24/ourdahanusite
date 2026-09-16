@@ -8,10 +8,8 @@ import {
   Clock,
   Loader2,
   Package,
-  CreditCard,
-  Wallet,
 } from 'lucide-react'
-import { getMyListingOrders, updateOrderStatus } from '@/app/actions/orders'
+import { getMyListingOrders } from '@/app/actions/orders'
 import type { Order } from '@/app/actions/orders'
 import { updateMarketplaceOrderStatus } from '@/app/actions/marketplace-orders'
 import { orderItemName } from '@/lib/catalog/catalog'
@@ -20,58 +18,10 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-function FlowBadge({ flow }: { flow: Order['payment_flow'] }) {
-  if (flow === 'owner_razorpay') {
-    return (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-soft text-brand-strong">
-        <CreditCard size={10} />
-        Direct payment
-      </span>
-    )
-  }
-  return (
-    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">
-      <Wallet size={10} />
-      UPI via OurDahanu
-    </span>
-  )
-}
-
 function TestBadge() {
   return (
     <span className="inline-flex items-center rounded-full bg-[rgba(200,136,30,0.14)] px-2 py-0.5 text-xs font-bold text-[var(--od-brand-strong)]">
       Test
-    </span>
-  )
-}
-
-function PayoutBadge({ status }: { status: string }) {
-  if (status === 'not_applicable') {
-    return (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
-        <CheckCircle size={10} />
-        Paid to you
-      </span>
-    )
-  }
-  if (status === 'paid')
-    return (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
-        <CheckCircle size={10} />
-        Paid out
-      </span>
-    )
-  if (status === 'failed')
-    return (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-600">
-        <XCircle size={10} />
-        Payout failed
-      </span>
-    )
-  return (
-    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
-      <Clock size={10} />
-      Pending payout
     </span>
   )
 }
@@ -108,7 +58,6 @@ function OrderRow({
 }) {
   const [isPending, startTransition] = useTransition()
   const isActive = order.status === 'confirmed'
-  const isMarketplace = order.payment_flow === 'owner_razorpay'
 
   const handleAction = (status: 'fulfilled' | 'cancelled') => {
     startTransition(() => {
@@ -125,8 +74,6 @@ function OrderRow({
               {orderItemName(order.service_name, order.option_label)}
             </span>
             <StatusBadge status={order.status} />
-            <PayoutBadge status={order.payout_status} />
-            <FlowBadge flow={order.payment_flow} />
             {order.is_test && <TestBadge />}
           </div>
           <p className="text-xs text-gray-400">{formatDate(order.created_at)}</p>
@@ -137,10 +84,6 @@ function OrderRow({
           </p>
           <p className="text-xs text-gray-400">
             ×{order.quantity} @ ₹{Number(order.service_price).toLocaleString('en-IN')}
-          </p>
-          <p className="text-xs text-green-600 mt-0.5">
-            {isMarketplace ? 'Received directly' : 'You get'} ₹
-            {Number(order.seller_payout_amount).toLocaleString('en-IN')}
           </p>
         </div>
       </div>
@@ -168,13 +111,7 @@ function OrderRow({
             {order.notes}
           </div>
         )}
-        {!isMarketplace && order.payout_error && (
-          <div className="sm:col-span-2 text-red-500">
-            <span className="font-medium">Payout error: </span>
-            {order.payout_error}
-          </div>
-        )}
-        {isMarketplace && order.owner_razorpay_payment_id && (
+        {order.owner_razorpay_payment_id && (
           <div className="sm:col-span-2 text-gray-400">
             <span>Razorpay Payment: </span>
             <span className="font-mono text-gray-600">{order.owner_razorpay_payment_id}</span>
@@ -206,14 +143,12 @@ function OrderRow({
   )
 }
 
-type FlowFilter = 'all' | 'owner_razorpay' | 'platform_upi_payout'
 type StatusFilter = 'all' | 'confirmed' | 'fulfilled' | 'cancelled'
 
 export default function MyOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [flowFilter, setFlowFilter] = useState<FlowFilter>('all')
   const [showTest, setShowTest] = useState(true)
 
   useEffect(() => {
@@ -225,10 +160,7 @@ export default function MyOrdersPage() {
   }, [])
 
   const handleStatusChange = async (order: Order, status: 'fulfilled' | 'cancelled') => {
-    const result =
-      order.payment_flow === 'owner_razorpay'
-        ? await updateMarketplaceOrderStatus(order.id, status)
-        : await updateOrderStatus(order.id, status)
+    const result = await updateMarketplaceOrderStatus(order.id, status)
     if (!result.error) {
       setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status } : o)))
     }
@@ -240,19 +172,11 @@ export default function MyOrdersPage() {
     [orders, showTest],
   )
 
-  const flowFiltered = useMemo(
-    () =>
-      flowFilter === 'all'
-        ? visibleOrders
-        : visibleOrders.filter((o) => o.payment_flow === flowFilter),
-    [visibleOrders, flowFilter],
-  )
-
   // Test orders can be shown, but they never count as sales.
-  const realFiltered = flowFiltered.filter((o) => !o.is_test)
+  const realFiltered = visibleOrders.filter((o) => !o.is_test)
 
   const filtered =
-    statusFilter === 'all' ? flowFiltered : flowFiltered.filter((o) => o.status === statusFilter)
+    statusFilter === 'all' ? visibleOrders : visibleOrders.filter((o) => o.status === statusFilter)
 
   const counts = {
     all: realFiltered.length,
@@ -261,16 +185,9 @@ export default function MyOrdersPage() {
     cancelled: realFiltered.filter((o) => o.status === 'cancelled').length,
   }
 
-  const realOrders = orders.filter((o) => !o.is_test)
-  const flowCounts = {
-    all: realOrders.length,
-    owner_razorpay: realOrders.filter((o) => o.payment_flow === 'owner_razorpay').length,
-    platform_upi_payout: realOrders.filter((o) => o.payment_flow === 'platform_upi_payout').length,
-  }
-
   const totalEarnings = realFiltered
     .filter((o) => o.status !== 'cancelled')
-    .reduce((sum, o) => sum + Number(o.seller_payout_amount || 0), 0)
+    .reduce((sum, o) => sum + Number(o.amount_total || 0), 0)
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
@@ -323,31 +240,6 @@ export default function MyOrdersPage() {
               <div className="text-xs text-gray-400">Earned</div>
             </div>
           </div>
-
-          {/* Flow filter */}
-          {flowCounts.owner_razorpay > 0 && flowCounts.platform_upi_payout > 0 && (
-            <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-3 text-xs">
-              {(
-                [
-                  { key: 'all' as const, label: 'All flows' },
-                  { key: 'owner_razorpay' as const, label: 'Direct payment' },
-                  { key: 'platform_upi_payout' as const, label: 'UPI payout' },
-                ]
-              ).map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setFlowFilter(tab.key)}
-                  className={`flex-1 font-semibold py-1.5 rounded-lg transition-colors ${
-                    flowFilter === tab.key
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  {tab.label} ({flowCounts[tab.key]})
-                </button>
-              ))}
-            </div>
-          )}
 
           {testCount > 0 && (
             <label className="mb-3 inline-flex items-center gap-2 text-xs font-semibold text-gray-600">

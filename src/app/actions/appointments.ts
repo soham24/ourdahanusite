@@ -213,7 +213,7 @@ export async function bookAppointment(
   const signature = String(formData.get('razorpay_signature') ?? '').trim() || null
 
   // Idempotency FIRST — the same position every other paid flow uses
-  // (submitPaidListing, renewListing, placeOrder, placeMarketplaceOrder).
+  // (submitPaidListing, renewListing, placeMarketplaceOrder, bookAppointment).
   //
   // This used to sit below the availability check, and that ordering was a
   // bug with real customer impact. When a save succeeded but its response was

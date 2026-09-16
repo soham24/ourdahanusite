@@ -1,11 +1,4 @@
 import { normalizeOptionalUrlOrNull } from '@/lib/url'
-import {
-  DEFAULT_SERVICE_IMAGE_ASPECT,
-  normalizeServiceImageAspect,
-  type ServiceImageAspect,
-} from '@/lib/service-image'
-
-export const MAX_SERVICE_ITEMS = 30
 
 export type AppointmentWeekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
 
@@ -211,53 +204,6 @@ export function normalizeUrlArray(
     seen.add(value)
     normalized.push(value)
     if (normalized.length >= maxItems) break
-  }
-
-  return normalized
-}
-
-export type NormalizedService = {
-  type?: 'service' | 'product'
-  name: string
-  desc?: string
-  price?: string
-  image?: string
-  imageAspect?: ServiceImageAspect
-}
-
-export function normalizeServiceItems(values: unknown): NormalizedService[] {
-  if (!Array.isArray(values)) return []
-
-  const normalized: NormalizedService[] = []
-
-  for (const entry of values) {
-    if (!entry || typeof entry !== 'object') continue
-
-    const name = normalizeInlineText('name' in entry ? String(entry.name) : '', 80)
-    if (!name) continue
-
-    const type =
-      'type' in entry && (entry.type === 'service' || entry.type === 'product')
-        ? entry.type
-        : undefined
-    const desc = normalizeMultilineText('desc' in entry ? String(entry.desc ?? '') : '', 280) ?? undefined
-    const price = normalizeInlineText('price' in entry ? String(entry.price ?? '') : '', 32) ?? undefined
-    const image = normalizeOptionalUrlOrNull('image' in entry ? String(entry.image ?? '') : '') ?? undefined
-    const imageAspect =
-      'imageAspect' in entry || image
-        ? normalizeServiceImageAspect('imageAspect' in entry ? entry.imageAspect : undefined, DEFAULT_SERVICE_IMAGE_ASPECT)
-        : undefined
-
-    normalized.push({
-      ...(type ? { type } : {}),
-      name,
-      ...(desc ? { desc } : {}),
-      ...(price ? { price } : {}),
-      ...(image ? { image } : {}),
-      ...(imageAspect ? { imageAspect } : {}),
-    })
-
-    if (normalized.length >= MAX_SERVICE_ITEMS) break
   }
 
   return normalized

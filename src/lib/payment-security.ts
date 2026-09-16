@@ -1,7 +1,6 @@
 import 'server-only'
 
 import { getCachedPricingConfig } from '@/lib/data/pricing'
-import { normalizeInlineText, normalizeServiceItems } from '@/lib/listing-content'
 import { createPublicClient } from '@/lib/supabase/public'
 
 type FlowKind = 'listing' | 'order' | 'appointment'
@@ -12,13 +11,6 @@ export type SubmissionCharge = {
   finalPrice: number
   isFree: boolean
   paymentStatus: 'paid' | 'free_coupon'
-}
-
-export type ResolvedListingService = {
-  index: number
-  name: string
-  price: number
-  type: 'service' | 'product'
 }
 
 type RazorpayOrder = {
@@ -94,86 +86,6 @@ export async function getListingSubmissionCharge(
   couponCode: string | null | undefined,
 ): Promise<SubmissionCharge> {
   return getSubmissionCharge(couponCode)
-}
-
-function parseServicePrice(price: string | undefined): number | null {
-  if (!price) return null
-  const match = price.replace(/,/g, '').match(/[\d]+(\.\d+)?/)
-  if (!match) return null
-  const parsed = Number.parseFloat(match[0])
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
-}
-
-function parseStoredServices(rawServices: unknown) {
-  let parsed = rawServices
-
-  if (typeof rawServices === 'string') {
-    try {
-      parsed = JSON.parse(rawServices)
-    } catch {
-      parsed = []
-    }
-  }
-
-  return normalizeServiceItems(parsed)
-}
-
-export function resolveListingService(
-  rawServices: unknown,
-  options: {
-    serviceIndex?: number | null
-    serviceName?: string | null
-  },
-): { service?: ResolvedListingService; error?: string } {
-  const services = parseStoredServices(rawServices)
-  if (!services.length) {
-    return { error: 'This listing has no orderable services configured.' }
-  }
-
-  let selectedIndex = Number.isInteger(options.serviceIndex) ? Number(options.serviceIndex) : null
-
-  if (selectedIndex === null) {
-    const normalizedName = normalizeInlineText(options.serviceName, 80)?.toLowerCase()
-    if (!normalizedName) {
-      return { error: 'Please select a valid service.' }
-    }
-
-    const matches = services
-      .map((service, index) => ({ service, index }))
-      .filter(({ service }) => service.name.toLowerCase() === normalizedName)
-
-    if (matches.length === 0) {
-      return { error: 'Selected service is no longer available.' }
-    }
-    if (matches.length > 1) {
-      return { error: 'Selected service is ambiguous. Please refresh and try again.' }
-    }
-
-    selectedIndex = matches[0].index
-  }
-
-  if (selectedIndex === null) {
-    return { error: 'Please select a valid service.' }
-  }
-
-  const service = services[selectedIndex]
-  if (!service) {
-    return { error: 'Selected service is no longer available.' }
-  }
-
-  const price = parseServicePrice(service.price)
-  if (price === null) {
-    return { error: 'Selected service is not available for online payment.' }
-  }
-
-  return {
-    service: {
-      index: selectedIndex,
-      name: service.name,
-      price,
-      type: service.type === 'product' ? 'product' : 'service',
-    },
-  }
 }
 
 export function buildReceiptPrefix(flow: FlowKind, userId: string): string {

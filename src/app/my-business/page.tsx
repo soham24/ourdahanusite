@@ -235,7 +235,6 @@ export default async function MyBusinessPage({
       supabase
         .from('orders')
         .select('listing_id, is_test, status')
-        .eq('payment_flow', 'owner_razorpay')
         .in('listing_id', ids),
       loadSuspensionReasons(listings.filter((l) => l.payments_suspended_at).map((l) => l.id)),
     ])

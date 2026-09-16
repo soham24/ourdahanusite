@@ -35,12 +35,9 @@ export interface MarketplaceOrder {
   service_price: number
   quantity: number
   amount_total: number
-  payment_flow: 'platform_upi_payout' | 'owner_razorpay'
   owner_razorpay_order_id: string | null
   owner_razorpay_payment_id: string | null
   owner_razorpay_signature: string | null
-  razorpay_order_id: string | null
-  razorpay_payment_id: string | null
   payment_status: string
   status: string
   /** Paid with Razorpay test keys: a practice purchase, no real money. */
@@ -305,16 +302,10 @@ export async function placeMarketplaceOrder(
       service_price: priceRupees,
       quantity,
       amount_total: totalRupees,
-      commission_rate: 0,
-      commission_amount: 0,
-      seller_payout_amount: totalRupees,
-      seller_upi_id: '',
-      payment_flow: 'owner_razorpay',
       owner_razorpay_order_id: razorpayOrderId,
       owner_razorpay_payment_id: razorpayPaymentId,
       owner_razorpay_signature: razorpaySignature,
       payment_status: 'paid',
-      payout_status: 'not_applicable',
       status: 'confirmed',
       is_test: isTest,
     })
@@ -386,7 +377,6 @@ export async function getMyMarketplaceOrders(): Promise<MarketplaceOrder[]> {
     .from('orders')
     .select('*, listing:listing_id(name, subdomain)')
     .eq('buyer_id', user.id)
-    .eq('payment_flow', 'owner_razorpay')
     .order('created_at', { ascending: false })
 
   return (data ?? []) as MarketplaceOrder[]
@@ -416,7 +406,6 @@ export async function getMyMarketplaceOrder(
     .select('*, listing:listing_id(name, subdomain, phone, whatsapp, owner_id)')
     .eq('id', orderId)
     .eq('buyer_id', user.id)
-    .eq('payment_flow', 'owner_razorpay')
     .maybeSingle()
 
   return (data ?? null) as MarketplaceOrderWithListingContact | null
@@ -435,15 +424,11 @@ export async function updateMarketplaceOrderStatus(
 
   const { data: order } = await adminClient
     .from('orders')
-    .select('id, listing_id, buyer_id, service_name, option_label, payment_flow')
+    .select('id, listing_id, buyer_id, service_name, option_label')
     .eq('id', orderId)
     .maybeSingle()
 
   if (!order) return { error: 'Order not found.' }
-
-  if (order.payment_flow !== 'owner_razorpay') {
-    return { error: 'This order uses a different payment flow.' }
-  }
 
   const { data: listing } = await adminClient
     .from('listings')
