@@ -64,6 +64,7 @@ function StepIcon({ state }: { state: ChecklistStepState }) {
 function ListingSelling({ row, showName }: { row: SellOnlineRow; showName: boolean }) {
   const { checklist } = row
   const paymentsHref = `/my-business/payments?listing=${row.listingId}`
+  const itemsHref = `/my-business/products/${row.listingId}`
 
   return (
     <div className="rounded-2xl border border-[var(--od-border)] bg-white/70 p-4">
@@ -89,7 +90,7 @@ function ListingSelling({ row, showName }: { row: SellOnlineRow; showName: boole
                 </span>
               )}
             </Link>
-            <Link href={`/my-business/products/${row.listingId}`} className="od-button-secondary px-3 py-1.5 text-sm">
+            <Link href={itemsHref} className="od-button-secondary px-3 py-1.5 text-sm">
               Items
             </Link>
             <Link href={paymentsHref} className="od-button-secondary px-3 py-1.5 text-sm">
@@ -138,6 +139,11 @@ function ListingSelling({ row, showName }: { row: SellOnlineRow; showName: boole
               )
             })}
           </ol>
+          <div className="mt-3 border-t border-[var(--od-border)] pt-3">
+            <Link href={itemsHref} className="od-button-secondary px-3 py-1.5 text-sm">
+              Manage items
+            </Link>
+          </div>
         </>
       )}
     </div>
@@ -159,6 +165,11 @@ export default function SellOnlineCard({ rows }: { rows: SellOnlineRow[] }) {
           </h2>
           <p className="text-xs text-[var(--od-muted)]">Take payments straight into your own Razorpay account.</p>
         </div>
+        {rows.length > 1 && (
+          <Link href="/my-business/products" className="od-button-secondary ml-auto shrink-0 px-3 py-1.5 text-sm">
+            All items
+          </Link>
+        )}
       </div>
       <div className="space-y-3">
         {rows.map((row) => (
