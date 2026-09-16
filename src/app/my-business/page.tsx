@@ -245,8 +245,10 @@ export default async function MyBusinessPage({
         .map((config) => [config.listing_id, config]),
     )
     const activeItems = new Map<string, number>()
+    const visibleItems = new Map<string, number>()
     type ItemRow = { listing_id: string; price_paise: number | null; options: { id: string }[] | null }
     for (const row of (productData ?? []) as unknown as ItemRow[]) {
+      visibleItems.set(row.listing_id, (visibleItems.get(row.listing_id) ?? 0) + 1)
       // Copied items without a price are enquiries, not something to sell online yet.
       if (!isBuyable({ price_paise: row.price_paise, options: row.options ?? [] })) continue
       activeItems.set(row.listing_id, (activeItems.get(row.listing_id) ?? 0) + 1)
@@ -262,6 +264,7 @@ export default async function MyBusinessPage({
         shopHref: getListingHref(listing.id, listing.subdomain),
         suspendedReason: reasons.get(listing.id) ?? null,
         newOrderCount: listingOrders.filter((order) => !order.is_test && order.status === 'confirmed').length,
+        itemCount: visibleItems.get(listing.id) ?? 0,
         checklist: deriveSellingChecklist({
           approved: listing.approved === true,
           paymentsEnabled: listing.payments_enabled === true,

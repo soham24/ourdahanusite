@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowUpRight, CheckCircle2, Circle, Lock, PauseCircle, ShoppingBag, SkipForward } from 'lucide-react'
+import { ArrowUpRight, CheckCircle2, Circle, Lock, Package, PauseCircle, ShoppingBag, SkipForward } from 'lucide-react'
 
 import type {
   ChecklistStep,
@@ -17,12 +17,14 @@ export interface SellOnlineRow {
   checklist: SellingChecklist
   /** Real (non-test) orders still waiting at "confirmed". */
   newOrderCount: number
+  /** Visible items on the business page, whether or not they can be bought online. */
+  itemCount: number
 }
 
 const STEP_COPY: Record<ChecklistStepId, { title: string; hint: string }> = {
   listing: { title: 'Listing is live', hint: 'Your listing must be approved before customers can buy.' },
   connect: { title: 'Connect Razorpay', hint: 'Payments go straight to your own Razorpay account.' },
-  item: { title: 'Add your first item', hint: 'Products or services customers can buy.' },
+  item: { title: 'Add an item with a price', hint: 'An item needs a fixed price, or options, before customers can buy it online.' },
   practice: {
     title: 'Try a practice purchase',
     hint: 'Optional. Buy from your own shop while on test keys — no real money moves.',
@@ -46,7 +48,8 @@ function stepAction(step: ChecklistStep, row: SellOnlineRow): { label: string; h
     case 'connect':
       return { label: 'Connect', href: paymentsHref }
     case 'item':
-      return { label: 'Add item', href: `/my-business/products/${row.listingId}` }
+      // The items panel above the checklist already leads here.
+      return null
     case 'practice':
       return { label: 'View my shop', href: row.shopHref }
     case 'live':
@@ -114,6 +117,25 @@ function ListingSelling({ row, showName }: { row: SellOnlineRow; showName: boole
               </Link>
             </div>
           )}
+          <div className="mb-4 rounded-2xl border border-[var(--od-border)] bg-[var(--color-surface-soft)] p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="flex items-center gap-2 text-sm font-bold text-[var(--od-ink)]">
+                  <Package size={16} className="text-[var(--od-brand)]" aria-hidden />
+                  {row.itemCount > 0
+                    ? `${row.itemCount} ${row.itemCount === 1 ? "item" : "items"} on your page`
+                    : "Add your products and services"}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-[var(--od-muted)]">
+                  Customers see them on your business page and can ask about them on WhatsApp. Finish the steps below and
+                  they can buy online too.
+                </p>
+              </div>
+              <Link href={itemsHref} className="od-button-primary shrink-0 px-4 py-2 text-sm">
+                {row.itemCount > 0 ? "Manage items" : "Add items"}
+              </Link>
+            </div>
+          </div>
           <ol className="space-y-3">
             {checklist.steps.map((step) => {
               const action = stepAction(step, row)
@@ -139,11 +161,6 @@ function ListingSelling({ row, showName }: { row: SellOnlineRow; showName: boole
               )
             })}
           </ol>
-          <div className="mt-3 border-t border-[var(--od-border)] pt-3">
-            <Link href={itemsHref} className="od-button-secondary px-3 py-1.5 text-sm">
-              Manage items
-            </Link>
-          </div>
         </>
       )}
     </div>
