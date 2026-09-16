@@ -142,7 +142,7 @@ export default function ItemSheet({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-black/40"
+      className="fixed inset-0 z-[60] flex h-[100dvh] justify-end bg-black/40"
       onClick={(event) => {
         if (event.target === event.currentTarget && !isSaving) onClose()
       }}
@@ -151,7 +151,7 @@ export default function ItemSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="item-sheet-title"
-        className="flex h-full w-full flex-col bg-[var(--od-surface-soft)] md:max-w-lg md:shadow-2xl"
+        className="flex h-full max-h-[100dvh] w-full flex-col bg-[var(--od-surface-soft)] md:max-w-lg md:shadow-2xl"
       >
         <header className="flex items-center justify-between gap-3 border-b border-[var(--od-border)] bg-white px-4 py-3">
           <h2 id="item-sheet-title" className="text-base font-extrabold text-[var(--od-ink)]">
@@ -329,7 +329,10 @@ export default function ItemSheet({
           )}
         </div>
 
-        <footer className="space-y-2 border-t border-[var(--od-border)] bg-white px-4 py-3">
+        <footer
+          className="space-y-2 border-t border-[var(--od-border)] bg-white px-4 py-3"
+          style={{ paddingBottom: `calc(0.75rem + env(safe-area-inset-bottom, 0px))` }}
+        >
           {saveError && <p role="alert" className={errorCls}>{saveError}</p>}
           <div className="flex gap-3">
             <button type="button" onClick={onClose} disabled={isSaving} className="od-button-secondary min-h-12 px-4 text-sm">
