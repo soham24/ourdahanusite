@@ -113,19 +113,26 @@ export async function placeMarketplaceOrder(
     return { error: 'Product is no longer available.' }
   }
 
+  type OptionRow = { id: string; label: string; price_paise: number; quantity_in_stock: number | null }
+
+  // Loads an option row and confirms it belongs to this item; a stale,
+  // deleted, cross-product or blank id is treated as "no option" rather
+  // than an error, since a captured payment must still be saved.
+  const loadOptionRow = async (id: string): Promise<OptionRow | null> => {
+    if (!id) return null
+    const { data } = await adminClient
+      .from('listing_product_options')
+      .select('id, product_id, label, price_paise, quantity_in_stock')
+      .eq('id', id)
+      .maybeSingle()
+    return data && (data as { product_id: string }).product_id === product.id
+      ? (data as OptionRow & { product_id: string })
+      : null
+  }
+
   // The option may have been renamed, repriced or deleted since payment
   // started; the intent below still carries what the buyer agreed to.
-  const { data: optionData } = formOptionId
-    ? await adminClient
-        .from('listing_product_options')
-        .select('id, product_id, label, price_paise, quantity_in_stock')
-        .eq('id', formOptionId)
-        .maybeSingle()
-    : { data: null }
-  const option =
-    optionData && optionData.product_id === product.id
-      ? (optionData as { id: string; label: string; price_paise: number; quantity_in_stock: number | null })
-      : null
+  const option = await loadOptionRow(formOptionId)
 
   const { data: listing } = await adminClient
     .from('listings')
@@ -244,6 +251,15 @@ export async function placeMarketplaceOrder(
     return { error: 'Order details do not match the original request.' }
   }
 
+  // `option` above was loaded from the client's form value. When the
+  // authoritative id resolved just above differs from it (the form value
+  // was blank or stale but the intent or notes carried the real option),
+  // re-fetch the row for that id so the stock decrement and the order
+  // insert reflect what the buyer actually paid for, not what a stale form
+  // implied. Still never refuses the payment: if the resolved option no
+  // longer exists, this simply falls back to null, same as today.
+  const resolvedOption = optionId === formOptionId ? option : await loadOptionRow(optionId)
+
   // Test keys move no real money: label the order and leave real stock alone.
   const isTest = classifyRazorpayKeyId(ownerKeys.keyId) === 'test'
 
@@ -252,8 +268,8 @@ export async function placeMarketplaceOrder(
     isTest
       ? null
       : optionId
-        ? option && option.quantity_in_stock !== null
-          ? { fn: 'decrement_option_stock', args: { p_option_id: option.id, p_quantity: quantity } }
+        ? resolvedOption && resolvedOption.quantity_in_stock !== null
+          ? { fn: 'decrement_option_stock', args: { p_option_id: resolvedOption.id, p_quantity: quantity } }
           : null
         : product.quantity_in_stock !== null
           ? { fn: 'decrement_product_stock', args: { p_product_id: product.id, p_quantity: quantity } }
@@ -278,7 +294,7 @@ export async function placeMarketplaceOrder(
     .insert({
       listing_id: product.listing_id,
       product_id: product.id,
-      product_option_id: option?.id ?? null,
+      product_option_id: resolvedOption?.id ?? null,
       option_label: optionLabel,
       buyer_id: user.id,
       buyer_name: buyerName,
