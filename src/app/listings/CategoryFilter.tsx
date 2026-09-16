@@ -27,7 +27,8 @@ export default function CategoryFilter({ sortedCategories, activeCategory, categ
       const value = searchParams.get(key)
       if (value) params.set(key, value)
     }
-    return `${path}${params.size ? `?${params}` : ''}`
+    const query = params.toString()
+    return `${path}${query ? `?${query}` : ''}`
   }
 
   return (

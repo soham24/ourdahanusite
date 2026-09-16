@@ -67,7 +67,8 @@ export default function ListingsDirectoryResults({
     const params = new URLSearchParams(window.location.search)
     if (value) params.set(key, value)
     else params.delete(key)
-    window.history.replaceState(null, '', `${window.location.pathname}${params.size ? `?${params}` : ''}`)
+    const query = params.toString()
+    window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`)
   }
   const setSearchQuery = (value: string) => updateParam('q', value)
   const setSortKey = (value: SortKey) => updateParam('sort', value === 'recommended' ? '' : value)
