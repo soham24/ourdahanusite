@@ -529,7 +529,7 @@ export async function replyToReview(
   let reviewerName: string | null = null
   if (reviewRow.user_id) {
     const { data: reviewerProfile } = await dbClient
-      .from('profiles')
+      .from('public_profiles')
       .select('full_name')
       .eq('id', reviewRow.user_id)
       .maybeSingle()

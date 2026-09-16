@@ -2,7 +2,7 @@ import { NextResponse, after } from 'next/server'
 import { revalidateTag } from 'next/cache'
 
 import { getUserRole } from '@/app/actions/admin'
-import { loadOwnerRazorpayKeys } from '@/app/actions/listing-payments'
+import { loadOwnerRazorpayKeys } from '@/lib/payments/owner-keys'
 import { CACHE_TAGS } from '@/lib/cache-tags'
 import { sendNotification } from '@/lib/notifications'
 import { recordPaymentIntent } from '@/lib/payment-intents'
@@ -221,7 +221,7 @@ export async function POST(request: Request) {
     )
   }
 
-  await recordPaymentIntent({
+  const recorded = await recordPaymentIntent({
     userId: user.id,
     flow: 'marketplace',
     razorpayOrderId: orderPayload.id,
@@ -238,6 +238,10 @@ export async function POST(request: Request) {
     },
     listingId: product.listing_id,
   })
+
+  if (!recorded) {
+    return NextResponse.json({ error: 'Checkout is temporarily unavailable. No payment has been taken. Please try again.' }, { status: 503 })
+  }
 
   return NextResponse.json({
     orderId: orderPayload.id,

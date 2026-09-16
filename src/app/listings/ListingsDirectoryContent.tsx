@@ -1,4 +1,5 @@
 import { CheckCircle } from 'lucide-react'
+import { Suspense } from 'react'
 
 import StructuredData from '@/components/StructuredData'
 import ListingsDirectoryResults from './ListingsDirectoryResults'
@@ -94,8 +95,10 @@ export default function ListingsDirectoryContent({
       <div className="od-shell">
       <StructuredData data={[breadcrumbSchema, itemListSchema]} />
 
-      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-5">
+      <div className="mb-5 flex flex-col md:flex-row md:items-end justify-between gap-3">
         <SectionHeader
+          as="h1"
+          className="mb-0"
           label="Local directory"
           title={activeCategory ? `${activeCategory} in Dahanu` : 'Business Listings in Dahanu'}
           sub={activeCategory
@@ -103,18 +106,20 @@ export default function ListingsDirectoryContent({
             : 'Search, sort, and compare trusted businesses and services across Dahanu, Bordi, Gholvad, and nearby areas.'}
         />
 
-        <Card padding="sm" className="mb-8 md:mb-10 inline-flex self-start md:self-auto text-sm text-[var(--od-ink-2)]">
+        <Card padding="sm" className="hidden md:inline-flex self-start md:self-auto text-sm text-[var(--od-ink-2)]">
           <span className="font-bold text-[var(--od-ink)] mr-1.5">{Object.keys(categoryCounts).length || sortedCategories.length - 1}</span>{' '}
           categories live
         </Card>
       </div>
 
+      <Suspense fallback={<p role="status" className="py-8">Loading businesses…</p>}>
       <ListingsDirectoryResults
         activeCategory={activeCategory}
         listings={listings}
         sortedCategories={sortedCategories}
         categoryCounts={categoryCounts}
       />
+      </Suspense>
 
       <div id="add" className="border-t border-[var(--od-border)] py-12">
         <div className="text-center mb-10">

@@ -123,9 +123,10 @@ export default function AdminOrdersPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <OrderStatusBadge status={order.status} />
+                            {order.fulfillment_issue ? <span className="text-xs font-semibold text-amber-800">Needs attention</span> : <OrderStatusBadge status={order.status} />}
                             {order.is_test && <TestBadge />}
                           </div>
+                          {order.fulfillment_issue && <p className="mt-1 max-w-xs text-xs text-amber-800">{order.fulfillment_issue}</p>}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <p className="font-semibold text-gray-900 text-xs">

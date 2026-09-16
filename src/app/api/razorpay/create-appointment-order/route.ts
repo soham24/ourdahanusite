@@ -118,7 +118,7 @@ export async function POST(request: Request) {
     }, { status: 500 })
   }
 
-  await recordPaymentIntent({
+  const recorded = await recordPaymentIntent({
     userId: user.id,
     flow: 'appointment',
     razorpayOrderId: order.id as string,
@@ -133,6 +133,10 @@ export async function POST(request: Request) {
     },
     listingId,
   })
+
+  if (!recorded) {
+    return NextResponse.json({ error: 'Checkout is temporarily unavailable. No payment has been taken. Please try again.' }, { status: 503 })
+  }
 
   return NextResponse.json({
     isFree: false,

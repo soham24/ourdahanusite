@@ -7,7 +7,7 @@ import { createPublicClient } from '@/lib/supabase/public'
 
 export const metadata: Metadata = {
   title: 'Search',
-  description: 'Search across OurDahanu.',
+  description: 'Search local businesses by name in Dahanu.',
   robots: {
     index: false,
     follow: true,
@@ -32,9 +32,10 @@ function SearchBar({ query }: { query: string }) {
         type="text"
         name="q"
         defaultValue={query}
-        placeholder="Search events, businesses in Dahanu..."
+        aria-label="Search businesses by name"
+        placeholder="Search businesses by name..."
         autoFocus
-        className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:border-brand bg-white text-base shadow-sm"
+        className="w-full pl-12 pr-28 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:border-brand bg-white text-base shadow-sm"
       />
       <button
         type="submit"
@@ -65,28 +66,25 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
   const { q } = await searchParams
   const query = (q || '').trim()
 
-  let events: Record<string, unknown>[] = []
   let listings: Record<string, unknown>[] = []
+  let searchFailed = false
 
   if (query) {
     try {
       const supabase = createPublicClient()
-      const pattern = `%${query}%`
+      const pattern = `%${query.slice(0, 100).replace(/[\\%_]/g, '\\$&')}%`
 
-      const [eventsRes, listingsRes] = await Promise.all([
-        Promise.resolve({ data: [] }), // events coming soon
-        supabase
-          .from('listings')
-          .select('id, name, category, address, rating, subdomain')
-          .eq('approved', true)
-          .ilike('name', pattern)
-          .limit(5),
-      ])
-
-      events = eventsRes.data || []
-      listings = listingsRes.data || []
+      const { data, error } = await supabase
+        .from('listings')
+        .select('id, name, category, address, rating, subdomain')
+        .eq('approved', true)
+        .ilike('name', pattern)
+        .order('name')
+        .limit(20)
+      if (error) throw error
+      listings = data || []
     } catch {
-      // DB error — show no results
+      searchFailed = true
     }
   }
 
@@ -95,19 +93,20 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Search OurDahanu</h1>
-        <p className="text-gray-500">Find events and businesses</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Search local businesses</h1>
+        <p className="text-gray-500">Find a business by name. For services and areas, use the business directory.</p>
       </div>
 
       <SearchBar query={query} />
+      <p className="mb-6 text-sm text-brand"><Link href={`/listings?q=${encodeURIComponent(query)}`}>Browse businesses by service or area</Link></p>
 
       {!query && (
         <div className="text-center py-16">
           <div className="text-6xl mb-4">🌴</div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Search Dahanu</h2>
-          <p className="text-gray-500">Type something above to search across all sections of OurDahanu</p>
+          <p className="text-gray-500">Enter a business name, or browse the directory by category and area.</p>
           <div className="flex flex-wrap justify-center gap-2 mt-6">
-            {['Chikoo Festival', 'Plumber', 'SSC Results', 'Flat for rent', 'Local Issues'].map(suggestion => (
+            {['Cafe', 'Hotel', 'Clinic', 'School'].map(suggestion => (
               <Link
                 key={suggestion}
                 href={`/search?q=${encodeURIComponent(suggestion)}`}
@@ -120,7 +119,9 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
         </div>
       )}
 
-      {query && totalResults === 0 && (
+      {searchFailed && <p role="alert" className="rounded-xl bg-amber-50 p-4 text-amber-900">Search is temporarily unavailable. Please try again shortly.</p>}
+
+      {query && !searchFailed && totalResults === 0 && (
         <div className="text-center py-16">
           <div className="text-6xl mb-4">🔍</div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">No results found</h2>
@@ -134,9 +135,10 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
       {query && totalResults > 0 && (
         <div>
           <p className="text-sm text-gray-500 mb-8">
-            Found <strong>{totalResults}</strong> result{totalResults !== 1 ? 's' : ''} for <strong>&ldquo;{query}&rdquo;</strong> in Dahanu
+            Showing <strong>{totalResults}</strong> result{totalResults !== 1 ? 's' : ''} for <strong>&ldquo;{query}&rdquo;</strong> in Dahanu
           </p>
 
+          {totalResults === 20 && <p className="mb-4 text-sm text-gray-500">Showing the first 20 matches. Refine your search or browse the directory.</p>}
           <div className="space-y-10">
             {/* Listings */}
             {listings.length > 0 && (

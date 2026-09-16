@@ -1,0 +1,1565 @@
+
+> ourdahanusite@0.1.0 test
+> npm run test:existing && npm run test:game && npm run test:security
+
+
+> ourdahanusite@0.1.0 test:existing
+> tsx --test src/lib/notifications/delivery.test.ts src/app/actions/find-notifications.test.ts src/lib/find/safe-submission.test.ts src/lib/supabase/auth-regression.test.ts src/lib/safe-redirect.test.ts src/lib/coupon-reporting.test.ts src/lib/category-groups.test.ts src/lib/appointment-settings.test.ts src/lib/appointment-slots.test.ts src/lib/appointment-conflicts.test.ts src/lib/subdomain.test.ts src/lib/payment-retry.test.ts src/lib/listing-stats.test.ts src/lib/track-request.test.ts src/lib/jobs/validation.test.ts src/lib/jobs/rules.test.ts src/lib/jobs/display.test.ts src/lib/standalone-hosts.test.ts src/lib/notifications/job-templates.test.ts src/app/actions/jobs-core.test.ts src/lib/selling/selling.test.ts src/lib/notifications/selling-templates.test.ts src/lib/catalog/catalog.test.ts
+
+TAP version 13
+# Subtest: submitProfessional notifies with exact payload only after its successful write
+ok 1 - submitProfessional notifies with exact payload only after its successful write
+  ---
+  duration_ms: 2.7369
+  ...
+# Subtest: submitRating notifies with exact payload only after its successful write
+ok 2 - submitRating notifies with exact payload only after its successful write
+  ---
+  duration_ms: 0.5178
+  ...
+# Subtest: submission actions do not notify when their writes fail
+ok 3 - submission actions do not notify when their writes fail
+  ---
+  duration_ms: 0.5355
+  ...
+# Subtest: notification throws and rejections remain best-effort after a successful write
+ok 4 - notification throws and rejections remain best-effort after a successful write
+  ---
+  duration_ms: 9.3087
+  ...
+# Subtest: production professional insert adapter reuses its request client and does not chain a select
+ok 5 - production professional insert adapter reuses its request client and does not chain a select
+  ---
+  duration_ms: 0.5423
+  ...
+# Subtest: request-scoped Find entrypoints create exactly one client per action invocation
+ok 6 - request-scoped Find entrypoints create exactly one client per action invocation
+  ---
+  duration_ms: 0.7321
+  ...
+# Subtest: an individual post waits for review and tells the admins
+ok 7 - an individual post waits for review and tells the admins
+  ---
+  duration_ms: 6.9572
+  ...
+# Subtest: the owner of an approved listing goes live instantly, with no admin notification
+ok 8 - the owner of an approved listing goes live instantly, with no admin notification
+  ---
+  duration_ms: 2.5436
+  ...
+# Subtest: a lapsed listing, or a flagged post from an approved one, waits for review
+ok 9 - a lapsed listing, or a flagged post from an approved one, waits for review
+  ---
+  duration_ms: 4.4778
+  ...
+# Subtest: posting for a business you do not own is refused before anything is written
+ok 10 - posting for a business you do not own is refused before anything is written
+  ---
+  duration_ms: 1.0341
+  ...
+# Subtest: collected posts are staff-only, and go live regardless of flags
+ok 11 - collected posts are staff-only, and go live regardless of flags
+  ---
+  duration_ms: 1.3014
+  ...
+# Subtest: the daily post limit applies to everyone but staff
+ok 12 - the daily post limit applies to everyone but staff
+  ---
+  duration_ms: 0.7517
+  ...
+# Subtest: a second live profile is refused with a helpful message
+ok 13 - a second live profile is refused with a helpful message
+  ---
+  duration_ms: 0.4215
+  ...
+# Subtest: logged-out posting is refused
+ok 14 - logged-out posting is refused
+  ---
+  duration_ms: 0.3638
+  ...
+# Subtest: editing an approved individual post sends it back to review; a business post stays live
+ok 15 - editing an approved individual post sends it back to review; a business post stays live
+  ---
+  duration_ms: 1.077
+  ...
+# Subtest: an edit keeps the reports flag from a report-hidden post, alongside any newly detected flags
+ok 16 - an edit keeps the reports flag from a report-hidden post, alongside any newly detected flags
+  ---
+  duration_ms: 0.8642
+  ...
+# Subtest: nobody else can edit a post, and closed posts cannot be edited
+ok 17 - nobody else can edit a post, and closed posts cannot be edited
+  ---
+  duration_ms: 1.2138
+  ...
+# Subtest: renew opens in the last 3 days and restarts the 30 days
+ok 18 - renew opens in the last 3 days and restarts the 30 days
+  ---
+  duration_ms: 1.0905
+  ...
+# Subtest: revealing a number needs a login, and returns to the post afterwards
+ok 19 - revealing a number needs a login, and returns to the post afterwards
+  ---
+  duration_ms: 1.1835
+  ...
+# Subtest: a first reveal is recorded; a repeat is free even over the limit
+ok 20 - a first reveal is recorded; a repeat is free even over the limit
+  ---
+  duration_ms: 0.8578
+  ...
+# Subtest: the daily reveal limit stops a new reveal
+ok 21 - the daily reveal limit stops a new reveal
+  ---
+  duration_ms: 0.5529
+  ...
+# Subtest: posters revealing their own number are not counted, and expired posts stay hidden from others
+ok 22 - posters revealing their own number are not counted, and expired posts stay hidden from others
+  ---
+  duration_ms: 0.4655
+  ...
+# Subtest: the third report since review hides an approved post; earlier ones do not
+ok 23 - the third report since review hides an approved post; earlier ones do not
+  ---
+  duration_ms: 18.6195
+  ...
+# Subtest: reports are refused for your own post, for an unknown reason, and twice
+ok 24 - reports are refused for your own post, for an unknown reason, and twice
+  ---
+  duration_ms: 5.5508
+  ...
+# Subtest: reporting a closed or expired post is refused and writes nothing
+ok 25 - reporting a closed or expired post is refused and writes nothing
+  ---
+  duration_ms: 0.59
+  ...
+# Subtest: a failing admin notification never turns a saved post into an error
+ok 26 - a failing admin notification never turns a saved post into an error
+  ---
+  duration_ms: 0.5573
+  ...
+# Subtest: a failing cache refresh never turns a saved post into an error
+ok 27 - a failing cache refresh never turns a saved post into an error
+  ---
+  duration_ms: 0.5431
+  ...
+# Subtest: the third report still hides the post when the admin notification throws
+ok 28 - the third report still hides the post when the admin notification throws
+  ---
+  duration_ms: 1.7228
+  ...
+# Subtest: a failed hide write is logged, the report still succeeds, and the board is not refreshed
+ok 29 - a failed hide write is logged, the report still succeeds, and the board is not refreshed
+  ---
+  duration_ms: 0.5438
+  ...
+# Subtest: a closed override conflicts with every confirmed booking
+ok 30 - a closed override conflicts with every confirmed booking
+  ---
+  duration_ms: 1.641
+  ...
+# Subtest: ignores bookings that are already cancelled
+ok 31 - ignores bookings that are already cancelled
+  ---
+  duration_ms: 0.2427
+  ...
+# Subtest: ignores completed and no-show bookings
+ok 32 - ignores completed and no-show bookings
+  ---
+  duration_ms: 0.1813
+  ...
+# Subtest: keeps bookings that still fall inside the new windows
+ok 33 - keeps bookings that still fall inside the new windows
+  ---
+  duration_ms: 0.3166
+  ...
+# Subtest: flags bookings that fall outside the new windows
+ok 34 - flags bookings that fall outside the new windows
+  ---
+  duration_ms: 0.2374
+  ...
+# Subtest: a booking exactly at a window end is outside it
+ok 35 - a booking exactly at a window end is outside it
+  ---
+  duration_ms: 0.1934
+  ...
+# Subtest: a booking exactly at a window start is inside it
+ok 36 - a booking exactly at a window start is inside it
+  ---
+  duration_ms: 0.2496
+  ...
+# Subtest: a booking inside any one of several windows is kept
+ok 37 - a booking inside any one of several windows is kept
+  ---
+  duration_ms: 0.218
+  ...
+# Subtest: an open override with no windows conflicts with everything
+ok 38 - an open override with no windows conflicts with everything
+  ---
+  duration_ms: 0.2484
+  ...
+# Subtest: tolerates seconds in slot_start as Postgres returns them
+ok 39 - tolerates seconds in slot_start as Postgres returns them
+  ---
+  duration_ms: 0.2168
+  ...
+# Subtest: returns null for non-object input
+ok 40 - returns null for non-object input
+  ---
+  duration_ms: 1.2075
+  ...
+# Subtest: reads the new array shape
+ok 41 - reads the new array shape
+  ---
+  duration_ms: 1.17
+  ...
+# Subtest: upgrades the legacy single-window shape to a one-element array
+ok 42 - upgrades the legacy single-window shape to a one-element array
+  ---
+  duration_ms: 0.2976
+  ...
+# Subtest: drops windows whose end is not after start
+ok 43 - drops windows whose end is not after start
+  ---
+  duration_ms: 0.3335
+  ...
+# Subtest: drops malformed times
+ok 44 - drops malformed times
+  ---
+  duration_ms: 0.2025
+  ...
+# Subtest: an invalid legacy single-window shape degrades to an empty array
+ok 45 - an invalid legacy single-window shape degrades to an empty array
+  ---
+  duration_ms: 0.1709
+  ...
+# Subtest: sorts windows by start time
+ok 46 - sorts windows by start time
+  ---
+  duration_ms: 0.3312
+  ...
+# Subtest: drops a window that overlaps the one before it
+ok 47 - drops a window that overlaps the one before it
+  ---
+  duration_ms: 0.2451
+  ...
+# Subtest: caps windows per day
+ok 48 - caps windows per day
+  ---
+  duration_ms: 0.3747
+  ...
+# Subtest: defaults min_notice_minutes to 0 when absent
+ok 49 - defaults min_notice_minutes to 0 when absent
+  ---
+  duration_ms: 0.2853
+  ...
+# Subtest: clamps min_notice_minutes into range
+ok 50 - clamps min_notice_minutes into range
+  ---
+  duration_ms: 0.2353
+  ...
+# Subtest: keeps existing numeric clamps
+ok 51 - keeps existing numeric clamps
+  ---
+  duration_ms: 0.2205
+  ...
+# Subtest: default settings have every day closed and no notice
+ok 52 - default settings have every day closed and no notice
+  ---
+  duration_ms: 0.1916
+  ...
+# (node:17416) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: returns nothing when settings are null
+ok 53 - returns nothing when settings are null
+  ---
+  duration_ms: 1.8268
+  ...
+# Subtest: returns nothing on a day with no windows
+ok 54 - returns nothing on a day with no windows
+  ---
+  duration_ms: 0.392
+  ...
+# Subtest: generates slots across one window
+ok 55 - generates slots across one window
+  ---
+  duration_ms: 28.1854
+  ...
+# Subtest: generates slots across two windows in order
+ok 56 - generates slots across two windows in order
+  ---
+  duration_ms: 1.2579
+  ...
+# Subtest: never emits a slot that would run past its window end
+ok 57 - never emits a slot that would run past its window end
+  ---
+  duration_ms: 0.672
+  ...
+# Subtest: adds buffer between slots but not to slot length
+ok 58 - adds buffer between slots but not to slot length
+  ---
+  duration_ms: 2.1172
+  ...
+# Subtest: marks a full slot unavailable but still returns it
+ok 59 - marks a full slot unavailable but still returns it
+  ---
+  duration_ms: 0.6855
+  ...
+# Subtest: reports remaining seats for multi-capacity slots
+ok 60 - reports remaining seats for multi-capacity slots
+  ---
+  duration_ms: 0.5797
+  ...
+# Subtest: never reports negative remaining
+ok 61 - never reports negative remaining
+  ---
+  duration_ms: 0.6258
+  ...
+# Subtest: a closed override yields no slots
+ok 62 - a closed override yields no slots
+  ---
+  duration_ms: 0.3141
+  ...
+# Subtest: an open override replaces the weekday windows entirely
+ok 63 - an open override replaces the weekday windows entirely
+  ---
+  duration_ms: 0.65
+  ...
+# Subtest: an open override with no windows yields no slots
+ok 64 - an open override with no windows yields no slots
+  ---
+  duration_ms: 0.201
+  ...
+# Subtest: an override can open a normally closed day
+ok 65 - an override can open a normally closed day
+  ---
+  duration_ms: 0.5017
+  ...
+# Subtest: resolveWindowsForDate prefers the override over the weekday
+ok 66 - resolveWindowsForDate prefers the override over the weekday
+  ---
+  duration_ms: 0.3809
+  ...
+# Subtest: a slot strictly before now is dropped entirely
+ok 67 - a slot strictly before now is dropped entirely
+  ---
+  duration_ms: 0.3013
+  ...
+# Subtest: a slot exactly at now is also dropped
+ok 68 - a slot exactly at now is also dropped
+  ---
+  duration_ms: 0.226
+  ...
+# Subtest: a future slot inside the notice window is too_soon
+ok 69 - a future slot inside the notice window is too_soon
+  ---
+  duration_ms: 0.2157
+  ...
+# Subtest: a slot at or beyond the notice threshold is open
+ok 70 - a slot at or beyond the notice threshold is open
+  ---
+  duration_ms: 0.3768
+  ...
+# Subtest: with zero min notice, every future slot today is open
+ok 71 - with zero min notice, every future slot today is open
+  ---
+  duration_ms: 0.2273
+  ...
+# Subtest: a full slot inside the notice window reports full, not too_soon
+ok 72 - a full slot inside the notice window reports full, not too_soon
+  ---
+  duration_ms: 0.2567
+  ...
+# Subtest: a future booking date is unaffected by an injected now
+ok 73 - a future booking date is unaffected by an injected now
+  ---
+  duration_ms: 0.2044
+  ...
+# Subtest: at 00:07 IST the real clock path still returns the day slots
+ok 74 - at 00:07 IST the real clock path still returns the day slots
+  ---
+  duration_ms: 1.7368
+  ...
+# Subtest: formatPaise shows rupees the Indian way
+ok 75 - formatPaise shows rupees the Indian way
+  ---
+  duration_ms: 33.1432
+  ...
+# Subtest: catalogPriceLine: fixed price, lowest option, note, or ask
+ok 76 - catalogPriceLine: fixed price, lowest option, note, or ask
+  ---
+  duration_ms: 0.6862
+  ...
+# Subtest: isBuyable needs options or a price of at least ₹1
+ok 77 - isBuyable needs options or a price of at least ₹1
+  ---
+  duration_ms: 0.2747
+  ...
+# Subtest: isSoldOut looks at options when there are any
+ok 78 - isSoldOut looks at options when there are any
+  ---
+  duration_ms: 0.3318
+  ...
+# Subtest: catalogItemAction: Buy and Book in a live shop
+ok 79 - catalogItemAction: Buy and Book in a live shop
+  ---
+  duration_ms: 0.9918
+  ...
+# Subtest: catalogItemAction: a test shop sells only to its owner
+ok 80 - catalogItemAction: a test shop sells only to its owner
+  ---
+  duration_ms: 0.2074
+  ...
+# Subtest: catalogItemAction: Sold out only ever replaces Buy
+ok 81 - catalogItemAction: Sold out only ever replaces Buy
+  ---
+  duration_ms: 0.173
+  ...
+# Subtest: catalogItemAction: unbuyable items use WhatsApp, or nothing without a number
+ok 82 - catalogItemAction: unbuyable items use WhatsApp, or nothing without a number
+  ---
+  duration_ms: 0.2781
+  ...
+# Subtest: catalogWhatsAppHref prefills the item and its link
+ok 83 - catalogWhatsAppHref prefills the item and its link
+  ---
+  duration_ms: 0.4333
+  ...
+# Subtest: firstAvailableOptionId skips sold-out options
+ok 84 - firstAvailableOptionId skips sold-out options
+  ---
+  duration_ms: 0.3862
+  ...
+# Subtest: order labels include the option when there is one
+ok 85 - order labels include the option when there is one
+  ---
+  duration_ms: 0.2135
+  ...
+# Subtest: toCatalogItem sorts options and defaults an unknown photo shape to square
+ok 86 - toCatalogItem sorts options and defaults an unknown photo shape to square
+  ---
+  duration_ms: 0.4864
+  ...
+# Subtest: validateCatalogItem: one price
+ok 87 - validateCatalogItem: one price
+  ---
+  duration_ms: 0.9077
+  ...
+# Subtest: validateCatalogItem: prices below ₹1, above ₹1 crore and bad numbers are refused
+ok 88 - validateCatalogItem: prices below ₹1, above ₹1 crore and bad numbers are refused
+  ---
+  duration_ms: 0.3699
+  ...
+# Subtest: validateCatalogItem: stock must be a whole number or blank
+ok 89 - validateCatalogItem: stock must be a whole number or blank
+  ---
+  duration_ms: 0.2886
+  ...
+# Subtest: validateCatalogItem: a name is required and capped; photo links must be web links
+ok 90 - validateCatalogItem: a name is required and capped; photo links must be web links
+  ---
+  duration_ms: 0.2971
+  ...
+# Subtest: validateCatalogItem: options replace the item price and stock
+ok 91 - validateCatalogItem: options replace the item price and stock
+  ---
+  duration_ms: 0.393
+  ...
+# Subtest: validateCatalogItem: option rules
+ok 92 - validateCatalogItem: option rules
+  ---
+  duration_ms: 0.5558
+  ...
+# Subtest: validateCatalogItem: no fixed price keeps only the note
+ok 93 - validateCatalogItem: no fixed price keeps only the note
+  ---
+  duration_ms: 0.4244
+  ...
+# Subtest: coerceCatalogItemInput turns untrusted data into safe input
+ok 94 - coerceCatalogItemInput turns untrusted data into safe input
+  ---
+  duration_ms: 0.4223
+  ...
+# Subtest: managerPriceLine and managerStockLine describe each row
+ok 95 - managerPriceLine and managerStockLine describe each row
+  ---
+  duration_ms: 0.8849
+  ...
+# Subtest: moveId swaps neighbours and ignores moves past the ends
+ok 96 - moveId swaps neighbours and ignores moves past the ends
+  ---
+  duration_ms: 0.3482
+  ...
+# Subtest: noOnlinePriceHint counts visible items customers cannot buy
+ok 97 - noOnlinePriceHint counts visible items customers cannot buy
+  ---
+  duration_ms: 0.4385
+  ...
+# Subtest: catalogItemToInput round-trips through validation
+ok 98 - catalogItemToInput round-trips through validation
+  ---
+  duration_ms: 1.7691
+  ...
+# Subtest: previewCatalogItem shows what customers will see before saving
+ok 99 - previewCatalogItem shows what customers will see before saving
+  ---
+  duration_ms: 0.6053
+  ...
+# Subtest: rolls granular categories up into their group
+ok 100 - rolls granular categories up into their group
+  ---
+  duration_ms: 1.6407
+  ...
+# Subtest: excludes groups with a zero count
+ok 101 - excludes groups with a zero count
+  ---
+  duration_ms: 0.9916
+  ...
+# Subtest: orders by count descending
+ok 102 - orders by count descending
+  ---
+  duration_ms: 0.4409
+  ...
+# Subtest: breaks count ties by label ascending
+ok 103 - breaks count ties by label ascending
+  ---
+  duration_ms: 1.2637
+  ...
+# Subtest: respects the limit
+ok 104 - respects the limit
+  ---
+  duration_ms: 0.3458
+  ...
+# Subtest: attaches up to three thumbnails, best rated first
+ok 105 - attaches up to three thumbnails, best rated first
+  ---
+  duration_ms: 0.4228
+  ...
+# Subtest: falls back to image_url when image_thumb_url is missing
+ok 106 - falls back to image_url when image_thumb_url is missing
+  ---
+  duration_ms: 0.3062
+  ...
+# Subtest: never selects a listing with no image at all
+ok 107 - never selects a listing with no image at all
+  ---
+  duration_ms: 0.2355
+  ...
+# Subtest: ignores listings whose category is outside the group
+ok 108 - ignores listings whose category is outside the group
+  ---
+  duration_ms: 0.3074
+  ...
+# Subtest: lists only live member categories, with links
+ok 109 - lists only live member categories, with links
+  ---
+  duration_ms: 0.3781
+  ...
+# Subtest: empty input produces empty output
+ok 110 - empty input produces empty output
+  ---
+  duration_ms: 0.2314
+  ...
+# Subtest: summariseByCoupon splits new and renewal and sums revenue
+ok 111 - summariseByCoupon splits new and renewal and sums revenue
+  ---
+  duration_ms: 2.0052
+  ...
+# Subtest: summariseByCoupon counts free redemptions but adds no revenue
+ok 112 - summariseByCoupon counts free redemptions but adds no revenue
+  ---
+  duration_ms: 0.3579
+  ...
+# Subtest: summariseByCoupon orders by total descending
+ok 113 - summariseByCoupon orders by total descending
+  ---
+  duration_ms: 0.3535
+  ...
+# Subtest: summariseByPerson groups multiple codes under one person
+ok 114 - summariseByPerson groups multiple codes under one person
+  ---
+  duration_ms: 0.4693
+  ...
+# Subtest: summariseByPerson keeps unassigned codes under their own code name
+ok 115 - summariseByPerson keeps unassigned codes under their own code name
+  ---
+  duration_ms: 0.2374
+  ...
+# Subtest: summariseByPerson treats a null assigned_to as unassigned
+ok 116 - summariseByPerson treats a null assigned_to as unassigned
+  ---
+  duration_ms: 0.3958
+  ...
+# Subtest: empty input produces empty output
+ok 117 - empty input produces empty output
+  ---
+  duration_ms: 0.2105
+  ...
+# Subtest: safe submission returns action results unchanged
+ok 118 - safe submission returns action results unchanged
+  ---
+  duration_ms: 1.2962
+  ...
+# Subtest: safe submission converts an action rejection into a friendly settled result
+ok 119 - safe submission converts an action rejection into a friendly settled result
+  ---
+  duration_ms: 1.0232
+  ...
+# Subtest: pay reads naturally
+ok 120 - pay reads naturally
+  ---
+  duration_ms: 40.5965
+  ...
+# Subtest: JobPosting carries the fields Google for Jobs needs
+ok 121 - JobPosting carries the fields Google for Jobs needs
+  ---
+  duration_ms: 1.253
+  ...
+# Subtest: JobPosting never contains a phone number
+ok 122 - JobPosting never contains a phone number
+  ---
+  duration_ms: 0.3527
+  ...
+# Subtest: JobPosting omits salary when pay is to be discussed, and describes itself when no description is given
+ok 123 - JobPosting omits salary when pay is to be discussed, and describes itself when no description is given
+  ---
+  duration_ms: 0.2612
+  ...
+# Subtest: JobPosting sends pay only as an exact amount or a full range
+ok 124 - JobPosting sends pay only as an exact amount or a full range
+  ---
+  duration_ms: 0.2856
+  ...
+# Subtest: fee words in English, Marathi and Hindi flag a post
+ok 125 - fee words in English, Marathi and Hindi flag a post
+  ---
+  duration_ms: 8.3322
+  ...
+# Subtest: ordinary words that merely contain a fee word do not flag
+ok 126 - ordinary words that merely contain a fee word do not flag
+  ---
+  duration_ms: 0.3681
+  ...
+# Subtest: "No registration fee" still flags, deliberately
+ok 127 - "No registration fee" still flags, deliberately
+  ---
+  duration_ms: 0.3545
+  ...
+# Subtest: links and phone numbers typed into the text flag for review
+ok 128 - links and phone numbers typed into the text flag for review
+  ---
+  duration_ms: 0.293
+  ...
+# Subtest: both flags can be raised at once, across fields
+ok 129 - both flags can be raised at once, across fields
+  ---
+  duration_ms: 0.2076
+  ...
+# Subtest: create: the owner of an approved listing goes live instantly
+ok 130 - create: the owner of an approved listing goes live instantly
+  ---
+  duration_ms: 0.299
+  ...
+# Subtest: create: an individual, a lapsed or foreign listing, and any flagged post wait for review
+ok 131 - create: an individual, a lapsed or foreign listing, and any flagged post wait for review
+  ---
+  duration_ms: 0.2558
+  ...
+# Subtest: create: staff collected posts go live, flags or not
+ok 132 - create: staff collected posts go live, flags or not
+  ---
+  duration_ms: 0.2692
+  ...
+# Subtest: edit outcomes follow the table in the spec
+ok 133 - edit outcomes follow the table in the spec
+  ---
+  duration_ms: 0.8079
+  ...
+# Subtest: reports hide an approved post at the third since review, not before
+ok 134 - reports hide an approved post at the third since review, not before
+  ---
+  duration_ms: 7.7136
+  ...
+# Subtest: publishing sets a 30-day window
+ok 135 - publishing sets a 30-day window
+  ---
+  duration_ms: 1.3392
+  ...
+# Subtest: a post is live only while approved and unexpired
+ok 136 - a post is live only while approved and unexpired
+  ---
+  duration_ms: 0.3036
+  ...
+# Subtest: renew opens in the last 3 days and never closes after expiry
+ok 137 - renew opens in the last 3 days and never closes after expiry
+  ---
+  duration_ms: 0.2608
+  ...
+# Subtest: the reminder is due once, within 3 days of expiry
+ok 138 - the reminder is due once, within 3 days of expiry
+  ---
+  duration_ms: 0.3742
+  ...
+# Subtest: days left rounds up and never goes negative
+ok 139 - days left rounds up and never goes negative
+  ---
+  duration_ms: 0.3016
+  ...
+# Subtest: hoursAgoIso steps back in whole hours
+ok 140 - hoursAgoIso steps back in whole hours
+  ---
+  duration_ms: 0.3372
+  ...
+# Subtest: every category has a unique slug that round-trips
+ok 141 - every category has a unique slug that round-trips
+  ---
+  duration_ms: 3.2194
+  ...
+# Subtest: every category has a Marathi label
+ok 142 - every category has a Marathi label
+  ---
+  duration_ms: 0.4451
+  ...
+# Subtest: phone numbers normalise to 10 digits whatever the formatting
+ok 143 - phone numbers normalise to 10 digits whatever the formatting
+  ---
+  duration_ms: 0.5342
+  ...
+# Subtest: landlines with an STD code are valid but are not mobiles
+ok 144 - landlines with an STD code are valid but are not mobiles
+  ---
+  duration_ms: 0.3509
+  ...
+# Subtest: invalid phone numbers are rejected
+ok 145 - invalid phone numbers are rejected
+  ---
+  duration_ms: 0.2702
+  ...
+# Subtest: phone links and display
+ok 146 - phone links and display
+  ---
+  duration_ms: 0.1982
+  ...
+# Subtest: a valid hiring post normalises into column values
+ok 147 - a valid hiring post normalises into column values
+  ---
+  duration_ms: 1.7347
+  ...
+# Subtest: a valid seeking post drops every hiring-only field
+ok 148 - a valid seeking post drops every hiring-only field
+  ---
+  duration_ms: 0.3356
+  ...
+# Subtest: pay is optional
+ok 149 - pay is optional
+  ---
+  duration_ms: 0.3159
+  ...
+# Subtest: a landline is accepted when WhatsApp is off
+ok 150 - a landline is accepted when WhatsApp is off
+  ---
+  duration_ms: 0.2452
+  ...
+# Subtest: rejects a missing title
+ok 151 - rejects a missing title
+  ---
+  duration_ms: 0.3082
+  ...
+# Subtest: rejects a long title
+ok 152 - rejects a long title
+  ---
+  duration_ms: 0.206
+  ...
+# Subtest: rejects an unknown category
+ok 153 - rejects an unknown category
+  ---
+  duration_ms: 0.1266
+  ...
+# Subtest: rejects no work type
+ok 154 - rejects no work type
+  ---
+  duration_ms: 0.1938
+  ...
+# Subtest: rejects an unknown work type
+ok 155 - rejects an unknown work type
+  ---
+  duration_ms: 0.1456
+  ...
+# Subtest: rejects a missing area
+ok 156 - rejects a missing area
+  ---
+  duration_ms: 0.1336
+  ...
+# Subtest: rejects a long description
+ok 157 - rejects a long description
+  ---
+  duration_ms: 0.3011
+  ...
+# Subtest: rejects a bad phone number
+ok 158 - rejects a bad phone number
+  ---
+  duration_ms: 0.4867
+  ...
+# Subtest: rejects WhatsApp on a landline
+ok 159 - rejects WhatsApp on a landline
+  ---
+  duration_ms: 0.1671
+  ...
+# Subtest: rejects a missing employer
+ok 160 - rejects a missing employer
+  ---
+  duration_ms: 0.3712
+  ...
+# Subtest: rejects zero openings
+ok 161 - rejects zero openings
+  ---
+  duration_ms: 0.1853
+  ...
+# Subtest: rejects fractional pay
+ok 162 - rejects fractional pay
+  ---
+  duration_ms: 0.2445
+  ...
+# Subtest: rejects zero pay
+ok 163 - rejects zero pay
+  ---
+  duration_ms: 0.1376
+  ...
+# Subtest: rejects negative pay
+ok 164 - rejects negative pay
+  ---
+  duration_ms: 0.1139
+  ...
+# Subtest: rejects pay over the ₹1 crore cap
+ok 165 - rejects pay over the ₹1 crore cap
+  ---
+  duration_ms: 0.1189
+  ...
+# Subtest: rejects max pay over the ₹1 crore cap
+ok 166 - rejects max pay over the ₹1 crore cap
+  ---
+  duration_ms: 0.1316
+  ...
+# Subtest: rejects maximum pay below minimum
+ok 167 - rejects maximum pay below minimum
+  ---
+  duration_ms: 0.1262
+  ...
+# Subtest: rejects pay without a period
+ok 168 - rejects pay without a period
+  ---
+  duration_ms: 0.1027
+  ...
+# Subtest: rejects a malformed business id
+ok 169 - rejects a malformed business id
+  ---
+  duration_ms: 0.2629
+  ...
+# Subtest: rejects a missing first name
+ok 170 - rejects a missing first name
+  ---
+  duration_ms: 0.2448
+  ...
+# Subtest: rejects impossible experience
+ok 171 - rejects impossible experience
+  ---
+  duration_ms: 0.1545
+  ...
+# Subtest: month windows for a mid-month day
+ok 172 - month windows for a mid-month day
+  ---
+  duration_ms: 1.6303
+  ...
+# Subtest: month windows on the first of the month
+ok 173 - month windows on the first of the month
+  ---
+  duration_ms: 0.3182
+  ...
+# Subtest: month windows roll back across a year boundary
+ok 174 - month windows roll back across a year boundary
+  ---
+  duration_ms: 0.1688
+  ...
+# Subtest: month windows handle a 30-day previous month
+ok 175 - month windows handle a 30-day previous month
+  ---
+  duration_ms: 0.1713
+  ...
+# Subtest: month windows handle February in a non-leap year
+ok 176 - month windows handle February in a non-leap year
+  ---
+  duration_ms: 0.2026
+  ...
+# Subtest: month windows handle February in a leap year
+ok 177 - month windows handle February in a leap year
+  ---
+  duration_ms: 0.1615
+  ...
+# Subtest: counts each kind separately for the current month
+ok 178 - counts each kind separately for the current month
+  ---
+  duration_ms: 0.512
+  ...
+# Subtest: counts last month views separately and never mixes them in
+ok 179 - counts last month views separately and never mixes them in
+  ---
+  duration_ms: 0.1841
+  ...
+# Subtest: includes the first and last day of each window
+ok 180 - includes the first and last day of each window
+  ---
+  duration_ms: 0.27
+  ...
+# Subtest: ignores events older than last month
+ok 181 - ignores events older than last month
+  ---
+  duration_ms: 0.2321
+  ...
+# Subtest: keeps listings separate
+ok 182 - keeps listings separate
+  ---
+  duration_ms: 0.1765
+  ...
+# Subtest: returns no listings for no rows
+ok 183 - returns no listings for no rows
+  ---
+  duration_ms: 0.1345
+  ...
+# Subtest: EMPTY_LISTING_STATS is all zeroes
+ok 184 - EMPTY_LISTING_STATS is all zeroes
+  ---
+  duration_ms: 0.1403
+  ...
+# Subtest: default dispatch waits for Telegram delivery before resolving
+ok 185 - default dispatch waits for Telegram delivery before resolving
+  ---
+  duration_ms: 88.1495
+  ...
+# Subtest: Telegram delivery uses the same primary bot as the linking webhook
+ok 186 - Telegram delivery uses the same primary bot as the linking webhook
+  ---
+  duration_ms: 9.2569
+  ...
+# Subtest: job.approved links to the live post
+ok 187 - job.approved links to the live post
+  ---
+  duration_ms: 1.4348
+  ...
+# Subtest: job.rejected carries the reason, escaped in the email
+ok 188 - job.rejected carries the reason, escaped in the email
+  ---
+  duration_ms: 0.6484
+  ...
+# Subtest: job.expiring says "1 day", not "1 days"
+ok 189 - job.expiring says "1 day", not "1 days"
+  ---
+  duration_ms: 0.3548
+  ...
+# Subtest: admin submissions label job posts and job reports
+ok 190 - admin submissions label job posts and job reports
+  ---
+  duration_ms: 0.5973
+  ...
+# Subtest: selling.paused by an admin quotes the reason and links to payments
+ok 191 - selling.paused by an admin quotes the reason and links to payments
+  ---
+  duration_ms: 1.4712
+  ...
+# Subtest: selling.paused does not double the full stop after the reason
+ok 192 - selling.paused does not double the full stop after the reason
+  ---
+  duration_ms: 0.3273
+  ...
+# Subtest: selling.paused after Razorpay rejects keys asks the owner to reconnect
+ok 193 - selling.paused after Razorpay rejects keys asks the owner to reconnect
+  ---
+  duration_ms: 0.2198
+  ...
+# Subtest: selling.resumed links to My Business
+ok 194 - selling.resumed links to My Business
+  ---
+  duration_ms: 0.3126
+  ...
+# Subtest: test orders say so in the buyer and owner titles
+ok 195 - test orders say so in the buyer and owner titles
+  ---
+  duration_ms: 32.8166
+  ...
+# Subtest: real orders keep their titles
+ok 196 - real orders keep their titles
+  ---
+  duration_ms: 0.2367
+  ...
+# Subtest: admin shop_live alert names the business
+ok 197 - admin shop_live alert names the business
+  ---
+  duration_ms: 0.3622
+  ...
+# Subtest: returns immediately on success without retrying
+ok 198 - returns immediately on success without retrying
+  ---
+  duration_ms: 1.8137
+  ...
+# Subtest: retries a transient error and returns the eventual success
+ok 199 - retries a transient error and returns the eventual success
+  ---
+  duration_ms: 110.9218
+  ...
+# Subtest: gives up immediately on a signature failure
+ok 200 - gives up immediately on a signature failure
+  ---
+  duration_ms: 0.3319
+  ...
+# Subtest: gives up immediately when the slot is already full
+ok 201 - gives up immediately when the slot is already full
+  ---
+  duration_ms: 0.2383
+  ...
+# Subtest: gives up immediately when the slot is no longer available
+ok 202 - gives up immediately when the slot is no longer available
+  ---
+  duration_ms: 0.2137
+  ...
+# Subtest: stops after the configured number of attempts on a persistent transient error
+ok 203 - stops after the configured number of attempts on a persistent transient error
+  ---
+  duration_ms: 63.2038
+  ...
+# Subtest: relative paths resolve against the origin
+ok 204 - relative paths resolve against the origin
+  ---
+  duration_ms: 1.1593
+  ...
+# Subtest: null and empty fall back to the origin root
+ok 205 - null and empty fall back to the origin root
+  ---
+  duration_ms: 0.243
+  ...
+# Subtest: apex and business subdomains are allowed
+ok 206 - apex and business subdomains are allowed
+  ---
+  duration_ms: 0.1968
+  ...
+# Subtest: foreign hosts are rejected
+ok 207 - foreign hosts are rejected
+  ---
+  duration_ms: 0.1958
+  ...
+# Subtest: lookalike hosts that merely end in the brand are rejected
+ok 208 - lookalike hosts that merely end in the brand are rejected
+  ---
+  duration_ms: 0.2871
+  ...
+# Subtest: protocol-relative URLs are rejected
+ok 209 - protocol-relative URLs are rejected
+  ---
+  duration_ms: 0.1336
+  ...
+# Subtest: non-https schemes are rejected
+ok 210 - non-https schemes are rejected
+  ---
+  duration_ms: 0.1609
+  ...
+# Subtest: unparseable input falls back to the origin root
+ok 211 - unparseable input falls back to the origin root
+  ---
+  duration_ms: 0.1311
+  ...
+# Subtest: localhost subdomains are allowed so dev sign-in works
+ok 212 - localhost subdomains are allowed so dev sign-in works
+  ---
+  duration_ms: 0.1852
+  ...
+# Subtest: backslash-based host bypasses are rejected
+ok 213 - backslash-based host bypasses are rejected
+  ---
+  duration_ms: 0.1364
+  ...
+# Subtest: a relative path on a vercel.app preview origin keeps its path
+ok 214 - a relative path on a vercel.app preview origin keeps its path
+  ---
+  duration_ms: 0.179
+  ...
+# Subtest: an absolute foreign host is still rejected when origin is vercel.app
+ok 215 - an absolute foreign host is still rejected when origin is vercel.app
+  ---
+  duration_ms: 0.1888
+  ...
+# Subtest: embedded tab/LF/CR host bypasses are rejected
+ok 216 - embedded tab/LF/CR host bypasses are rejected
+  ---
+  duration_ms: 0.2307
+  ...
+# Subtest: classifyRazorpayKeyId reads the mode from the prefix
+ok 217 - classifyRazorpayKeyId reads the mode from the prefix
+  ---
+  duration_ms: 1.3842
+  ...
+# Subtest: save errors use the agreed copy
+ok 218 - save errors use the agreed copy
+  ---
+  duration_ms: 0.3217
+  ...
+# Subtest: deriveShopMode is live only when every gate passes
+ok 219 - deriveShopMode is live only when every gate passes
+  ---
+  duration_ms: 0.4311
+  ...
+# Subtest: deriveSellingStatus puts suspension first
+ok 220 - deriveSellingStatus puts suspension first
+  ---
+  duration_ms: 0.4189
+  ...
+# Subtest: canBuyFromShop: live for anyone, test for owner and admin only
+ok 221 - canBuyFromShop: live for anyone, test for owner and admin only
+  ---
+  duration_ms: 0.2926
+  ...
+# Subtest: becameLive fires on the first verified live key only
+ok 222 - becameLive fires on the first verified live key only
+  ---
+  duration_ms: 0.2396
+  ...
+# Subtest: becameLive stays quiet when the same live key is reconnected after Razorpay cleared it
+ok 223 - becameLive stays quiet when the same live key is reconnected after Razorpay cleared it
+  ---
+  duration_ms: 0.2646
+  ...
+# Subtest: shared copy
+ok 224 - shared copy
+  ---
+  duration_ms: 0.3279
+  ...
+# Subtest: checklist for a new approved owner
+ok 225 - checklist for a new approved owner
+  ---
+  duration_ms: 1.1347
+  ...
+# Subtest: checklist blocks everything until the listing is approved
+ok 226 - checklist blocks everything until the listing is approved
+  ---
+  duration_ms: 0.338
+  ...
+# Subtest: checklist accepts keys before items and items before keys
+ok 227 - checklist accepts keys before items and items before keys
+  ---
+  duration_ms: 0.2395
+  ...
+# Subtest: a practice order completes the practice step but not going live
+ok 228 - a practice order completes the practice step but not going live
+  ---
+  duration_ms: 0.2172
+  ...
+# Subtest: connecting live keys directly skips the practice step and completes
+ok 229 - connecting live keys directly skips the practice step and completes
+  ---
+  duration_ms: 0.4977
+  ...
+# Subtest: checklist is not live while payments are switched off
+ok 230 - checklist is not live while payments are switched off
+  ---
+  duration_ms: 0.322
+  ...
+# Subtest: suspension and rejected keys override the status
+ok 231 - suspension and rejected keys override the status
+  ---
+  duration_ms: 0.2018
+  ...
+# Subtest: recognises the standalone products on production and local hosts
+ok 232 - recognises the standalone products on production and local hosts
+  ---
+  duration_ms: 1.1578
+  ...
+# Subtest: business subdomains, the apex and junk are not standalone
+ok 233 - business subdomains, the apex and junk are not standalone
+  ---
+  duration_ms: 0.3237
+  ...
+# Subtest: login from a standalone host runs on the main domain and returns to the same page
+ok 234 - login from a standalone host runs on the main domain and returns to the same page
+  ---
+  duration_ms: 0.3484
+  ...
+# Subtest: login from the main domain stays on the main domain
+ok 235 - login from the main domain stays on the main domain
+  ---
+  duration_ms: 0.1596
+  ...
+# Subtest: reads a real business subdomain
+ok 236 - reads a real business subdomain
+  ---
+  duration_ms: 1.1243
+  ...
+# Subtest: never treats a reserved prefix as a business
+ok 237 - never treats a reserved prefix as a business
+  ---
+  duration_ms: 0.2998
+  ...
+# Subtest: returns null for the bare domain
+ok 238 - returns null for the bare domain
+  ---
+  duration_ms: 0.1882
+  ...
+# Subtest: pins the lockless Supabase client and its Node 20-compatible engine metadata
+ok 239 - pins the lockless Supabase client and its Node 20-compatible engine metadata
+  ---
+  duration_ms: 7.485
+  ...
+# Subtest: shares production auth cookies across OurDahanu subdomains only
+ok 240 - shares production auth cookies across OurDahanu subdomains only
+  ---
+  duration_ms: 2.0944
+  ...
+# Subtest: removes only legacy host-only auth-token cookies and leaves PKCE cookies intact
+ok 241 - removes only legacy host-only auth-token cookies and leaves PKCE cookies intact
+  ---
+  duration_ms: 0.4357
+  ...
+# Subtest: skips browser auth on Find hosts and tolerates an initial getUser rejection
+ok 242 - skips browser auth on Find hosts and tolerates an initial getUser rejection
+  ---
+  duration_ms: 0.3934
+  ...
+# Subtest: Find auth planning clears legacy host cookies without initializing a client
+ok 243 - Find auth planning clears legacy host cookies without initializing a client
+  ---
+  duration_ms: 0.4864
+  ...
+# Subtest: isLikelyBot treats a missing User-Agent as a bot
+ok 244 - isLikelyBot treats a missing User-Agent as a bot
+  ---
+  duration_ms: 0.9088
+  ...
+# Subtest: isLikelyBot flags known crawler and headless UAs
+ok 245 - isLikelyBot flags known crawler and headless UAs
+  ---
+  duration_ms: 0.3323
+  ...
+# Subtest: isLikelyBot passes real mobile browser UAs
+ok 246 - isLikelyBot passes real mobile browser UAs
+  ---
+  duration_ms: 0.1421
+  ...
+# Subtest: ipRateLimitKey uses an IPv4 address as-is
+ok 247 - ipRateLimitKey uses an IPv4 address as-is
+  ---
+  duration_ms: 0.2817
+  ...
+# Subtest: ipRateLimitKey unwraps an IPv4-mapped IPv6 address
+ok 248 - ipRateLimitKey unwraps an IPv4-mapped IPv6 address
+  ---
+  duration_ms: 0.2468
+  ...
+# Subtest: ipRateLimitKey cuts a full IPv6 address to its /64
+ok 249 - ipRateLimitKey cuts a full IPv6 address to its /64
+  ---
+  duration_ms: 0.4065
+  ...
+# Subtest: ipRateLimitKey groups addresses in the same /64 and separates different ones
+ok 250 - ipRateLimitKey groups addresses in the same /64 and separates different ones
+  ---
+  duration_ms: 0.2225
+  ...
+# Subtest: ipRateLimitKey expands :: shorthand
+ok 251 - ipRateLimitKey expands :: shorthand
+  ---
+  duration_ms: 0.2388
+  ...
+# Subtest: ipRateLimitKey normalises case and leading zeros
+ok 252 - ipRateLimitKey normalises case and leading zeros
+  ---
+  duration_ms: 0.2507
+  ...
+# Subtest: ipRateLimitKey drops a zone id, and handles loopback
+ok 253 - ipRateLimitKey drops a zone id, and handles loopback
+  ---
+  duration_ms: 0.2293
+  ...
+1..253
+# tests 253
+# suites 0
+# pass 253
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1201.2674
+
+> ourdahanusite@0.1.0 test:game
+> node scripts/run-game-tests.mjs
+
+TAP version 13
+# Subtest: audio is lazy, respects mute, suspends, and closes
+ok 1 - audio is lazy, respects mute, suspends, and closes
+  ---
+  duration_ms: 2.5451
+  ...
+# Subtest: audio schedules a two-note rhythm only while an enabled game is playing
+ok 2 - audio schedules a two-note rhythm only while an enabled game is playing
+  ---
+  duration_ms: 1.2433
+  ...
+# Subtest: unsupported audio capabilities are non-blocking
+ok 3 - unsupported audio capabilities are non-blocking
+  ---
+  duration_ms: 0.5062
+  ...
+# Subtest: timer failures do not interrupt the game
+ok 4 - timer failures do not interrupt the game
+  ---
+  duration_ms: 0.4009
+  ...
+# Subtest: a retained rhythm callback stays silent after mute
+ok 5 - a retained rhythm callback stays silent after mute
+  ---
+  duration_ms: 0.4831
+  ...
+# Subtest: a retained rhythm callback stays silent after suspension
+ok 6 - a retained rhythm callback stays silent after suspension
+  ---
+  duration_ms: 0.3475
+  ...
+# Subtest: suspend and phase changes replace rhythm scheduling without duplicates
+ok 7 - suspend and phase changes replace rhythm scheduling without duplicates
+  ---
+  duration_ms: 0.4295
+  ...
+# Subtest: cleanup uses the scheduler that created the rhythm handle
+ok 8 - cleanup uses the scheduler that created the rhythm handle
+  ---
+  duration_ms: 0.3067
+  ...
+# Subtest: every cue produces a tone when audio is enabled and unlocked
+ok 9 - every cue produces a tone when audio is enabled and unlocked
+  ---
+  duration_ms: 0.4944
+  ...
+# Subtest: countdown cues are audible while rhythm stays inactive until play
+ok 10 - countdown cues are audible while rhythm stays inactive until play
+  ---
+  duration_ms: 0.44
+  ...
+# Subtest: difficulty is continuous, monotonic, phased, and capped
+ok 11 - difficulty is continuous, monotonic, phased, and capped
+  ---
+  duration_ms: 1.2621
+  ...
+# Subtest: combo bonus never exceeds twenty percent of catches
+ok 12 - combo bonus never exceeds twenty percent of catches
+  ---
+  duration_ms: 0.9188
+  ...
+# Subtest: seeded random sequence is repeatable
+ok 13 - seeded random sequence is repeatable
+  ---
+  duration_ms: 0.2581
+  ...
+# Subtest: engine follows clamped pointer input and advances active time
+ok 14 - engine follows clamped pointer input and advances active time
+  ---
+  duration_ms: 0.8033
+  ...
+# Subtest: basket can be prepositioned without advancing fruit simulation
+ok 15 - basket can be prepositioned without advancing fruit simulation
+  ---
+  duration_ms: 0.2599
+  ...
+# Subtest: five consecutive ripe catches earn one capped combo point
+ok 16 - five consecutive ripe catches earn one capped combo point
+  ---
+  duration_ms: 10.2407
+  ...
+# Subtest: a miss resets combo and three misses end the round once
+ok 17 - a miss resets combo and three misses end the round once
+  ---
+  duration_ms: 11.0687
+  ...
+# Subtest: three rotten catches end the round without adding score
+ok 18 - three rotten catches end the round without adding score
+  ---
+  duration_ms: 6.1255
+  ...
+# Subtest: phase changes emit one transition event
+ok 19 - phase changes emit one transition event
+  ---
+  duration_ms: 13.504
+  ...
+# Subtest: reset clears a completed round and preserves no entity references
+ok 20 - reset clears a completed round and preserves no entity references
+  ---
+  duration_ms: 0.5093
+  ...
+# Subtest: score ceiling ends the round exactly once with a server-valid score
+ok 21 - score ceiling ends the round exactly once with a server-valid score
+  ---
+  duration_ms: 87.8991
+  ...
+# Subtest: native fullscreen is preferred
+ok 22 - native fullscreen is preferred
+  ---
+  duration_ms: 1.1867
+  ...
+# Subtest: rejected fullscreen falls back to focus mode
+ok 23 - rejected fullscreen falls back to focus mode
+  ---
+  duration_ms: 0.3163
+  ...
+# Subtest: missing fullscreen capability falls back to focus mode
+ok 24 - missing fullscreen capability falls back to focus mode
+  ---
+  duration_ms: 0.1957
+  ...
+# Subtest: exit uses document exit only when native fullscreen is active
+ok 25 - exit uses document exit only when native fullscreen is active
+  ---
+  duration_ms: 0.3003
+  ...
+# Subtest: exit leaves inactive fullscreen untouched and returns none
+ok 26 - exit leaves inactive fullscreen untouched and returns none
+  ---
+  duration_ms: 0.1974
+  ...
+# Subtest: focus fallback has an explicit accessible announcement
+ok 27 - focus fallback has an explicit accessible announcement
+  ---
+  duration_ms: 0.1408
+  ...
+# Subtest: haptics vibrate only when enabled, supported, and visible
+ok 28 - haptics vibrate only when enabled, supported, and visible
+  ---
+  duration_ms: 1.8917
+  ...
+# Subtest: haptics do not vibrate while the document is hidden
+ok 29 - haptics do not vibrate while the document is hidden
+  ---
+  duration_ms: 0.224
+  ...
+# Subtest: unsupported haptics never throw
+ok 30 - unsupported haptics never throw
+  ---
+  duration_ms: 1.0087
+  ...
+# Subtest: renderer initialization converts missing canvas context into an unavailable result
+ok 31 - renderer initialization converts missing canvas context into an unavailable result
+  ---
+  duration_ms: 1.3096
+  ...
+# Subtest: canvas backing scale is capped at two
+ok 32 - canvas backing scale is capped at two
+  ---
+  duration_ms: 1.2273
+  ...
+# Subtest: quality reduces after sustained slow frames and recovers slowly
+ok 33 - quality reduces after sustained slow frames and recovers slowly
+  ---
+  duration_ms: 0.4212
+  ...
+# Subtest: parallax is disabled immediately for reduced quality or reduced effects
+ok 34 - parallax is disabled immediately for reduced quality or reduced effects
+  ---
+  duration_ms: 0.2411
+  ...
+# Subtest: parallax derives from the pointer and stays within six logical pixels
+ok 35 - parallax derives from the pointer and stays within six logical pixels
+  ---
+  duration_ms: 0.2474
+  ...
+# Subtest: a long frame exhausts the damage shake duration
+ok 36 - a long frame exhausts the damage shake duration
+  ---
+  duration_ms: 1.1354
+  ...
+# Subtest: clear is inert after destroy
+ok 37 - clear is inert after destroy
+  ---
+  duration_ms: 0.7676
+  ...
+# Subtest: particle rendering stays capped at ninety-six active records
+ok 38 - particle rendering stays capped at ninety-six active records
+  ---
+  duration_ms: 2.538
+  ...
+# Subtest: combo burst rendering stays capped at twelve active records
+ok 39 - combo burst rendering stays capped at twelve active records
+  ---
+  duration_ms: 0.9275
+  ...
+# Subtest: reduced effects limits catch particles and suppresses combo burst motion
+ok 40 - reduced effects limits catch particles and suppresses combo burst motion
+  ---
+  duration_ms: 0.8495
+  ...
+# Subtest: settings use safe defaults without storage
+ok 41 - settings use safe defaults without storage
+  ---
+  duration_ms: 1.8805
+  ...
+# Subtest: settings recover from corrupt JSON
+ok 42 - settings recover from corrupt JSON
+  ---
+  duration_ms: 0.3126
+  ...
+# Subtest: reduced-motion preference becomes the default until the player saves a choice
+ok 43 - reduced-motion preference becomes the default until the player saves a choice
+  ---
+  duration_ms: 0.1943
+  ...
+# Subtest: settings round-trip through the versioned key
+ok 44 - settings round-trip through the versioned key
+  ---
+  duration_ms: 0.2816
+  ...
+# Subtest: ready overlay labels focus mode action as an exit
+ok 45 - ready overlay labels focus mode action as an exit
+  ---
+  duration_ms: 7.0959
+  ...
+# Subtest: renderer failure is a semantic alert with no playable start action
+ok 46 - renderer failure is a semantic alert with no playable start action
+  ---
+  duration_ms: 0.4679
+  ...
+# Subtest: countdown overlay lets pointer input reach the canvas
+ok 47 - countdown overlay lets pointer input reach the canvas
+  ---
+  duration_ms: 0.3593
+  ...
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 574.0453
+
+> ourdahanusite@0.1.0 test:security
+> tsx --test src/lib/payments/security.test.ts && node scripts/test-security-migration.mjs && node scripts/test-marketplace-finalization.mjs
+
+TAP version 13
+# Subtest: an authorized but uncaptured Razorpay order must not be accepted as paid
+ok 1 - an authorized but uncaptured Razorpay order must not be accepted as paid
+  ---
+  duration_ms: 45.8973
+  ...
+# Subtest: intent persistence fails closed instead of permitting an unrecoverable checkout
+ok 2 - intent persistence fails closed instead of permitting an unrecoverable checkout
+  ---
+  duration_ms: 33.2027
+  ...
+# Subtest: appointment directory reads occupancy with the trusted client and rejects failed reads
+ok 3 - appointment directory reads occupancy with the trusted client and rejects failed reads
+  ---
+  duration_ms: 31.4985
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 541.2047
+Profile privacy, protected roles and order-write permissions passed
+Atomic payment replay, rollback, stock shortage, test mode and removed-product tests passed

@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useDeferredValue, useState } from 'react'
+import { useDeferredValue } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Plus, Search } from 'lucide-react'
 
 import CategoryFilter from './CategoryFilter'
@@ -59,8 +60,17 @@ export default function ListingsDirectoryResults({
   sortedCategories,
   categoryCounts,
 }: Props) {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [sortKey, setSortKey] = useState<SortKey>('recommended')
+  const searchParams = useSearchParams()
+  const searchQuery = searchParams.get('q') || ''
+  const sortKey = SORT_OPTIONS.find((option) => option.value === searchParams.get('sort'))?.value || 'recommended'
+  function updateParam(key: string, value: string) {
+    const params = new URLSearchParams(window.location.search)
+    if (value) params.set(key, value)
+    else params.delete(key)
+    window.history.replaceState(null, '', `${window.location.pathname}${params.size ? `?${params}` : ''}`)
+  }
+  const setSearchQuery = (value: string) => updateParam('q', value)
+  const setSortKey = (value: SortKey) => updateParam('sort', value === 'recommended' ? '' : value)
   const deferredQuery = useDeferredValue(searchQuery.trim().toLowerCase())
 
   const matchingListings = listings.filter((listing) => {
@@ -88,10 +98,11 @@ export default function ListingsDirectoryResults({
 
   return (
     <>
-      <Card padding="sm" className="mb-6 flex items-center gap-2">
-        <div className="flex-1 min-w-0">
+      <Card padding="sm" className="mb-4 grid grid-cols-[1fr_auto] items-center gap-2 sm:flex">
+        <div className="col-span-2 min-w-0 sm:flex-1">
           <Input
             type="text"
+            aria-label="Search businesses, services or areas"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search by business, category, service, or area..."
@@ -101,6 +112,7 @@ export default function ListingsDirectoryResults({
         </div>
 
         <select
+          aria-label="Sort businesses"
           value={sortKey}
           onChange={(event) => setSortKey(event.target.value as SortKey)}
           className="h-11 flex-shrink-0 rounded-xl border border-[var(--od-border)] bg-white px-2 sm:px-3 py-2 text-sm text-[var(--od-ink)] outline-none transition-all focus:border-[var(--od-brand)] focus:ring-4 focus:ring-[rgba(192,88,46,0.11)]"
@@ -140,7 +152,7 @@ export default function ListingsDirectoryResults({
       />
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-[var(--od-muted)]">
+        <p role="status" className="text-sm text-[var(--od-muted)]">
           <span className="font-bold text-[var(--od-ink)]">{countLabel}</span>
           {deferredQuery ? <> for &quot;{searchQuery.trim()}&quot;</> : null}
         </p>

@@ -73,7 +73,7 @@ function OrderRow({
             <span className="font-semibold text-gray-900 text-sm">
               {orderItemName(order.service_name, order.option_label)}
             </span>
-            <StatusBadge status={order.status} />
+            {order.fulfillment_issue ? <span className="text-xs font-semibold text-amber-800">Needs attention</span> : <StatusBadge status={order.status} />}
             {order.is_test && <TestBadge />}
           </div>
           <p className="text-xs text-gray-400">{formatDate(order.created_at)}</p>
@@ -88,6 +88,7 @@ function OrderRow({
         </div>
       </div>
 
+      {order.fulfillment_issue && <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{order.fulfillment_issue}</p>}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600">
         <div>
           <span className="text-gray-400">Buyer: </span>

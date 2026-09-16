@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 
-import { loadOwnerRazorpayKeys } from '@/app/actions/listing-payments'
+import { loadOwnerRazorpayKeys } from '@/lib/payments/owner-keys'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
 import { orderItemName } from '@/lib/catalog/catalog'
 import { classifyRazorpayKeyId } from '@/lib/selling/keys'
@@ -14,7 +14,6 @@ import {
   findFinalizedIntentByPaymentId,
   getIntentByOrderId,
   markIntentCaptured,
-  markIntentFinalized,
   recordIntentError,
 } from '@/lib/payment-intents'
 import { createAdminClient } from '@/lib/supabase/admin-client'
@@ -42,6 +41,7 @@ export interface MarketplaceOrder {
   status: string
   /** Paid with Razorpay test keys: a practice purchase, no real money. */
   is_test: boolean
+  fulfillment_issue?: string | null
   created_at: string
   updated_at: string
   listing?: { name: string; subdomain: string | null } | null
@@ -98,12 +98,22 @@ export async function placeMarketplaceOrder(
   const adminClient = createAdminClient()
   if (!adminClient) return { error: 'Server configuration error.' }
 
+  const intent = await getIntentByOrderId(razorpayOrderId)
+  if (intent && (intent.user_id !== user.id || intent.flow !== 'marketplace')) {
+    return { error: 'Order details do not match the original request.' }
+  }
+
   // 1. Re-validate product + price server-side (never trust client)
-  const { data: product } = await adminClient
+  const { data: liveProduct } = await adminClient
     .from('listing_products')
     .select('id, listing_id, type, name, price_paise, quantity_in_stock, is_active')
     .eq('id', productId)
     .maybeSingle()
+
+  const product = liveProduct ?? (intent?.payload?.product_id === productId && intent.listing_id ? {
+    id: productId, listing_id: intent.listing_id, name: String(intent.payload.product_name ?? 'Purchased item'),
+    price_paise: Number(intent.payload.product_price_paise), quantity_in_stock: null, is_active: false,
+  } : null)
 
   // Inactive items are accepted: this runs after capture, and create-marketplace-order already stops inactive items before payment.
   if (!product) {
@@ -154,30 +164,20 @@ export async function placeMarketplaceOrder(
     return { error: 'Payment setup is incomplete for this business.' }
   }
 
-  const { createHmac } = await import('crypto')
+  const { createHmac, timingSafeEqual } = await import('crypto')
   const expectedSignature = createHmac('sha256', ownerKeys.keySecret)
     .update(`${razorpayOrderId}|${razorpayPaymentId}`)
     .digest('hex')
 
-  if (expectedSignature !== razorpaySignature) {
+  if (!/^[a-f0-9]{64}$/i.test(razorpaySignature) || !timingSafeEqual(Buffer.from(expectedSignature, 'hex'), Buffer.from(razorpaySignature, 'hex'))) {
     return { error: 'Payment verification failed. Please contact support with your payment ID.' }
   }
-
-  await markIntentCaptured({
-    razorpayOrderId,
-    razorpayPaymentId,
-    razorpaySignature,
-  })
 
   // 3. Re-fetch Razorpay order to confirm amount + notes (defense in depth)
   // The unit price and amount the buyer agreed to were recorded on the
   // payment intent when the Razorpay order was created. Check against those,
   // not the live price: an owner editing the price mid-payment must not
   // refuse a genuine paid order.
-  const intent = await getIntentByOrderId(razorpayOrderId)
-  if (intent && intent.user_id !== user.id) {
-    return { error: 'Order details do not match the original request.' }
-  }
   const intentUnitPrice = intent?.payload?.product_price_paise
   const fallbackUnitPrice: number | null = option?.price_paise ?? product.price_paise ?? null
   const unitPricePaise =
@@ -205,6 +205,7 @@ export async function placeMarketplaceOrder(
     amount: number
     status: string
     amount_paid: number
+    currency: string
     notes?: {
       flow?: string
       buyer_id?: string
@@ -215,7 +216,7 @@ export async function placeMarketplaceOrder(
     }
   }
 
-  if (razorpayOrder.amount !== expectedAmountPaise) {
+  if (razorpayOrder.amount !== expectedAmountPaise || razorpayOrder.currency !== 'INR') {
     return { error: 'Order amount mismatch. Please contact support.' }
   }
   if (razorpayOrder.status !== 'paid' || razorpayOrder.amount_paid !== expectedAmountPaise) {
@@ -257,79 +258,42 @@ export async function placeMarketplaceOrder(
   // longer exists, this simply falls back to null, same as today.
   const resolvedOption = optionId === formOptionId ? option : await loadOptionRow(optionId)
 
+  await markIntentCaptured({ razorpayOrderId, razorpayPaymentId, razorpaySignature })
+
   // Test keys move no real money: label the order and leave real stock alone.
   const isTest = classifyRazorpayKeyId(ownerKeys.keyId) === 'test'
 
-  // 4. Atomic stock decrement (the option's stock when an option was bought)
-  const stockRpc =
-    isTest
-      ? null
-      : optionId
-        ? resolvedOption && resolvedOption.quantity_in_stock !== null
-          ? { fn: 'decrement_option_stock', args: { p_option_id: resolvedOption.id, p_quantity: quantity } }
-          : null
-        : product.quantity_in_stock !== null
-          ? { fn: 'decrement_product_stock', args: { p_product_id: product.id, p_quantity: quantity } }
-          : null
-  if (stockRpc) {
-    const { data: decOk, error: decError } = await adminClient.rpc(stockRpc.fn, stockRpc.args)
-    if (decError) {
-      console.error('[marketplace] stock rpc error:', decError)
-      return { error: 'Could not reserve stock. Please try again.' }
-    }
-    if (!decOk) {
-      return { error: 'Sorry — this item just went out of stock.' }
-    }
-  }
-
-  // 5. Insert the order
-  const priceRupees = unitPricePaise / 100
+  // One transaction serializes retries, updates stock and finalizes the intent.
   const totalRupees = expectedAmountPaise / 100
-
-  const { data: newOrder, error: insertError } = await adminClient
-    .from('orders')
-    .insert({
+  const { data: finalizedOrder, error: insertError } = await adminClient.rpc('finalize_marketplace_order', {
+    p_order: {
       listing_id: product.listing_id,
       product_id: product.id,
       product_option_id: resolvedOption?.id ?? null,
+      option_id: optionId || null,
       option_label: optionLabel,
       buyer_id: user.id,
       buyer_name: buyerName,
       buyer_phone: buyerPhone,
       delivery_address: deliveryAddress,
       notes,
-      service_name: product.name,
-      service_price: priceRupees,
+      service_name: typeof intent?.payload?.product_name === 'string' ? intent.payload.product_name : product.name,
+      service_price: unitPricePaise / 100,
       quantity,
       amount_total: totalRupees,
       owner_razorpay_order_id: razorpayOrderId,
       owner_razorpay_payment_id: razorpayPaymentId,
       owner_razorpay_signature: razorpaySignature,
-      payment_status: 'paid',
-      status: 'confirmed',
       is_test: isTest,
-    })
-    .select('id')
-    .single()
-
-  if (insertError || !newOrder) {
-    console.error('[marketplace] insert order failed:', insertError)
-    await recordIntentError({
-      razorpayOrderId,
-      message: insertError?.message || 'marketplace order insert failed',
-    })
-    return {
-      error:
-        'Order recorded at Razorpay but failed to save locally. Contact support with payment ID ' +
-        razorpayPaymentId,
-    }
-  }
-
-  await markIntentFinalized({
-    razorpayOrderId,
-    entityId: newOrder.id as string,
-    entityTable: 'orders',
+    },
   })
+  const result = finalizedOrder as { orderId?: string; created?: boolean; issue?: string | null } | null
+  if (insertError || !result?.orderId) {
+    await recordIntentError({ razorpayOrderId, message: insertError?.message || 'Order finalization failed' })
+    return { error: 'Payment received but confirmation is pending. Do not pay again. Reference: ' + razorpayPaymentId }
+  }
+  const newOrder = { id: result.orderId }
+  if (!result.created) return { orderId: newOrder.id }
 
   // Fan out notifications to buyer + owner + admins (awaited delivery)
   await (async () => {
@@ -440,13 +404,14 @@ export async function updateMarketplaceOrderStatus(
 
   const { getUserRole } = await import('@/app/actions/admin')
   const { role } = await getUserRole(supabase)
+  if (!['confirmed', 'fulfilled', 'cancelled'].includes(status)) return { error: 'Invalid order status.' }
   if (listing.owner_id !== user.id && role !== 'admin' && role !== 'moderator') {
     return { error: 'Access denied.' }
   }
 
   const { error } = await adminClient
     .from('orders')
-    .update({ status, updated_at: new Date().toISOString() })
+    .update({ status, ...(status === 'fulfilled' ? { fulfillment_issue: null } : {}), updated_at: new Date().toISOString() })
     .eq('id', orderId)
 
   if (error) return { error: error.message }

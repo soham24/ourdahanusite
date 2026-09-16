@@ -41,12 +41,16 @@ async function updateUserRole(formData: FormData) {
   const role = formData.get('role') as string
   const verified = formData.get('verified') === 'true'
 
-  await supabase.from('profiles').upsert({
+  if (!['user', 'business_owner', 'moderator', 'job_reviewer', 'admin'].includes(role)) throw new Error('Invalid role.')
+  const admin = createAdminClient()
+  if (!admin) throw new Error('Admin client unavailable.')
+  const { error } = await admin.from('profiles').upsert({
     id: userId,
     role,
     verified,
   }, { onConflict: 'id' })
 
+  if (error) throw new Error('Could not update this member.')
   revalidatePath('/admin/roles')
 }
 
@@ -102,6 +106,7 @@ export default async function RolesPage({
   let currentPage = parsePositiveInt(page)
 
   const adminClient = createAdminClient()
+  if (!adminClient) throw new Error('Admin client unavailable.')
 
   let totalUsers = 0
   let filteredCount = 0
@@ -115,7 +120,7 @@ export default async function RolesPage({
       const from = (pageNumber - 1) * USERS_PER_PAGE
       const to = from + USERS_PER_PAGE - 1
 
-      return supabase
+      return adminClient
         .from('profiles')
         .select('id, full_name, email, role, verified', { count: 'exact' })
         .or(`full_name.ilike.%${sanitizedQuery}%,email.ilike.%${sanitizedQuery}%`)
@@ -176,7 +181,7 @@ export default async function RolesPage({
         let profileMap: Record<string, { full_name: string | null; role: string | null; verified: boolean | null }> = {}
 
         if (userIds.length > 0) {
-          const { data: profiles } = await supabase
+          const { data: profiles } = await adminClient
             .from('profiles')
             .select('id, full_name, role, verified')
             .in('id', userIds)
@@ -212,38 +217,9 @@ export default async function RolesPage({
         })
       }
     }
-  } else {
-    const fetchProfilesPage = async (pageNumber: number) => {
-      const from = (pageNumber - 1) * USERS_PER_PAGE
-      const to = from + USERS_PER_PAGE - 1
-
-      return supabase
-        .from('profiles')
-        .select('id, full_name, email, role, verified', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .range(from, to)
-    }
-
-    let profilePage = await fetchProfilesPage(currentPage)
-    totalUsers = profilePage.count ?? 0
-    filteredCount = totalUsers
-    totalPages = Math.max(1, Math.ceil(filteredCount / USERS_PER_PAGE))
-
-    if (currentPage > totalPages) {
-      currentPage = totalPages
-      profilePage = await fetchProfilesPage(currentPage)
-    }
-
-    members = (profilePage.data ?? []).map((profile) => ({
-      id: profile.id,
-      email: profile.email ?? '',
-      full_name: profile.full_name ?? null,
-      role: profile.role || 'user',
-      verified: Boolean(profile.verified),
-    }))
   }
 
-  const roleCounts = await getRoleCounts(supabase, totalUsers)
+  const roleCounts = await getRoleCounts(adminClient, totalUsers)
   const showingFrom = filteredCount === 0 ? 0 : ((currentPage - 1) * USERS_PER_PAGE) + 1
   const showingTo = filteredCount === 0 ? 0 : Math.min(currentPage * USERS_PER_PAGE, filteredCount)
 

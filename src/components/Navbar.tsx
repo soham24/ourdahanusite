@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { BookOpen, Plus, Search, ShieldAlert, Store, UsersRound, Gamepad2 } from 'lucide-react'
+import { BookOpen, Plus, Search, ShieldAlert, Store, UsersRound, Gamepad2, CalendarDays, BriefcaseBusiness } from 'lucide-react'
 
 import NavbarAuthControls from '@/components/NavbarAuthControls'
 import SafeAppLink from '@/components/SafeAppLink'
@@ -10,14 +10,17 @@ const NAV_LINKS = [
   { href: buildAbsoluteUrl('/listings'), label: 'Businesses' },
   { href: buildAbsoluteUrl('/guides'), label: 'Guides' },
   { href: buildAbsoluteUrl('/search'), label: 'Search' },
-  { href: buildAbsoluteUrl('/play'), label: 'Play' },
-  { href: buildAbsoluteUrl('/about'), label: 'About' },
+  { href: buildAbsoluteUrl('/appointments'), label: 'Book' },
+  { href: buildAbsoluteUrl('/jobs'), label: 'Jobs' },
 ]
 
 const MOBILE_NAV = [
   { href: buildAbsoluteUrl('/listings'), label: 'Explore Businesses', icon: Store },
   { href: buildAbsoluteUrl('/guides'), label: 'Dahanu Guides', icon: BookOpen },
-  { href: buildAbsoluteUrl('/search'), label: 'Search Everything', icon: Search },
+  { href: buildAbsoluteUrl('/search'), label: 'Search Businesses', icon: Search },
+  { href: buildAbsoluteUrl('/appointments'), label: 'Book an Appointment', icon: CalendarDays },
+  { href: buildAbsoluteUrl('/jobs'), label: 'Local Jobs', icon: BriefcaseBusiness },
+  { href: buildAbsoluteUrl('/find'), label: 'Find Professionals', icon: UsersRound },
   { href: buildAbsoluteUrl('/play'), label: 'Chikoo Catcher Game', icon: Gamepad2 },
   { href: buildAbsoluteUrl('/about'), label: 'About OurDahanu', icon: UsersRound },
   { href: buildAbsoluteUrl('/listings/submit'), label: 'Add Business', icon: Plus },

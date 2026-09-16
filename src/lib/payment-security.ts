@@ -141,7 +141,11 @@ export function validateRazorpayOrder(options: {
     return 'Paid amount does not match the expected total.'
   }
 
-  if (order.currency && order.currency !== 'INR') {
+  if (order.status !== 'paid' || order.amount_paid !== expectedAmountPaise) {
+    return 'Payment has not completed. Please retry confirmation without paying again.'
+  }
+
+  if (order.currency !== 'INR') {
     return 'Payment currency is invalid.'
   }
 
@@ -156,7 +160,7 @@ export function validateRazorpayOrder(options: {
 
   const hasOrderNotes = !!order.notes && Object.keys(order.notes).length > 0
   if (!hasOrderNotes) {
-    return null
+    return 'Payment order details are missing.'
   }
 
   for (const [key, value] of Object.entries(expectedNotes)) {

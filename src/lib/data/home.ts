@@ -237,8 +237,7 @@ export async function getHomeRecentReviews(): Promise<HomeReview[]> {
     const { data } = await supabase
       .from('reviews')
       .select(`
-        id, listing_id, rating, comment, created_at,
-        profiles!reviews_user_id_fkey(full_name),
+        id, listing_id, user_id, rating, comment, created_at,
         listings!reviews_listing_id_fkey(name, subdomain)
       `)
       .not('comment', 'is', null)
@@ -246,6 +245,10 @@ export async function getHomeRecentReviews(): Promise<HomeReview[]> {
       .limit(60)
 
     if (!data) return []
+
+    const ids = [...new Set(data.map((row) => row.user_id).filter(Boolean))] as string[]
+    const { data: names } = await supabase.from('public_profiles').select('id, full_name').in('id', ids)
+    const nameById = new Map((names ?? []).map((row) => [row.id, row.full_name]))
 
     // Dedupe: keep first (most recent) review per listing_id
     const seen = new Set<string>()
@@ -255,7 +258,6 @@ export async function getHomeRecentReviews(): Promise<HomeReview[]> {
       if (seen.has(lid)) continue
       seen.add(lid)
       const listing = r.listings as { name?: string; subdomain?: string | null } | null
-      const profile = r.profiles as { full_name?: string | null } | null
       result.push({
         id: r.id as string,
         listing_id: lid,
@@ -263,7 +265,7 @@ export async function getHomeRecentReviews(): Promise<HomeReview[]> {
         listing_subdomain: listing?.subdomain ?? null,
         rating: r.rating as number,
         comment: r.comment as string | null,
-        reviewer_name: profile?.full_name ?? null,
+        reviewer_name: nameById.get(r.user_id as string) ?? null,
         created_at: r.created_at as string,
       })
       if (result.length === 5) break

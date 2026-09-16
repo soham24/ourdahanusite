@@ -42,8 +42,7 @@ export interface PaymentIntentRow {
  * If the user closes the browser after paying we still have everything
  * we need (payload + flow + amount + listing_id) to recreate the entity.
  *
- * Failures here are logged but never block the order creation — we'd
- * rather risk a non-recoverable intent than refuse to take the payment.
+ * Checkout must not open until its recovery record is durable.
  */
 export async function recordPaymentIntent(args: {
   userId: string
@@ -53,11 +52,11 @@ export async function recordPaymentIntent(args: {
   currency?: string
   payload: Record<string, unknown>
   listingId?: string | null
-}): Promise<void> {
+}): Promise<boolean> {
   const adminClient = createAdminClient()
   if (!adminClient) {
-    console.error('[paymentIntents] No admin client; skipping intent record')
-    return
+    console.error('[paymentIntents] No admin client; refusing checkout')
+    return false
   }
 
   const { error } = await adminClient.from('payment_intents').insert({
@@ -77,7 +76,9 @@ export async function recordPaymentIntent(args: {
       flow: args.flow,
       error,
     })
+    return false
   }
+  return true
 }
 
 /**

@@ -10,6 +10,7 @@ import { addIndiaDays, getIndiaToday } from '@/lib/india-time'
 import { logCacheRegeneration } from '@/lib/isr-debug'
 import { normalizeAppointmentSettings, type AppointmentSettings } from '@/lib/listing-content'
 import { createPublicClient } from '@/lib/supabase/public'
+import { createAdminClient } from '@/lib/supabase/admin-client'
 
 /**
  * How many days forward the directory looks for a free slot. Capped so a
@@ -65,7 +66,7 @@ async function fetchBookableRows(): Promise<BookableRow[]> {
 export async function getAppointmentDirectory(): Promise<AppointmentDirectoryEntry[]> {
   'use cache'
 
-  cacheLife(PUBLIC_CONTENT_CACHE)
+  cacheLife({ stale: 0, revalidate: 60, expire: 120 })
   cacheTag(CACHE_TAGS.appointments)
   logCacheRegeneration({ scope: 'appointments:directory', tags: [CACHE_TAGS.appointments] })
 
@@ -76,8 +77,10 @@ export async function getAppointmentDirectory(): Promise<AppointmentDirectoryEnt
   const horizon = addIndiaDays(today, DIRECTORY_LOOKAHEAD_DAYS)
   const listingIds = rows.map((row) => row.id)
 
-  const supabase = createPublicClient()
-  const [{ data: bookings }, overridesByListing] = await Promise.all([
+  // Only aggregate occupancy leaves this server-only module; never expose bookings.
+  const supabase = createAdminClient()
+  if (!supabase) throw new Error('Appointment availability is temporarily unavailable')
+  const [{ data: bookings, error: bookingError }, overridesByListing] = await Promise.all([
     supabase
       .from('appointments')
       .select('listing_id, booking_date, slot_start')
@@ -87,6 +90,7 @@ export async function getAppointmentDirectory(): Promise<AppointmentDirectoryEnt
       .lte('booking_date', horizon),
     getOverridesForListings(listingIds, today, horizon),
   ])
+  if (bookingError) throw new Error('Appointment availability is temporarily unavailable')
 
   // listingId -> date -> "HH:MM" -> count
   const counts: Record<string, Record<string, Record<string, number>>> = Object.create(null)

@@ -71,7 +71,7 @@ export async function getOverrideMap(
   return map
 }
 
-/** One query for many listings — the directory scans every enabled business. */
+/** A failed directory read must not be mistaken for normal weekly opening hours. */
 export async function getOverridesForListings(
   listingIds: string[],
   fromDate: string,
@@ -82,21 +82,20 @@ export async function getOverridesForListings(
 
   try {
     const supabase = getOverrideReader()
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('appointment_date_overrides')
       .select('id, listing_id, override_date, closed, windows, note')
       .in('listing_id', listingIds)
       .gte('override_date', fromDate)
       .lte('override_date', toDate)
 
+    if (error) throw new Error('Appointment availability is temporarily unavailable')
     for (const row of (data ?? []) as OverrideRow[]) {
       const bucket = byListing[row.listing_id] ?? (byListing[row.listing_id] = Object.create(null))
       bucket[row.override_date] = toRecord(row)
     }
   } catch {
-    // Fall through to an empty map — a failed override read must never make a
-    // business look open when it is closed, but it also must not crash the
-    // directory. Callers treat "no override" as "normal weekly hours".
+    throw new Error('Appointment availability is temporarily unavailable')
   }
 
   return byListing

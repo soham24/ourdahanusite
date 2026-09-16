@@ -5,16 +5,20 @@ import { createClient } from '@/lib/supabase/client'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { Loader2 } from 'lucide-react'
+import { buildAbsoluteUrl } from '@/lib/site'
 
 function LoginContent() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
   const supabase = createClient()
   const [signingIn, setSigningIn] = useState(false)
+  const [signInError, setSignInError] = useState(false)
+  const checkoutMatch = /^\/checkout\/([a-f0-9-]{36})$/i.exec(searchParams.get('next') || '')
 
   const handleGoogleSignIn = async () => {
     if (signingIn) return
     setSigningIn(true)
+    setSignInError(false)
 
     // Purge any stale code-verifier cookies (no-domain and domain-scoped)
     // so the browser only sends the fresh one the OAuth flow is about to create.
@@ -37,14 +41,19 @@ function LoginContent() {
     const next = isSubdomain
       ? window.location.origin + (searchParams.get('next') || '/')
       : (searchParams.get('next') || '/')
-    await supabase.auth.signInWithOAuth({
+    try {
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${callbackOrigin}/auth/callback?next=${encodeURIComponent(next)}`,
       },
-    })
-    // Only reset if we somehow don't navigate (e.g. popup blocked)
-    setSigningIn(false)
+      })
+      if (oauthError) setSignInError(true)
+    } catch {
+      setSignInError(true)
+    } finally {
+      setSigningIn(false)
+    }
   }
 
   return (
@@ -56,12 +65,13 @@ function LoginContent() {
             <div className="w-16 h-16 bg-brand rounded-2xl flex items-center justify-center mx-auto mb-4">
               <span className="text-bg font-bold text-2xl">OD</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Welcome to OurDahanu</h1>
-            <p className="text-gray-500 mt-2">Sign in to access your community</p>
+            <h1 className="text-2xl font-bold text-gray-900">{checkoutMatch ? 'Sign in to finish your order' : 'Welcome to OurDahanu'}</h1>
+            <p className="text-gray-500 mt-2">{checkoutMatch ? 'You’ll return to checkout after signing in. No payment is taken at this step.' : 'Sign in to access your community'}</p>
+            {checkoutMatch && <a href={`/p/${checkoutMatch[1]}`} className="mt-3 inline-block text-sm font-semibold text-brand hover:underline">Back to item</a>}
           </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 mb-6 text-sm text-center">
+          {(error || signInError) && (
+            <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 mb-6 text-sm text-center">
               Authentication failed. Please try again.
             </div>
           )}
@@ -87,9 +97,9 @@ function LoginContent() {
 
           <div className="mt-6 text-center text-sm text-gray-400">
             By signing in, you agree to our{' '}
-            <a href="#" className="text-brand hover:underline">Terms of Service</a>
+            <a href={buildAbsoluteUrl('/terms')} className="text-brand hover:underline">Terms of Service</a>
             {' '}and{' '}
-            <a href="#" className="text-brand hover:underline">Privacy Policy</a>
+            <a href={buildAbsoluteUrl('/privacy')} className="text-brand hover:underline">Privacy Policy</a>
           </div>
 
           {/* Features */}

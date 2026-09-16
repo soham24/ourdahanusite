@@ -115,7 +115,7 @@ export default async function MyAccountOrdersPage() {
                         <span className="font-semibold text-gray-900 text-sm">
                           {orderItemName(order.service_name, order.option_label)}
                         </span>
-                        <StatusBadge status={order.status} />
+                        {order.fulfillment_issue ? <span className="text-xs font-semibold text-amber-800">Payment received · Needs attention</span> : <StatusBadge status={order.status} />}
                         {order.is_test && (
                           <span className="inline-flex items-center rounded-full bg-[rgba(200,136,30,0.14)] px-2 py-0.5 text-xs font-bold text-[var(--od-brand-strong)]">
                             Test
@@ -152,4 +152,3 @@ export default async function MyAccountOrdersPage() {
     </div>
   )
 }
-

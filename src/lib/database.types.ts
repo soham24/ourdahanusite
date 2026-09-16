@@ -2385,7 +2385,10 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: { id: string; full_name: string | null; avatar_url: string | null }
+        Relationships: []
+      }
     }
     Functions: {
       accept_delivery_offer: {

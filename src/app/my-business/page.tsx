@@ -200,7 +200,7 @@ export default async function MyBusinessPage({
         const rawReviews = reviewsData as unknown as Review[]
         const userIds = [...new Set(rawReviews.map(r => r.user_id))]
         const { data: profileData } = await supabase
-          .from('profiles')
+          .from('public_profiles')
           .select('id, full_name')
           .in('id', userIds)
         const profileMap: Record<string, string> = {}

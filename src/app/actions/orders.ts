@@ -5,6 +5,7 @@ import { classifyRazorpayKeyId } from '@/lib/selling/keys'
 import { createClient } from '@/lib/supabase/server'
 
 export interface Order {
+  fulfillment_issue?: string | null
   id: string
   listing_id: string | null
   product_id: string | null

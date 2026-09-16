@@ -67,7 +67,7 @@ export async function POST(request: Request) {
   // Record the intent BEFORE Razorpay checkout opens. This is the
   // server-side anchor we use to recover the listing/renewal if the
   // user closes the page after paying.
-  await recordPaymentIntent({
+  const recorded = await recordPaymentIntent({
     userId: user.id,
     flow: intentFlow,
     razorpayOrderId: order.id as string,
@@ -80,6 +80,10 @@ export async function POST(request: Request) {
     },
     listingId: body.listingId ?? null,
   })
+
+  if (!recorded) {
+    return NextResponse.json({ error: 'Checkout is temporarily unavailable. No payment has been taken. Please try again.' }, { status: 503 })
+  }
 
   return NextResponse.json({
     orderId: order.id,

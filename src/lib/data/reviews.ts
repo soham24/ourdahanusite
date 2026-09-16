@@ -39,7 +39,7 @@ async function attachReviewerNames(
   if (userIds.length === 0) return rawReviews
 
   const { data: profileData } = await supabase
-    .from('profiles')
+    .from('public_profiles')
     .select('id, full_name')
     .in('id', userIds as string[])
 

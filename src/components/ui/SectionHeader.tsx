@@ -7,6 +7,8 @@ interface SectionHeaderProps {
   title: string
   sub?: string
   viewAllHref?: string
+  as?: 'h1' | 'h2'
+  className?: string
 }
 
 export default function SectionHeader({
@@ -14,16 +16,18 @@ export default function SectionHeader({
   title,
   sub,
   viewAllHref,
+  as: Heading = 'h2',
+  className = 'mb-8',
 }: SectionHeaderProps) {
   return (
-    <div className="flex items-end justify-between gap-4 mb-8 flex-wrap">
+    <div className={`flex items-end justify-between gap-4 flex-wrap ${className}`}>
       <div>
         <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--od-brand)] mb-1.5">
           {label}
         </p>
-        <h2 className="font-display text-[30px] md:text-[34px] leading-[1.15] text-[var(--od-ink)] tracking-[-0.01em]">
+        <Heading className="font-display text-[30px] md:text-[34px] leading-[1.15] text-[var(--od-ink)] tracking-[-0.01em]">
           {title}
-        </h2>
+        </Heading>
         {sub && <p className="text-sm text-[var(--od-muted)] mt-1">{sub}</p>}
       </div>
       {viewAllHref && (
