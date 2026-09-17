@@ -63,7 +63,49 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
     const isUuid = UUID_REGEX.test(idOrSubdomain)
     const { data: listingData } = await supabase
       .from('listings')
-      .select('*')
+      // Keep the public detail payload deliberately narrow. The listings row
+      // also contains moderation, payment and internal metadata that is not
+      // rendered here; selecting it would increase Supabase transfer,
+      // RSC serialization and the memory used by the Vercel function.
+      .select([
+        'id',
+        'name',
+        'subdomain',
+        'category',
+        'tagline',
+        'description',
+        'address',
+        'phone',
+        'whatsapp',
+        'website',
+        'facebook',
+        'instagram',
+        'map_url',
+        'image_url',
+        'image_thumb_url',
+        'cover_image',
+        'photos',
+        'video_url',
+        'tags',
+        'highlights',
+        'certifications',
+        'payment_methods',
+        'delivery_info',
+        'before_after',
+        'hours',
+        'rating',
+        'verified',
+        'established_year',
+        'response_time',
+        'pinned_announcement',
+        'upi_id',
+        'appointment_settings',
+        'appointments_enabled',
+        'appointment_booking_fee',
+        'approved',
+        'payments_enabled',
+        'payments_suspended_at',
+      ].join(','))
       .eq(isUuid ? 'id' : 'subdomain', idOrSubdomain)
       .single()
 
@@ -73,7 +115,7 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
 
     // The suspension reason is written for the owner, not the public, and this
     // record is serialised to the browser — so it is dropped here.
-    const listing: ListingRecord = { ...(listingData as ListingRecord) }
+    const listing: ListingRecord = { ...(listingData as unknown as ListingRecord) }
     delete listing.payments_suspended_reason
     const listingId = String(listing.id)
     const listingCategory = typeof listing.category === 'string' ? listing.category : ''
