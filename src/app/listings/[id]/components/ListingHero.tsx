@@ -67,7 +67,7 @@ export default function ListingHero({
       {/* ── Cover Image / Hero ──────────────────────────────────────────────── */}
       <div className="relative h-36 w-full overflow-hidden bg-gradient-to-br from-[#2E1205] via-[#7A4520] to-[#C0582E] md:h-56">
         {listing.cover_image ? (
-          <Image src={String(listing.cover_image)} alt="Cover" fill className="object-cover opacity-80" />
+          <Image src={String(listing.cover_image)} alt="Cover" fill priority sizes="100vw" className="object-cover opacity-80" />
         ) : (
           <div className="absolute inset-0 opacity-10 text-8xl flex flex-wrap gap-8 p-8 select-none pointer-events-none">
             🏪🍽️🎨🌿🏗️💇✂️📸

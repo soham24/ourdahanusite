@@ -1,11 +1,14 @@
 "use client"
 
 import React from 'react'
+import dynamic from 'next/dynamic'
 import { Video, Sparkles } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import PhotoGalleryDeferred from '../PhotoGalleryDeferred'
 import BeforeAfterToggleDeferred from '../BeforeAfterToggleDeferred'
-import BookingWidget from '@/components/appointments/BookingWidget'
+const BookingWidget = dynamic(() => import('@/components/appointments/BookingWidget'), {
+  loading: () => <div className="min-h-40 rounded-2xl bg-surface-soft animate-pulse" aria-hidden="true" />,
+})
 import { useListingViewer } from '../ListingViewerContext'
 import type { ListingRecord } from '@/lib/data/listing-detail'
 import type { CatalogItem } from '@/lib/catalog/types'
@@ -95,6 +98,7 @@ export default function ListingContent({
             <iframe
               src={`https://www.youtube.com/embed/${videoEmbedId}`}
               title="Business video"
+              loading="lazy"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
               className="absolute inset-0 w-full h-full"

@@ -61,7 +61,9 @@ export default function ListingTracker({ listingId }: { listingId: string }) {
     const visitorKey = getVisitorKey()
     if (!visitorKey) return
 
-    send(listingId, 'view', visitorKey)
+    const schedule = typeof window.requestIdleCallback === 'function'
+      ? window.requestIdleCallback(() => send(listingId, 'view', visitorKey))
+      : window.setTimeout(() => send(listingId, 'view', visitorKey), 0)
 
     const onClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null
@@ -87,7 +89,14 @@ export default function ListingTracker({ listingId }: { listingId: string }) {
     }
 
     document.addEventListener('click', onClick, true)
-    return () => document.removeEventListener('click', onClick, true)
+    return () => {
+      document.removeEventListener('click', onClick, true)
+      if (typeof window.cancelIdleCallback === 'function' && typeof schedule === 'number') {
+        window.cancelIdleCallback(schedule)
+      } else {
+        window.clearTimeout(schedule)
+      }
+    }
   }, [listingId])
 
   return null
