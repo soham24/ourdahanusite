@@ -19,8 +19,6 @@ import PopularBusinesses from './page-components/PopularBusinesses'
 import BusinessOwnerCTA from './page-components/BusinessOwnerCTA'
 import RecentReviewsSection from './page-components/RecentReviewsSection'
 import HeritageSection from './page-components/HeritageSection'
-import AboutDahanu from './page-components/AboutDahanu'
-import BottomCTABanner from './page-components/BottomCTABanner'
 import HomeSectionSkeleton from './page-components/HomeSectionSkeleton'
 
 export const metadata: Metadata = {
@@ -72,25 +70,23 @@ export default function HomePage() {
         <StatsAndCategoriesAsync />
       </Suspense>
 
-      <Suspense fallback={<HomeSectionSkeleton variant="row" label="Newest businesses" />}>
-        <NewListingsAsync />
-      </Suspense>
-
       <Suspense fallback={<HomeSectionSkeleton variant="row" label="Popular in Dahanu" />}>
         <PopularBusinessesAsync />
       </Suspense>
 
-      <Suspense fallback={<HomeSectionSkeleton variant="cta" />}>
-        <BusinessOwnerCTAAsync />
+      <Suspense fallback={<HomeSectionSkeleton variant="row" label="Newest businesses" />}>
+        <NewListingsAsync />
       </Suspense>
 
       <Suspense fallback={<HomeSectionSkeleton variant="row" label="What people are saying" />}>
         <RecentReviewsAsync />
       </Suspense>
 
+      <Suspense fallback={<HomeSectionSkeleton variant="cta" />}>
+        <BusinessOwnerCTAAsync />
+      </Suspense>
+
       <HeritageSection />
-      <AboutDahanu />
-      <BottomCTABanner />
     </>
   )
 }
@@ -103,8 +99,8 @@ async function StatsAndCategoriesAsync() {
         totalListings={stats.totalListings}
         topCategoryLabelsLength={stats.topCategoryLabels.length}
       />
-      {stats.featuredListing && <FeaturedSpotlight listing={stats.featuredListing} />}
       <CategoryGrid groups={stats.categoryGroups} />
+      {stats.featuredListing && <FeaturedSpotlight listing={stats.featuredListing} />}
     </>
   )
 }

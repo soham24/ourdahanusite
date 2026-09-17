@@ -17,8 +17,8 @@ export default function PopularBusinesses({ listings }: PopularBusinessesProps) 
   const [lead, ...rest] = listings.slice(0, 6)
 
   return (
-    <section className="od-mobile-section border-y border-[var(--od-border)] bg-[var(--od-surface-soft)] py-12 md:py-16">
-      <div className="mx-auto max-w-[1160px] px-5 md:px-6">
+    <section className="od-mobile-section border-y border-[var(--od-border)] bg-[var(--od-surface-soft)] py-10 md:py-16">
+      <div className="mx-auto max-w-[1160px] px-4 md:px-6">
         <SectionHeader
           label="Most trusted"
           title="Popular Around Dahanu"
@@ -29,11 +29,16 @@ export default function PopularBusinesses({ listings }: PopularBusinessesProps) 
         <div className="grid gap-4 lg:grid-cols-[1.05fr_1fr]">
           {lead ? <LeadPopularCard listing={lead} /> : null}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            {rest.slice(0, 4).map((listing) => (
-              <CompactPopularCard key={listing.id} listing={listing} />
+            {rest.slice(0, 4).map((listing, index) => (
+              <div key={listing.id} className={index > 1 ? 'hidden sm:block' : ''}>
+                <CompactPopularCard listing={listing} />
+              </div>
             ))}
           </div>
         </div>
+        <SafeAppLink href="/listings" className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--od-border)] bg-white text-sm font-bold text-[var(--od-brand)] sm:hidden">
+          See all popular businesses <ArrowRight size={15} />
+        </SafeAppLink>
       </div>
     </section>
   )
@@ -49,7 +54,7 @@ function LeadPopularCard({ listing }: { listing: HomeListing }) {
       href={href}
       className="group grid overflow-hidden rounded-xl border border-[var(--od-border)] bg-white shadow-[0_16px_46px_rgba(46,18,5,0.08)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(192,88,46,0.35)] md:grid-cols-[0.95fr_1fr]"
     >
-      <div className="relative min-h-[260px] overflow-hidden bg-[var(--od-surface-soft)]">
+      <div className="relative min-h-[210px] overflow-hidden bg-[var(--od-surface-soft)] sm:min-h-[260px]">
         {imageUrl ? (
           <Image
             src={imageUrl}

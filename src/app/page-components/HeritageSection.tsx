@@ -13,11 +13,11 @@ const people = [
 
 export default function HeritageSection() {
   return (
-    <section className="od-mobile-section py-12 md:py-16">
-      <div className="max-w-[1160px] mx-auto px-5 md:px-6">
+    <section className="od-mobile-section py-10 md:py-16">
+      <div className="max-w-[1160px] mx-auto px-4 md:px-6">
         <SafeAppLink
           href="/about"
-          className="group relative block overflow-hidden rounded-3xl aspect-[4/5] sm:aspect-[16/9] md:aspect-[21/9]"
+          className="group relative block min-h-[430px] overflow-hidden rounded-3xl sm:aspect-[16/9] sm:min-h-0 md:aspect-[21/9]"
         >
           <div className="absolute inset-0">
             <div

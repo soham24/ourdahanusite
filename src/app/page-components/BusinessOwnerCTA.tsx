@@ -1,4 +1,4 @@
-import { Check, Plus, Star } from 'lucide-react'
+import { Check, MessageCircle, Phone, Plus, Star, Store } from 'lucide-react'
 import Button from '@/components/ui/Button'
 
 interface BusinessOwnerCTAProps {
@@ -8,12 +8,12 @@ interface BusinessOwnerCTAProps {
 
 export default function BusinessOwnerCTA({ currentPrice, basePrice }: BusinessOwnerCTAProps) {
   return (
-    <section className="od-mobile-section py-12">
-      <div className="max-w-[1160px] mx-auto px-6">
-        <div className="relative bg-[var(--color-bark)] rounded-[32px] overflow-hidden">
+    <section className="od-mobile-section py-10 md:py-12">
+      <div className="max-w-[1160px] mx-auto px-4 md:px-6">
+        <div className="relative overflow-hidden rounded-3xl bg-[var(--color-bark)] md:rounded-[32px]">
           <div className="absolute inset-0 warli-pattern opacity-[0.04] pointer-events-none" />
 
-          <div className="relative grid grid-cols-1 md:grid-cols-[1fr_320px] gap-12 p-10 md:p-14 items-center">
+          <div className="relative grid grid-cols-1 items-center gap-8 p-6 md:grid-cols-[1fr_320px] md:gap-12 md:p-14">
             {/* Left copy */}
             <div>
               <p
@@ -25,7 +25,7 @@ export default function BusinessOwnerCTA({ currentPrice, basePrice }: BusinessOw
               <h2
                 className="font-display text-[var(--color-cream)] mb-[18px]"
                 style={{
-                  fontSize: 'clamp(32px, 4.5vw, 40px)',
+                  fontSize: 'clamp(28px, 4.5vw, 40px)',
                   lineHeight: 1.1,
                   letterSpacing: '-0.02em',
                 }}
@@ -100,7 +100,7 @@ export default function BusinessOwnerCTA({ currentPrice, basePrice }: BusinessOw
                 style={{ background: 'linear-gradient(135deg, var(--color-brand), var(--color-bark))' }}
                 aria-hidden
               >
-                🏪
+                <Store size={38} className="text-white/75" aria-hidden />
               </div>
               <div className="p-4">
                 <div className="font-bold text-sm text-[var(--color-bark)]">Your Business Name</div>
@@ -114,11 +114,11 @@ export default function BusinessOwnerCTA({ currentPrice, basePrice }: BusinessOw
                   <span className="text-[11px] text-[var(--color-text-muted)] ml-1">5.0 (12)</span>
                 </div>
                 <div className="flex gap-2 mt-3">
-                  <div className="flex-1 text-center py-2 rounded-lg text-[11px] font-bold text-white bg-[#25D366]">
-                    💬 WhatsApp
+                  <div className="flex flex-1 items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-bold text-white bg-[#138A4B]">
+                    <MessageCircle size={11} aria-hidden /> WhatsApp
                   </div>
-                  <div className="flex-1 text-center py-2 rounded-lg text-[11px] font-bold text-white bg-[var(--color-brand)]">
-                    📞 Call
+                  <div className="flex flex-1 items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-bold text-white bg-[var(--color-brand)]">
+                    <Phone size={11} aria-hidden /> Call
                   </div>
                 </div>
               </div>

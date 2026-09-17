@@ -9,7 +9,7 @@ import BottomViewportSpacer from '@/components/BottomViewportSpacer'
 
 const TABS = [
   { href: buildAbsoluteUrl('/'), matchPath: '/', label: 'Home', icon: Home },
-  { href: buildAbsoluteUrl('/listings'), matchPath: '/listings', label: 'Listings', icon: Store },
+  { href: buildAbsoluteUrl('/listings'), matchPath: '/listings', label: 'Explore', icon: Store },
   { href: buildAbsoluteUrl('/search'), matchPath: '/search', label: 'Search', icon: Search },
   { href: buildAbsoluteUrl('/play'), matchPath: '/play', label: 'Play', icon: Gamepad2 },
   { href: buildAbsoluteUrl('/dashboard'), matchPath: '/dashboard', label: 'Profile', icon: UserRound },
@@ -39,17 +39,15 @@ export default function BottomTabBar() {
               <Link
                 key={href}
                 href={href}
-                className={`relative flex flex-col items-center justify-center gap-1 py-2.5 transition-colors active:opacity-70 ${
+                className={`relative flex min-h-[58px] flex-col items-center justify-center gap-1 py-2 transition-[color,transform] active:scale-[0.96] ${
                   active
                     ? 'text-[var(--od-brand)]'
                     : 'text-[rgba(79,52,36,0.55)] hover:text-[var(--od-ink-2)]'
-                }`}
+                } ${matchPath === '/search' ? '-mt-2' : ''}`}
               >
-                <Icon
-                  size={22}
-                  strokeWidth={active ? 2.5 : 1.8}
-                  className={active ? 'text-[var(--od-brand)]' : ''}
-                />
+                <span className={matchPath === '/search' ? 'flex h-10 w-10 items-center justify-center rounded-full bg-[var(--od-brand)] text-white shadow-[0_8px_20px_rgba(192,88,46,0.28)]' : ''}>
+                  <Icon size={matchPath === '/search' ? 20 : 22} strokeWidth={active ? 2.5 : 1.8} />
+                </span>
                 <span className={`text-[11px] font-medium ${active ? 'font-semibold' : ''}`}>
                   {label}
                 </span>

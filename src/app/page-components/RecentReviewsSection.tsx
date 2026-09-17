@@ -31,8 +31,8 @@ export default function RecentReviewsSection({ reviews }: RecentReviewsSectionPr
   if (reviews.length === 0) return null
 
   return (
-    <section className="od-mobile-section bg-[var(--color-surface-2)] py-12 md:py-16">
-      <div className="mx-auto max-w-[1160px] px-5 md:px-6">
+    <section className="od-mobile-section bg-[var(--color-surface-2)] py-10 md:py-16">
+      <div className="mx-auto max-w-[1160px] px-4 md:px-6">
         <SectionHeader
           label="Community voices"
           title="What People Are Saying"
@@ -41,13 +41,13 @@ export default function RecentReviewsSection({ reviews }: RecentReviewsSectionPr
         />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {reviews.map((review) => {
+          {reviews.map((review, index) => {
             const href = getListingHref(review.listing_id, review.listing_subdomain)
             return (
               <Link
                 key={review.id}
                 href={href}
-                className="group flex flex-col rounded-2xl border border-[var(--od-border)] bg-white p-5 shadow-[0_6px_20px_rgba(46,18,5,0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[rgba(192,88,46,0.30)] hover:shadow-[0_12px_32px_rgba(46,18,5,0.10)]"
+                className={`${index > 0 ? 'hidden sm:flex' : 'flex'} group flex-col rounded-2xl border border-[var(--od-border)] bg-white p-5 shadow-[0_6px_20px_rgba(46,18,5,0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[rgba(192,88,46,0.30)] hover:shadow-[0_12px_32px_rgba(46,18,5,0.10)] active:scale-[0.99]`}
               >
                 {/* Quote icon */}
                 <Quote size={18} className="mb-3 text-[var(--od-brand)]/30" />

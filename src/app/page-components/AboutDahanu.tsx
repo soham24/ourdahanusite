@@ -1,27 +1,30 @@
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Handshake, Palette, Trees } from 'lucide-react'
 
 import Card from '@/components/ui/Card'
 
 export default function AboutDahanu() {
   const features = [
     {
-      title: '🌳 Chikoo Capital',
+      title: 'Chikoo Capital',
+      Icon: Trees,
       desc: "Dahanu's sapodilla orchards are part of everyday life and the local economy — celebrated nationally for their quality.",
     },
     {
-      title: '🎨 Warli Heritage',
+      title: 'Warli Heritage',
+      Icon: Palette,
       desc: "The region's tribal visual culture — geometric Warli art — gives our platform a distinctive and authentic local character.",
     },
     {
-      title: '🤝 Built for Locals',
+      title: 'Built for Locals',
+      Icon: Handshake,
       desc: 'Designed to help residents find trusted services and support their neighbours. Community first, always.',
     },
   ]
 
   return (
-    <section className="od-mobile-section py-12 md:py-16">
-      <div className="max-w-[1160px] mx-auto px-5 md:px-6">
+    <section className="od-mobile-section py-10 md:py-16">
+      <div className="max-w-[1160px] mx-auto px-4 md:px-6">
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--color-brand)] mb-1.5">
@@ -44,16 +47,17 @@ export default function AboutDahanu() {
             <ArrowRight size={15} />
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-          {features.map((c) => (
+        <div className="mt-8 hidden grid-cols-1 gap-4 md:grid md:grid-cols-3">
+          {features.map(({ title, desc, Icon }) => (
             <Card
-              key={c.title}
+              key={title}
               className="border-[var(--color-border)] p-6"
             >
               <div className="font-bold text-[var(--color-bark)] flex items-center gap-2 mb-2">
-                {c.title}
+                <Icon size={18} className="text-[var(--od-brand)]" aria-hidden />
+                {title}
               </div>
-              <p className="text-[13px] text-[var(--color-text-muted)] leading-[1.65]">{c.desc}</p>
+              <p className="text-[13px] text-[var(--color-text-muted)] leading-[1.65]">{desc}</p>
             </Card>
           ))}
         </div>

@@ -12,8 +12,8 @@ export default function FeaturedSpotlight({ listing }: { listing: FeaturedListin
   const address = summarizeAddress(listing.address, 2)
 
   return (
-    <section className="od-mobile-section bg-white py-12 md:py-16">
-      <div className="mx-auto max-w-[1160px] px-5 md:px-6">
+    <section className="od-mobile-section bg-white py-10 md:py-16">
+      <div className="mx-auto max-w-[1160px] px-4 md:px-6">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="od-eyebrow">Featured</p>
@@ -31,7 +31,7 @@ export default function FeaturedSpotlight({ listing }: { listing: FeaturedListin
 
         <article className="group overflow-hidden rounded-xl border border-[var(--od-border)] bg-[#fffdf9] shadow-[0_18px_50px_rgba(46,18,5,0.08)] md:grid md:grid-cols-[minmax(360px,0.9fr)_1fr]">
           <div
-            className="relative min-h-[220px] overflow-hidden md:min-h-[430px]"
+            className="relative aspect-[4/3] overflow-hidden md:aspect-auto md:min-h-[430px]"
             style={{ background: 'linear-gradient(135deg, #F7E7CF, #C4663A)' }}
           >
             {listing.image_url || listing.image_thumb_url ? (
@@ -82,11 +82,11 @@ export default function FeaturedSpotlight({ listing }: { listing: FeaturedListin
               </div>
             )}
 
-            <p className="mt-5 max-w-[540px] text-[15px] leading-7 text-[var(--od-muted)]">
+            <p className="mt-3 line-clamp-2 max-w-[540px] text-sm leading-6 text-[var(--od-muted)] md:mt-5 md:text-[15px] md:leading-7">
               {listing.tagline || 'A handpicked business from the OurDahanu directory, selected for discovery this week.'}
             </p>
 
-            <div className="mt-7 flex flex-wrap items-center gap-3">
+            <div className="mt-5 flex flex-wrap items-center gap-3 md:mt-7">
               <SafeAppLink
                 href={href}
                 className="inline-flex items-center gap-2 rounded-lg bg-[var(--od-ink)] px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[var(--od-brand-strong)]"
@@ -96,7 +96,7 @@ export default function FeaturedSpotlight({ listing }: { listing: FeaturedListin
               </SafeAppLink>
               <SafeAppLink
                 href="/listings"
-                className="inline-flex items-center gap-2 rounded-lg border border-[var(--od-border)] px-4 py-2.5 text-sm font-semibold text-[var(--od-ink)] transition-all hover:border-[rgba(192,88,46,0.35)] hover:bg-[var(--od-surface-soft)]"
+                className="hidden items-center gap-2 rounded-lg border border-[var(--od-border)] px-4 py-2.5 text-sm font-semibold text-[var(--od-ink)] transition-all hover:border-[rgba(192,88,46,0.35)] hover:bg-[var(--od-surface-soft)] sm:inline-flex"
               >
                 Browse directory
               </SafeAppLink>

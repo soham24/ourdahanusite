@@ -15,8 +15,8 @@ export default function NewListingsSection({ newListings }: NewListingsSectionPr
   if (newListings.length === 0) return null
 
   return (
-    <section className="od-mobile-section bg-[var(--color-surface-2)] py-12 md:py-16">
-      <div className="mx-auto max-w-[1160px] px-5 md:px-6">
+    <section className="od-mobile-section bg-[var(--color-surface-2)] py-10 md:py-16">
+      <div className="mx-auto max-w-[1160px] px-4 md:px-6">
         <SectionHeader
           label="New arrivals"
           title="Recently Listed"
@@ -24,8 +24,8 @@ export default function NewListingsSection({ newListings }: NewListingsSectionPr
           viewAllHref="/listings"
         />
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {newListings.slice(0, 6).map((listing) => {
+        <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
+          {newListings.slice(0, 6).map((listing, index) => {
             const href = getListingHref(listing.id, listing.subdomain)
             const address = summarizeAddress(listing.address, 2)
             const imageUrl = listing.image_url || listing.image_thumb_url
@@ -34,7 +34,7 @@ export default function NewListingsSection({ newListings }: NewListingsSectionPr
               <SafeAppLink
                 key={listing.id}
                 href={href}
-                className="group overflow-hidden rounded-xl border border-[var(--od-border)] bg-white shadow-[0_10px_30px_rgba(46,18,5,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(192,88,46,0.35)] hover:shadow-[0_18px_44px_rgba(46,18,5,0.10)]"
+                className={`${index > 3 ? 'hidden sm:block' : ''} group w-[86vw] max-w-[330px] shrink-0 snap-start overflow-hidden rounded-xl border border-[var(--od-border)] bg-white shadow-[0_10px_30px_rgba(46,18,5,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(192,88,46,0.35)] hover:shadow-[0_18px_44px_rgba(46,18,5,0.10)] active:scale-[0.99] sm:w-auto sm:max-w-none`}
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-[var(--od-surface-soft)]">
                   {imageUrl ? (
@@ -102,6 +102,9 @@ export default function NewListingsSection({ newListings }: NewListingsSectionPr
             )
           })}
         </div>
+        <SafeAppLink href="/listings" className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--od-border)] bg-white text-sm font-bold text-[var(--od-brand)] sm:hidden">
+          See all new businesses <ArrowRight size={15} />
+        </SafeAppLink>
       </div>
     </section>
   )

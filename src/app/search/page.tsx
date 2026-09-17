@@ -7,7 +7,7 @@ import { createPublicClient } from '@/lib/supabase/public'
 
 export const metadata: Metadata = {
   title: 'Search',
-  description: 'Search local businesses by name in Dahanu.',
+  description: 'Search local businesses, services, categories, and areas in Dahanu.',
   robots: {
     index: false,
     follow: true,
@@ -32,8 +32,8 @@ function SearchBar({ query }: { query: string }) {
         type="text"
         name="q"
         defaultValue={query}
-        aria-label="Search businesses by name"
-        placeholder="Search businesses by name..."
+        aria-label="Search businesses, services, or areas"
+        placeholder="Business, service, or area..."
         autoFocus
         className="w-full pl-12 pr-28 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:border-brand bg-white text-base shadow-sm"
       />
@@ -72,17 +72,22 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
   if (query) {
     try {
       const supabase = createPublicClient()
-      const pattern = `%${query.slice(0, 100).replace(/[\\%_]/g, '\\$&')}%`
+      // PostgREST's `.or()` accepts a filter expression, so restrict the
+      // value to ordinary search characters before composing it.
+      const safeQuery = query.slice(0, 100).replace(/[^a-zA-Z0-9\s&-]/g, ' ').trim()
+      const pattern = `%${safeQuery.replace(/[\\%_]/g, '\\$&')}%`
 
-      const { data, error } = await supabase
-        .from('listings')
-        .select('id, name, category, address, rating, subdomain')
-        .eq('approved', true)
-        .ilike('name', pattern)
-        .order('name')
-        .limit(20)
-      if (error) throw error
-      listings = data || []
+      if (safeQuery) {
+        const { data, error } = await supabase
+          .from('listings')
+          .select('id, name, category, address, rating, subdomain')
+          .eq('approved', true)
+          .or(`name.ilike.${pattern},category.ilike.${pattern},address.ilike.${pattern}`)
+          .order('name')
+          .limit(20)
+        if (error) throw error
+        listings = data || []
+      }
     } catch {
       searchFailed = true
     }
@@ -94,7 +99,7 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Search local businesses</h1>
-        <p className="text-gray-500">Find a business by name. For services and areas, use the business directory.</p>
+        <p className="text-gray-500">Find a business by name, service, category, or area.</p>
       </div>
 
       <SearchBar query={query} />

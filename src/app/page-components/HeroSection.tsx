@@ -1,231 +1,76 @@
-import { Suspense } from 'react'
-import { MapPin, Store, Plus, ArrowRight, Users } from 'lucide-react'
-import Button from '@/components/ui/Button'
-import { getProfessionCounts } from '@/lib/data/find'
-import { PROFESSIONS } from '@/lib/find/professions'
+import Link from 'next/link'
+import {
+  ArrowRight,
+  BedDouble,
+  BriefcaseBusiness,
+  Camera,
+  CarFront,
+  HeartPulse,
+  MapPin,
+  Search,
+  Utensils,
+} from 'lucide-react'
 
-// People directory lives on its own subdomain — links are absolute.
+import { getCategoryPath } from '@/lib/listing-category'
+
 const FIND_URL = 'https://find.ourdahanu.in'
+
+const QUICK_NEEDS = [
+  { label: 'Eat & order', href: getCategoryPath('Restaurants'), Icon: Utensils },
+  { label: 'Find a doctor', href: getCategoryPath('Healthcare & Clinics'), Icon: HeartPulse },
+  { label: 'Book a stay', href: getCategoryPath('Hotels & Stay'), Icon: BedDouble },
+  { label: 'Plan an event', href: getCategoryPath('Event Services'), Icon: Camera },
+  { label: 'Hire a professional', href: FIND_URL, Icon: BriefcaseBusiness },
+  { label: 'Book a taxi', href: getCategoryPath('Transport & Taxi'), Icon: CarFront },
+]
 
 export default function HeroSection() {
   return (
-    <section className="relative flex min-h-[380px] flex-col justify-end overflow-hidden sm:min-h-[480px] md:min-h-[680px]">
-      {/* Layered coastal backdrop — sunset gradient + scene */}
-      <div className="absolute inset-0 z-0">
-        {/* Base sunset gradient — sky to sea to bark */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(180deg, #1A0A03 0%, var(--color-bark) 28%, #6E2D11 52%, var(--color-terra) 72%, var(--color-sand) 86%, var(--color-gold-light) 100%)',
-          }}
-        />
-
-        {/* Setting sun glow */}
-        <div
-          className="absolute w-[520px] h-[520px] rounded-full pointer-events-none"
-          style={{
-            top: '8%',
-            right: '-120px',
-            background:
-              'radial-gradient(circle, rgba(240,200,122,0.55) 0%, rgba(232,168,85,0.25) 35%, transparent 70%)',
-          }}
-        />
-
-        {/* Warli pattern overlay (light) */}
-        <div className="absolute inset-0 hidden warli-pattern opacity-[0.05] pointer-events-none sm:block" />
-
-        {/* Coastal scene SVG — waves + palms anchored to bottom */}
-        <svg
-          className="absolute bottom-0 left-0 hidden w-full pointer-events-none sm:block"
-          viewBox="0 0 1440 360"
-          preserveAspectRatio="none"
-          aria-hidden
-          style={{ height: '52%' }}
-        >
-          {/* Distant wave (back) */}
-          <path
-            d="M0,200 Q360,170 720,195 T1440,200 L1440,360 L0,360 Z"
-            fill="rgba(20, 60, 80, 0.35)"
-          />
-          {/* Mid wave */}
-          <path
-            d="M0,240 Q300,210 600,235 T1200,240 T1440,235 L1440,360 L0,360 Z"
-            fill="rgba(14, 48, 64, 0.55)"
-          />
-          {/* Front wave with shimmer line */}
-          <path
-            d="M0,278 Q240,250 480,275 T960,278 T1440,275 L1440,360 L0,360 Z"
-            fill="rgba(8, 32, 48, 0.75)"
-          />
-          <path
-            d="M0,278 Q240,250 480,275 T960,278 T1440,275"
-            stroke="rgba(240,200,122,0.4)"
-            strokeWidth="1.5"
-            fill="none"
-          />
-          {/* Sand strip */}
-          <path d="M0,340 L1440,340 L1440,360 L0,360 Z" fill="rgba(46, 18, 5, 0.95)" />
-        </svg>
-
-        {/* Palm silhouette — left */}
-        <svg
-          className="absolute pointer-events-none hidden sm:block"
-          style={{ bottom: '14%', left: '4%', width: 110, height: 180 }}
-          viewBox="0 0 110 180"
-          aria-hidden
-        >
-          <path
-            d="M55,180 Q53,120 50,80 Q48,55 52,30"
-            stroke="rgba(20, 8, 0, 0.85)"
-            strokeWidth="3"
-            strokeLinecap="round"
-            fill="none"
-          />
-          {/* Palm fronds */}
-          <g fill="rgba(20, 8, 0, 0.8)">
-            <path d="M52,30 Q30,18 8,22 Q26,30 52,38 Z" />
-            <path d="M52,30 Q70,12 95,18 Q78,30 52,38 Z" />
-            <path d="M52,30 Q24,40 4,60 Q30,46 54,42 Z" />
-            <path d="M52,30 Q82,42 102,58 Q78,46 54,42 Z" />
-            <path d="M52,30 Q44,4 38,-2 Q50,18 54,32 Z" />
-          </g>
-        </svg>
-
-        {/* Palm silhouette — right (smaller) */}
-        <svg
-          className="absolute pointer-events-none hidden sm:block"
-          style={{ bottom: '15%', right: '6%', width: 80, height: 140 }}
-          viewBox="0 0 80 140"
-          aria-hidden
-        >
-          <path
-            d="M40,140 Q39,90 36,60 Q35,40 38,20"
-            stroke="rgba(20, 8, 0, 0.8)"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            fill="none"
-          />
-          <g fill="rgba(20, 8, 0, 0.75)">
-            <path d="M38,20 Q22,10 6,14 Q22,20 40,26 Z" />
-            <path d="M38,20 Q54,6 72,12 Q56,20 40,26 Z" />
-            <path d="M38,20 Q18,28 2,46 Q22,32 40,28 Z" />
-            <path d="M38,20 Q60,30 76,44 Q58,32 40,28 Z" />
-          </g>
-        </svg>
-
-        {/* Bottom dark overlay for text contrast */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1A0A03] via-[rgba(46,18,5,0.4)] to-transparent" />
+    <section className="relative overflow-hidden bg-[var(--color-bark)]">
+      <div className="absolute inset-0" aria-hidden>
+        <div className="absolute inset-0 bg-[linear-gradient(145deg,#1A0A03_0%,#4B1C0C_45%,#8A3618_100%)]" />
+        <div className="absolute -right-24 -top-28 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,rgba(240,200,122,0.34),transparent_68%)]" />
+        <div className="absolute inset-0 hidden opacity-[0.045] warli-pattern sm:block" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#1A0A03]/70 to-transparent" />
       </div>
 
-      {/* Content — bottom-aligned, left-aligned (mobile) / centered (large) */}
-      <div className="relative z-10 max-w-[1160px] mx-auto w-full px-4 sm:px-5 md:px-6 pt-20 sm:pt-24 pb-8 sm:pb-10 md:pb-14">
-        <div className="max-w-[640px]">
-          {/* Live badge */}
-          <div
-            className="inline-flex items-center gap-2 border border-white/[0.18] bg-white/[0.10] backdrop-blur-sm rounded-full pl-2.5 pr-3.5 py-1.5 text-xs font-semibold tracking-[0.02em] mb-5"
-            style={{ color: 'rgba(251,240,220,0.85)' }}
-          >
-            <span className="relative flex h-[7px] w-[7px]">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-40 animate-pulse-green" />
-              <span className="relative inline-flex h-[7px] w-[7px] rounded-full bg-green-400" />
-            </span>
-            <MapPin size={11} className="opacity-80" />
-            Dahanu · Bordi · Gholvad · Palghar
+      <div className="relative mx-auto w-full max-w-[1160px] px-4 pb-8 pt-16 sm:px-6 sm:pb-12 sm:pt-24 md:py-24">
+        <div className="max-w-[720px]">
+          <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.08] px-3 py-1.5 text-xs font-semibold text-[var(--color-cream)] backdrop-blur-sm">
+            <MapPin size={13} aria-hidden />
+            Dahanu, Bordi, Gholvad & nearby
           </div>
 
-          {/* H1 — coastal serif */}
-          <h1
-            className="font-display text-white mb-4"
-            style={{
-              fontSize: 'clamp(34px, 9vw, 64px)',
-              lineHeight: 1.05,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Discover the coastal soul of <em className="italic text-[var(--color-gold-light)]">Dahanu.</em>
+          <h1 className="max-w-[650px] font-display text-[38px] leading-[1.02] tracking-[-0.025em] text-white sm:text-[50px] md:text-[62px]">
+            Find what you need in <em className="italic text-[var(--color-gold-light)]">Dahanu.</em>
           </h1>
-
-          <p
-            className="text-base max-w-[460px] leading-[1.6] mb-7"
-            style={{ color: 'rgba(251,240,220,0.78)' }}
-          >
-            Businesses, food, jobs, services — your whole local community, right here.
+          <p className="mt-3 max-w-[520px] text-[15px] leading-6 text-[rgba(251,240,220,0.76)] sm:mt-4 sm:text-base">
+            Search trusted local businesses, services and professionals in one place.
           </p>
 
-          {/* People directory — find a trusted local professional */}
-          <div className="mb-6 max-w-[600px]">
-            <p className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-white">
-              <Users size={16} className="text-[var(--color-gold-light)]" aria-hidden />
-              Find a trusted local professional
-            </p>
-            <Suspense fallback={<HeroProChipsSkeleton />}>
-              <HeroProChips />
-            </Suspense>
+          <form action="/search" method="get" className="mt-6 max-w-[620px] sm:mt-8">
+            <label htmlFor="home-search" className="sr-only">Search local businesses</label>
+            <div className="flex min-h-14 items-center rounded-2xl border border-white/20 bg-white p-1.5 shadow-[0_20px_50px_rgba(18,7,2,0.34)] focus-within:ring-4 focus-within:ring-[rgba(240,200,122,0.20)]">
+              <Search className="ml-2.5 shrink-0 text-[var(--od-brand)]" size={20} aria-hidden />
+              <input id="home-search" name="q" type="search" enterKeyHint="search" autoComplete="off" placeholder="Restaurant, doctor, photographer..." className="min-w-0 flex-1 bg-transparent px-3 py-2 text-base text-[var(--od-ink)] outline-none placeholder:text-[var(--od-muted)]" />
+              <button type="submit" className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-[var(--od-brand)] px-4 text-sm font-bold text-white transition-transform active:scale-[0.98] sm:px-5">Search</button>
+            </div>
+          </form>
+
+          <div className="mt-5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap" aria-label="Popular needs">
+            {QUICK_NEEDS.map(({ label, href, Icon }) => (
+              <Link key={label} href={href} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/15 bg-white/[0.08] px-3 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-white/[0.15] active:scale-[0.98]">
+                <Icon size={15} className="shrink-0 text-[var(--color-gold-light)]" aria-hidden />
+                <span className="truncate">{label}</span>
+              </Link>
+            ))}
           </div>
 
-          {/* CTA buttons */}
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-3">
-            <Button href="/listings" size="lg" icon={<Store size={15} />} className="w-full bg-[var(--od-gold)] text-[var(--od-ink)] hover:bg-[var(--color-gold-light)] sm:w-auto">
-              Explore Businesses
-            </Button>
-            <Button href="/listings/submit" variant="outline" size="lg" icon={<Plus size={15} />} className="w-full bg-white/[0.12] border-white/25 text-white hover:bg-white/[0.20] sm:w-auto">
-              List Your Business
-            </Button>
-          </div>
+          <Link href="/listings" className="mt-5 inline-flex min-h-11 items-center gap-1.5 text-sm font-bold text-[var(--color-gold-light)] hover:text-white">
+            Explore every category <ArrowRight size={15} aria-hidden />
+          </Link>
         </div>
       </div>
     </section>
-  )
-}
-
-// Streamed inside the hero's Suspense boundary so the hero shell still paints
-// instantly. Reads the cached profession counts (no extra DB round-trip) and
-// surfaces only categories that actually have people, deep-linking each into
-// the directory. Renders nothing when the directory is empty.
-async function HeroProChips() {
-  const { counts, total } = await getProfessionCounts()
-  if (total === 0) return null
-
-  const top = PROFESSIONS
-    .filter((p) => (counts.get(p) ?? 0) > 0)
-    .sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0))
-    .slice(0, 6)
-
-  return (
-    <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      {top.map((p) => (
-        <a
-          key={p}
-          href={`${FIND_URL}/?profession=${encodeURIComponent(p)}`}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/20 bg-white/[0.12] px-3.5 py-2 text-[13px] font-semibold text-white backdrop-blur-sm transition-colors hover:border-white/40 hover:bg-white/20"
-        >
-          {p}
-          <span className="rounded-full bg-[var(--od-gold)] px-1.5 py-[3px] text-[10px] font-bold leading-none tabular-nums text-[var(--od-ink)]">
-            {counts.get(p)}
-          </span>
-        </a>
-      ))}
-      <a
-        href={FIND_URL}
-        className="inline-flex shrink-0 items-center gap-1 px-2 py-2 text-[13px] font-bold text-[var(--color-gold-light)] transition-colors hover:text-white"
-      >
-        Browse all {total} <ArrowRight size={14} aria-hidden />
-      </a>
-    </div>
-  )
-}
-
-function HeroProChipsSkeleton() {
-  return (
-    <div className="flex flex-wrap gap-2" aria-hidden>
-      {[88, 74, 96, 80, 70, 92].map((w, i) => (
-        <div
-          key={i}
-          className="h-9 animate-pulse rounded-full bg-white/[0.12]"
-          style={{ width: w }}
-        />
-      ))}
-    </div>
   )
 }
