@@ -3,7 +3,7 @@ import Button from '@/components/ui/Button'
 
 export default function BottomCTABanner() {
   return (
-    <section className="relative overflow-hidden bg-[var(--color-bark)] py-20 text-center">
+    <section className="od-mobile-section relative overflow-hidden bg-[var(--color-bark)] py-20 text-center">
       <div className="absolute inset-0 warli-pattern opacity-[0.04] pointer-events-none" />
       <div className="relative max-w-[600px] mx-auto px-6">
         <h2

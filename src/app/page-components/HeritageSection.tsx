@@ -13,7 +13,7 @@ const people = [
 
 export default function HeritageSection() {
   return (
-    <section className="py-12 md:py-16">
+    <section className="od-mobile-section py-12 md:py-16">
       <div className="max-w-[1160px] mx-auto px-5 md:px-6">
         <SafeAppLink
           href="/about"

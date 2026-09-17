@@ -31,7 +31,7 @@ export default function RecentReviewsSection({ reviews }: RecentReviewsSectionPr
   if (reviews.length === 0) return null
 
   return (
-    <section className="bg-[var(--color-surface-2)] py-12 md:py-16">
+    <section className="od-mobile-section bg-[var(--color-surface-2)] py-12 md:py-16">
       <div className="mx-auto max-w-[1160px] px-5 md:px-6">
         <SectionHeader
           label="Community voices"

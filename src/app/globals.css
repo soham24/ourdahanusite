@@ -132,6 +132,15 @@ html {
   }
 }
 
+/* Below-fold homepage sections can be expensive on low-end phones because
+   they contain image grids and several cards. Let the browser skip their
+   layout/paint until they approach the viewport while reserving a stable
+   amount of space to prevent scroll jumps. */
+.od-mobile-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 640px;
+}
+
 ::selection {
   background: rgba(192, 88, 46, 0.18);
 }

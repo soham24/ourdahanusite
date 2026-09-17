@@ -20,7 +20,7 @@ export default function AboutDahanu() {
   ]
 
   return (
-    <section className="py-12 md:py-16">
+    <section className="od-mobile-section py-12 md:py-16">
       <div className="max-w-[1160px] mx-auto px-5 md:px-6">
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>

@@ -53,7 +53,7 @@ export default function CategoryGrid({ groups }: CategoryGridProps) {
 
   return (
     <section
-      className="relative py-16"
+      className="od-mobile-section relative py-16"
       style={{
         background: 'linear-gradient(180deg, var(--color-bg) 0%, #F4EADC 100%)',
       }}

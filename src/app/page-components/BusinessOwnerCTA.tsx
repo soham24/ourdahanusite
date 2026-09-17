@@ -8,7 +8,7 @@ interface BusinessOwnerCTAProps {
 
 export default function BusinessOwnerCTA({ currentPrice, basePrice }: BusinessOwnerCTAProps) {
   return (
-    <section className="py-12">
+    <section className="od-mobile-section py-12">
       <div className="max-w-[1160px] mx-auto px-6">
         <div className="relative bg-[var(--color-bark)] rounded-[32px] overflow-hidden">
           <div className="absolute inset-0 warli-pattern opacity-[0.04] pointer-events-none" />

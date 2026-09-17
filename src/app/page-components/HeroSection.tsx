@@ -33,11 +33,11 @@ export default function HeroSection() {
         />
 
         {/* Warli pattern overlay (light) */}
-        <div className="absolute inset-0 warli-pattern opacity-[0.05] pointer-events-none" />
+        <div className="absolute inset-0 hidden warli-pattern opacity-[0.05] pointer-events-none sm:block" />
 
         {/* Coastal scene SVG — waves + palms anchored to bottom */}
         <svg
-          className="absolute bottom-0 left-0 w-full pointer-events-none"
+          className="absolute bottom-0 left-0 hidden w-full pointer-events-none sm:block"
           viewBox="0 0 1440 360"
           preserveAspectRatio="none"
           aria-hidden
@@ -94,7 +94,7 @@ export default function HeroSection() {
 
         {/* Palm silhouette — right (smaller) */}
         <svg
-          className="absolute pointer-events-none"
+          className="absolute pointer-events-none hidden sm:block"
           style={{ bottom: '15%', right: '6%', width: 80, height: 140 }}
           viewBox="0 0 80 140"
           aria-hidden

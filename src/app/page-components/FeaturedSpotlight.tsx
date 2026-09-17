@@ -12,7 +12,7 @@ export default function FeaturedSpotlight({ listing }: { listing: FeaturedListin
   const address = summarizeAddress(listing.address, 2)
 
   return (
-    <section className="bg-white py-12 md:py-16">
+    <section className="od-mobile-section bg-white py-12 md:py-16">
       <div className="mx-auto max-w-[1160px] px-5 md:px-6">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
           <div>
