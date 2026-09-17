@@ -102,6 +102,36 @@ body {
   line-height: 1.6;
 }
 
+/* Mobile browsers should never expose a one-pixel horizontal page scroll from
+   long business names, external URLs, or rich text content. `clip` preserves
+   programmatic scrolling while preventing accidental sideways panning. */
+html {
+  overflow-x: clip;
+  scroll-padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* iOS Safari zooms focused controls below 16px, which changes the viewport
+   and can push fixed contact controls over the content. Keep form controls at
+   the platform's no-zoom threshold on phones. */
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 ::selection {
   background: rgba(192, 88, 46, 0.18);
 }

@@ -52,18 +52,18 @@ export default function PhotoGallery({ photos }: { photos: string[] }) {
           onClick={() => setLightbox(null)}
         >
           <button onClick={e => { e.stopPropagation(); prev() }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors">
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-full transition-colors">
             <ChevronLeft size={24} />
           </button>
           <div className="relative max-w-4xl max-h-[85vh] w-full h-full" onClick={e => e.stopPropagation()}>
             <Image src={photos[lightbox]} alt={`Photo ${lightbox + 1}`} fill sizes="100vw" className="object-contain" />
           </div>
           <button onClick={e => { e.stopPropagation(); next() }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors">
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-full transition-colors">
             <ChevronRight size={24} />
           </button>
           <button onClick={() => setLightbox(null)}
-            className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors">
+            className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white p-3 rounded-full transition-colors">
             <X size={20} />
           </button>
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm">
