@@ -143,7 +143,7 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
       fetchListingReviewCount(listingId),
       supabase
         .from('listing_questions')
-        .select('*')
+        .select('id, listing_id, user_id, question, answer, answered_at, created_at')
         .eq('listing_id', listingId)
         .order('created_at', { ascending: false })
         .order('id', { ascending: true }),

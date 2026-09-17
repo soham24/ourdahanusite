@@ -73,7 +73,7 @@ export async function fetchListingReviewsPage(
   const { data } = await orderReviews(
     supabase
       .from('reviews')
-      .select('*')
+      .select('id, listing_id, user_id, rating, comment, owner_reply, owner_replied_at, created_at')
       .eq('listing_id', listingId),
   ).range(offset, offset + REVIEWS_PAGE_SIZE)
 
