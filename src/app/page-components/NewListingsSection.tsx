@@ -63,7 +63,7 @@ export default function NewListingsSection({ newListings }: NewListingsSectionPr
                   )}
                 </div>
 
-                <div className="p-4">
+                <div className="p-3.5 sm:p-4">
                   <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--od-brand)]">
                     {listing.category}
                   </div>

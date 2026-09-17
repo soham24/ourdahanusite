@@ -58,7 +58,7 @@ export default function CategoryGrid({ groups }: CategoryGridProps) {
         background: 'linear-gradient(180deg, var(--color-bg) 0%, #F4EADC 100%)',
       }}
     >
-      <div className="relative max-w-[1160px] mx-auto px-6">
+      <div className="relative max-w-[1160px] mx-auto px-4 sm:px-6">
         <SectionHeader
           label="Browse by need"
           title="Explore Categories"
@@ -76,7 +76,7 @@ export default function CategoryGrid({ groups }: CategoryGridProps) {
                   onClick={() => setOpenSlug(isOpen ? null : group.slug)}
                   aria-expanded={isOpen}
                   aria-controls={`category-group-${group.slug}`}
-                  className="group relative w-full flex-1 bg-white border border-[var(--color-border)] rounded-2xl p-5 text-center transition-all duration-300 hover:border-[rgba(192,88,46,0.45)] hover:-translate-y-1 hover:shadow-[0_18px_44px_rgba(192,88,46,0.14)] overflow-hidden"
+                    className="group relative w-full flex-1 bg-white border border-[var(--color-border)] rounded-2xl p-4 sm:p-5 text-center transition-all duration-300 hover:border-[rgba(192,88,46,0.45)] hover:-translate-y-1 hover:shadow-[0_18px_44px_rgba(192,88,46,0.14)] overflow-hidden"
                 >
                   <span
                     className="pointer-events-none absolute -top-12 -right-12 w-28 h-28 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"

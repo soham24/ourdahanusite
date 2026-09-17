@@ -119,7 +119,7 @@ export default function HeroSection() {
       </div>
 
       {/* Content — bottom-aligned, left-aligned (mobile) / centered (large) */}
-      <div className="relative z-10 max-w-[1160px] mx-auto w-full px-5 md:px-6 pt-24 pb-10 md:pb-14">
+      <div className="relative z-10 max-w-[1160px] mx-auto w-full px-4 sm:px-5 md:px-6 pt-20 sm:pt-24 pb-8 sm:pb-10 md:pb-14">
         <div className="max-w-[640px]">
           {/* Live badge */}
           <div
@@ -138,7 +138,7 @@ export default function HeroSection() {
           <h1
             className="font-display text-white mb-4"
             style={{
-              fontSize: 'clamp(38px, 7vw, 64px)',
+              fontSize: 'clamp(34px, 9vw, 64px)',
               lineHeight: 1.05,
               letterSpacing: '-0.02em',
             }}
@@ -165,11 +165,11 @@ export default function HeroSection() {
           </div>
 
           {/* CTA buttons */}
-          <div className="flex flex-wrap gap-3">
-            <Button href="/listings" size="lg" icon={<Store size={15} />} className="bg-[var(--od-gold)] text-[var(--od-ink)] hover:bg-[var(--color-gold-light)]">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-3">
+            <Button href="/listings" size="lg" icon={<Store size={15} />} className="w-full bg-[var(--od-gold)] text-[var(--od-ink)] hover:bg-[var(--color-gold-light)] sm:w-auto">
               Explore Businesses
             </Button>
-            <Button href="/listings/submit" variant="outline" size="lg" icon={<Plus size={15} />} className="bg-white/[0.12] border-white/25 text-white hover:bg-white/[0.20]">
+            <Button href="/listings/submit" variant="outline" size="lg" icon={<Plus size={15} />} className="w-full bg-white/[0.12] border-white/25 text-white hover:bg-white/[0.20] sm:w-auto">
               List Your Business
             </Button>
           </div>
@@ -193,12 +193,12 @@ async function HeroProChips() {
     .slice(0, 6)
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {top.map((p) => (
         <a
           key={p}
           href={`${FIND_URL}/?profession=${encodeURIComponent(p)}`}
-          className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/[0.12] px-3.5 py-2 text-[13px] font-semibold text-white backdrop-blur-sm transition-colors hover:border-white/40 hover:bg-white/20"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/20 bg-white/[0.12] px-3.5 py-2 text-[13px] font-semibold text-white backdrop-blur-sm transition-colors hover:border-white/40 hover:bg-white/20"
         >
           {p}
           <span className="rounded-full bg-[var(--od-gold)] px-1.5 py-[3px] text-[10px] font-bold leading-none tabular-nums text-[var(--od-ink)]">
@@ -208,7 +208,7 @@ async function HeroProChips() {
       ))}
       <a
         href={FIND_URL}
-        className="inline-flex items-center gap-1 px-2 py-2 text-[13px] font-bold text-[var(--color-gold-light)] transition-colors hover:text-white"
+        className="inline-flex shrink-0 items-center gap-1 px-2 py-2 text-[13px] font-bold text-[var(--color-gold-light)] transition-colors hover:text-white"
       >
         Browse all {total} <ArrowRight size={14} aria-hidden />
       </a>

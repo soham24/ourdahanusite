@@ -31,7 +31,7 @@ export default function FeaturedSpotlight({ listing }: { listing: FeaturedListin
 
         <article className="group overflow-hidden rounded-xl border border-[var(--od-border)] bg-[#fffdf9] shadow-[0_18px_50px_rgba(46,18,5,0.08)] md:grid md:grid-cols-[minmax(360px,0.9fr)_1fr]">
           <div
-            className="relative min-h-[260px] overflow-hidden md:min-h-[430px]"
+            className="relative min-h-[220px] overflow-hidden md:min-h-[430px]"
             style={{ background: 'linear-gradient(135deg, #F7E7CF, #C4663A)' }}
           >
             {listing.image_url || listing.image_thumb_url ? (
@@ -62,7 +62,7 @@ export default function FeaturedSpotlight({ listing }: { listing: FeaturedListin
             ) : null}
           </div>
 
-          <div className="p-6 md:flex md:flex-col md:justify-center md:p-9">
+          <div className="p-5 md:flex md:flex-col md:justify-center md:p-9">
             <div className="mb-5 flex items-center gap-2">
               <Badge variant="brand">{listing.category}</Badge>
               {listing.verified && (
