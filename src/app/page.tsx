@@ -14,6 +14,7 @@ import HeroSection from './page-components/HeroSection'
 import StatsBar from './page-components/StatsBar'
 import FeaturedSpotlight from './page-components/FeaturedSpotlight'
 import CategoryGrid from './page-components/CategoryGrid'
+import FindProfessionalsSection from './page-components/FindProfessionalsSection'
 import NewListingsSection from './page-components/NewListingsSection'
 import PopularBusinesses from './page-components/PopularBusinesses'
 import BusinessOwnerCTA from './page-components/BusinessOwnerCTA'
@@ -100,6 +101,7 @@ async function StatsAndCategoriesAsync() {
         topCategoryLabelsLength={stats.topCategoryLabels.length}
       />
       <CategoryGrid groups={stats.categoryGroups} />
+      <FindProfessionalsSection />
       {stats.featuredListing && <FeaturedSpotlight listing={stats.featuredListing} />}
     </>
   )

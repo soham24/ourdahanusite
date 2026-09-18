@@ -20,7 +20,7 @@ const QUICK_NEEDS = [
   { label: 'Find a doctor', href: getCategoryPath('Healthcare & Clinics'), Icon: HeartPulse },
   { label: 'Book a stay', href: getCategoryPath('Hotels & Stay'), Icon: BedDouble },
   { label: 'Plan an event', href: getCategoryPath('Event Services'), Icon: Camera },
-  { label: 'Hire a professional', href: FIND_URL, Icon: BriefcaseBusiness },
+  { label: 'Find professionals', href: FIND_URL, Icon: BriefcaseBusiness },
   { label: 'Book a taxi', href: getCategoryPath('Transport & Taxi'), Icon: CarFront },
 ]
 
