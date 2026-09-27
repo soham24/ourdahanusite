@@ -2,9 +2,11 @@
 
 import Link from 'next/link'
 import { useState, useTransition, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { BarChart3, Clock, CheckCircle, Lock } from 'lucide-react'
 import { castVote } from '@/app/actions/polls'
 import { hasSupabaseSessionCookie } from '@/lib/supabase/client-session'
+import { loginHref } from '@/lib/login-redirect'
 
 interface PollOption {
   id: string
@@ -44,6 +46,7 @@ export default function PollCard({
   loginNextPath = '/polls',
   pollHref = `/polls/${poll.id}`,
 }: Props) {
+  const router = useRouter()
   const [selected, setSelected] = useState<string | null>(userVote)
   const [hasVoted, setHasVoted] = useState(!!userVote)
   const [isLoggedInState, setIsLoggedInState] = useState(isLoggedIn)
@@ -110,7 +113,7 @@ export default function PollCard({
   const handleVote = (optionId: string) => {
     if (hasEnded) return
     if (!isLoggedInState) {
-      window.location.assign(`/login?next=${encodeURIComponent(loginNextPath)}`)
+      router.push(loginHref(loginNextPath))
       return
     }
 
@@ -255,7 +258,7 @@ export default function PollCard({
         </div>
         {!isLoggedInState && !hasEnded && (
           <a
-            href={`/login?next=${encodeURIComponent(loginNextPath)}`}
+            href={loginHref(loginNextPath)}
             className="text-xs text-brand hover:underline"
           >
             Sign in to vote
