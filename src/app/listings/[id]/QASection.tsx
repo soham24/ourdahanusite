@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, MessageCircleQuestion, Send } from 'lucide-reac
 
 import { askQuestion, answerQuestion } from '@/app/actions/listing-interactions'
 import { buildAbsoluteUrl } from '@/lib/site'
+import { loginHref } from '@/lib/login-redirect'
 
 interface Question {
   id: string
@@ -39,7 +40,14 @@ export default function QASection({ listingId, subdomain, questions: initial, is
 
   const handleAsk = () => {
     if (!isLoggedIn) {
-      window.location.href = buildAbsoluteUrl(`/login?next=${encodeURIComponent(window.location.pathname)}`)
+      // Stays a document navigation, unlike the Favourite and Recommend
+      // buttons: buildAbsoluteUrl points at the apex, so this crosses
+      // origins on a business subdomain and a router push cannot make it.
+      // The listing path, not window.location.pathname — on a subdomain
+      // that pathname is '/', which sent people to the apex homepage
+      // instead of back to the business. Matches the Sign In to Ask
+      // button below.
+      window.location.href = buildAbsoluteUrl(loginHref(`/listings/${listingId}`))
       return
     }
     if (!questionText.trim()) return
@@ -167,7 +175,7 @@ export default function QASection({ listingId, subdomain, questions: initial, is
             Sign in to ask the business owner a question.
           </p>
           <Link
-            href={buildAbsoluteUrl(`/login?next=${encodeURIComponent(`/listings/${listingId}`)}`)}
+            href={buildAbsoluteUrl(loginHref(`/listings/${listingId}`))}
             className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong"
           >
             Sign In to Ask

@@ -78,8 +78,24 @@ export function subsetText(extraText = ''): string {
 const MAX_CACHED_SUBSETS = 8
 const cache = new Map<string, ArrayBuffer>()
 
+/**
+ * Least-recently-*used*, not least-recently-added. Map iterates in insertion
+ * order, so re-inserting on a hit is what moves an entry to the young end.
+ * Without that, the printable-ASCII entry that /play and every plain-Latin
+ * card share is the first one inserted and so the first one evicted, and a
+ * handful of accented names would push the common case back to Google on
+ * every render — the opposite of the point.
+ */
+function recall(key: string): ArrayBuffer | undefined {
+  const hit = cache.get(key)
+  if (hit === undefined) return undefined
+  cache.delete(key)
+  cache.set(key, hit)
+  return hit
+}
+
 function remember(key: string, data: ArrayBuffer): void {
-  // Map iterates in insertion order, so the first key is the oldest.
+  cache.delete(key)
   if (cache.size >= MAX_CACHED_SUBSETS) {
     const oldest = cache.keys().next()
     if (!oldest.done) cache.delete(oldest.value)
@@ -89,7 +105,7 @@ function remember(key: string, data: ArrayBuffer): void {
 
 async function fetchWeight(weight: 400 | 700, text: string): Promise<ArrayBuffer> {
   const key = `${weight}:${text}`
-  const cached = cache.get(key)
+  const cached = recall(key)
   if (cached) return cached
 
   const family = weight === 700 ? 'DM+Sans:wght@700' : 'DM+Sans:wght@400'

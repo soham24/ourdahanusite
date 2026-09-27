@@ -40,6 +40,14 @@
 
 -- ---------- 1. Narrow what the API roles can call ----------
 
+-- PUBLIC as well as the named roles: PostgreSQL's default for a new
+-- function is EXECUTE TO PUBLIC, and on any database still carrying that
+-- default, revoking from `authenticated` alone leaves it reachable
+-- through PUBLIC -- which the verification block at the bottom would
+-- then catch, rolling back every ALTER FUNCTION above it. Production has
+-- no PUBLIC grant on this one, so there it is a no-op.
+REVOKE EXECUTE ON FUNCTION public.accept_delivery_offer(uuid, uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.accept_delivery_offer(uuid, uuid) FROM anon;
 REVOKE EXECUTE ON FUNCTION public.accept_delivery_offer(uuid, uuid) FROM authenticated;
 
 REVOKE EXECUTE ON FUNCTION public.get_admin_find_counts() FROM PUBLIC;
