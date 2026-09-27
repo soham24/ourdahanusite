@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og'
+import { loadDmSansPair } from '@/lib/og-font'
 import { getProfessionalById } from '@/lib/data/find'
 import { professionLabels } from '../../find-ui'
 
@@ -13,17 +14,6 @@ const TERRA_DEEP = '#8A3618'
 const GOLD = '#C8881E'
 const GOLD_LIGHT = '#F0C87A'
 const CREAM = '#FBF0DC'
-
-async function loadFont(weight: 400 | 700, text: string) {
-  const family = weight === 700 ? 'DM+Sans:wght@700' : 'DM+Sans:wght@400'
-  const css = await (
-    await fetch(`https://fonts.googleapis.com/css2?family=${family}&text=${encodeURIComponent(text)}`)
-  ).text()
-  const match = css.match(/src: url\(([^)]+)\)/)
-  if (!match) throw new Error('font css had no src url')
-  const res = await fetch(match[1])
-  return res.arrayBuffer()
-}
 
 function initials(name: string): string {
   return name
@@ -41,14 +31,19 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const name = pro?.name ?? 'FindDahanu'
   const professions = pro ? professionLabels(pro).map((l) => l.label).join(' · ') : 'Trusted local professionals'
   const ratingText = pro && pro.rating_count > 0 ? `${pro.avg_rating.toFixed(1)} · ${pro.rating_count} rating${pro.rating_count === 1 ? '' : 's'}` : null
-  // Only plain-Latin text goes through the webfont — DM Sans's hosted subset
-  // has no glyph for a star symbol, so the rating star is a drawn SVG below.
-  const glyphText = `${name} ${professions} ${ratingText ?? ''} FindDahanu Dahanu Vouched by neighbours`
+  // The star beside the rating is a drawn SVG, not a character: DM Sans's
+  // hosted subset has no glyph for one.
+  //
+  // Only the name needs passing through — loadDmSansPair covers printable
+  // ASCII on its own, so the card's own copy, the initials (which are
+  // uppercased, and so used to fall outside a subset built from a lowercase
+  // name) and the footer URL are all covered without being listed here.
+  const glyphText = name
   const starSvg = `data:image/svg+xml,${encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${GOLD_LIGHT}"><path d="M12 1.5l3.09 6.26 6.91 1-5 4.87 1.18 6.87L12 17.27l-6.18 3.24L7 13.63l-5-4.87 6.91-1z"/></svg>`,
   )}`
 
-  const [dmBold, dmRegular] = await Promise.all([loadFont(700, glyphText), loadFont(400, glyphText)])
+  const fonts = await loadDmSansPair(glyphText)
 
   return new ImageResponse(
     (
@@ -180,10 +175,9 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     ),
     {
       ...size,
-      fonts: [
-        { name: 'DM Sans', data: dmBold, weight: 700, style: 'normal' },
-        { name: 'DM Sans', data: dmRegular, weight: 400, style: 'normal' },
-      ],
+      // Empty when the font could not be fetched: next/og then uses its
+      // bundled font rather than failing the card.
+      ...(fonts.length > 0 ? { fonts } : {}),
     },
   )
 }
