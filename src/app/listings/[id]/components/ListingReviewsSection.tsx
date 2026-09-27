@@ -15,7 +15,6 @@ interface ListingReviewsSectionProps {
   /** Exact total across all pages, so the heading does not shrink to a page size. */
   reviewCount: number
   hasMoreReviews: boolean
-  rating: number
   listing: ListingRecord
   listingId: string
   platformLoginUrl: string
@@ -43,7 +42,6 @@ export default function ListingReviewsSection({
   reviews,
   reviewCount,
   hasMoreReviews,
-  rating,
   listing,
   listingId,
   platformLoginUrl,

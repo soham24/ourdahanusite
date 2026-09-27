@@ -24,7 +24,6 @@ interface ListingHeroProps {
   recommendCount: number
   tags: string[]
   phoneHref: string | null
-  phoneLabel: string | null
   enquiryLink: string | null
   statusShareLink: string | null
   listingId: string
@@ -55,7 +54,6 @@ export default function ListingHero({
   recommendCount,
   tags,
   phoneHref,
-  phoneLabel,
   enquiryLink,
   statusShareLink,
   listingId,

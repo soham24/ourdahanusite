@@ -350,7 +350,6 @@ async function ListingDetailContent({
         recommendCount={recommendCount}
         tags={tags}
         phoneHref={phoneHref}
-        phoneLabel={phoneLabel}
         enquiryLink={enquiryLink}
         statusShareLink={statusShareLink}
         listingId={listingId}
@@ -386,7 +385,6 @@ async function ListingDetailContent({
               reviews={reviews}
               reviewCount={reviewCount}
               hasMoreReviews={hasMoreReviews}
-              rating={rating}
               platformLoginUrl={platformLoginUrl}
               listingId={listingId}
             />
