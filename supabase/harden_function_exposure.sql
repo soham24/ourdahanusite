@@ -114,10 +114,16 @@ BEGIN
     RAISE EXCEPTION 'API roles can still execute % function(s)', v_still_public;
   END IF;
 
-  -- The application reaches both of these as the service role; if that
-  -- were revoked too, the admin FindDahanu page would silently show zeroes.
+  -- Both are revoked FROM PUBLIC, and on a database where service_role's
+  -- access came only from that default grant, the REVOKE would take it with
+  -- it. Assert both, not just the one the app reads today: the header
+  -- promises service_role keeps them.
   IF NOT has_function_privilege('service_role', 'public.get_admin_find_counts()', 'EXECUTE') THEN
     RAISE EXCEPTION 'service_role lost EXECUTE on get_admin_find_counts';
+  END IF;
+
+  IF NOT has_function_privilege('service_role', 'public.accept_delivery_offer(uuid, uuid)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'service_role lost EXECUTE on accept_delivery_offer';
   END IF;
 
   RAISE NOTICE 'harden_function_exposure: verified';
