@@ -66,7 +66,26 @@ export function subsetText(extraText = ''): string {
   return PRINTABLE_ASCII + extra
 }
 
+/**
+ * Bounded because the cache key includes the caller's text, and that text is
+ * a name out of the database: a crawler walking every FindDahanu profile
+ * would otherwise mint a fresh ~19 KB entry per weight per distinct name and
+ * keep all of them for the life of the instance, while almost never reading
+ * one back. ASCII-only names all share the one key (subsetText leaves them
+ * identical), so in practice this holds that common entry plus a handful of
+ * accented or Devanagari ones.
+ */
+const MAX_CACHED_SUBSETS = 8
 const cache = new Map<string, ArrayBuffer>()
+
+function remember(key: string, data: ArrayBuffer): void {
+  // Map iterates in insertion order, so the first key is the oldest.
+  if (cache.size >= MAX_CACHED_SUBSETS) {
+    const oldest = cache.keys().next()
+    if (!oldest.done) cache.delete(oldest.value)
+  }
+  cache.set(key, data)
+}
 
 async function fetchWeight(weight: 400 | 700, text: string): Promise<ArrayBuffer> {
   const key = `${weight}:${text}`
@@ -88,7 +107,7 @@ async function fetchWeight(weight: 400 | 700, text: string): Promise<ArrayBuffer
   const data = await fontRes.arrayBuffer()
   // Only successes are cached: a transient failure should be retried by the
   // next render, not remembered for the life of the instance.
-  cache.set(key, data)
+  remember(key, data)
   return data
 }
 

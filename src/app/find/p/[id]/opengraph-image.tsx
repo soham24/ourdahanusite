@@ -34,11 +34,14 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   // The star beside the rating is a drawn SVG, not a character: DM Sans's
   // hosted subset has no glyph for one.
   //
-  // Only the name needs passing through — loadDmSansPair covers printable
-  // ASCII on its own, so the card's own copy, the initials (which are
-  // uppercased, and so used to fall outside a subset built from a lowercase
-  // name) and the footer URL are all covered without being listed here.
-  const glyphText = name
+  // loadDmSansPair covers printable ASCII on its own, so the card's fixed
+  // copy and the footer URL need no mention here. What does need mentioning
+  // is every string built at request time, because each can carry something
+  // outside that range: the ` · ` separator in professions and ratingText
+  // is U+00B7, and a name (or a free-text profession) can be accented or
+  // Devanagari. initials() is listed separately because it uppercases —
+  // 'élan' asks for 'é' but the monogram renders 'É'.
+  const glyphText = `${name} ${initials(name)} ${professions} ${ratingText ?? ''}`
   const starSvg = `data:image/svg+xml,${encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${GOLD_LIGHT}"><path d="M12 1.5l3.09 6.26 6.91 1-5 4.87 1.18 6.87L12 17.27l-6.18 3.24L7 13.63l-5-4.87 6.91-1z"/></svg>`,
   )}`
