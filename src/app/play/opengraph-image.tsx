@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og'
+import { loadDmSansPair } from '@/lib/og-font'
 
 export const alt = 'Chikoo Catcher — A Dahanu Mini-Game on OurDahanu'
 export const size = { width: 1200, height: 630 }
@@ -14,18 +15,6 @@ const GOLD_LIGHT = '#F0C87A'
 const CREAM = '#FBF0DC'
 const LEAF = '#6B8E4E'
 
-async function loadFont(weight: 400 | 700) {
-  const family = weight === 700 ? 'DM+Sans:wght@700' : 'DM+Sans:wght@400'
-  const text = 'Chikoo Catcher A Dahanu Mini-Game OurDahanu Arcade Catch dodge climb the leaderboard ourdahanu.in/play'
-  const css = await (
-    await fetch(`https://fonts.googleapis.com/css2?family=${family}&text=${encodeURIComponent(text)}`)
-  ).text()
-  const match = css.match(/src: url\(([^)]+)\)/)
-  if (!match) throw new Error('font css had no src url')
-  const res = await fetch(match[1])
-  return res.arrayBuffer()
-}
-
 function chikooSvg(rotate: number): string {
   return `data:image/svg+xml,${encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="transform:rotate(${rotate}deg)">
@@ -37,7 +26,7 @@ function chikooSvg(rotate: number): string {
 }
 
 export default async function Image() {
-  const [dmBold, dmRegular] = await Promise.all([loadFont(700), loadFont(400)])
+  const fonts = await loadDmSansPair()
 
   return new ImageResponse(
     (
@@ -184,10 +173,9 @@ export default async function Image() {
     ),
     {
       ...size,
-      fonts: [
-        { name: 'DM Sans', data: dmBold, weight: 700, style: 'normal' },
-        { name: 'DM Sans', data: dmRegular, weight: 400, style: 'normal' },
-      ],
+      // Empty when the font could not be fetched: next/og then uses its
+      // bundled font rather than failing the card.
+      ...(fonts.length > 0 ? { fonts } : {}),
     },
   )
 }

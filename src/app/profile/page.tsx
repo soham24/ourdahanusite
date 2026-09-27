@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useActionState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/auth-context'
 import ImageUpload from '@/components/ImageUpload'
@@ -8,9 +9,11 @@ import { updateProfileFull } from '@/app/actions/profile'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, CheckCircle, Loader2, Camera } from 'lucide-react'
+import { loginHref } from '@/lib/login-redirect'
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
   const [supabase] = useState(() => createClient())
   const [profile, setProfile] = useState<Record<string, string> | null>(null)
   const [avatarUrl, setAvatarUrl] = useState('')
@@ -21,7 +24,9 @@ export default function ProfilePage() {
   useEffect(() => {
     if (authLoading) return
     if (!user) {
-      window.location.href = '/login'
+      // replace, not push: this page is only reachable signed in, so it has
+      // no business sitting in history behind the sign-in screen.
+      router.replace(loginHref('/profile'))
       return
     }
 

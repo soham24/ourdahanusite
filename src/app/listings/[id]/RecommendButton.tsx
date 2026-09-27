@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { ThumbsUp } from 'lucide-react'
 import { toggleRecommendation } from '@/app/actions/listing-interactions'
 import { useListingViewer } from './ListingViewerContext'
+import { loginHref, currentPathForLogin } from '@/lib/login-redirect'
 
 interface Props {
   listingId: string
@@ -17,6 +19,7 @@ export default function RecommendButton({
   listingId, subdomain, initialRecommended, initialCount, isLoggedIn,
 }: Props) {
   const viewer = useListingViewer()
+  const router = useRouter()
   const [optimisticRecommended, setOptimisticRecommended] = useState<boolean | null>(null)
   const [hasInteracted, setHasInteracted] = useState(false)
   const [count, setCount] = useState(initialCount)
@@ -27,7 +30,10 @@ export default function RecommendButton({
     : viewer.isRecommended || initialRecommended
 
   const handle = () => {
-    if (!signedIn) { window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`; return }
+    if (!signedIn) {
+      router.push(loginHref(currentPathForLogin(window.location)))
+      return
+    }
     setHasInteracted(true)
     startTransition(async () => {
       const res = await toggleRecommendation(listingId, subdomain)

@@ -300,11 +300,6 @@ export default function MyBusinessAppointmentsPage() {
     [scopedAppointments],
   )
 
-  const cancelledCount = useMemo(
-    () => scopedAppointments.filter((appointment) => appointment.status === 'cancelled').length,
-    [scopedAppointments],
-  )
-
   const bookedValue = useMemo(
     () =>
       scopedAppointments

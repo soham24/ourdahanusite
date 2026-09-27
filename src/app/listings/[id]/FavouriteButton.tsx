@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Heart } from 'lucide-react'
 import { toggleFavourite } from '@/app/actions/listing-interactions'
 import { useListingViewer } from './ListingViewerContext'
+import { loginHref, currentPathForLogin } from '@/lib/login-redirect'
 
 interface Props {
   listingId: string
@@ -14,6 +16,7 @@ interface Props {
 
 export default function FavouriteButton({ listingId, subdomain, initialFavourited, isLoggedIn }: Props) {
   const viewer = useListingViewer()
+  const router = useRouter()
   const [optimisticFavourited, setOptimisticFavourited] = useState<boolean | null>(null)
   const [hasInteracted, setHasInteracted] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -25,7 +28,7 @@ export default function FavouriteButton({ listingId, subdomain, initialFavourite
 
   const handle = () => {
     if (!signedIn) {
-      window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`
+      router.push(loginHref(currentPathForLogin(window.location)))
       return
     }
     setError('')
