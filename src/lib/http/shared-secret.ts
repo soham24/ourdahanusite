@@ -32,15 +32,19 @@ import { timingSafeEqual } from 'crypto'
  * nothing here.
  */
 export function secretMatches(candidate: string | null | undefined, expected: string): boolean {
-  if (!expected) return false
+  // Trim rather than trusting the caller to have run isConfigured first: a
+  // secret of only whitespace is a missing secret, and this function's whole
+  // promise is that it never says yes to one.
+  const want = typeof expected === 'string' ? expected.trim() : ''
+  if (!want) return false
   if (typeof candidate !== 'string' || candidate.length === 0) return false
 
   const given = Buffer.from(candidate, 'utf8')
-  const want = Buffer.from(expected, 'utf8')
-  if (given.length !== want.length) return false
+  const wantBuf = Buffer.from(want, 'utf8')
+  if (given.length !== wantBuf.length) return false
 
   try {
-    return timingSafeEqual(given, want)
+    return timingSafeEqual(given, wantBuf)
   } catch {
     return false
   }

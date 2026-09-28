@@ -76,15 +76,14 @@ Domain:     ourdahanu.in with wildcard *.ourdahanu.in subdomains
 
 | Package | Version | Purpose |
 |---|---|---|
-| `next` | 16.2.1 | React framework (SSR, routing, caching) |
+| `next` | 16.3.5 | React framework (SSR, routing, caching) |
 | `react` | 19.2.4 | UI library |
 | `@supabase/ssr` | 0.9.0 | Supabase server-side auth |
-| `@supabase/supabase-js` | 2.100.0 | Supabase client SDK |
+| `@supabase/supabase-js` | 2.109.0 | Supabase client SDK |
 | `tailwindcss` | 4.x | Utility-first CSS framework |
 | `resend` | 6.9.4 | Transactional email API |
 | `lucide-react` | 1.0.1 | Icon library |
 | `react-easy-crop` | 5.5.7 | Image crop UI |
-| `pptxgenjs` | 4.0.1 | Generate PPTX files (reports) |
 | `@vercel/analytics` | 2.0.1 | Usage analytics |
 
 ---

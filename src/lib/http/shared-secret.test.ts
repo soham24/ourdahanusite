@@ -30,6 +30,19 @@ test('never matches when no secret is configured, even against an empty candidat
   assert.equal(secretMatches(null, ''), false)
 })
 
+test('treats a whitespace-only configured secret as no secret at all', () => {
+  assert.equal(secretMatches('   ', '   '), false)
+  assert.equal(secretMatches('\t', '\t'), false)
+  assert.equal(secretMatches('anything', '   '), false)
+})
+
+test('ignores whitespace around the configured secret, so a stray newline in env still works', () => {
+  assert.equal(secretMatches('s3cret', '  s3cret\n'), true)
+  // The candidate is not trimmed: it arrives from the caller, and padding it
+  // must not be a way to match.
+  assert.equal(secretMatches('  s3cret\n', '  s3cret\n'), false)
+})
+
 test('treats blank configuration as not configured', () => {
   assert.equal(isConfigured(undefined), false)
   assert.equal(isConfigured(''), false)

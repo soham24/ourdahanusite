@@ -52,7 +52,8 @@ Set these in `.env.local` (local) and in the Vercel project settings (production
 | Var | Purpose |
 |---|---|
 | `RESEND_API_KEY` | Email (newsletter welcome, etc.) |
-| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_BOT_USERNAME` / `TELEGRAM_USER_BOT_TOKEN` / `TELEGRAM_WEBHOOK_SECRET` | Telegram admin alerts + per-user DMs |
+| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_BOT_USERNAME` / `TELEGRAM_USER_BOT_TOKEN` | Telegram admin alerts + per-user DMs |
+| `TELEGRAM_WEBHOOK_SECRET` | **Required if you use Telegram at all** — the webhook fails closed without it. See [SETUP.md](SETUP.md). |
 | `WHATSAPP_ACCESS_TOKEN` / `WHATSAPP_PHONE_NUMBER_ID` | WhatsApp notifications |
 | `CRON_SECRET` | Authorizes `/api/cron/*` (sent as `Authorization` header by Vercel cron) |
 | `ADMIN_EMAIL` | Bootstraps an admin account |
