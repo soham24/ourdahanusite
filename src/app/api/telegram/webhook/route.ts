@@ -13,11 +13,13 @@
  * Security:
  *  The webhook URL embeds a secret path param: register it via
  *    `https://ourdahanu.in/api/telegram/webhook?secret=<TELEGRAM_WEBHOOK_SECRET>`
- *  Telegram's `setWebhook` API is called once manually with that URL (see
- *  /SETUP-TELEGRAM.md).
+ *  Telegram's `setWebhook` is called once manually with that URL. The secret
+ *  is required: without TELEGRAM_WEBHOOK_SECRET set, this route answers 500
+ *  to everything. See the Telegram section of SETUP.md.
  */
 
 import { NextResponse } from 'next/server'
+import { isConfigured, secretMatches } from '@/lib/http/shared-secret'
 
 import { createAdminClient } from '@/lib/supabase/admin-client'
 
@@ -52,25 +54,39 @@ async function replyToChat(chatId: number, text: string, parseMode: 'HTML' | 'Ma
   }
 }
 
-/** GET exists only so you can visually confirm the webhook URL is reachable. */
-export async function GET(request: Request) {
-  const url = new URL(request.url)
-  const secret = process.env.TELEGRAM_WEBHOOK_SECRET?.trim()
-  if (secret && url.searchParams.get('secret') !== secret) {
+/**
+ * Rejects the request unless it carries the configured `?secret=`.
+ *
+ * Fails closed: an unset TELEGRAM_WEBHOOK_SECRET answers 500, it does not
+ * wave the caller through. This check used to be wrapped in `if (secret)`,
+ * so a deployment that simply never set the variable had an unauthenticated
+ * webhook and no sign of it -- which matters more now the code is public and
+ * anyone can fork it. The cron routes have always failed closed; this brings
+ * the webhook into line with them.
+ */
+function rejectUnauthorised(request: Request): NextResponse | null {
+  const secret = process.env.TELEGRAM_WEBHOOK_SECRET
+  if (!isConfigured(secret)) {
+    console.error('[telegram/webhook] TELEGRAM_WEBHOOK_SECRET not configured')
+    return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
+  }
+  if (!secretMatches(new URL(request.url).searchParams.get('secret'), secret.trim())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  return null
+}
+
+/** GET exists only so you can visually confirm the webhook URL is reachable. */
+export async function GET(request: Request) {
+  const unauthorised = rejectUnauthorised(request)
+  if (unauthorised) return unauthorised
   return NextResponse.json({ ok: true, service: 'telegram-webhook' })
 }
 
 export async function POST(request: Request) {
-  // ── Auth: secret query param must match ─────────────────────────────────
-  const secret = process.env.TELEGRAM_WEBHOOK_SECRET?.trim()
-  if (secret) {
-    const url = new URL(request.url)
-    if (url.searchParams.get('secret') !== secret) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-  }
+  // Auth: the `?secret=` query param must match (fails closed if unset).
+  const unauthorised = rejectUnauthorised(request)
+  if (unauthorised) return unauthorised
 
   let update: TelegramUpdate
   try {

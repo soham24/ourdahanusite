@@ -18,6 +18,7 @@ import { createAdminClient } from '@/lib/supabase/admin-client'
 import { runAppointmentReminders } from '@/lib/cron/appointment-reminders'
 import { sendNotification } from '@/lib/notifications'
 import { addIndiaDays, getIndiaToday } from '@/lib/india-time'
+import { bearerToken, isConfigured, secretMatches } from '@/lib/http/shared-secret'
 
 const MILESTONES = [30, 15, 5, 3, 1] as const
 const MS_PER_DAY = 24 * 60 * 60 * 1000
@@ -25,13 +26,12 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000
 export async function GET(request: Request) {
   await connection()
 
-  const cronSecret = process.env.CRON_SECRET?.trim()
-  if (!cronSecret) {
+  const cronSecret = process.env.CRON_SECRET
+  if (!isConfigured(cronSecret)) {
     return NextResponse.json({ error: 'CRON_SECRET is not configured' }, { status: 500 })
   }
 
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${cronSecret}`) {
+  if (!secretMatches(bearerToken(request.headers.get('authorization')), cronSecret.trim())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

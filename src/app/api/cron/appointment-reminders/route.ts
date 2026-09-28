@@ -2,17 +2,17 @@ import { connection, NextResponse } from 'next/server'
 
 import { runAppointmentReminders } from '@/lib/cron/appointment-reminders'
 import { createAdminClient } from '@/lib/supabase/admin-client'
+import { bearerToken, isConfigured, secretMatches } from '@/lib/http/shared-secret'
 
 export async function GET(request: Request) {
   await connection()
 
-  const cronSecret = process.env.CRON_SECRET?.trim()
-  if (!cronSecret) {
+  const cronSecret = process.env.CRON_SECRET
+  if (!isConfigured(cronSecret)) {
     return NextResponse.json({ error: 'CRON_SECRET is not configured' }, { status: 500 })
   }
 
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${cronSecret}`) {
+  if (!secretMatches(bearerToken(request.headers.get('authorization')), cronSecret.trim())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

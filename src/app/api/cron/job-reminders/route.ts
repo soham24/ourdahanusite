@@ -14,6 +14,7 @@ import { connection, NextResponse } from 'next/server'
 import { daysLeft, REMINDER_WINDOW_DAYS } from '@/lib/jobs/lifecycle'
 import { sendNotification } from '@/lib/notifications'
 import { createAdminClient } from '@/lib/supabase/admin-client'
+import { bearerToken, isConfigured, secretMatches } from '@/lib/http/shared-secret'
 
 const DAY_MS = 86_400_000
 
@@ -28,11 +29,11 @@ interface DuePost {
 export async function GET(request: Request) {
   await connection()
 
-  const cronSecret = process.env.CRON_SECRET?.trim()
-  if (!cronSecret) {
+  const cronSecret = process.env.CRON_SECRET
+  if (!isConfigured(cronSecret)) {
     return NextResponse.json({ error: 'CRON_SECRET is not configured' }, { status: 500 })
   }
-  if (request.headers.get('authorization') !== `Bearer ${cronSecret}`) {
+  if (!secretMatches(bearerToken(request.headers.get('authorization')), cronSecret.trim())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

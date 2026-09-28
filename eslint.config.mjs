@@ -12,10 +12,6 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Standalone one-off scripts at the repo root — CommonJS, not part of the
-    // Next build and not imported by anything in src/.
-    "make-pitch.js",
-    "pptx-to-pdf.js",
   ]),
 ]);
 

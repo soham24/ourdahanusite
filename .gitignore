@@ -39,6 +39,7 @@ tmp-*.png
 *.local.png
 OurDahanu-Sales-Pitch.html
 OurDahanu-Sales-Pitch.pdf
+OurDahanu-Sales-Pitch.pptx
 
 # env files (can opt-in for committing if needed)
 .env*
