@@ -64,7 +64,7 @@ export default function FindLayout({ children }: { children: React.ReactNode }) 
             Every listing and rating is checked by a moderator before it appears.
           </p>
           <a
-            href="https://ourdahanu.in"
+            href={`https://${siteConfig.domain}`}
             className="text-xs font-bold text-[var(--od-brand)] transition-colors hover:text-[var(--od-brand-strong)]"
           >
             Part of {siteConfig.name} →

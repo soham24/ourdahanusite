@@ -129,11 +129,19 @@ Replace every one.
 by the browser before any JavaScript runs.
 
 Beyond those, roughly **50 references remain in ordinary code**: canonical
-URL helpers, the Resend `from:` addresses in `src/app/actions/admin.ts` and
-`src/app/actions/newsletter.ts` (which must be a domain you have verified
-with your email provider — they cannot just be renamed), a few host checks in
-`src/lib/`, and the test fixtures, which assert against the literal domain and
-will need updating for yours. The grep above lists them all.
+URL helpers, a few host checks in `src/lib/`, and the test fixtures, which
+assert against the literal domain and will need updating for yours. The grep
+above lists them all.
+
+**The email sender addresses are a special case.** Four files set a Resend
+`from:` address — `src/app/actions/admin.ts`,
+`src/app/actions/newsletter.ts`, `src/app/api/newsletter/route.ts` and
+`src/lib/notifications/channels/email.ts`. These are deliberately left as
+literals, because a sender address is not a display string: it has to be a
+domain you have verified with your email provider, so renaming it to match
+your site is necessary but not sufficient. Verify the domain with Resend
+first, then change all four. `deliverEmail` discards the provider's error
+result, so a wrong sender fails silently rather than loudly.
 
 ### Deliberately left alone
 

@@ -11,8 +11,10 @@ import type {
 } from './types'
 import { siteConfig } from '@/lib/site'
 
-const SITE_URL = 'https://ourdahanu.in'
-const JOBS_URL = 'https://jobs.ourdahanu.in'
+// The production domain, not the current deployment's: a link inside an
+// email outlives the preview that sent it.
+const SITE_URL = `https://${siteConfig.domain}`
+const JOBS_URL = `https://jobs.${siteConfig.domain}`
 
 function formatDate(dateStr: string): string {
   const date = new Date(`${dateStr}T00:00:00+05:30`)

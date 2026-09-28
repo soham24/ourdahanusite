@@ -32,9 +32,9 @@ function LoginContent() {
     })
 
     const hostname = window.location.hostname
-    const isSubdomain = hostname !== 'ourdahanu.in' && hostname.endsWith('.ourdahanu.in')
-    // Always callback via main domain so cookies get set with .ourdahanu.in domain
-    const callbackOrigin = isSubdomain ? 'https://ourdahanu.in' : window.location.origin
+    const isSubdomain = hostname !== siteConfig.domain && hostname.endsWith(`.${siteConfig.domain}`)
+    // Always callback via the main domain so cookies get the apex domain scope
+    const callbackOrigin = isSubdomain ? `https://${siteConfig.domain}` : window.location.origin
     // After auth, redirect back to where the user came from. On a business
     // subdomain the callback runs on the apex, so `next` must be absolute —
     // but it still has to keep the path, or a buyer signing in from a product

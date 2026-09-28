@@ -49,7 +49,7 @@ export default function AppointmentsLayout({ children }: { children: React.React
             Cancellations are handled by the business.
           </p>
           <a
-            href="https://ourdahanu.in"
+            href={`https://${siteConfig.domain}`}
             className="text-xs font-bold text-[var(--od-brand)] transition-colors hover:text-[var(--od-brand-strong)]"
           >
             Part of {siteConfig.name} →

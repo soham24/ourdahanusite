@@ -107,7 +107,7 @@ async function notifyGenericApproval(table: string, id: string) {
     const contentLabel = CONTENT_LABEL[table] || 'submission'
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const contentTitle = ((row as any).title || (row as any).name || 'Your submission') as string
-    const siteUrl = 'https://ourdahanu.in'
+    const siteUrl = `https://${siteConfig.domain}`
     const viewUrl = `${siteUrl}${TABLE_PATH_MAP[table] || '/'}/${id}`
 
     const { Resend } = await import('resend')

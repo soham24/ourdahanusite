@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
                 We respect your inbox — we only send meaningful updates, never spam.
               </p>
               <div style="text-align:center;">
-                <a href="https://ourdahanu.com" style="display:inline-block;background:#16a34a;color:#ffffff;font-weight:700;font-size:15px;text-decoration:none;padding:14px 32px;border-radius:12px;">
+                <a href="https://${siteConfig.domain}" style="display:inline-block;background:#16a34a;color:#ffffff;font-weight:700;font-size:15px;text-decoration:none;padding:14px 32px;border-radius:12px;">
                   Visit ${siteConfig.name}
                 </a>
               </div>
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
           <tr>
             <td style="background:#f9fafb;padding:20px 40px;text-align:center;border-top:1px solid #f3f4f6;">
               <p style="color:#9ca3af;font-size:12px;margin:0;">
-                You're receiving this because you subscribed at ourdahanu.com.<br/>
+                You're receiving this because you subscribed at ${siteConfig.domain}.<br/>
                 ${siteConfig.town}, Palghar, Maharashtra, India 401602
               </p>
             </td>

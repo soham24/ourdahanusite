@@ -117,7 +117,7 @@ export async function sendNewsletter(
           </tr>
           <tr>
             <td style="padding:24px 40px;text-align:center;">
-              <a href="https://ourdahanusite.vercel.app" style="display:inline-block;background:#C4663A;color:#FBF0DC;font-weight:700;font-size:14px;text-decoration:none;padding:12px 28px;border-radius:10px;">
+              <a href="https://${siteConfig.domain}" style="display:inline-block;background:#C4663A;color:#FBF0DC;font-weight:700;font-size:14px;text-decoration:none;padding:12px 28px;border-radius:10px;">
                 Visit OurDahanu →
               </a>
             </td>
@@ -126,7 +126,7 @@ export async function sendNewsletter(
             <td style="background:#FBF0DC;padding:18px 40px;text-align:center;border-top:1px solid #E8C99A;">
               <p style="color:#7A4A25;font-size:12px;margin:0;">
                 Dahanu, Palghar, Maharashtra, India 401602<br/>
-                You received this because you subscribed at ourdahanusite.vercel.app
+                You received this because you subscribed at ${siteConfig.domain}
               </p>
             </td>
           </tr>

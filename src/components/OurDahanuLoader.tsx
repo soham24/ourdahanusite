@@ -92,7 +92,7 @@ export default function OurDahanuLoader({
   fullScreen?: boolean
 }) {
   const loaderMessage =
-    message || 'Wait, we are bringing the OurDahanu experience to you.'
+    message || `Wait, we are bringing the ${siteConfig.name} experience to you.`
 
   return (
     <div
@@ -257,7 +257,7 @@ export default function OurDahanuLoader({
 
             <div className="our-dahanu-loader__logo-text" aria-hidden="true">
               <div className="our-dahanu-loader__logo-text-brand">
-                Loading your OurDahanu
+                Loading your {siteConfig.name}
                 <br />
                 experience… hold on ✨
               </div>
@@ -419,7 +419,7 @@ export default function OurDahanuLoader({
             </svg>
 
             <div className="our-dahanu-loader__text">
-              <div className="our-dahanu-loader__brand">OurDahanu</div>
+              <div className="our-dahanu-loader__brand">{siteConfig.name}</div>
               <div className="our-dahanu-loader__sub">{loaderMessage}</div>
               <div className="our-dahanu-loader__dots" aria-label={loaderMessage}>
                 {Array.from({ length: 5 }).map((_, index) => (
@@ -444,7 +444,7 @@ export function OurDahanuLoaderCompact({ message }: { message?: string }) {
           <div key={index} className="our-dahanu-loader__dot" />
         ))}
       </div>
-      <div className="font-display text-xl text-[var(--color-gold)]">OurDahanu</div>
+      <div className="font-display text-xl text-[var(--color-gold)]">{siteConfig.name}</div>
       {message ? (
         <p className="mt-2 text-sm text-[color:rgba(122,69,32,0.7)]">{message}</p>
       ) : null}

@@ -61,7 +61,7 @@ export default function JobsLayout({ children }: { children: React.ReactNode }) 
             Free to post. Posts from individuals are checked by a moderator before they appear.
           </p>
           <a
-            href="https://ourdahanu.in"
+            href={`https://${siteConfig.domain}`}
             className="text-xs font-bold text-[var(--od-brand)] transition-colors hover:text-[var(--od-brand-strong)]"
           >
             Part of {siteConfig.name} →
