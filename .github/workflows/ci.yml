@@ -40,8 +40,12 @@ jobs:
         # fails if a server action exposes a credential to client code.
         run: npm run build
         env:
-          # The build only needs these to be present and well-formed, not
-          # real: no page is allowed to reach the network at build time.
+          # Placeholders, not real credentials. Prerendering does call
+          # Supabase -- generateStaticParams and the 'use cache' fetchers
+          # both do -- and against this URL those calls fail into their
+          # empty-state fallbacks. So CI proves the app compiles, type
+          # checks and renders its empty states; it does not exercise
+          # rendering with real rows.
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: build-time-placeholder
           NEXT_PUBLIC_SITE_URL: http://localhost:3000

@@ -35,8 +35,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "^16.3.5",
-    "pptxgenjs": "^4.0.1",
-    "puppeteer": "^24.40.0",
     "sharp": "^0.35.4",
     "tailwindcss": "^4",
     "tsx": "^4.20.6",

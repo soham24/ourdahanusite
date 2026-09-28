@@ -49,6 +49,39 @@ After deploying, in Supabase:
 - Set **Site URL** to your Vercel URL (e.g., `https://ourdahanu.vercel.app`)
 - Add to **Redirect URLs**: `https://ourdahanu.vercel.app/auth/callback`
 
+## Telegram notifications (optional)
+
+Skip this entirely if you are not using Telegram — nothing else depends on it.
+
+1. Create a bot with [@BotFather](https://t.me/BotFather) and copy the token
+   into `TELEGRAM_BOT_TOKEN`. Put the bot's @name in `TELEGRAM_BOT_USERNAME`.
+2. Generate a secret and set it as `TELEGRAM_WEBHOOK_SECRET`:
+
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"
+   ```
+
+   **This is required, not optional.** The webhook refuses every request when
+   it is unset — it fails closed on purpose, so that a deployment which forgets
+   it gets a loud 500 rather than a quietly open endpoint.
+
+3. Register the webhook once, with the secret in the URL:
+
+   ```bash
+   curl -X POST "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook"      -d "url=https://<your-domain>/api/telegram/webhook?secret=<TELEGRAM_WEBHOOK_SECRET>"
+   ```
+
+4. Confirm it is reachable and that the secret matches — this should return
+   `{"ok":true,...}`, and a 401 without the query param:
+
+   ```bash
+   curl "https://<your-domain>/api/telegram/webhook?secret=<TELEGRAM_WEBHOOK_SECRET>"
+   ```
+
+If you ever rotate the secret, set the new value **and** re-run `setWebhook`
+with it. Changing only one of the two leaves Telegram posting to a URL the app
+now rejects, and account linking stops working with no error visible to users.
+
 ## Local Development
 
 ```bash

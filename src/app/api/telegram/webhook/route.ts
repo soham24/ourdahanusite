@@ -13,8 +13,9 @@
  * Security:
  *  The webhook URL embeds a secret path param: register it via
  *    `https://ourdahanu.in/api/telegram/webhook?secret=<TELEGRAM_WEBHOOK_SECRET>`
- *  Telegram's `setWebhook` API is called once manually with that URL (see
- *  /SETUP-TELEGRAM.md).
+ *  Telegram's `setWebhook` is called once manually with that URL. The secret
+ *  is required: without TELEGRAM_WEBHOOK_SECRET set, this route answers 500
+ *  to everything. See the Telegram section of SETUP.md.
  */
 
 import { NextResponse } from 'next/server'
