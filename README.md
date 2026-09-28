@@ -81,20 +81,21 @@ src/
     actions/                    # server actions (cookie/dual-auth)
     api/
       razorpay/ cron/ telegram/ newsletter/ ...
-      v1/                       # JSON API for the native app (see docs/mobile-api.md)
   components/ ui/               # shared components + design-system primitives
   lib/
     supabase/                   # server (dual-auth) + browser + admin clients
     data/                       # cached read fetchers
-    api/                        # /api/v1 helpers (auth, cors, respond, form)
     database.types.ts           # generated Supabase types
   proxy.ts                      # subdomain routing (Next 16 "proxy", not middleware)
-docs/mobile-api.md              # app/backend integration guide
 ```
 
-## Mobile app backend
+## Authentication
 
-The backend is **dual-auth**: API routes and server actions accept either the web session cookie or an `Authorization: Bearer <supabase-jwt>` from a native app. A versioned `/api/v1` namespace exposes the server-secret flows (payments, devices). See **[docs/mobile-api.md](docs/mobile-api.md)**.
+Sign-in is Google OAuth through Supabase (PKCE). The server client is
+**dual-auth**: it reads the web session cookie, and also accepts an
+`Authorization: Bearer <supabase-jwt>` so a native client could call the same
+server code. The `/api/v1` namespace that a native app would have used was
+removed in September 2026, when it became clear no app was going to ship.
 
 ## Deployment
 
@@ -105,3 +106,21 @@ Hosted on **Vercel** (config in `vercel.json`). Pushing to `main` triggers a pro
 ## Database
 
 Schema and RLS policies live in Supabase. Regenerate TypeScript types after schema changes and overwrite `src/lib/database.types.ts`. Run the Supabase security/performance advisors after DDL changes.
+
+## Contributing
+
+See **[CONTRIBUTING.md](CONTRIBUTING.md)**. Please open an issue before starting
+anything substantial — this runs a live site for real businesses, so some things
+are missing deliberately.
+
+## Security
+
+Found a vulnerability? Please report it privately rather than in an issue —
+**[SECURITY.md](SECURITY.md)** has the details.
+
+## Licence
+
+[MIT](LICENSE) © Soham Railkar.
+
+The code is open. The name "OurDahanu", the logo, and the content of the live
+site — business listings, reviews, photos and guides — are not covered by it.

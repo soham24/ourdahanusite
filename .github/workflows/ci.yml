@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A second push to the same PR cancels the run still in flight.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Types
+        run: npx tsc --noEmit
+
+      - name: Lint
+        # Warnings are an existing backlog; only errors fail the build.
+        run: npx eslint
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        # Also runs scripts/check-action-boundaries.mjs via postbuild, which
+        # fails if a server action exposes a credential to client code.
+        run: npm run build
+        env:
+          # The build only needs these to be present and well-formed, not
+          # real: no page is allowed to reach the network at build time.
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: build-time-placeholder
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
