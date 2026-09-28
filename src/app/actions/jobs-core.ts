@@ -18,6 +18,7 @@ import {
   type JobKind,
   type JobPostInput,
 } from '../../lib/jobs/validation'
+import { siteConfig } from '@/lib/site'
 
 export const DAILY_POST_LIMIT = 5
 export const DAILY_REVEAL_LIMIT = 30
@@ -122,7 +123,7 @@ export function createJobActions(deps: JobActionDependencies) {
     const { fields, contact } = result
 
     if (fields.collected_source !== null && !staff) {
-      return { error: 'Only OurDahanu staff can post collected jobs.' }
+      return { error: `Only ${siteConfig.name} staff can post collected jobs.` }
     }
     const collectedByStaff = staff && fields.collected_source !== null
 

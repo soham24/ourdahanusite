@@ -21,27 +21,28 @@ import BusinessOwnerCTA from './page-components/BusinessOwnerCTA'
 import RecentReviewsSection from './page-components/RecentReviewsSection'
 import HeritageSection from './page-components/HeritageSection'
 import HomeSectionSkeleton from './page-components/HomeSectionSkeleton'
+import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Dahanu Business Directory & Community',
+  title: `${siteConfig.town} Business Directory & Community`,
   description:
-    'Discover Dahanu businesses, restaurants, hotels, services, and community updates on OurDahanu.',
+    `Discover ${siteConfig.town} businesses, restaurants, hotels, services, and community updates on ${siteConfig.name}.`,
   alternates: {
     canonical: 'https://ourdahanu.in/',
   },
   openGraph: {
-    title: 'Dahanu Business Directory & Community',
+    title: `${siteConfig.town} Business Directory & Community`,
     description:
-      'Discover Dahanu businesses, restaurants, hotels, services, and community updates on OurDahanu.',
+      `Discover ${siteConfig.town} businesses, restaurants, hotels, services, and community updates on ${siteConfig.name}.`,
     url: 'https://ourdahanu.in/',
     type: 'website',
     images: [{ url: 'https://ourdahanu.in/logo.png' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Dahanu Business Directory & Community',
+    title: `${siteConfig.town} Business Directory & Community`,
     description:
-      'Discover Dahanu businesses, restaurants, hotels, services, and community updates on OurDahanu.',
+      `Discover ${siteConfig.town} businesses, restaurants, hotels, services, and community updates on ${siteConfig.name}.`,
     images: ['https://ourdahanu.in/logo.png'],
   },
 }
@@ -71,7 +72,7 @@ export default function HomePage() {
         <StatsAndCategoriesAsync />
       </Suspense>
 
-      <Suspense fallback={<HomeSectionSkeleton variant="row" label="Popular in Dahanu" />}>
+      <Suspense fallback={<HomeSectionSkeleton variant="row" label={`Popular in ${siteConfig.town}`} />}>
         <PopularBusinessesAsync />
       </Suspense>
 

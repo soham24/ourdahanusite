@@ -11,6 +11,7 @@ import { JOB_CATEGORIES, jobCategoryMarathi } from '@/lib/jobs/categories'
 import { AREA_SUGGESTIONS, PAY_PERIODS, WORK_TYPES } from '@/lib/jobs/options'
 import { JOB_TEXT_LIMITS, type JobKind, type JobPostInput } from '@/lib/jobs/validation'
 import { chipBase, chipOff, chipOn } from '../jobs-ui'
+import { siteConfig } from '@/lib/site'
 
 /** An approved listing the user owns, offered under "Posting as". */
 export interface OwnedBusiness {
@@ -402,7 +403,7 @@ export default function JobPostForm({
           disabled={pending}
           list="job-post-areas"
           maxLength={JOB_TEXT_LIMITS.area}
-          placeholder={hiring ? 'e.g. Dahanu Road' : 'e.g. Dahanu, Bordi'}
+          placeholder={hiring ? `e.g. ${siteConfig.town} Road` : `e.g. ${siteConfig.town}, Bordi`}
           onChange={(event) => update('area', event.target.value)}
           className={inputCls}
         />

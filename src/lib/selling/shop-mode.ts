@@ -1,4 +1,5 @@
 import { classifyRazorpayKeyId } from './keys'
+import { siteConfig } from '@/lib/site'
 
 /** off: no online selling · test: only the owner may see and buy · live: everyone. */
 export type ShopMode = 'off' | 'test' | 'live'
@@ -21,7 +22,7 @@ export const LISTING_NOT_LIVE_MESSAGE = 'Your listing needs to be live before yo
 export function sellingPausedMessage(reason: string | null): string {
   // The sentence adds its own full stop, so drop any the admin typed.
   const why = reason?.trim().replace(/[.!?\s]+$/, '') || 'no reason given'
-  return `Selling is paused by OurDahanu: ${why}. Contact us to resume.`
+  return `Selling is paused by ${siteConfig.name}: ${why}. Contact us to resume.`
 }
 
 export function deriveShopMode(input: ShopModeInput): ShopMode {

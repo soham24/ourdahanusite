@@ -10,9 +10,10 @@ import { createClient } from '@/lib/supabase/server'
 import { jobsLoginHref } from '../jobs-server'
 import { kindLabel, shortDate } from '../jobs-ui'
 import MyPostActions from './MyPostActions'
+import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: { absolute: 'My posts — OurDahanu Jobs' },
+  title: { absolute: `My posts — ${siteConfig.name} Jobs` },
   robots: { index: false, follow: false },
 }
 
@@ -120,7 +121,7 @@ export default async function MyPostsPage() {
         <div className="od-card mt-6 flex flex-col items-center px-6 py-12 text-center">
           <h2 className="font-display text-2xl">You have not posted yet</h2>
           <p className="mt-1 max-w-sm text-sm text-[var(--od-muted)]">
-            Post a job, or tell Dahanu you are looking for work. It is free.
+            Post a job, or tell {siteConfig.town} you are looking for work. It is free.
           </p>
           <Link href="/jobs/post" className="od-button-primary mt-5 px-5 py-2 text-sm">
             Post now

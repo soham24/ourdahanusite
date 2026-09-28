@@ -9,6 +9,7 @@ import type {
   NotificationType,
   RenderedNotification,
 } from './types'
+import { siteConfig } from '@/lib/site'
 
 const SITE_URL = 'https://ourdahanu.in'
 const JOBS_URL = 'https://jobs.ourdahanu.in'
@@ -185,7 +186,7 @@ function renderOrderStatus(
         footerNote:
           type === 'cancelled'
             ? 'If a refund is needed, please contact the business directly.'
-            : 'Thanks for shopping on OurDahanu.',
+            : `Thanks for shopping on ${siteConfig.name}.`,
       }),
     },
     telegram: {
@@ -430,7 +431,7 @@ function renderJobApproved(p: NotificationPayload<'job.approved'>): RenderedNoti
     email: {
       subject: `Your ${noun} "${p.title}" is live on OurDahanu Jobs`,
       html: renderEmailLayout({
-        eyebrow: 'OurDahanu Jobs',
+        eyebrow: `${siteConfig.name} Jobs`,
         headline: `Your ${noun} is live`,
         introHtml: `<strong>${escapeHtml(p.title)}</strong> was approved and is now visible on OurDahanu Jobs for 30 days.`,
         detailRows: buildDetailRow(
@@ -459,7 +460,7 @@ function renderJobRejected(p: NotificationPayload<'job.rejected'>): RenderedNoti
     email: {
       subject: `Your ${noun} "${p.title}" was not approved`,
       html: renderEmailLayout({
-        eyebrow: 'OurDahanu Jobs',
+        eyebrow: `${siteConfig.name} Jobs`,
         headline: `Your ${noun} was not approved`,
         introHtml: `We could not approve <strong>${escapeHtml(p.title)}</strong> yet. You can edit it and resubmit.`,
         detailRows: buildDetailRow('Reason', escapeHtml(p.reason), false),
@@ -485,7 +486,7 @@ function renderJobExpiring(p: NotificationPayload<'job.expiring'>): RenderedNoti
     email: {
       subject: `Your ${noun} "${p.title}" expires in ${when}`,
       html: renderEmailLayout({
-        eyebrow: 'OurDahanu Jobs',
+        eyebrow: `${siteConfig.name} Jobs`,
         headline: p.kind === 'hiring' ? 'Still hiring?' : 'Still looking for work?',
         introHtml: `<strong>${escapeHtml(p.title)}</strong> comes off OurDahanu Jobs in ${when}. Renew it in one tap to keep it live for another 30 days.`,
         ctaUrl: `${JOBS_URL}/my-posts`,
@@ -532,7 +533,7 @@ function renderSellingPaused(p: NotificationPayload<'selling.paused'>): Rendered
 
 function renderSellingResumed(p: NotificationPayload<'selling.resumed'>): RenderedNotification {
   const body =
-    'OurDahanu has lifted the pause. If your Razorpay keys are still connected, customers can buy from your shop again.'
+    `${siteConfig.name} has lifted the pause. If your Razorpay keys are still connected, customers can buy from your shop again.`
   return {
     title: `Selling resumed · ${p.listingName}`,
     body,
@@ -634,7 +635,7 @@ function renderReviewReplyPosted(
             .filter(Boolean)
             .join(''),
           ctaUrl: listingUrl,
-          ctaText: 'View on OurDahanu',
+          ctaText: `View on ${siteConfig.name}`,
           footerNote: 'You can continue the conversation by leaving another review later.',
         }),
       },

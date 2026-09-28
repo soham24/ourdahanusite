@@ -8,6 +8,7 @@ import { JOB_CATEGORIES, jobCategoryFromSlug, jobCategoryMarathi, jobCategorySlu
 import { MIN_CATEGORY_SIZE } from '@/lib/seo-thresholds'
 import JobCard from '../../JobCard'
 import { JOBS_URL, Mr } from '../../jobs-ui'
+import { siteConfig } from '@/lib/site'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -16,14 +17,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const posts = await getJobBoard({ kind: 'hiring', category })
   const canonical = `${JOBS_URL}/c/${slug}`
-  const title = `${category} jobs in Dahanu`
-  const description = `${posts.length > 0 ? `${posts.length} ` : ''}${category.toLowerCase()} jobs open now in Dahanu, Bordi, Gholvad and Palghar. Free to use — reach the employer directly.`.slice(0, 160)
+  const title = `${category} jobs in ${siteConfig.town}`
+  const description = `${posts.length > 0 ? `${posts.length} ` : ''}${category.toLowerCase()} jobs open now in ${siteConfig.town}, Bordi, Gholvad and Palghar. Free to use — reach the employer directly.`.slice(0, 160)
 
   return {
     title,
     description,
     alternates: { canonical },
-    openGraph: { title, description, url: canonical, type: 'website', siteName: 'OurDahanu Jobs' },
+    openGraph: { title, description, url: canonical, type: 'website', siteName: `${siteConfig.name} Jobs` },
     // A category with only a post or two reads as thin content; don't index it yet.
     ...(posts.length < MIN_CATEGORY_SIZE ? { robots: { index: false, follow: true } } : {}),
   }
@@ -51,7 +52,7 @@ export default async function JobCategoryPage({ params }: { params: Promise<{ sl
 
       <header className="mb-6">
         <h1 className="text-balance font-display text-3xl leading-tight sm:text-4xl">
-          {category} <span className="text-[var(--od-brand)]">jobs in Dahanu</span>
+          {category} <span className="text-[var(--od-brand)]">jobs in {siteConfig.town}</span>
         </h1>
         <p className="mt-1 text-[15px] font-semibold text-[var(--od-muted)]">
           <Mr text={jobCategoryMarathi(category)} />
@@ -85,7 +86,7 @@ export default async function JobCategoryPage({ params }: { params: Promise<{ sl
       {others.length > 0 && (
         <nav aria-label="Other categories" className="mt-10 border-t border-[var(--od-border)] pt-6">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--od-muted)]">
-            Other jobs in Dahanu
+            Other jobs in {siteConfig.town}
           </p>
           <div className="flex flex-wrap gap-2">
             {others.map((value) => (

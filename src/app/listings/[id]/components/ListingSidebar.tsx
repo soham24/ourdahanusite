@@ -11,6 +11,7 @@ import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import { useListingViewer } from '../ListingViewerContext'
 import type { ListingRecord } from '@/lib/data/listing-detail'
+import { siteConfig } from '@/lib/site'
 
 interface ListingSidebarProps {
   phoneHref: string | null
@@ -197,7 +198,7 @@ export default function ListingSidebar({
           <div className="flex items-start gap-2">
             <CheckCircle size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-bold text-blue-700">Verified by OurDahanu</p>
+              <p className="text-sm font-bold text-blue-700">Verified by {siteConfig.name}</p>
               <p className="text-xs text-blue-600 mt-0.5">
                 Our team has verified this business&apos;s contact details, location, and basic info.
               </p>

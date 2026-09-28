@@ -16,6 +16,7 @@ import LocationPicker from '@/components/LocationPicker'
 import { normalizeOptionalUrl } from '@/lib/url'
 import { getListingHref } from '@/lib/listing-url'
 import { LISTING_CATEGORY_GROUPS, LISTING_CATEGORY_EMOJIS } from '@/lib/listing-category'
+import { siteConfig } from '@/lib/site'
 
 const SUGGESTED_TAGS: Record<string, string[]> = {
   'Restaurants': ['delivery', 'dine-in', 'veg', 'non-veg', 'seafood', 'open-sunday', 'AC', 'outdoor'],
@@ -260,7 +261,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
                 Tagline <span className="text-gray-400 font-normal text-xs">— shown under your name</span>
               </label>
               <input type="text" name="tagline" defaultValue={String(listing.tagline || '')}
-                placeholder="e.g. Dahanu's freshest homemade food, delivered daily"
+                placeholder={`e.g. ${siteConfig.town}'s freshest homemade food, delivered daily`}
                 maxLength={100}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
             </div>
@@ -369,7 +370,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
                 <span className="flex items-center gap-1.5"><MapPin size={13} className="text-brand" /> Address</span>
               </label>
               <input type="text" name="address" defaultValue={String(listing.address || '')}
-                placeholder="e.g. Main Market, Dahanu Road, Palghar - 401602"
+                placeholder={`e.g. Main Market, ${siteConfig.town} Road, Palghar - 401602`}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm mb-3" />
               <LocationPicker
                 defaultMapUrl={listing.map_url ? String(listing.map_url) : null}
@@ -685,7 +686,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
                 <label className="block text-sm font-semibold text-gray-700 flex items-center gap-1.5">
                   <Award size={14} className="text-brand" /> Certifications & Awards
                 </label>
-                <p className="text-xs text-gray-400">e.g. FSSAI Licensed, ISO Certified, Best of Dahanu 2023</p>
+                <p className="text-xs text-gray-400">e.g. FSSAI Licensed, ISO Certified, Best of {siteConfig.town} 2023</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2 mb-2">
@@ -716,7 +717,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
             </label>
             <input type="text" value={deliveryInfo.areas}
               onChange={e => setDeliveryInfo(d => ({ ...d, areas: e.target.value }))}
-              placeholder="e.g. Dahanu, Palghar, Boisar (within 20km)"
+              placeholder={`e.g. ${siteConfig.town}, Palghar, Boisar (within 20km)`}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm mb-2" />
             <input type="text" value={deliveryInfo.note}
               onChange={e => setDeliveryInfo(d => ({ ...d, note: e.target.value }))}

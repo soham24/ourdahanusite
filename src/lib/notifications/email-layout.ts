@@ -1,3 +1,5 @@
+import { siteConfig } from '@/lib/site'
+
 /**
  * Shared Warli-themed email layout used by all notification renderers.
  */
@@ -26,7 +28,7 @@ export interface EmailLayoutParams {
 export function renderEmailLayout(params: EmailLayoutParams): string {
   const eyebrow = escapeHtml(params.eyebrow)
   const headline = escapeHtml(params.headline)
-  const footer = escapeHtml(params.footerNote ?? 'OurDahanu — Dahanu’s Community Portal')
+  const footer = escapeHtml(params.footerNote ?? `${siteConfig.name} — ${siteConfig.town}’s Community Portal`)
   const ctaBlock =
     params.ctaUrl && params.ctaText
       ? `<a href="${params.ctaUrl}" style="display:inline-block;background:#C4663A;color:#fff;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:700;font-size:15px;">${escapeHtml(params.ctaText)} &rarr;</a>`
@@ -45,7 +47,7 @@ export function renderEmailLayout(params: EmailLayoutParams): string {
         <tr>
           <td style="background:linear-gradient(135deg,#3D1A08,#C4663A);padding:24px 32px;">
             <p style="margin:0;color:#F7E7D6;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;">${eyebrow}</p>
-            <h1 style="margin:8px 0 0;color:#FBF0DC;font-size:22px;font-weight:700;">OurDahanu</h1>
+            <h1 style="margin:8px 0 0;color:#FBF0DC;font-size:22px;font-weight:700;">${siteConfig.name}</h1>
           </td>
         </tr>
         <tr>

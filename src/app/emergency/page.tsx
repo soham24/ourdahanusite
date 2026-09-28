@@ -13,6 +13,7 @@ import {
   Droplets,
   Wind,
 } from 'lucide-react'
+import { siteConfig } from '@/lib/site'
 
 const emergencyContacts = [
   { name: 'Police Control Room', number: '100', icon: '👮', color: 'bg-blue-50 border-blue-200', badge: 'bg-blue-600' },
@@ -24,12 +25,12 @@ const emergencyContacts = [
 ]
 
 const localContacts = [
-  { name: 'Dahanu Police Station', number: '02528-222033', address: 'Main Road, Dahanu' },
-  { name: 'Dahanu Sub-District Hospital', number: '02528-222037', address: 'Hospital Road, Dahanu' },
-  { name: 'Dahanu Fire Station', number: '02528-222101', address: 'Station Road, Dahanu' },
+  { name: `${siteConfig.town} Police Station`, number: '02528-222033', address: `Main Road, ${siteConfig.town}` },
+  { name: `${siteConfig.town} Sub-District Hospital`, number: '02528-222037', address: `Hospital Road, ${siteConfig.town}` },
+  { name: `${siteConfig.town} Fire Station`, number: '02528-222101', address: `Station Road, ${siteConfig.town}` },
   { name: 'Palghar Collector Office', number: '02525-252552', address: 'Palghar' },
-  { name: 'MSEB Dahanu (Power Outage)', number: '02528-222200', address: 'MSEB Office, Dahanu Road' },
-  { name: 'Tahsildar Office Dahanu', number: '02528-222XXX', address: 'Civil Lines, Dahanu' },
+  { name: `MSEB ${siteConfig.town} (Power Outage)`, number: '02528-222200', address: `MSEB Office, ${siteConfig.town} Road` },
+  { name: `Tahsildar Office ${siteConfig.town}`, number: '02528-222XXX', address: `Civil Lines, ${siteConfig.town}` },
 ]
 
 const preparednessGuides = [
@@ -98,7 +99,7 @@ export default function EmergencyPage() {
       {/* ---- TOP ALERT BANNER ---- */}
       <div className="bg-brand text-bg px-4 py-2.5 text-center text-sm font-medium flex items-center justify-center gap-2">
         <CheckCircle size={15} />
-        <span>No active emergency alerts for Dahanu right now. All clear.</span>
+        <span>No active emergency alerts for {siteConfig.town} right now. All clear.</span>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -110,7 +111,7 @@ export default function EmergencyPage() {
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Emergency & Safety</h1>
             <p className="text-gray-500 mt-1">
-              Critical contacts, preparedness guides, and safety information for Dahanu residents
+              Critical contacts, preparedness guides, and safety information for {siteConfig.town} residents
             </p>
           </div>
         </div>
@@ -142,7 +143,7 @@ export default function EmergencyPage() {
         <section className="mb-12">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <MapPin size={18} className="text-brand" />
-            Local Dahanu Emergency Contacts
+            Local {siteConfig.town} Emergency Contacts
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {localContacts.map((c) => (
@@ -175,14 +176,14 @@ export default function EmergencyPage() {
         <section className="mb-12">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <AlertTriangle size={18} className="text-orange-500" />
-            Dahanu Flood Evacuation Zones
+            {siteConfig.town} Flood Evacuation Zones
           </h2>
           <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6">
             <div className="text-6xl">🗺️</div>
             <div className="flex-1">
-              <h3 className="font-bold text-gray-900 mb-2">Evacuation Map — Dahanu Taluka</h3>
+              <h3 className="font-bold text-gray-900 mb-2">Evacuation Map — {siteConfig.town} Taluka</h3>
               <p className="text-gray-600 text-sm mb-4">
-                During floods, coastal and low-lying areas near the creek are at highest risk. Community shelters are located at Dahanu Municipal School, Vavsed Community Hall, and Gholvad Gram Panchayat building.
+                During floods, coastal and low-lying areas near the creek are at highest risk. Community shelters are located at {siteConfig.town} Municipal School, Vavsed Community Hall, and Gholvad Gram Panchayat building.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                 {[
@@ -256,9 +257,9 @@ export default function EmergencyPage() {
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="text-5xl">👀</div>
               <div className="flex-1">
-                <h2 className="text-xl font-bold mb-1">Dahanu Neighbourhood Watch</h2>
+                <h2 className="text-xl font-bold mb-1">{siteConfig.town} Neighbourhood Watch</h2>
                 <p className="text-[#F8E9D5]/75 text-sm leading-relaxed mb-4">
-                  Be the eyes and ears of your community. If you notice suspicious activity, do not confront anyone — report it. Our network coordinates with the Dahanu Police to keep our streets safe.
+                  Be the eyes and ears of your community. If you notice suspicious activity, do not confront anyone — report it. Our network coordinates with the {siteConfig.town} Police to keep our streets safe.
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <Link

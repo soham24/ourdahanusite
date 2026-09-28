@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from './admin'
+import { siteConfig } from '@/lib/site'
 
 interface NewsletterState {
   success: boolean
@@ -40,7 +41,7 @@ export async function subscribeNewsletter(
       return { success: false, message: data.error || 'Subscription failed. Please try again.' }
     }
 
-    return { success: true, message: "You're subscribed! Welcome to the OurDahanu community." }
+    return { success: true, message: `You're subscribed! Welcome to the ${siteConfig.name} community.` }
   } catch {
     return { success: false, message: 'Something went wrong. Please try again.' }
   }
@@ -147,7 +148,7 @@ export async function sendNewsletter(
     try {
       await resend.batch.send(
         batch.map((sub) => ({
-          from: 'OurDahanu <hello@ourdahanu.com>',
+          from: `${siteConfig.name} <hello@ourdahanu.com>`,
           to: sub.email,
           subject,
           html,

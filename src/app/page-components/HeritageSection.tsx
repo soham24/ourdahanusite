@@ -1,6 +1,7 @@
 import { ArrowRight, MessageCircle, UsersRound } from 'lucide-react'
 
 import SafeAppLink from '@/components/SafeAppLink'
+import { siteConfig } from '@/lib/site'
 
 const people = [
   ['SR', 180, 150],
@@ -94,7 +95,7 @@ export default function HeritageSection() {
           <div className="relative z-10 flex h-full flex-col justify-end p-5 md:p-10 lg:p-12">
             <div className="max-w-[600px]">
               <span className="inline-block font-label-sm text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F0C87A] mb-3">
-                Who runs OurDahanu
+                Who runs {siteConfig.name}
               </span>
               <h2
                 className="font-display text-white leading-[1.05] tracking-normal mb-4"
@@ -104,7 +105,7 @@ export default function HeritageSection() {
               </h2>
               <p className="text-[var(--color-cream)]/85 text-sm md:text-[15px] leading-[1.65] mb-5 max-w-[500px]">
                 Founded by Soham Railkar and managed with Ankit, Khushboo, Ajay, Nupur and
-                Khushbu Bari, OurDahanu connects social pages, WhatsApp groups and the
+                Khushbu Bari, {siteConfig.name} connects social pages, WhatsApp groups and the
                 marketplace into one trusted local network.
               </p>
               <div className="mb-6 flex flex-wrap gap-2">

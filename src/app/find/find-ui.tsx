@@ -2,6 +2,7 @@ import { ShieldCheck, ExternalLink, Star } from 'lucide-react'
 import type { ProfessionalWithStats, LinkedBusiness } from '@/lib/find/types'
 import { professionMarathi } from '@/lib/find/professions'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
+import { siteConfig } from '@/lib/site'
 
 /** Marathi label rendered in the loaded Devanagari font, muted, beside the
  *  English name. Returns null so callers can `{mr(x)}` unconditionally. */
@@ -74,7 +75,7 @@ export function PremiumBadge() {
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-[var(--od-gold)]/15 px-2 py-0.5 text-[11px] font-bold text-[var(--od-brand-strong)]">
       <ShieldCheck size={12} className="text-[var(--od-gold)]" aria-hidden />
-      Verified by OurDahanu
+      Verified by {siteConfig.name}
     </span>
   )
 }

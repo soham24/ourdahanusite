@@ -13,6 +13,17 @@ The local platform for **Dahanu** — a business directory, marketplace, local j
 
 > ⚠️ This is Next.js 16 with breaking changes from older versions — see `AGENTS.md`. Notably, `export const dynamic` is **not** allowed (incompatible with `cacheComponents`).
 
+## Running this for another town
+
+The town's name, domain and address live in one file,
+[`src/lib/site-config.ts`](src/lib/site-config.ts). Change the values there and
+the interface follows — page titles, navigation, emails, structured data and
+page copy all read from it.
+
+The local *content* is a separate job: emergency phone numbers, guides,
+categories and the Chikoo Catcher game are about Dahanu specifically, and no
+config translates them. [SETUP.md](SETUP.md) walks through both, step by step.
+
 ## Prerequisites
 
 - Node.js 20+ and npm

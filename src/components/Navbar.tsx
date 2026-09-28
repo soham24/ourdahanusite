@@ -6,6 +6,7 @@ import SafeAppLink from '@/components/SafeAppLink'
 import NavbarFrame from '@/components/NavbarFrame'
 import { buildAbsoluteUrl } from '@/lib/site'
 import { buildStandaloneUrl } from '@/lib/standalone-hosts'
+import { siteConfig } from '@/lib/site'
 
 const NAV_LINKS = [
   { href: buildAbsoluteUrl('/listings'), label: 'Businesses' },
@@ -17,22 +18,22 @@ const NAV_LINKS = [
 
 const MOBILE_NAV = [
   { href: buildAbsoluteUrl('/listings'), label: 'Explore Businesses', icon: Store },
-  { href: buildAbsoluteUrl('/guides'), label: 'Dahanu Guides', icon: BookOpen },
+  { href: buildAbsoluteUrl('/guides'), label: `${siteConfig.town} Guides`, icon: BookOpen },
   { href: buildAbsoluteUrl('/search'), label: 'Search Businesses', icon: Search },
   { href: buildStandaloneUrl('appointments'), label: 'Book an Appointment', icon: CalendarDays },
   { href: buildStandaloneUrl('jobs'), label: 'Local Jobs', icon: BriefcaseBusiness },
   { href: buildStandaloneUrl('find'), label: 'Find Professionals', icon: UsersRound },
   { href: buildAbsoluteUrl('/play'), label: 'Chikoo Catcher Game', icon: Gamepad2 },
-  { href: buildAbsoluteUrl('/about'), label: 'About OurDahanu', icon: UsersRound },
+  { href: buildAbsoluteUrl('/about'), label: `About ${siteConfig.name}`, icon: UsersRound },
   { href: buildAbsoluteUrl('/listings/submit'), label: 'Add Business', icon: Plus },
 ]
 
 function Brand() {
   return (
     <SafeAppLink href={buildAbsoluteUrl('/')} className="flex items-center gap-2.5 flex-shrink-0">
-      <Image src="/logo.png" alt="OurDahanu" width={34} height={34} className="rounded-full" />
+      <Image src="/logo.png" alt={siteConfig.name} width={34} height={34} className="rounded-full" />
       <span className="font-bold text-[17px] text-[var(--od-ink)] tracking-[-0.02em]">
-        OurDahanu
+        {siteConfig.name}
       </span>
     </SafeAppLink>
   )

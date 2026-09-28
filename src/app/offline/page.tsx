@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { WifiOff, ShieldAlert, Phone } from 'lucide-react'
+import { siteConfig } from '@/lib/site'
 
 const EMERGENCY_NUMBERS = [
   { name: 'Police', number: '100', color: 'bg-blue-50 text-blue-700 border-blue-200' },
@@ -24,7 +25,7 @@ export default function OfflinePage() {
       <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-8 text-left shadow-sm">
         <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
           <ShieldAlert size={18} className="text-red-600" />
-          Dahanu Emergency Numbers
+          {siteConfig.town} Emergency Numbers
         </h2>
         <div className="space-y-3">
           {EMERGENCY_NUMBERS.map((item) => (
@@ -52,7 +53,7 @@ export default function OfflinePage() {
       </Link>
 
       <p className="text-xs text-gray-400 mt-8">
-        OurDahanu · Dahanu, Palghar, Maharashtra
+        {siteConfig.name} · {siteConfig.town}, Palghar, Maharashtra
       </p>
     </div>
   )

@@ -3,6 +3,7 @@ import { ShieldAlert } from 'lucide-react'
 
 import { getActiveEmergencyAlert } from '@/lib/data/emergency'
 import { buildAbsoluteUrl } from '@/lib/site'
+import { siteConfig } from '@/lib/site'
 
 // Static (non-fixed) ribbon — sits above the sticky navbar and scrolls off the top.
 const RIBBON_BASE_CLASS = 'w-full text-center text-xs font-semibold tracking-wide px-4 py-2'
@@ -13,7 +14,7 @@ export function EmergencyRibbonFallback() {
     <div className={`${RIBBON_BASE_CLASS} bg-red-900 text-red-100`}>
       <div className={RIBBON_CONTENT_CLASS}>
         <span aria-hidden>🚨</span>
-        <span>Emergency in Dahanu?</span>
+        <span>Emergency in {siteConfig.town}?</span>
         <Link
           href={buildAbsoluteUrl('/emergency')}
           className="text-red-300 border-b border-red-300/40 hover:text-red-100 hover:border-red-100/60 transition-colors"

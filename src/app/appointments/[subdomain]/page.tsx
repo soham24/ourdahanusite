@@ -5,6 +5,7 @@ import BookingWidget from '@/components/appointments/BookingWidget'
 import { getBookableListingBySubdomain } from '@/lib/data/appointment-directory'
 import { buildAbsoluteUrl } from '@/lib/site'
 import { createClient } from '@/lib/supabase/server'
+import { siteConfig } from '@/lib/site'
 
 type Props = { params: Promise<{ subdomain: string }> }
 
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `Book an appointment with ${listing.name}`,
-    description: `Pick a time and book online with ${listing.name} in Dahanu.`,
+    description: `Pick a time and book online with ${listing.name} in ${siteConfig.town}.`,
     // This page substantially duplicates the business's own subdomain, which is
     // already indexed. It exists to be shared on WhatsApp, not crawled — five
     // near-identical pages is the exact pattern that triggered the AdSense

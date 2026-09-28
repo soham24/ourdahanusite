@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { Loader2 } from 'lucide-react'
 import { buildAbsoluteUrl } from '@/lib/site'
+import { siteConfig } from '@/lib/site'
 
 function LoginContent() {
   const searchParams = useSearchParams()
@@ -65,7 +66,7 @@ function LoginContent() {
             <div className="w-16 h-16 bg-brand rounded-2xl flex items-center justify-center mx-auto mb-4">
               <span className="text-bg font-bold text-2xl">OD</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">{checkoutMatch ? 'Sign in to finish your order' : 'Welcome to OurDahanu'}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{checkoutMatch ? 'Sign in to finish your order' : `Welcome to ${siteConfig.name}`}</h1>
             <p className="text-gray-500 mt-2">{checkoutMatch ? 'You’ll return to checkout after signing in. No payment is taken at this step.' : 'Sign in to access your community'}</p>
             {checkoutMatch && <a href={`/p/${checkoutMatch[1]}`} className="mt-3 inline-block text-sm font-semibold text-brand hover:underline">Back to item</a>}
           </div>
@@ -104,7 +105,7 @@ function LoginContent() {
 
           {/* Features */}
           <div className="mt-8 pt-6 border-t border-gray-100">
-            <p className="text-xs text-gray-400 text-center mb-4">What you get with OurDahanu</p>
+            <p className="text-xs text-gray-400 text-center mb-4">What you get with {siteConfig.name}</p>
             <div className="grid grid-cols-2 gap-3">
               {[
                 { icon: '🛒', text: 'Buy local products' },

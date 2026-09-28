@@ -1,8 +1,9 @@
 import { ImageResponse } from 'next/og'
 
 import { getLiveJobPostById } from '@/lib/data/jobs'
+import { siteConfig } from '@/lib/site'
 
-export const alt = 'A post on OurDahanu Jobs'
+export const alt = `A post on ${siteConfig.name} Jobs`
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -20,8 +21,8 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const { id } = await params
   const post = await getLiveJobPostById(id)
 
-  const eyebrow = post ? (post.kind === 'hiring' ? 'Hiring' : 'Looking for work') : 'OurDahanu Jobs'
-  const heading = post?.title ?? 'Local jobs in Dahanu'
+  const eyebrow = post ? (post.kind === 'hiring' ? 'Hiring' : 'Looking for work') : `${siteConfig.name} Jobs`
+  const heading = post?.title ?? `Local jobs in ${siteConfig.town}`
   const subheading = post
     ? `${(post.kind === 'hiring' ? post.employer_name : post.display_name) ?? ''} · ${post.area}`
     : 'Free to post · Shops, farms, clinics and homes hiring'

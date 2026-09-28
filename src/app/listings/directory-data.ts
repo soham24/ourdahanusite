@@ -6,6 +6,7 @@ import { getCachedPricingConfig } from '@/lib/data/pricing'
 import { logCacheRegeneration } from '@/lib/isr-debug'
 import { sortCategoriesForDiscovery } from '@/lib/listing-category'
 import { createPublicClient } from '@/lib/supabase/public'
+import { siteConfig } from '@/lib/site'
 
 export interface DirectoryListing {
   id: string
@@ -40,7 +41,7 @@ export interface DirectoryListing {
 const DIRECTORY_LISTING_CAP = 200
 
 export const PLAN_FEATURES = [
-  'Your own profile page on OurDahanu',
+  `Your own profile page on ${siteConfig.name}`,
   'Your unique subdomain (yourname.ourdahanu.in)',
   'Phone, address & website display',
   'Customer reviews',

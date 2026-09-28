@@ -25,6 +25,7 @@ import { EMPTY_LISTING_STATS } from '@/lib/listing-stats'
 import { deriveSellingChecklist } from '@/lib/selling/checklist'
 import { loadSuspensionReasons } from '@/lib/selling/suspension-reasons'
 import SellOnlineCard, { type SellOnlineRow } from './SellOnlineCard'
+import { siteConfig } from '@/lib/site'
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'approved') {
@@ -383,7 +384,7 @@ export default async function MyBusinessPage({
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No listings yet</h3>
             <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">
-              List your business to reach 30,000+ potential customers in Dahanu.
+              List your business to reach 30,000+ potential customers in {siteConfig.town}.
             </p>
             <Link
               href="/listings/submit"

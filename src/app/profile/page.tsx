@@ -10,6 +10,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, CheckCircle, Loader2, Camera } from 'lucide-react'
 import { loginHref } from '@/lib/login-redirect'
+import { siteConfig } from '@/lib/site'
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useAuth()
@@ -165,7 +166,7 @@ export default function ProfilePage() {
               name="bio"
               rows={3}
               defaultValue={profile?.bio || ''}
-              placeholder="e.g. Dahanu local, chikoo farmer, loves the beach…"
+              placeholder={`e.g. ${siteConfig.town} local, chikoo farmer, loves the beach…`}
               className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-brand bg-white text-sm text-ink resize-none"
             />
           </div>
@@ -195,7 +196,7 @@ export default function ProfilePage() {
                 name="address"
                 autoComplete="street-address"
                 defaultValue={profile?.address || ''}
-                placeholder="Dahanu, Palghar"
+                placeholder={`${siteConfig.town}, Palghar`}
                 className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-brand bg-white text-sm text-ink"
               />
             </div>

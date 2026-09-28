@@ -10,6 +10,7 @@ import { sendNotification } from '@/lib/notifications'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { siteConfig } from '@/lib/site'
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL
 
@@ -113,9 +114,9 @@ async function notifyGenericApproval(table: string, id: string) {
     const resend = new Resend(process.env.RESEND_API_KEY)
 
     await resend.emails.send({
-      from: 'OurDahanu <hello@ourdahanu.in>',
+      from: `${siteConfig.name} <hello@ourdahanu.in>`,
       to: email,
-      subject: `✅ Your ${contentLabel} is now live on OurDahanu!`,
+      subject: `✅ Your ${contentLabel} is now live on ${siteConfig.name}!`,
       html: `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
@@ -128,7 +129,7 @@ async function notifyGenericApproval(table: string, id: string) {
             <div style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:rgba(251,240,220,0.2);border-radius:50%;margin-bottom:10px;">
               <span style="color:#FBF0DC;font-weight:900;font-size:16px;">OD</span>
             </div>
-            <h1 style="color:#FBF0DC;font-size:22px;font-weight:800;margin:0;">You&apos;re Live on OurDahanu! 🎉</h1>
+            <h1 style="color:#FBF0DC;font-size:22px;font-weight:800;margin:0;">You&apos;re Live on ${siteConfig.name}! 🎉</h1>
           </td>
         </tr>
         <tr>
@@ -141,21 +142,21 @@ async function notifyGenericApproval(table: string, id: string) {
               <p style="color:#3D1A08;font-size:16px;font-weight:700;margin:0;">${contentTitle}</p>
             </div>
             <p style="color:#5A3D2B;font-size:14px;line-height:1.6;margin:0 0 24px;">
-              It is now visible to the 30,000+ members of the Dahanu community. Thank you for contributing to OurDahanu! 🙏
+              It is now visible to the 30,000+ members of the ${siteConfig.town} community. Thank you for contributing to ${siteConfig.name}! 🙏
             </p>
           </td>
         </tr>
         <tr>
           <td style="padding:0 40px 32px;text-align:center;">
             <a href="${viewUrl}" style="display:inline-block;background:#C4663A;color:#FBF0DC;font-weight:700;font-size:14px;text-decoration:none;padding:12px 28px;border-radius:10px;">
-              View on OurDahanu →
+              View on ${siteConfig.name} →
             </a>
           </td>
         </tr>
         <tr>
           <td style="background:#FBF0DC;padding:18px 40px;text-align:center;border-top:1px solid #E8C99A;">
             <p style="color:#7A4A25;font-size:12px;margin:0;">
-              OurDahanu · Dahanu, Palghar, Maharashtra 401602
+              ${siteConfig.name} · ${siteConfig.town}, Palghar, Maharashtra 401602
             </p>
           </td>
         </tr>

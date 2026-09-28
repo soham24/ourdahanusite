@@ -8,9 +8,10 @@ import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
 import { jobsLoginHref } from '../../../jobs-server'
 import JobPostForm, { type JobPostFormValues, type OwnedBusiness } from '../../../post/JobPostForm'
+import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Edit post — OurDahanu Jobs' },
+  title: { absolute: `Edit post — ${siteConfig.name} Jobs` },
   robots: { index: false, follow: false },
 }
 

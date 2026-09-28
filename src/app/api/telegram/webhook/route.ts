@@ -22,6 +22,7 @@ import { NextResponse } from 'next/server'
 import { isConfigured, secretMatches } from '@/lib/http/shared-secret'
 
 import { createAdminClient } from '@/lib/supabase/admin-client'
+import { siteConfig } from '@/lib/site'
 
 type TelegramUpdate = {
   update_id: number
@@ -218,7 +219,7 @@ export async function POST(request: Request) {
 
     await replyToChat(
       chatId,
-      `👋 Disconnected. You won't get Telegram alerts from OurDahanu anymore.\n\nYou can reconnect any time from <a href="https://ourdahanu.in/account/notifications">your notification settings</a>.`,
+      `👋 Disconnected. You won't get Telegram alerts from ${siteConfig.name} anymore.\n\nYou can reconnect any time from <a href="https://ourdahanu.in/account/notifications">your notification settings</a>.`,
     )
     return NextResponse.json({ ok: true })
   }

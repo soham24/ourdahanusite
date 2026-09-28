@@ -5,9 +5,10 @@ import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
 import { jobsLoginHref } from '../jobs-server'
 import JobPostForm, { type OwnedBusiness } from './JobPostForm'
+import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Post on OurDahanu Jobs' },
+  title: { absolute: `Post on ${siteConfig.name} Jobs` },
   robots: { index: false, follow: false },
 }
 
@@ -76,7 +77,7 @@ export default async function PostJobPage({
         {initialKind === 'hiring' ? 'Post a job' : 'Say you are looking for work'}
       </h1>
       <p className="mt-2 text-sm leading-relaxed text-[var(--od-muted)]">
-        Free, and seen by people across Dahanu. You can switch between hiring and looking for work below.
+        Free, and seen by people across {siteConfig.town}. You can switch between hiring and looking for work below.
       </p>
 
       <ol className="mt-5 grid grid-cols-3 gap-2">
@@ -94,7 +95,7 @@ export default async function PostJobPage({
         ))}
       </ol>
       <p className="mt-2 text-xs text-[var(--od-muted)]">
-        Posts from an approved OurDahanu business skip the check and go live instantly.
+        Posts from an approved {siteConfig.name} business skip the check and go live instantly.
       </p>
 
       <div className="mt-6">

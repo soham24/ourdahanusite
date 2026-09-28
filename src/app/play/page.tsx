@@ -3,10 +3,11 @@ import { createClient } from '@/lib/supabase/server'
 import { getGameLeaderboard, getUserBestScore } from '@/lib/data/game'
 import ChikooCatcherGame from './ChikooCatcherGame'
 import Leaderboard from './Leaderboard'
+import { siteConfig } from '@/lib/site'
 
-const TITLE = 'Chikoo Catcher — A Dahanu Mini-Game'
+const TITLE = `Chikoo Catcher — A ${siteConfig.town} Mini-Game`
 const DESCRIPTION =
-  "Catch falling chikoos, dodge the rotten ones, and climb the OurDahanu leaderboard. A quick, fun mini-game themed around Dahanu's signature fruit."
+  `Catch falling chikoos, dodge the rotten ones, and climb the ${siteConfig.name} leaderboard. A quick, fun mini-game themed around ${siteConfig.town}'s signature fruit.`
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -38,12 +39,12 @@ export default async function PlayPage() {
     <div className="od-page min-h-screen">
       <div className="od-shell flex flex-col items-center gap-10 py-8 sm:py-12">
         <header className="max-w-2xl text-center">
-          <p className="od-eyebrow">OurDahanu Arcade</p>
+          <p className="od-eyebrow">{siteConfig.name} Arcade</p>
           <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight text-[var(--od-ink)] sm:text-5xl">
             Chikoo Catcher
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm text-[var(--od-muted)] sm:text-base">
-            Race through a sunlit Dahanu orchard. Catch the ripe harvest, avoid rotten fruit, and keep your combo alive.
+            Race through a sunlit {siteConfig.town} orchard. Catch the ripe harvest, avoid rotten fruit, and keep your combo alive.
           </p>
         </header>
         <ChikooCatcherGame

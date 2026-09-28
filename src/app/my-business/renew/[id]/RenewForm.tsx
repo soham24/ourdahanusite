@@ -18,6 +18,7 @@ import {
   updateRecoveryDraft,
   type CapturedPaymentRecovery,
 } from '@/lib/payment-retry'
+import { siteConfig } from '@/lib/site'
 
 interface RazorpayOptions {
   key: string; amount: number; currency: string; name: string
@@ -184,7 +185,7 @@ export default function RenewForm({
         key:         orderData.keyId,
         amount:      orderData.amount,
         currency:    orderData.currency,
-        name:        'OurDahanu',
+        name:        `${siteConfig.name}`,
         description: `Listing Renewal — ${listingName}`,
         order_id:    orderData.orderId,
         handler: async (response) => {
@@ -308,7 +309,7 @@ export default function RenewForm({
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Renew Your Listing</h1>
         <p className="text-gray-500 mt-2">
-          Extend your visibility on OurDahanu for another year.
+          Extend your visibility on {siteConfig.name} for another year.
         </p>
       </div>
 

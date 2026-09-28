@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import SectionHeader from '@/components/ui/SectionHeader'
 import HomepagePollCard, { HomepagePollCardFallback } from '@/components/HomepagePollCard'
 import type { PollWithResults } from '@/lib/data/polls'
+import { siteConfig } from '@/lib/site'
 
 interface CommunityPollSectionProps {
   activePoll: PollWithResults | null
@@ -16,7 +17,7 @@ export default function CommunityPollSection({ activePoll }: CommunityPollSectio
         <SectionHeader
           label="Community"
           title="Community Poll"
-          sub="Have your say — vote and see what Dahanu thinks"
+          sub={`Have your say — vote and see what ${siteConfig.town} thinks`}
           viewAllHref="/polls"
         />
         <div className="max-w-xl">

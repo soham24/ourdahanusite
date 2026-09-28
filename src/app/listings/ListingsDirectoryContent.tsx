@@ -11,6 +11,7 @@ import SectionHeader from '@/components/ui/SectionHeader'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
+import { siteConfig } from '@/lib/site'
 
 interface Props {
   activeCategory: string | null
@@ -32,11 +33,11 @@ export default function ListingsDirectoryContent({
   canonicalUrl,
 }: Props) {
   const collectionName = activeCategory
-    ? `${activeCategory} in Dahanu`
-    : 'Business Listings in Dahanu'
+    ? `${activeCategory} in ${siteConfig.town}`
+    : `Business Listings in ${siteConfig.town}`
   const collectionDescription = activeCategory
-    ? `Browse ${listings.length} ${activeCategory.toLowerCase()} business${listings.length === 1 ? '' : 'es'} in Dahanu, Bordi, Gholvad, and nearby areas on OurDahanu.`
-    : 'Browse verified businesses, services, shops, restaurants, hotels, and local professionals in Dahanu on OurDahanu.'
+    ? `Browse ${listings.length} ${activeCategory.toLowerCase()} business${listings.length === 1 ? '' : 'es'} in ${siteConfig.town}, Bordi, Gholvad, and nearby areas on ${siteConfig.name}.`
+    : `Browse verified businesses, services, shops, restaurants, hotels, and local professionals in ${siteConfig.town} on ${siteConfig.name}.`
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -75,7 +76,7 @@ export default function ListingsDirectoryContent({
     url: canonicalUrl,
     isPartOf: {
       '@type': 'WebSite',
-      name: 'OurDahanu',
+      name: `${siteConfig.name}`,
       url: SITE_URL,
     },
     mainEntity: {
@@ -100,10 +101,10 @@ export default function ListingsDirectoryContent({
           as="h1"
           className="mb-0"
           label="Local directory"
-          title={activeCategory ? `${activeCategory} in Dahanu` : 'Business Listings in Dahanu'}
+          title={activeCategory ? `${activeCategory} in ${siteConfig.town}` : `Business Listings in ${siteConfig.town}`}
           sub={activeCategory
             ? `${listings.length} business${listings.length !== 1 ? 'es' : ''} currently visible in ${activeCategory}. Search, sort, and compare before you contact them.`
-            : 'Search, sort, and compare trusted businesses and services across Dahanu, Bordi, Gholvad, and nearby areas.'}
+            : `Search, sort, and compare trusted businesses and services across ${siteConfig.town}, Bordi, Gholvad, and nearby areas.`}
         />
 
         <Card padding="sm" className="hidden md:inline-flex self-start md:self-auto text-sm text-[var(--od-ink-2)]">
@@ -123,7 +124,7 @@ export default function ListingsDirectoryContent({
 
       <div id="add" className="border-t border-[var(--od-border)] py-12">
         <div className="text-center mb-10">
-          <h2 className="font-display text-[28px] md:text-[36px] text-[var(--od-ink)] leading-tight">Get Your Profile on OurDahanu</h2>
+          <h2 className="font-display text-[28px] md:text-[36px] text-[var(--od-ink)] leading-tight">Get Your Profile on {siteConfig.name}</h2>
           <p className="text-[var(--od-muted)] mt-2">Whether you sell, serve, or create, you belong here.</p>
         </div>
 

@@ -1,7 +1,8 @@
 import { ImageResponse } from 'next/og'
 import { loadDmSansPair } from '@/lib/og-font'
+import { siteConfig } from '@/lib/site'
 
-export const alt = 'Chikoo Catcher — A Dahanu Mini-Game on OurDahanu'
+export const alt = `Chikoo Catcher — A ${siteConfig.town} Mini-Game on ${siteConfig.name}`
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -111,7 +112,7 @@ export default async function Image() {
               marginLeft: 16,
             }}
           >
-            OurDahanu Arcade
+            {siteConfig.name} Arcade
           </div>
         </div>
 
@@ -137,7 +138,7 @@ export default async function Image() {
               fontWeight: 700,
             }}
           >
-            A Dahanu Mini-Game
+            A {siteConfig.town} Mini-Game
           </div>
           <div
             style={{

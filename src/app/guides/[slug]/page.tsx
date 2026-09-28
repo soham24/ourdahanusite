@@ -7,6 +7,7 @@ import StructuredData from '@/components/StructuredData'
 import { getGuideBySlug, getRelatedGuides } from '@/lib/guides'
 import { SITE_URL } from '@/lib/site'
 import GuideHero from '../GuideHero'
+import { siteConfig } from '@/lib/site'
 
 // No `generateStaticParams` here on purpose. Under Cache Components it must
 // return at least one entry, and this route legitimately has zero published
@@ -69,16 +70,16 @@ export default async function GuidePage({
     datePublished: guide.date || undefined,
     dateModified: guide.date || undefined,
     ...(guide.hero ? { image: `${SITE_URL}${guide.hero.src}` } : {}),
-    author: { '@type': 'Organization', name: 'OurDahanu', url: SITE_URL },
-    publisher: { '@type': 'Organization', name: 'OurDahanu', url: SITE_URL },
-    about: 'Dahanu, Maharashtra',
+    author: { '@type': 'Organization', name: `${siteConfig.name}`, url: SITE_URL },
+    publisher: { '@type': 'Organization', name: `${siteConfig.name}`, url: SITE_URL },
+    about: `${siteConfig.town}, Maharashtra`,
   }
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'OurDahanu', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 1, name: `${siteConfig.name}`, item: `${SITE_URL}/` },
       { '@type': 'ListItem', position: 2, name: 'Guides', item: `${SITE_URL}/guides` },
       { '@type': 'ListItem', position: 3, name: guide.title, item: url },
     ],
@@ -121,7 +122,7 @@ export default async function GuidePage({
 
         {related.length > 0 && (
           <section className="mt-12 border-t border-[var(--od-border)] pt-8">
-            <h2 className="mb-4 font-display text-2xl">More Dahanu guides</h2>
+            <h2 className="mb-4 font-display text-2xl">More {siteConfig.town} guides</h2>
             <ul className="grid gap-3">
               {related.map((r) => (
                 <li key={r.slug}>
