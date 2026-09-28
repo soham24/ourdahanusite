@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         const resend = new Resend(process.env.RESEND_API_KEY)
 
         await resend.emails.send({
-          from: `${siteConfig.name} <hello@ourdahanu.com>`,
+          from: `${siteConfig.name} <hello@ourdahanu.in>`,
           to: email,
           subject: `Welcome to ${siteConfig.name} Newsletter! 🌴`,
           html: `

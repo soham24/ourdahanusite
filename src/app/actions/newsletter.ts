@@ -148,7 +148,7 @@ export async function sendNewsletter(
     try {
       await resend.batch.send(
         batch.map((sub) => ({
-          from: `${siteConfig.name} <hello@ourdahanu.com>`,
+          from: `${siteConfig.name} <hello@ourdahanu.in>`,
           to: sub.email,
           subject,
           html,
