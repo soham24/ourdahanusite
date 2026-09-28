@@ -90,7 +90,7 @@ export default async function DashboardPage() {
               {role === 'user' && !verified && (
                 <span className="inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1 text-sm">
                   <span className="w-2 h-2 bg-green-300 rounded-full" />
-                  ${siteConfig.name} Member
+                  {siteConfig.name} Member
                 </span>
               )}
             </div>

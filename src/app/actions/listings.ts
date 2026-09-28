@@ -36,6 +36,7 @@ import {
 import { normalizeOptionalUrlOrNull } from '@/lib/url'
 import { RESERVED_SUBDOMAINS } from '@/lib/subdomain'
 import { redirect } from 'next/navigation'
+import { siteConfig } from '@/lib/site'
 
 export async function submitPaidListing(formData: FormData): Promise<{ error?: string }> {
   const supabase = await createClient()
@@ -150,7 +151,7 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
         message: `Subdomain ${rawSubdomain} taken — buyer needs to pick another`,
       })
     }
-    return { error: `The subdomain "${rawSubdomain}.ourdahanu.in" is already taken.` }
+    return { error: `The subdomain "${rawSubdomain}.${siteConfig.domain}" is already taken.` }
   }
   const subdomain = rawSubdomain
 

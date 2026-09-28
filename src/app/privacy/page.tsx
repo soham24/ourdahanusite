@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 }
 
 const LAST_UPDATED = 'July 14, 2026'
-const CONTACT_EMAIL = 'railkarsoham@gmail.com'
+const CONTACT_EMAIL = siteConfig.contactEmail
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -102,7 +102,7 @@ export default function PrivacyPolicyPage() {
         </Section>
 
         <Section title="Jobs board">
-          <p>Posts on {siteConfig.name} Jobs (jobs.ourdahanu.in) are public, except the phone number, which is shown only to
+          <p>Posts on {siteConfig.name} Jobs (jobs.{siteConfig.domain}) are public, except the phone number, which is shown only to
             people who are logged in. When someone views a number we record that they did, so the person who posted
             can see how many people viewed it &mdash; never who. &ldquo;Looking for work&rdquo; profiles show only a first
             name and are hidden from search engines. You can close your post at any time, and deleting your account

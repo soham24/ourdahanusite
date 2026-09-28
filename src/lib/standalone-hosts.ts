@@ -1,4 +1,5 @@
 import { SITE_URL } from './site'
+import { siteConfig } from '@/lib/site'
 
 // Subdomains that serve a standalone OurDahanu product with its own layout.
 // src/proxy.ts rewrites each one to /<name>/*, and SiteChrome hides the main
@@ -30,7 +31,7 @@ function bareHost(host: string | null | undefined): string {
 export function getStandaloneSubdomain(host: string | null | undefined): StandaloneSubdomain | null {
   const normalized = bareHost(host)
   for (const name of STANDALONE_SUBDOMAINS) {
-    if (normalized === `${name}.ourdahanu.in` || normalized === `${name}.localhost`) return name
+    if (normalized === `${name}.${siteConfig.domain}` || normalized === `${name}.localhost`) return name
   }
   return null
 }

@@ -12,6 +12,7 @@ import Badge from '@/components/ui/Badge'
 import FavouriteButton from '../FavouriteButton'
 import { useListingViewer } from '../ListingViewerContext'
 import type { ListingRecord } from '@/lib/data/listing-detail'
+import { siteConfig } from '@/lib/site'
 
 interface ListingHeroProps {
   listing: ListingRecord
@@ -77,7 +78,7 @@ export default function ListingHero({
           <div className="absolute top-4 left-1/2 -translate-x-1/2">
             <span className="inline-flex items-center gap-1.5 bg-black/40 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/20">
               <Globe size={11} />
-              {subdomain}.ourdahanu.in
+              {subdomain}.{siteConfig.domain}
             </span>
           </div>
         )}
@@ -151,7 +152,7 @@ export default function ListingHero({
                   {subdomain && (
                     <a href={`https://${subdomain}.ourdahanu.in`} target="_blank" rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs text-brand border border-border bg-surface-soft px-2.5 py-1 rounded-full hover:bg-border transition-colors font-medium">
-                      <Globe size={10} /> {subdomain}.ourdahanu.in <ExternalLink size={9} />
+                      <Globe size={10} /> {subdomain}.{siteConfig.domain} <ExternalLink size={9} />
                     </a>
                   )}
                 </div>

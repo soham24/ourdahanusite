@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/server'
 
 import SellingControls from './SellingControls'
 import SellingStatusBadge from './SellingStatusBadge'
+import { siteConfig } from '@/lib/site'
 
 type AdminListingRow = {
   id: string
@@ -173,7 +174,7 @@ export default async function AdminPaymentsPage({
                 </div>
                 <p className="od-muted mt-0.5 text-xs">
                   {listing.category ?? 'Uncategorized'}
-                  {listing.subdomain ? ` · ${listing.subdomain}.ourdahanu.in` : ''}
+                  {listing.subdomain ? ` · ${listing.subdomain}.${siteConfig.domain}` : ''}
                 </p>
                 <p className="mt-1.5 text-sm text-[var(--od-ink-2)]">{detailFor(listing, config, status, reasons.get(listing.id) ?? null)}</p>
               </div>

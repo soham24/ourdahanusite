@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 const LAST_UPDATED = 'August 12, 2026'
 const ENTITY_NAME = `${siteConfig.name}`
-const CONTACT_EMAIL = 'railkarsoham@gmail.com'
+const CONTACT_EMAIL = siteConfig.contactEmail
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

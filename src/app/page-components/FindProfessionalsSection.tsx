@@ -57,7 +57,7 @@ export default function FindProfessionalsSection() {
             </Link>
             <div className="mt-2.5 flex items-center justify-center gap-1.5 text-xs text-[rgba(251,240,220,0.58)]">
               <BadgeCheck size={13} aria-hidden />
-              find.ourdahanu.in
+              find.{siteConfig.domain}
             </div>
           </div>
 

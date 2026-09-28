@@ -164,7 +164,7 @@ export default async function Image() {
           }}
         >
           <div style={{ display: 'flex', color: 'rgba(251,240,220,0.65)', fontSize: 22, fontWeight: 400 }}>
-            ourdahanu.in/play
+            {siteConfig.domain}/play
           </div>
           <div style={{ display: 'flex', color: 'rgba(251,240,220,0.65)', fontSize: 22, fontWeight: 400 }}>
             Weekly &amp; all-time leaderboard

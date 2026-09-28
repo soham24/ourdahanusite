@@ -1,5 +1,6 @@
 import { Check, MessageCircle, Phone, Plus, Star, Store } from 'lucide-react'
 import Button from '@/components/ui/Button'
+import { siteConfig } from '@/lib/site'
 
 interface BusinessOwnerCTAProps {
   currentPrice: number
@@ -41,7 +42,7 @@ export default function BusinessOwnerCTA({ currentPrice, basePrice }: BusinessOw
               >
                 Your own page at{' '}
                 <code className="font-mono text-xs bg-white/10 px-1.5 py-0.5 rounded">
-                  yourname.ourdahanu.in
+                  yourname.{siteConfig.domain}
                 </code>{' '}
                 — searchable on Google, with WhatsApp, photos, and reviews.
               </p>
@@ -105,7 +106,7 @@ export default function BusinessOwnerCTA({ currentPrice, basePrice }: BusinessOw
               <div className="p-4">
                 <div className="font-bold text-sm text-[var(--color-bark)]">Your Business Name</div>
                 <div className="font-mono text-[11px] text-[var(--color-brand)] mt-0.5">
-                  yourname.ourdahanu.in
+                  yourname.{siteConfig.domain}
                 </div>
                 <div className="flex items-center gap-0.5 mt-2">
                   {[...Array(5)].map((_, i) => (

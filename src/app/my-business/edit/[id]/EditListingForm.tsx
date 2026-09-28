@@ -212,7 +212,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
             className="inline-flex items-center gap-1.5 text-xs font-semibold bg-surface-soft border border-border text-brand px-3 py-1.5 rounded-full hover:bg-border transition-colors"
           >
             <Globe size={12} />
-            {subdomain}.ourdahanu.in ↗
+            {subdomain}.{siteConfig.domain} ↗
           </a>
         )}
       </div>
@@ -496,7 +496,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
                   rel="noopener noreferrer"
                   className="text-brand font-bold text-sm hover:underline"
                 >
-                  {listing.subdomain}.ourdahanu.in ↗
+                  {listing.subdomain}.{siteConfig.domain} ↗
                 </a>
                 <p className="text-xs text-gray-400 mt-1">Share this link on WhatsApp, Instagram bio, visiting cards, etc.</p>
               </div>

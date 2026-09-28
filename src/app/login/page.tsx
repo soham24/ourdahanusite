@@ -27,7 +27,7 @@ function LoginContent() {
       const name = c.split('=')[0].trim()
       if (name.includes('code-verifier')) {
         document.cookie = `${name}=; max-age=0; path=/`
-        document.cookie = `${name}=; max-age=0; path=/; domain=.ourdahanu.in`
+        document.cookie = `${name}=; max-age=0; path=/; domain=.${siteConfig.domain}`
       }
     })
 

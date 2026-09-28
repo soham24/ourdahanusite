@@ -105,15 +105,35 @@ load. Set it to `''` to show nothing. A non-Latin script also needs a font
 with the right glyphs — see the Devanagari subset loaded in
 `src/app/layout.tsx` and swap it for yours.
 
-### Two places the config cannot reach
+### What the config does not reach
 
-**`src/proxy.ts`** — the per-business subdomain routing. Next.js requires the
-`config.matcher` export to be inline literals; a variable there fails the
-build with "Invalid segment configuration export detected". Search that file
-for `ourdahanu` and edit by hand — the same regex appears twice.
+Most of the interface reads `site-config.ts`, but not all of it. After
+changing the config, run this and work through what it finds:
 
-**`public/manifest.json`** — the installable-app name, read by the browser
-before any JavaScript runs.
+```bash
+git grep -in "ourdahanu\|dahanu" -- src/ public/ | grep -v "od-\|dahanu-loader\|OurDahanuLoader"
+```
+
+The two that matter most:
+
+**`src/proxy.ts`** — the per-business subdomain routing, and the single most
+important file to get right: miss it and `yourbusiness.ourpune.in` keeps
+routing against `ourdahanu.in`. Next.js requires the `config.matcher` export
+to be inline literals, so a variable there fails the build with "Invalid
+segment configuration export detected". There are **19 references** in that
+file — the subdomain matcher regex alone appears five times, plus the
+standalone-host patterns, the runtime host checks and the robots.txt output.
+Replace every one.
+
+**`public/manifest.json`** — the installable-app name and description, read
+by the browser before any JavaScript runs.
+
+Beyond those, roughly **50 references remain in ordinary code**: canonical
+URL helpers, the Resend `from:` addresses in `src/app/actions/admin.ts` and
+`src/app/actions/newsletter.ts` (which must be a domain you have verified
+with your email provider — they cannot just be renamed), a few host checks in
+`src/lib/`, and the test fixtures, which assert against the literal domain and
+will need updating for yours. The grep above lists them all.
 
 ### Deliberately left alone
 
@@ -135,6 +155,7 @@ go through these before you launch:
 | Professions | `src/lib/find/` | The trades listed in the FindDahanu directory. |
 | Chikoo Catcher | `src/app/play/` | A chikoo is Dahanu's fruit and the game is themed on it. Rename it, re-theme it, or delete the route. |
 | About page | `src/app/about/page.tsx` | The story of this project and who built it. Yours is different. |
+| Homepage events | `src/app/events/fallback.ts` | Six real Dahanu events, shown when the events table is empty. A fork publishing these is publishing another town's calendar as fact. |
 | Terms and privacy | `src/app/terms/`, `src/app/privacy/` | Written for one operator in one jurisdiction. **Have someone qualified read these before publishing them.** |
 
 To find anything still naming the old town once you have edited the config:

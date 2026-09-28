@@ -16,6 +16,7 @@ import {
 import { getMyMarketplaceOrder } from '@/app/actions/marketplace-orders'
 import { orderItemName } from '@/lib/catalog/catalog'
 import { createClient } from '@/lib/supabase/server'
+import { siteConfig } from '@/lib/site'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -145,7 +146,7 @@ export default async function MyOrderDetailPage({ params }: PageProps) {
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-xs text-brand hover:underline"
             >
-              Visit {subdomain}.ourdahanu.in
+              Visit {subdomain}.{siteConfig.domain}
               <ExternalLink size={11} />
             </a>
           ) : null}

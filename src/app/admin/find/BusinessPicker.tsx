@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { searchBusinessListings } from '@/app/actions/admin-find'
+import { siteConfig } from '@/lib/site'
 
 type Listing = { id: string; name: string; subdomain: string | null }
 
@@ -70,7 +71,7 @@ export default function BusinessPicker({
               <button
                 type="button"
                 onClick={() => {
-                  const lbl = r.subdomain ? `${r.name} · ${r.subdomain}.ourdahanu.in` : r.name
+                  const lbl = r.subdomain ? `${r.name} · ${r.subdomain}.${siteConfig.domain}` : r.name
                   onChange(r.id, lbl); setLabel(lbl); setOpen(false); setQuery('')
                 }}
                 className="flex w-full flex-col items-start px-2 py-1.5 text-left text-sm hover:bg-gray-50"

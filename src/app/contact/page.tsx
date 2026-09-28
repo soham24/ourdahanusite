@@ -17,7 +17,7 @@ function InstagramIcon({ size = 22 }: { size?: number }) {
   )
 }
 
-const CONTACT_EMAIL = 'railkarsoham@gmail.com'
+const CONTACT_EMAIL = siteConfig.contactEmail
 const WHATSAPP_NUMBER = '8149314106'
 const WHATSAPP_HREF = `https://wa.me/91${WHATSAPP_NUMBER}`
 const INSTAGRAM_HANDLE = 'ourdahanu'

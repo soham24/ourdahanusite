@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { siteConfig } from '@/lib/site'
 
 const stars = [
   { width: 2, height: 2, top: '8%', left: '15%', duration: '2.8s', delay: '0s', min: 0.3 },
@@ -247,7 +248,7 @@ export default function OurDahanuLoader({
                     textAnchor="middle"
                   >
                     <textPath href="#loaderBotArc" startOffset="50%">
-                      आपले डहाणू
+                      {siteConfig.townLocal}
                     </textPath>
                   </text>
                 </g>
