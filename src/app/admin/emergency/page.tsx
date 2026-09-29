@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Megaphone, ArrowLeft, CheckCircle, AlertTriangle, Info } from 'lucide-react'
 import { createAlert, resolveAlert } from '@/app/actions/admin'
+import { siteConfig } from '@/lib/site'
 
 const SEVERITIES = [
   { value: 'info', label: 'Info', color: 'bg-blue-100 text-blue-700', icon: <Info size={14} /> },
@@ -71,7 +72,7 @@ export default async function AdminEmergencyPage() {
             <div className="bg-green-50 border border-green-100 rounded-2xl p-8 text-center">
               <CheckCircle size={32} className="text-green-500 mx-auto mb-3" />
               <p className="font-semibold text-green-900">No active alerts</p>
-              <p className="text-green-700 text-sm mt-1">Everything looks calm in Dahanu.</p>
+              <p className="text-green-700 text-sm mt-1">Everything looks calm in {siteConfig.town}.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -129,7 +130,7 @@ export default async function AdminEmergencyPage() {
                 id="title"
                 name="title"
                 required
-                placeholder="e.g. Heavy Rain Warning for Dahanu"
+                placeholder={`e.g. Heavy Rain Warning for ${siteConfig.town}`}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
               />
             </div>

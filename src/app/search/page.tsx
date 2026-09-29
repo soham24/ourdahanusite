@@ -4,10 +4,11 @@ import { Suspense } from 'react'
 import { Search, MapPin } from 'lucide-react'
 import { getListingHref } from '@/lib/listing-url'
 import { createPublicClient } from '@/lib/supabase/public'
+import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
   title: 'Search',
-  description: 'Search local businesses, services, categories, and areas in Dahanu.',
+  description: `Search local businesses, services, categories, and areas in ${siteConfig.town}.`,
   robots: {
     index: false,
     follow: true,
@@ -108,7 +109,7 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
       {!query && (
         <div className="text-center py-16">
           <div className="text-6xl mb-4">🌴</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Search Dahanu</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Search {siteConfig.town}</h2>
           <p className="text-gray-500">Enter a business name, or browse the directory by category and area.</p>
           <div className="flex flex-wrap justify-center gap-2 mt-6">
             {['Cafe', 'Hotel', 'Clinic', 'School'].map(suggestion => (
@@ -131,7 +132,7 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
           <div className="text-6xl mb-4">🔍</div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">No results found</h2>
           <p className="text-gray-500 mb-4">
-            Nothing found in Dahanu for <strong>&ldquo;{query}&rdquo;</strong>
+            Nothing found in {siteConfig.town} for <strong>&ldquo;{query}&rdquo;</strong>
           </p>
           <p className="text-sm text-gray-400">Try different keywords or check your spelling</p>
         </div>
@@ -140,7 +141,7 @@ async function SearchPageContent({ searchParams }: SearchPageProps) {
       {query && totalResults > 0 && (
         <div>
           <p className="text-sm text-gray-500 mb-8">
-            Showing <strong>{totalResults}</strong> result{totalResults !== 1 ? 's' : ''} for <strong>&ldquo;{query}&rdquo;</strong> in Dahanu
+            Showing <strong>{totalResults}</strong> result{totalResults !== 1 ? 's' : ''} for <strong>&ldquo;{query}&rdquo;</strong> in {siteConfig.town}
           </p>
 
           {totalResults === 20 && <p className="mb-4 text-sm text-gray-500">Showing the first 20 matches. Refine your search or browse the directory.</p>}

@@ -11,22 +11,23 @@ import {
   Sparkles,
   Store,
 } from 'lucide-react'
+import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'About OurDahanu',
+  title: `About ${siteConfig.name}`,
   description:
-    'The story of OurDahanu, founded by Soham Railkar and grown with a core community group to connect Dahanu through social pages, WhatsApp groups and a local marketplace.',
+    `The story of ${siteConfig.name}, founded by Soham Railkar and grown with a core community group to connect ${siteConfig.town} through social pages, WhatsApp groups and a local marketplace.`,
   alternates: {
     canonical: 'https://ourdahanu.in/about',
   },
 }
 
 const coreGroup = [
-  { name: 'Soham Railkar', role: 'Founder', detail: 'Started OurDahanu as a local Facebook, Instagram and WhatsApp community.' },
+  { name: 'Soham Railkar', role: 'Founder', detail: `Started ${siteConfig.name} as a local Facebook, Instagram and WhatsApp community.` },
   { name: 'Ankit Thakkar', role: 'Core Group', detail: 'Helps manage community conversations and local coordination.' },
-  { name: 'Khushboo Kapadia', role: 'Core Group', detail: 'Part of the team shaping useful community spaces for Dahanu.' },
+  { name: 'Khushboo Kapadia', role: 'Core Group', detail: `Part of the team shaping useful community spaces for ${siteConfig.town}.` },
   { name: 'Ajay Bari', role: 'Core Group', detail: 'Supports group management and day-to-day community operations.' },
-  { name: 'Nupur Mestry', role: 'Core Group', detail: 'Helps keep OurDahanu active, helpful and locally relevant.' },
+  { name: 'Nupur Mestry', role: 'Core Group', detail: `Helps keep ${siteConfig.name} active, helpful and locally relevant.` },
   { name: 'Khushbu Bari', role: 'Content / Media', detail: 'Supports the community with content, media and storytelling.' },
 ]
 
@@ -66,8 +67,8 @@ const communitySpaces = [
 const timeline = [
   {
     year: 'The beginning',
-    title: 'A page for Dahanu',
-    text: 'OurDahanu began as a simple idea by Soham Railkar: create a place where Dahanu people could see, share and support what is happening locally.',
+    title: `A page for ${siteConfig.town}`,
+    text: `${siteConfig.name} began as a simple idea by Soham Railkar: create a place where ${siteConfig.town} people could see, share and support what is happening locally.`,
   },
   {
     year: 'The community grows',
@@ -82,7 +83,7 @@ const timeline = [
   {
     year: 'Now',
     title: 'Building the marketplace layer',
-    text: 'OurDahanu is moving to the next level: a structured marketplace and directory for Dahanu people, businesses, services and opportunities.',
+    text: `${siteConfig.name} is moving to the next level: a structured marketplace and directory for ${siteConfig.town} people, businesses, services and opportunities.`,
   },
 ]
 
@@ -115,14 +116,14 @@ export default function AboutPage() {
           <div className="about-reveal">
             <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-[#F0C87A] backdrop-blur-sm">
               <Sparkles size={13} />
-              Built by Dahanu, for Dahanu
+              Built by {siteConfig.town}, for {siteConfig.town}
             </div>
             <h1 className="mx-auto mt-7 max-w-[820px] font-display text-[44px] leading-[0.98] tracking-normal md:text-[80px]">
               From a community page to a <em className="italic text-[#F0C87A]">local marketplace.</em>
             </h1>
             <p className="mx-auto mt-7 max-w-[640px] text-base leading-8 text-[#F8E9D5]/80 md:text-lg">
               Founded by <strong className="font-semibold text-white">Soham Railkar</strong> as a Facebook, Instagram
-              and WhatsApp community — now becoming the digital home for Dahanu&apos;s businesses, services and
+              and WhatsApp community — now becoming the digital home for {siteConfig.town}&apos;s businesses, services and
               everyday discoveries.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-3">
@@ -130,7 +131,7 @@ export default function AboutPage() {
                 href="/listings"
                 className="inline-flex items-center gap-2 rounded-xl bg-[#F0C87A] px-5 py-3 text-sm font-bold text-[#2E1205] shadow-[0_16px_36px_rgba(240,200,122,0.22)] transition-transform hover:-translate-y-0.5"
               >
-                Explore OurDahanu <ArrowRight size={15} />
+                Explore {siteConfig.name} <ArrowRight size={15} />
               </Link>
               <Link
                 href="#core"
@@ -274,7 +275,7 @@ export default function AboutPage() {
               Guided by people who understand the local pulse.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[#7B6658] md:text-[15px]">
-              Alongside the core group, OurDahanu is supported by advisors who bring local context, perspective and
+              Alongside the core group, {siteConfig.name} is supported by advisors who bring local context, perspective and
               steady guidance as the community grows into a marketplace.
             </p>
           </div>

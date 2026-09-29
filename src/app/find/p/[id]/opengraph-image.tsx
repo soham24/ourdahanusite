@@ -2,6 +2,7 @@ import { ImageResponse } from 'next/og'
 import { loadDmSansPair } from '@/lib/og-font'
 import { getProfessionalById } from '@/lib/data/find'
 import { professionLabels } from '../../find-ui'
+import { siteConfig } from '@/lib/site'
 
 export const alt = 'Professional profile on FindDahanu'
 export const size = { width: 1200, height: 630 }
@@ -168,7 +169,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           }}
         >
           <div style={{ display: 'flex', color: 'rgba(251,240,220,0.65)', fontSize: 22, fontWeight: 400 }}>
-            find.ourdahanu.in
+            find.{siteConfig.domain}
           </div>
           <div style={{ display: 'flex', color: 'rgba(251,240,220,0.65)', fontSize: 22, fontWeight: 400 }}>
             Every rating checked by a moderator

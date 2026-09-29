@@ -2,6 +2,7 @@ import 'server-only'
 
 import { renderEmailLayout, escapeHtml } from '../email-layout'
 import type { RenderedNotification } from '../types'
+import { siteConfig } from '@/lib/site'
 
 /**
  * Sends the rendered notification as an email via Resend.
@@ -24,7 +25,7 @@ export async function deliverEmail(params: {
     params.rendered.email?.html ?? buildFallbackHtml(params.rendered)
 
   await resend.emails.send({
-    from: 'OurDahanu <hello@ourdahanu.in>',
+    from: `${siteConfig.name} <hello@ourdahanu.in>`,
     to: params.to,
     subject,
     html,
@@ -43,6 +44,6 @@ function buildFallbackHtml(rendered: RenderedNotification): string {
     headline: rendered.title,
     introHtml: escapeHtml(rendered.body),
     ctaUrl,
-    ctaText: ctaUrl ? 'Open OurDahanu' : undefined,
+    ctaText: ctaUrl ? `Open ${siteConfig.name}` : undefined,
   })
 }

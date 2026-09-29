@@ -9,9 +9,12 @@ import type {
   NotificationType,
   RenderedNotification,
 } from './types'
+import { siteConfig } from '@/lib/site'
 
-const SITE_URL = 'https://ourdahanu.in'
-const JOBS_URL = 'https://jobs.ourdahanu.in'
+// The production domain, not the current deployment's: a link inside an
+// email outlives the preview that sent it.
+const SITE_URL = `https://${siteConfig.domain}`
+const JOBS_URL = `https://jobs.${siteConfig.domain}`
 
 function formatDate(dateStr: string): string {
   const date = new Date(`${dateStr}T00:00:00+05:30`)
@@ -64,7 +67,7 @@ function renderOrderPlaced(p: NotificationPayload<'order.placed'>): RenderedNoti
         html: renderEmailLayout({
           eyebrow: 'Order Confirmed',
           headline: `Your order at ${p.listingName} is confirmed`,
-          introHtml: `Hi ${escapeHtml(p.buyerName)}, thanks for shopping on OurDahanu. Your payment has been received.`,
+          introHtml: `Hi ${escapeHtml(p.buyerName)}, thanks for shopping on ${siteConfig.name}. Your payment has been received.`,
           detailRows: [
             buildDetailRow('Item', `<strong>${escapeHtml(p.productName)}</strong>`, false),
             buildDetailRow('Quantity', String(qty)),
@@ -185,7 +188,7 @@ function renderOrderStatus(
         footerNote:
           type === 'cancelled'
             ? 'If a refund is needed, please contact the business directly.'
-            : 'Thanks for shopping on OurDahanu.',
+            : `Thanks for shopping on ${siteConfig.name}.`,
       }),
     },
     telegram: {
@@ -338,16 +341,16 @@ function renderListingApproved(
   const listingUrl = getListingUrl(p.listingId, p.subdomain)
   return {
     title: `🎉 Your listing is live · ${p.listingName}`,
-    body: `"${p.listingName}" is now live on OurDahanu.`,
+    body: `"${p.listingName}" is now live on ${siteConfig.name}.`,
     link: `/my-business`,
     icon: 'CheckCircle',
     metadata: { listingId: p.listingId },
     email: {
-      subject: `🎉 Your listing "${p.listingName}" is now live on OurDahanu`,
+      subject: `🎉 Your listing "${p.listingName}" is now live on ${siteConfig.name}`,
       html: renderEmailLayout({
         eyebrow: 'Listing Approved',
         headline: 'Your listing is live!',
-        introHtml: `Great news — your listing <strong>${escapeHtml(p.listingName)}</strong> was just approved and is now visible on OurDahanu. Customers in Dahanu can find you here:`,
+        introHtml: `Great news — your listing <strong>${escapeHtml(p.listingName)}</strong> was just approved and is now visible on ${siteConfig.name}. Customers in ${siteConfig.town} can find you here:`,
         detailRows: buildDetailRow(
           'Your page',
           `<a href="${listingUrl}" style="color:#C4663A;text-decoration:none;">${escapeHtml(listingUrl)}</a>`,
@@ -423,16 +426,16 @@ function renderJobApproved(p: NotificationPayload<'job.approved'>): RenderedNoti
   const noun = jobNoun(p.kind)
   return {
     title: `✅ Your ${noun} is live · ${p.title}`,
-    body: `"${p.title}" is now live on OurDahanu Jobs for 30 days.`,
+    body: `"${p.title}" is now live on ${siteConfig.name} Jobs for 30 days.`,
     link: `/jobs/j/${p.postId}`,
     icon: 'CheckCircle',
     metadata: { postId: p.postId },
     email: {
-      subject: `Your ${noun} "${p.title}" is live on OurDahanu Jobs`,
+      subject: `Your ${noun} "${p.title}" is live on ${siteConfig.name} Jobs`,
       html: renderEmailLayout({
-        eyebrow: 'OurDahanu Jobs',
+        eyebrow: `${siteConfig.name} Jobs`,
         headline: `Your ${noun} is live`,
-        introHtml: `<strong>${escapeHtml(p.title)}</strong> was approved and is now visible on OurDahanu Jobs for 30 days.`,
+        introHtml: `<strong>${escapeHtml(p.title)}</strong> was approved and is now visible on ${siteConfig.name} Jobs for 30 days.`,
         detailRows: buildDetailRow(
           'Your post',
           `<a href="${postUrl}" style="color:#C4663A;text-decoration:none;">${escapeHtml(postUrl)}</a>`,
@@ -459,7 +462,7 @@ function renderJobRejected(p: NotificationPayload<'job.rejected'>): RenderedNoti
     email: {
       subject: `Your ${noun} "${p.title}" was not approved`,
       html: renderEmailLayout({
-        eyebrow: 'OurDahanu Jobs',
+        eyebrow: `${siteConfig.name} Jobs`,
         headline: `Your ${noun} was not approved`,
         introHtml: `We could not approve <strong>${escapeHtml(p.title)}</strong> yet. You can edit it and resubmit.`,
         detailRows: buildDetailRow('Reason', escapeHtml(p.reason), false),
@@ -478,16 +481,16 @@ function renderJobExpiring(p: NotificationPayload<'job.expiring'>): RenderedNoti
   const when = p.daysLeft === 1 ? '1 day' : `${p.daysLeft} days`
   return {
     title: `⏳ Your ${noun} expires in ${when} · ${p.title}`,
-    body: `Renew "${p.title}" to keep it on OurDahanu Jobs for another 30 days.`,
+    body: `Renew "${p.title}" to keep it on ${siteConfig.name} Jobs for another 30 days.`,
     link: '/jobs/my-posts',
     icon: 'Clock',
     metadata: { postId: p.postId, daysLeft: p.daysLeft },
     email: {
       subject: `Your ${noun} "${p.title}" expires in ${when}`,
       html: renderEmailLayout({
-        eyebrow: 'OurDahanu Jobs',
+        eyebrow: `${siteConfig.name} Jobs`,
         headline: p.kind === 'hiring' ? 'Still hiring?' : 'Still looking for work?',
-        introHtml: `<strong>${escapeHtml(p.title)}</strong> comes off OurDahanu Jobs in ${when}. Renew it in one tap to keep it live for another 30 days.`,
+        introHtml: `<strong>${escapeHtml(p.title)}</strong> comes off ${siteConfig.name} Jobs in ${when}. Renew it in one tap to keep it live for another 30 days.`,
         ctaUrl: `${JOBS_URL}/my-posts`,
         ctaText: 'Renew my post',
       }),
@@ -506,7 +509,7 @@ function stripTrailingPunctuation(text: string): string {
 function renderSellingPaused(p: NotificationPayload<'selling.paused'>): RenderedNotification {
   const reason = stripTrailingPunctuation(p.reason)
   const body = p.byAdmin
-    ? `Selling is paused by OurDahanu: ${reason}. Contact us to resume.`
+    ? `Selling is paused by ${siteConfig.name}: ${reason}. Contact us to resume.`
     : `${reason}. Reconnect Razorpay to keep selling.`
   return {
     title: `Selling paused · ${p.listingName}`,
@@ -532,7 +535,7 @@ function renderSellingPaused(p: NotificationPayload<'selling.paused'>): Rendered
 
 function renderSellingResumed(p: NotificationPayload<'selling.resumed'>): RenderedNotification {
   const body =
-    'OurDahanu has lifted the pause. If your Razorpay keys are still connected, customers can buy from your shop again.'
+    `${siteConfig.name} has lifted the pause. If your Razorpay keys are still connected, customers can buy from your shop again.`
   return {
     title: `Selling resumed · ${p.listingName}`,
     body,
@@ -634,7 +637,7 @@ function renderReviewReplyPosted(
             .filter(Boolean)
             .join(''),
           ctaUrl: listingUrl,
-          ctaText: 'View on OurDahanu',
+          ctaText: `View on ${siteConfig.name}`,
           footerNote: 'You can continue the conversation by leaving another review later.',
         }),
       },

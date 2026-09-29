@@ -1,6 +1,7 @@
 import { isValidJobCategory } from './categories'
 import { isPayPeriod, isValidWorkType, type PayPeriod, type WorkType } from './options'
 import { isIndianMobile, normalizeIndianPhone } from './phone'
+import { siteConfig } from '@/lib/site'
 
 export type JobKind = 'hiring' | 'seeking'
 
@@ -114,7 +115,7 @@ export function validateJobPostInput(input: JobPostInput): ValidationResult {
   if (workTypes.length === 0) return fail('Choose at least one work type.')
 
   const area = clean(input.area)
-  if (!area) return fail('Enter the area, e.g. "Dahanu Road".')
+  if (!area) return fail(`Enter the area, e.g. "${siteConfig.town} Road".`)
   const areaError = lengthError(area, JOB_TEXT_LIMITS.area, 'area')
   if (areaError) return fail(areaError)
 

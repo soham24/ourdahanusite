@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import type { FindProfessional } from '@/lib/find/types'
 import { setProfessionalStatus } from '@/app/actions/admin-find'
 import EditProfessionalForm from './EditProfessionalForm'
+import { siteConfig } from '@/lib/site'
 
 export interface AdminProfessionalRow extends FindProfessional {
   business: { name: string; subdomain: string | null } | null
@@ -11,7 +12,7 @@ export interface AdminProfessionalRow extends FindProfessional {
 
 function businessLabelOf(business: AdminProfessionalRow['business']): string | null {
   if (!business) return null
-  return business.subdomain ? `${business.name} · ${business.subdomain}.ourdahanu.in` : business.name
+  return business.subdomain ? `${business.name} · ${business.subdomain}.${siteConfig.domain}` : business.name
 }
 
 export default function ProfessionalList({

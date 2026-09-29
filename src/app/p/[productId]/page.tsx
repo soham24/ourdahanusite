@@ -14,6 +14,7 @@ import {
 import { fetchProductAndListing } from '@/lib/data/product-detail'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
 import { getServiceImageAspectOption } from '@/lib/service-image'
+import { siteConfig } from '@/lib/site'
 
 export async function generateMetadata({
   params,
@@ -28,7 +29,7 @@ export async function generateMetadata({
   const price = catalogPriceLine(product)
   const businessUrl = getCanonicalListingUrl(listing.id, listing.subdomain)
   const title = `${product.name} — ${price} | ${listing.name}`
-  const description = product.description ?? `${product.name} (${price}) from ${listing.name} in Dahanu.`
+  const description = product.description ?? `${product.name} (${price}) from ${listing.name} in ${siteConfig.town}.`
   return {
     title,
     description,

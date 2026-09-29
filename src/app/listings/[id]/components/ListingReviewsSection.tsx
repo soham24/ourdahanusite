@@ -9,6 +9,7 @@ import ReviewForm from '../ReviewForm'
 import OwnerReplyForm from '@/components/OwnerReplyForm'
 import { useListingViewer } from '../ListingViewerContext'
 import type { ListingRecord, ReviewRecord } from '@/lib/data/listing-detail'
+import { siteConfig } from '@/lib/site'
 
 interface ListingReviewsSectionProps {
   reviews: ReviewRecord[]
@@ -188,7 +189,7 @@ export default function ListingReviewsSection({
           <ReviewForm listingId={listingId} userName={viewer.name} />
         ) : (
           <div className="rounded-2xl border border-border/60 bg-surface-soft/60 px-4 py-5 text-center text-ink-2/60">
-            <p className="mb-3 text-sm">Sign in to leave a review and help other Dahanu locals.</p>
+            <p className="mb-3 text-sm">Sign in to leave a review and help other {siteConfig.town} locals.</p>
             <Button variant="primary" size="md" href={platformLoginUrl}>
               Sign In to Review
             </Button>

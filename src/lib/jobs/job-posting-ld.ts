@@ -1,4 +1,5 @@
 import { GOOGLE_EMPLOYMENT_TYPE, isValidWorkType, type PayPeriod } from './options'
+import { siteConfig } from '@/lib/site'
 
 const UNIT_TEXT: Record<PayPeriod, string> = { month: 'MONTH', day: 'DAY', hour: 'HOUR' }
 
@@ -24,7 +25,7 @@ export function buildJobPostingLd(post: JobPostingSource, url: string): Record<s
     '@context': 'https://schema.org',
     '@type': 'JobPosting',
     title: post.title,
-    description: post.description?.trim() || `${post.title} — ${post.category} job in ${post.area}, Dahanu.`,
+    description: post.description?.trim() || `${post.title} — ${post.category} job in ${post.area}, ${siteConfig.town}.`,
     datePosted: post.published_at,
     validThrough: post.expires_at,
     employmentType: post.work_types.filter(isValidWorkType).map((type) => GOOGLE_EMPLOYMENT_TYPE[type]),
@@ -39,7 +40,7 @@ export function buildJobPostingLd(post: JobPostingSource, url: string): Record<s
       },
     },
     url,
-    identifier: { '@type': 'PropertyValue', name: 'OurDahanu Jobs', value: post.id },
+    identifier: { '@type': 'PropertyValue', name: `${siteConfig.name} Jobs`, value: post.id },
   }
 
   // Pay goes to Google only as an exact amount or a full range. A lone minimum

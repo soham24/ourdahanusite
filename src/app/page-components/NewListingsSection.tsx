@@ -6,6 +6,7 @@ import SectionHeader from '@/components/ui/SectionHeader'
 import { summarizeAddress } from '@/lib/listing-content'
 import type { HomeListing } from '@/lib/data/home'
 import { getListingHref } from '@/lib/listing-url'
+import { siteConfig } from '@/lib/site'
 
 interface NewListingsSectionProps {
   newListings: HomeListing[]
@@ -76,7 +77,7 @@ export default function NewListingsSection({ newListings }: NewListingsSectionPr
                     </p>
                   ) : (
                     <p className="mt-2 min-h-[40px] text-sm leading-5 text-[var(--od-muted)]">
-                      Newly added to OurDahanu.
+                      Newly added to {siteConfig.name}.
                     </p>
                   )}
 

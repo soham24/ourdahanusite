@@ -6,6 +6,7 @@ import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
 import { updateProfessional, setProfessionalStatus, deleteProfessional, type AdminProfessionalFields } from '@/app/actions/admin-find'
 import type { FindProfessional } from '@/lib/find/types'
 import BusinessPicker from './BusinessPicker'
+import { siteConfig } from '@/lib/site'
 
 export default function EditProfessionalForm({
   pro,
@@ -110,7 +111,7 @@ export default function EditProfessionalForm({
             checked={hasBusiness}
             onChange={(e) => { setHasBusiness(e.target.checked); if (!e.target.checked) setBusinessId(null) }}
           />
-          Has an OurDahanu business page (premium + verified)
+          Has an {siteConfig.name} business page (premium + verified)
         </label>
         {hasBusiness && (
           <div className="mt-2">

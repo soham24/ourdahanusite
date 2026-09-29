@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from 'react'
 import { sendNewsletter, type SendNewsletterState } from '@/app/actions/newsletter'
 import { createClient } from '@/lib/supabase/client'
 import { Mail, Users, Send, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { siteConfig } from '@/lib/site'
 
 function ComposeForm({
   formAction,
@@ -36,7 +37,7 @@ function ComposeForm({
           required
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
-          placeholder="e.g. Dahanu Chikoo Festival is here! 🍂"
+          placeholder={`e.g. ${siteConfig.town} Chikoo Festival is here! 🍂`}
           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
         />
       </div>
@@ -53,7 +54,7 @@ function ComposeForm({
           rows={10}
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder={`Hello neighbours!\n\nWrite your newsletter here. Keep it friendly and relevant to the Dahanu community.\n\n- Local news\n- Upcoming events\n- Seasonal highlights\n\nThanks,\nThe OurDahanu Team 🌴`}
+          placeholder={`Hello neighbours!\n\nWrite your newsletter here. Keep it friendly and relevant to the ${siteConfig.town} community.\n\n- Local news\n- Upcoming events\n- Seasonal highlights\n\nThanks,\nThe ${siteConfig.name} Team 🌴`}
           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none font-mono"
         />
       </div>

@@ -1,17 +1,18 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
   description:
-    'How OurDahanu collects, uses, and protects your information, including cookies, Google AdSense advertising, and analytics.',
+    `How ${siteConfig.name} collects, uses, and protects your information, including cookies, Google AdSense advertising, and analytics.`,
   alternates: {
     canonical: 'https://ourdahanu.in/privacy',
   },
 }
 
 const LAST_UPDATED = 'July 14, 2026'
-const CONTACT_EMAIL = 'railkarsoham@gmail.com'
+const CONTACT_EMAIL = siteConfig.contactEmail
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -36,9 +37,9 @@ export default function PrivacyPolicyPage() {
 
         <div className="mt-8 space-y-3 text-[15px] leading-7 text-[#4B4038]">
           <p>
-            OurDahanu (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) operates the website
+            {siteConfig.name} (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) operates the website
             <span className="whitespace-nowrap"> ourdahanu.in</span> and its subdomains (the
-            &ldquo;Service&rdquo;) — a community platform and local directory for Dahanu, Bordi, Gholvad and the
+            &ldquo;Service&rdquo;) — a community platform and local directory for {siteConfig.town}, Bordi, Gholvad and the
             wider Palghar area. This Privacy Policy explains what information we collect, how we use it, and the
             choices you have.
           </p>
@@ -101,7 +102,7 @@ export default function PrivacyPolicyPage() {
         </Section>
 
         <Section title="Jobs board">
-          <p>Posts on OurDahanu Jobs (jobs.ourdahanu.in) are public, except the phone number, which is shown only to
+          <p>Posts on {siteConfig.name} Jobs (jobs.{siteConfig.domain}) are public, except the phone number, which is shown only to
             people who are logged in. When someone views a number we record that they did, so the person who posted
             can see how many people viewed it &mdash; never who. &ldquo;Looking for work&rdquo; profiles show only a first
             name and are hidden from search engines. You can close your post at any time, and deleting your account
@@ -153,7 +154,7 @@ export default function PrivacyPolicyPage() {
         </Section>
 
         <div className="mt-14 border-t border-[#EFE5D8] pt-6">
-          <Link href="/" className={linkClass}>← Back to OurDahanu</Link>
+          <Link href="/" className={linkClass}>← Back to {siteConfig.name}</Link>
         </div>
       </div>
     </main>

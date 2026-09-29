@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Plus } from 'lucide-react'
+import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: { absolute: 'OurDahanu Jobs — Local Jobs in Dahanu' },
+  title: { absolute: `${siteConfig.name} Jobs — Local Jobs in ${siteConfig.town}` },
   description:
-    'Local jobs in Dahanu, Bordi, Gholvad and Palghar — shops, hotels, farms, clinics and homes hiring. Free to post a job, or to say you are looking for work.',
+    `Local jobs in ${siteConfig.town}, Bordi, Gholvad and Palghar — shops, hotels, farms, clinics and homes hiring. Free to post a job, or to say you are looking for work.`,
 }
 
 export default function JobsLayout({ children }: { children: React.ReactNode }) {
@@ -29,7 +30,7 @@ export default function JobsLayout({ children }: { children: React.ReactNode }) 
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
           <Link href="/jobs" className="flex items-baseline">
             <span className="font-display text-[1.4rem] leading-none">Jobs</span>
-            <span className="font-display text-[1.4rem] italic leading-none text-[var(--od-brand)]">Dahanu</span>
+            <span className="font-display text-[1.4rem] italic leading-none text-[var(--od-brand)]">{siteConfig.town}</span>
           </Link>
           <nav aria-label="Jobs" className="flex items-center gap-3">
             <Link
@@ -54,16 +55,16 @@ export default function JobsLayout({ children }: { children: React.ReactNode }) 
         <div className="warli-divider opacity-70" aria-hidden />
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-1.5 px-4 py-6 text-center">
           <p className="font-display text-lg">
-            Jobs<span className="italic text-[var(--od-brand)]">Dahanu</span>
+            Jobs<span className="italic text-[var(--od-brand)]">{siteConfig.town}</span>
           </p>
           <p className="text-xs text-[var(--od-muted)]">
             Free to post. Posts from individuals are checked by a moderator before they appear.
           </p>
           <a
-            href="https://ourdahanu.in"
+            href={`https://${siteConfig.domain}`}
             className="text-xs font-bold text-[var(--od-brand)] transition-colors hover:text-[var(--od-brand-strong)]"
           >
-            Part of OurDahanu →
+            Part of {siteConfig.name} →
           </a>
         </div>
       </footer>

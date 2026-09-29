@@ -34,6 +34,7 @@ import ListingSidebar from './components/ListingSidebar'
 import ListingReviewsSection from './components/ListingReviewsSection'
 import ListingQASection from './components/ListingQASection'
 import MobileContactBar from './components/MobileContactBar'
+import { siteConfig } from '@/lib/site'
 
 export async function generateMetadata({
   params,
@@ -61,26 +62,26 @@ export async function generateMetadata({
   if (listing.tagline) descParts.push(String(listing.tagline))
   if (listing.description) descParts.push(String(listing.description).replace(/\s+/g, ' ').trim())
   const baseDesc = truncateAtWord(descParts.join(' — '), 130)
-  const locationSuffix = `${listing.category} in Dahanu${listing.address ? `, ${String(listing.address).split(',')[0]}` : ''}, Maharashtra.`
+  const locationSuffix = `${listing.category} in ${siteConfig.town}${listing.address ? `, ${String(listing.address).split(',')[0]}` : ''}, Maharashtra.`
   const description = baseDesc
     ? truncateAtWord(`${baseDesc}. ${locationSuffix}`, 159)
-    : `${String(listing.name)} — ${locationSuffix} Find contact info, reviews & more on OurDahanu.`
+    : `${String(listing.name)} — ${locationSuffix} Find contact info, reviews & more on ${siteConfig.name}.`
 
   // Build keyword list
-  const nearbyAreas = ['Dahanu', 'Bordi', 'Gholvad', 'Palghar', 'Dahanu Road', 'Maharashtra']
+  const nearbyAreas = [`${siteConfig.town}`, 'Bordi', 'Gholvad', 'Palghar', `${siteConfig.town} Road`, 'Maharashtra']
   const serviceNames = (listingDetail?.products ?? []).slice(0, 5).map((item) => item.name)
   const keywords = [
     String(listing.name),
     String(listing.category),
     ...nearbyAreas,
-    'OurDahanu',
+    `${siteConfig.name}`,
     ...parsedTags,
     ...serviceNames,
     listing.established_year ? `Est ${listing.established_year}` : null,
   ].filter((k): k is string => Boolean(k)).join(', ')
 
   const canonicalUrl = getCanonicalListingUrl(String(listing.id), typeof listing.subdomain === 'string' ? listing.subdomain : null)
-  const title = `${String(listing.name)} | ${String(listing.category)} in Dahanu`
+  const title = `${String(listing.name)} | ${String(listing.category)} in ${siteConfig.town}`
   const images = [listing.image_url, listing.cover_image]
     .filter((u): u is string => typeof u === 'string' && u.startsWith('http'))
 
@@ -97,7 +98,7 @@ export async function generateMetadata({
       url: canonicalUrl,
       images: images.map(url => ({ url, width: 1200, height: 630 })),
       type: 'website',
-      siteName: 'OurDahanu',
+      siteName: `${siteConfig.name}`,
       locale: 'en_IN',
     },
     twitter: {
@@ -108,7 +109,7 @@ export async function generateMetadata({
     },
     other: {
       'geo.region': 'IN-MH',
-      'geo.placename': 'Dahanu, Maharashtra, India',
+      'geo.placename': `${siteConfig.town}, Maharashtra, India`,
       'geo.position': '19.9667;72.7167',
       'ICBM': '19.9667, 72.7167',
     },
@@ -153,7 +154,7 @@ function inferAddressLocality(address: string): string {
   if (normalized.includes('bordi')) return 'Bordi'
   if (normalized.includes('gholvad')) return 'Gholvad'
   if (normalized.includes('palghar')) return 'Palghar'
-  return 'Dahanu'
+  return `${siteConfig.town}`
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -268,13 +269,13 @@ async function ListingDetailContent({
 
   // WhatsApp Enquiry
   const enquiryMsg = encodeURIComponent(
-    `Hi! I found your business on OurDahanu — ${String(listing.name)}.\n\nI'd like to know more about your services. Can you help me?\n\n${businessUrl}`
+    `Hi! I found your business on ${siteConfig.name} — ${String(listing.name)}.\n\nI'd like to know more about your services. Can you help me?\n\n${businessUrl}`
   )
   const enquiryLink = whatsappNum ? `https://wa.me/${whatsappNum.replace(/\D/g, '')}?text=${enquiryMsg}` : null
 
   // WhatsApp Status Share
   const shareText = encodeURIComponent(
-    `🏪 *${String(listing.name)}*\n${listing.tagline ? `_${String(listing.tagline)}_\n` : ''}📍 ${listing.address || 'Dahanu'}\n\n✅ Find them on OurDahanu:\n${businessUrl}`
+    `🏪 *${String(listing.name)}*\n${listing.tagline ? `_${String(listing.tagline)}_\n` : ''}📍 ${listing.address || `${siteConfig.town}`}\n\n✅ Find them on OurDahanu:\n${businessUrl}`
   )
   const statusShareLink = `https://wa.me/?text=${shareText}`
 

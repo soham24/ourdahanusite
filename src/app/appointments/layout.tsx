@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Book an Appointment in Dahanu',
+  title: `Book an Appointment in ${siteConfig.town}`,
   description:
-    'Book appointments with clinics, dentists, salons and tutors in Dahanu. See the next free slot and book online.',
+    `Book appointments with clinics, dentists, salons and tutors in ${siteConfig.town}. See the next free slot and book online.`,
 }
 
 export default function AppointmentsLayout({ children }: { children: React.ReactNode }) {
@@ -22,7 +23,7 @@ export default function AppointmentsLayout({ children }: { children: React.React
           <Link href="/appointments" className="flex items-baseline">
             <span className="font-display text-[1.4rem] leading-none">Book</span>
             <span className="font-display text-[1.4rem] italic leading-none text-[var(--od-brand)]">
-              Dahanu
+              {siteConfig.town}
             </span>
           </Link>
           <a
@@ -48,10 +49,10 @@ export default function AppointmentsLayout({ children }: { children: React.React
             Cancellations are handled by the business.
           </p>
           <a
-            href="https://ourdahanu.in"
+            href={`https://${siteConfig.domain}`}
             className="text-xs font-bold text-[var(--od-brand)] transition-colors hover:text-[var(--od-brand-strong)]"
           >
-            Part of OurDahanu →
+            Part of {siteConfig.name} →
           </a>
         </div>
       </footer>

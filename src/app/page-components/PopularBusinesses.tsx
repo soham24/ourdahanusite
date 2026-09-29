@@ -6,6 +6,7 @@ import SectionHeader from '@/components/ui/SectionHeader'
 import { summarizeAddress } from '@/lib/listing-content'
 import type { HomeListing } from '@/lib/data/home'
 import { getListingHref } from '@/lib/listing-url'
+import { siteConfig } from '@/lib/site'
 
 interface PopularBusinessesProps {
   listings: HomeListing[]
@@ -21,7 +22,7 @@ export default function PopularBusinesses({ listings }: PopularBusinessesProps) 
       <div className="mx-auto max-w-[1160px] px-4 md:px-6">
         <SectionHeader
           label="Most trusted"
-          title="Popular Around Dahanu"
+          title={`Popular Around ${siteConfig.town}`}
           sub="Highly rated local businesses people return to"
           viewAllHref="/listings"
         />
@@ -94,7 +95,7 @@ function LeadPopularCard({ listing }: { listing: HomeListing }) {
           {listing.name}
         </h3>
         <p className="mt-3 line-clamp-2 text-sm leading-6 text-[var(--od-muted)]">
-          {listing.tagline || 'A popular business from the OurDahanu community.'}
+          {listing.tagline || `A popular business from the ${siteConfig.name} community.`}
         </p>
         <div className="mt-5 flex items-center justify-between gap-4 text-sm text-[var(--od-muted)]">
           {address ? (

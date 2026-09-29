@@ -9,7 +9,7 @@ import LoaderFontsReady from '@/components/LoaderFontsReady'
 import PaymentRecoveryWatcher from '@/components/PaymentRecoveryWatcher'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import StructuredData from '@/components/StructuredData'
-import { buildAbsoluteUrl, SITE_URL } from '@/lib/site'
+import { buildAbsoluteUrl, SITE_URL, siteConfig } from '@/lib/site'
 import Script from 'next/script'
 import { Analytics } from '@vercel/analytics/next'
 import { GoogleAnalytics } from '@next/third-parties/google'
@@ -20,8 +20,13 @@ import { ADSENSE_CLIENT_ID, adsEnabled } from '@/lib/ads'
 // dev/preview traffic never gets sent to the real GA4 property.
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID
 
-const METADATA_BASE_URL = 'https://ourdahanu.in'
-const LOGO_URL = 'https://ourdahanu.in/logo.png'
+const METADATA_BASE_URL = `https://${siteConfig.domain}`
+const LOGO_URL = `${METADATA_BASE_URL}/logo.png`
+
+// The default title and description every page falls back to. Pages that
+// set their own override these; these are what the homepage and anything
+// without its own metadata get.
+const SITE_TITLE = `${siteConfig.name} - ${siteConfig.town} Business Directory, Jobs & Community`
 
 // Primary body font — DM Sans (revamped design system)
 const dmSans = DM_Sans({
@@ -53,22 +58,22 @@ const notoDevanagari = Noto_Sans_Devanagari({
 export const metadata: Metadata = {
   metadataBase: new URL(METADATA_BASE_URL),
   title: {
-    default: 'OurDahanu - Dahanu Business Directory, Jobs & Community',
-    template: '%s | OurDahanu',
+    default: SITE_TITLE,
+    template: `%s | ${siteConfig.name}`,
   },
-  description: "OurDahanu is the local platform for Dahanu businesses, services, restaurants, hotels, jobs, and community updates.",
+  description: siteConfig.tagline,
   keywords: [
-    'Dahanu',
-    'OurDahanu',
-    'Dahanu business directory',
-    'businesses in Dahanu',
-    'restaurants in Dahanu',
-    'hotels in Dahanu',
-    'services in Dahanu',
-    'Dahanu jobs',
-    'Palghar community',
+    siteConfig.town,
+    siteConfig.name,
+    `${siteConfig.town} business directory`,
+    `businesses in ${siteConfig.town}`,
+    `restaurants in ${siteConfig.town}`,
+    `hotels in ${siteConfig.town}`,
+    `services in ${siteConfig.town}`,
+    `${siteConfig.town} jobs`,
+    `${siteConfig.town} community`,
   ],
-  applicationName: 'OurDahanu',
+  applicationName: siteConfig.name,
   manifest: '/manifest.json',
   robots: {
     index: true,
@@ -82,10 +87,10 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'OurDahanu - Dahanu Business Directory, Jobs & Community',
-    description: "OurDahanu is the local platform for Dahanu businesses, services, restaurants, hotels, jobs, and community updates.",
+    title: SITE_TITLE,
+    description: siteConfig.tagline,
     url: METADATA_BASE_URL,
-    siteName: 'OurDahanu',
+    siteName: siteConfig.name,
     type: 'website',
     locale: 'en_IN',
     images: [
@@ -96,8 +101,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'OurDahanu - Dahanu Business Directory, Jobs & Community',
-    description: "OurDahanu is the local platform for Dahanu businesses, services, restaurants, hotels, jobs, and community updates.",
+    title: SITE_TITLE,
+    description: siteConfig.tagline,
     images: [LOGO_URL],
   },
   icons: {
@@ -107,7 +112,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: 'OurDahanu',
+    title: siteConfig.name,
     statusBarStyle: 'default',
   },
   // AdSense site-ownership verification. Rendered as
@@ -126,19 +131,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     {
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: 'OurDahanu',
+      name: siteConfig.name,
       url: SITE_URL,
       logo: buildAbsoluteUrl('/logo.png'),
-      description: "OurDahanu is the local platform for Dahanu businesses, services, restaurants, hotels, jobs, and community updates.",
+      description: siteConfig.tagline,
       areaServed: {
         '@type': 'Place',
-        name: 'Dahanu, Palghar, Maharashtra, India',
+        name: `${siteConfig.town}, ${siteConfig.region}`,
       },
     },
     {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: 'OurDahanu',
+      name: siteConfig.name,
       url: SITE_URL,
       inLanguage: 'en-IN',
       // Enables Google's sitelinks search box under the site's main result.

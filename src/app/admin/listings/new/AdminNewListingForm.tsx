@@ -6,6 +6,7 @@ import { adminCreateListing, adminSearchUsers } from '@/app/actions/admin-listin
 import { Search, Loader2, CheckCircle, UserCheck, X } from 'lucide-react'
 import { normalizeOptionalUrl } from '@/lib/url'
 import { LISTING_CATEGORY_GROUPS, LISTING_CATEGORY_EMOJIS } from '@/lib/listing-category'
+import { siteConfig } from '@/lib/site'
 
 interface User { id: string; email: string; name: string }
 
@@ -149,7 +150,7 @@ export default function AdminNewListingForm() {
           </div>
           <div className="sm:col-span-2">
             <label className="block text-sm font-semibold text-gray-700 mb-1">Address</label>
-            <input name="address" placeholder="e.g. Main Market, Dahanu Road"
+            <input name="address" placeholder={`e.g. Main Market, ${siteConfig.town} Road`}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-400 text-sm" />
           </div>
           <div>

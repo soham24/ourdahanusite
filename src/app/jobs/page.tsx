@@ -7,6 +7,7 @@ import { getJobBoard } from '@/lib/data/jobs'
 import { JOB_CATEGORIES, jobCategoryMarathi } from '@/lib/jobs/categories'
 import { AREA_SUGGESTIONS, WORK_TYPES } from '@/lib/jobs/options'
 import JobCard from './JobCard'
+import { siteConfig } from '@/lib/site'
 
 type Tab = 'hiring' | 'seeking'
 
@@ -19,9 +20,9 @@ interface BoardParams {
 }
 
 export const metadata: Metadata = {
-  title: { absolute: 'OurDahanu Jobs — Local Jobs in Dahanu' },
+  title: { absolute: `${siteConfig.name} Jobs — Local Jobs in ${siteConfig.town}` },
   description:
-    'Local jobs in Dahanu, Bordi, Gholvad and Palghar — shops, hotels, farms, clinics and homes hiring. Free to post a job, or to say you are looking for work.',
+    `Local jobs in ${siteConfig.areas} — shops, hotels, farms, clinics and homes hiring. Free to post a job, or to say you are looking for work.`,
   alternates: { canonical: 'https://jobs.ourdahanu.in/' },
 }
 
@@ -78,7 +79,7 @@ async function BoardResults({
             {filtered
               ? 'Try a different search, or clear the filters.'
               : tab === 'hiring'
-                ? 'Be the first to post a job in Dahanu.'
+                ? `Be the first to post a job in ${siteConfig.town}.`
                 : 'Be the first to say you are looking for work.'}
           </p>
           <div className="mt-5 flex gap-2">
@@ -117,12 +118,12 @@ export default async function JobsBoardPage({ searchParams }: { searchParams: Pr
       <section className="relative -mx-4 -mt-6 overflow-hidden border-b border-[var(--od-border)] bg-[var(--color-surface-2)] px-4 pb-7 pt-9 sm:pb-9 sm:pt-11">
         <div className="warli-bg absolute inset-0 opacity-60" aria-hidden />
         <div className="relative mx-auto max-w-2xl text-center">
-          <p className="od-eyebrow">Dahanu’s local jobs board</p>
+          <p className="od-eyebrow">{siteConfig.town}’s local jobs board</p>
           <h1 className="mt-2 text-balance font-display text-4xl leading-[1.08] sm:text-5xl">
             Local work, <em className="text-[var(--od-brand)]">local people</em>.
           </h1>
           <p className="mx-auto mt-3 max-w-md text-balance text-sm leading-relaxed text-[var(--od-muted)] sm:text-[15px]">
-            Shops, farms, clinics and homes hiring across Dahanu — and neighbours looking for work. Free to post.
+            Shops, farms, clinics and homes hiring across {siteConfig.town} — and neighbours looking for work. Free to post.
           </p>
           <p className="mt-3 flex items-center justify-center gap-1.5 text-xs font-bold text-[var(--od-ink-2)]">
             <ShieldCheck size={13} className="text-[var(--od-success)]" aria-hidden />
@@ -183,7 +184,7 @@ export default async function JobsBoardPage({ searchParams }: { searchParams: Pr
         </label>
         <label className="block">
           <span className={labelCls}>Area</span>
-          <input name="area" defaultValue={area} list="job-areas" placeholder="Dahanu Road…" className={inputCls} />
+          <input name="area" defaultValue={area} list="job-areas" placeholder={`${siteConfig.town} Road…`} className={inputCls} />
           <datalist id="job-areas">
             {AREA_SUGGESTIONS.map((value) => (
               <option key={value} value={value} />

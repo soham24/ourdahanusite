@@ -24,9 +24,10 @@ import {
 } from '@/lib/payment-retry'
 import { normalizeOptionalUrl } from '@/lib/url'
 import { LISTING_CATEGORY_GROUPS, LISTING_CATEGORY_EMOJIS } from '@/lib/listing-category'
+import { siteConfig } from '@/lib/site'
 
 const PLAN_FEATURES = [
-  'Your own profile page on OurDahanu',
+  `Your own profile page on ${siteConfig.name}`,
   'Your unique subdomain (yourname.ourdahanu.in)',
   'Phone, address & website display',
   'Customer reviews',
@@ -203,7 +204,7 @@ export default function ListingSubmitForm({
         key:         orderData.keyId,
         amount:      orderData.amount,
         currency:    orderData.currency,
-        name:        'OurDahanu',
+        name:        `${siteConfig.name}`,
         description: `Business Listing — ₹${orderData.finalAmountRupees}/year`,
         order_id:    orderData.orderId,
         handler: async (response) => {
@@ -329,7 +330,7 @@ export default function ListingSubmitForm({
 
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">List Your Business</h1>
-        <p className="text-gray-500 mt-2">Reach 30,000+ potential customers in Dahanu and surrounding areas.</p>
+        <p className="text-gray-500 mt-2">Reach 30,000+ potential customers in {siteConfig.town} and surrounding areas.</p>
       </div>
 
       {/* Pricing card */}
@@ -409,7 +410,7 @@ export default function ListingSubmitForm({
               Business Name <span className="text-red-500">*</span>
             </label>
             <input type="text" id="name" name="name" required
-              placeholder="e.g. Dahanu Beach Resort"
+              placeholder={`e.g. ${siteConfig.town} Beach Resort`}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm" />
           </div>
 
@@ -473,7 +474,7 @@ export default function ListingSubmitForm({
           <div>
             <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-1.5">Address</label>
             <input type="text" id="address" name="address"
-              placeholder="e.g. Main Market, Dahanu Road, Palghar - 401602"
+              placeholder={`e.g. Main Market, ${siteConfig.town} Road, Palghar - 401602`}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm mb-3" />
             <LocationPicker />
           </div>
@@ -576,7 +577,7 @@ export default function ListingSubmitForm({
         </button>
 
         <p className="text-xs text-gray-400 text-center">
-          By paying, you confirm this is a genuine business in or around Dahanu.
+          By paying, you confirm this is a genuine business in or around {siteConfig.town}.
           Your listing goes live after review — usually within 48 hours.
         </p>
       </form>

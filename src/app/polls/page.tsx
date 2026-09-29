@@ -4,10 +4,11 @@ import { BarChart3, ArrowLeft } from 'lucide-react'
 
 import { getAllPolls } from '@/lib/data/polls'
 import PollsList from './PollsList'
+import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Community Polls - OurDahanu',
-  description: 'Vote on community polls and see what Dahanu thinks.',
+  title: `Community Polls - ${siteConfig.name}`,
+  description: `Vote on community polls and see what ${siteConfig.town} thinks.`,
 }
 
 export default async function PollsPage() {
@@ -26,7 +27,7 @@ export default async function PollsPage() {
               Community Polls
             </h1>
             <p className="text-sm text-ink-2 mt-0.5">
-              Vote and see what Dahanu thinks
+              Vote and see what {siteConfig.town} thinks
             </p>
           </div>
         </div>

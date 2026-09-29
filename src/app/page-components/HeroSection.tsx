@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 
 import { getCategoryPath } from '@/lib/listing-category'
+import { siteConfig } from '@/lib/site'
 
 const FIND_URL = 'https://find.ourdahanu.in'
 
@@ -38,11 +39,11 @@ export default function HeroSection() {
         <div className="max-w-[720px]">
           <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.08] px-3 py-1.5 text-xs font-semibold text-[var(--color-cream)] backdrop-blur-sm">
             <MapPin size={13} aria-hidden />
-            Dahanu, Bordi, Gholvad & nearby
+            {siteConfig.town}, Bordi, Gholvad & nearby
           </div>
 
           <h1 className="max-w-[650px] font-display text-[38px] leading-[1.02] tracking-[-0.025em] text-white sm:text-[50px] md:text-[62px]">
-            Find what you need in <em className="italic text-[var(--color-gold-light)]">Dahanu.</em>
+            Find what you need in <em className="italic text-[var(--color-gold-light)]">{siteConfig.town}.</em>
           </h1>
           <p className="mt-3 max-w-[520px] text-[15px] leading-6 text-[rgba(251,240,220,0.76)] sm:mt-4 sm:text-base">
             Search trusted local businesses, services and professionals in one place.

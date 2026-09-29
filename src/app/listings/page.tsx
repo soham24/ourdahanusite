@@ -5,34 +5,35 @@ import ListingsDirectoryContent from './ListingsDirectoryContent'
 import { getListingsDirectoryData } from './directory-data'
 import { getCategoryPath } from '@/lib/listing-category'
 import { buildAbsoluteUrl } from '@/lib/site'
+import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Business Listings in Dahanu',
+  title: `Business Listings in ${siteConfig.town}`,
   description:
-    'Browse trusted businesses, shops, hotels, restaurants, clinics, and local services in Dahanu, Bordi, and Gholvad on OurDahanu.',
+    `Browse trusted businesses, shops, hotels, restaurants, clinics, and local services in ${siteConfig.town}, Bordi, and Gholvad on ${siteConfig.name}.`,
   keywords: [
-    'Dahanu business directory',
-    'OurDahanu listings',
-    'businesses in Dahanu',
-    'shops in Dahanu',
-    'services in Dahanu',
-    'restaurants in Dahanu',
+    `${siteConfig.town} business directory`,
+    `${siteConfig.name} listings`,
+    `businesses in ${siteConfig.town}`,
+    `shops in ${siteConfig.town}`,
+    `services in ${siteConfig.town}`,
+    `restaurants in ${siteConfig.town}`,
   ],
   alternates: {
     canonical: '/listings',
   },
   openGraph: {
-    title: 'Business Listings in Dahanu',
+    title: `Business Listings in ${siteConfig.town}`,
     description:
-      'Browse trusted businesses, shops, hotels, restaurants, clinics, and local services in Dahanu, Bordi, and Gholvad on OurDahanu.',
+      `Browse trusted businesses, shops, hotels, restaurants, clinics, and local services in ${siteConfig.town}, Bordi, and Gholvad on ${siteConfig.name}.`,
     url: '/listings',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Business Listings in Dahanu',
+    title: `Business Listings in ${siteConfig.town}`,
     description:
-      'Browse trusted businesses, shops, hotels, restaurants, clinics, and local services in Dahanu, Bordi, and Gholvad on OurDahanu.',
+      `Browse trusted businesses, shops, hotels, restaurants, clinics, and local services in ${siteConfig.town}, Bordi, and Gholvad on ${siteConfig.name}.`,
   },
 }
 

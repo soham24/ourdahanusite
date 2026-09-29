@@ -14,6 +14,7 @@ import { PROFESSION_ICON } from '@/lib/find/profession-icons'
 import StructuredData from '@/components/StructuredData'
 import FindCard from '../../FindCard'
 import { Mr } from '../../find-ui'
+import { siteConfig } from '@/lib/site'
 
 const FIND_URL = 'https://find.ourdahanu.in'
 
@@ -35,9 +36,9 @@ export async function generateMetadata({
   const { counts } = await getProfessionCounts()
   const count = counts.get(profession) ?? 0
   const canonical = `${FIND_URL}/c/${slug}`
-  const title = `${profession} in Dahanu — Trusted, Rated Professionals`
+  const title = `${profession} in ${siteConfig.town} — Trusted, Rated Professionals`
   const description =
-    `Find ${count > 0 ? `${count} ` : ''}trusted, neighbour-rated ${profession.toLowerCase()} in Dahanu, Bordi, Gholvad & Palghar. Real ratings, checked by moderators.`.slice(
+    `Find ${count > 0 ? `${count} ` : ''}trusted, neighbour-rated ${profession.toLowerCase()} in ${siteConfig.town}, Bordi, Gholvad & Palghar. Real ratings, checked by moderators.`.slice(
       0,
       160,
     )
@@ -79,7 +80,7 @@ export default async function CategoryPage({
   const itemListSchema = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: `${profession} in Dahanu`,
+    name: `${profession} in ${siteConfig.town}`,
     numberOfItems: items.length,
     itemListElement: items.map((p, i) => ({
       '@type': 'ListItem',
@@ -114,7 +115,7 @@ export default async function CategoryPage({
             <Icon size={22} aria-hidden />
           </span>
           <span>
-            {profession} <span className="text-[var(--od-brand)]">in Dahanu</span>
+            {profession} <span className="text-[var(--od-brand)]">in {siteConfig.town}</span>
           </span>
         </h1>
         {mr && (
@@ -156,7 +157,7 @@ export default async function CategoryPage({
       {others.length > 0 && (
         <nav aria-label="Other categories" className="mt-10 border-t border-[var(--od-border)] pt-6">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--od-muted)]">
-            Browse other categories in Dahanu
+            Browse other categories in {siteConfig.town}
           </p>
           <div className="flex flex-wrap gap-2">
             {others.map((p) => {

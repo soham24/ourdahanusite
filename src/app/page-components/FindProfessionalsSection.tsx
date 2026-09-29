@@ -8,6 +8,7 @@ import {
   Palette,
   UserSearch,
 } from 'lucide-react'
+import { siteConfig } from '@/lib/site'
 
 const FIND_URL = 'https://find.ourdahanu.in'
 
@@ -26,7 +27,7 @@ export default function FindProfessionalsSection() {
           <div className="relative">
             <div className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--color-gold-light)]">
               <UserSearch size={15} aria-hidden />
-              Find OurDahanu
+              Find {siteConfig.name}
             </div>
             <h2 className="max-w-[620px] font-display text-[28px] leading-[1.08] tracking-[-0.015em] sm:text-[34px]">
               Looking for a skilled local professional?
@@ -56,7 +57,7 @@ export default function FindProfessionalsSection() {
             </Link>
             <div className="mt-2.5 flex items-center justify-center gap-1.5 text-xs text-[rgba(251,240,220,0.58)]">
               <BadgeCheck size={13} aria-hidden />
-              find.ourdahanu.in
+              find.{siteConfig.domain}
             </div>
           </div>
 

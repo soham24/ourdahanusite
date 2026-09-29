@@ -4,6 +4,7 @@ import { Mail, MessageCircle } from 'lucide-react'
 
 import StructuredData from '@/components/StructuredData'
 import { SITE_URL } from '@/lib/site'
+import { siteConfig } from '@/lib/site'
 
 // lucide-react dropped brand/logo icons — a small inline outline in the same style.
 function InstagramIcon({ size = 22 }: { size?: number }) {
@@ -16,14 +17,14 @@ function InstagramIcon({ size = 22 }: { size?: number }) {
   )
 }
 
-const CONTACT_EMAIL = 'railkarsoham@gmail.com'
+const CONTACT_EMAIL = siteConfig.contactEmail
 const WHATSAPP_NUMBER = '8149314106'
 const WHATSAPP_HREF = `https://wa.me/91${WHATSAPP_NUMBER}`
 const INSTAGRAM_HANDLE = 'ourdahanu'
 const INSTAGRAM_HREF = `https://instagram.com/${INSTAGRAM_HANDLE}`
 
 const TITLE = 'Contact Us'
-const DESCRIPTION = 'Get in touch with OurDahanu by email or WhatsApp.'
+const DESCRIPTION = `Get in touch with ${siteConfig.name} by email or WhatsApp.`
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -43,7 +44,7 @@ export default function ContactPage() {
     url: `${SITE_URL}/contact`,
     about: {
       '@type': 'Organization',
-      name: 'OurDahanu',
+      name: `${siteConfig.name}`,
       url: SITE_URL,
       sameAs: [INSTAGRAM_HREF],
       contactPoint: [
@@ -118,7 +119,7 @@ export default function ContactPage() {
         </div>
 
         <div className="mt-14 border-t border-[#EFE5D8] pt-6">
-          <Link href="/" className={linkClass}>← Back to OurDahanu</Link>
+          <Link href="/" className={linkClass}>← Back to {siteConfig.name}</Link>
         </div>
       </div>
     </main>

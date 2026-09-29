@@ -9,6 +9,7 @@ import { formatIndianPhone } from '@/lib/jobs/phone'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
 import AdminJobActions from './AdminJobActions'
+import { siteConfig } from '@/lib/site'
 
 type Tab = 'pending' | 'live' | 'all'
 
@@ -199,7 +200,7 @@ export default async function AdminJobsPage({ searchParams }: { searchParams: Pr
         <h2 className="text-lg font-bold">Post a collected job</h2>
         <p className="mb-4 text-sm text-gray-500">
           For jobs gathered from WhatsApp groups, newspapers and shop notices. It goes live instantly, labelled
-          &ldquo;Collected by OurDahanu&rdquo; with the source you enter.
+          &ldquo;Collected by {siteConfig.name}&rdquo; with the source you enter.
         </p>
         <JobPostForm mode="collected" businesses={[]} />
       </section>

@@ -5,10 +5,11 @@ import { BookOpen, Clock } from 'lucide-react'
 import StructuredData from '@/components/StructuredData'
 import { getPublishedGuides } from '@/lib/guides'
 import { SITE_URL } from '@/lib/site'
+import { siteConfig } from '@/lib/site'
 
-const TITLE = 'Dahanu Guides — Travel, Food and Local Know-How'
+const TITLE = `${siteConfig.town} Guides — Travel, Food and Local Know-How`
 const DESCRIPTION =
-  'Practical guides to Dahanu written by people who live here — getting from Mumbai, chikoo season, the beaches, where to stay and what a weekend actually costs.'
+  `Practical guides to ${siteConfig.town} written by people who live here — getting from Mumbai, chikoo season, the beaches, where to stay and what a weekend actually costs.`
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -24,7 +25,7 @@ export default async function GuidesIndexPage() {
   const listSchema = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'Dahanu Guides',
+    name: `${siteConfig.town} Guides`,
     numberOfItems: guides.length,
     itemListElement: guides.map((g, i) => ({
       '@type': 'ListItem',
@@ -42,7 +43,7 @@ export default async function GuidesIndexPage() {
         <header className="mb-8">
           <p className="od-eyebrow mb-2">Guides</p>
           <h1 className="text-balance font-display text-3xl leading-tight sm:text-4xl">
-            Dahanu, explained by people who live here
+            {siteConfig.town}, explained by people who live here
           </h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-[var(--od-muted)]">
             Getting here from Mumbai, when the chikoo is best, which beach to pick, and what a

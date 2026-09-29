@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation'
 import PollCard from '@/components/PollCard'
 import { getPollById } from '@/lib/data/polls'
 import { buildAbsoluteUrl } from '@/lib/site'
+import { siteConfig } from '@/lib/site'
 
 type PollPageProps = {
   params: Promise<{ id: string }>
@@ -19,21 +20,21 @@ export async function generateMetadata({
 
   if (!poll) {
     return {
-      title: 'Poll Not Found - OurDahanu',
+      title: `Poll Not Found - ${siteConfig.name}`,
     }
   }
 
   const pollUrl = buildAbsoluteUrl(`/polls/${poll.id}`)
 
   return {
-    title: `${poll.title} - Community Poll - OurDahanu`,
-    description: 'Vote on this community poll and see what Dahanu thinks.',
+    title: `${poll.title} - Community Poll - ${siteConfig.name}`,
+    description: `Vote on this community poll and see what ${siteConfig.town} thinks.`,
     alternates: {
       canonical: pollUrl,
     },
     openGraph: {
       title: poll.title,
-      description: 'Vote on this community poll and see what Dahanu thinks.',
+      description: `Vote on this community poll and see what ${siteConfig.town} thinks.`,
       url: pollUrl,
       type: 'article',
       images: [{ url: 'https://ourdahanu.in/logo.png' }],
@@ -41,7 +42,7 @@ export async function generateMetadata({
     twitter: {
       card: 'summary',
       title: poll.title,
-      description: 'Vote on this community poll and see what Dahanu thinks.',
+      description: `Vote on this community poll and see what ${siteConfig.town} thinks.`,
       images: ['https://ourdahanu.in/logo.png'],
     },
   }
@@ -72,7 +73,7 @@ export default async function PollDetailPage({
               Community Poll
             </h1>
             <p className="text-sm text-ink-2 mt-0.5">
-              Share this page directly with anyone in Dahanu.
+              Share this page directly with anyone in {siteConfig.town}.
             </p>
           </div>
         </div>

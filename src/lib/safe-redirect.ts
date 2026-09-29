@@ -1,3 +1,5 @@
+import { siteConfig } from './site-config'
+
 /**
  * Decide where an OAuth callback is allowed to send the browser.
  *
@@ -61,9 +63,10 @@ export function resolveSafeRedirect(next: string | null, origin: string): string
   // Only https off-localhost: http would let a network attacker strip TLS.
   if (parsed.protocol !== (isLocalhost ? 'http:' : 'https:')) return fallback
 
-  // Note the leading dot on the suffix check: 'notourdahanu.in' and
-  // 'ourdahanu.in.evil.com' must both fail.
-  const isOurDomain = host === 'ourdahanu.in' || host.endsWith('.ourdahanu.in')
+  // Note the leading dot on the suffix check: for a domain of ourdahanu.in,
+  // 'notourdahanu.in' and 'ourdahanu.in.evil.com' must both fail.
+  const ourDomain = siteConfig.domain.toLowerCase()
+  const isOurDomain = host === ourDomain || host.endsWith(`.${ourDomain}`)
   if (!isOurDomain && !isLocalhost) return fallback
 
   return parsed.toString()

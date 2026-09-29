@@ -13,8 +13,9 @@ import { findLoginHref } from '../../find-server'
 import TrackedContactLink from '../../TrackedContactLink'
 import FindCard from '../../FindCard'
 import RatingForm from './RatingForm'
+import { siteConfig } from '@/lib/site'
 
-const NEARBY_AREAS = ['Dahanu', 'Bordi', 'Gholvad', 'Palghar']
+const NEARBY_AREAS = [`${siteConfig.town}`, 'Bordi', 'Gholvad', 'Palghar']
 
 const FIND_URL = 'https://find.ourdahanu.in'
 
@@ -30,7 +31,7 @@ export async function generateMetadata({
   const pro = await getProfessionalById(id)
   if (!pro) return {}
   const professions = professionLabels(pro).map((l) => l.label).join(', ')
-  const title = `${pro.name} — ${professions} in Dahanu`
+  const title = `${pro.name} — ${professions} in ${siteConfig.town}`
   const descriptionParts = [
     pro.rating_count > 0
       ? `Rated ${pro.avg_rating.toFixed(1)}/5 by ${pro.rating_count} verified customer${pro.rating_count > 1 ? 's' : ''}.`
@@ -103,13 +104,13 @@ export default async function ProfessionalDetailPage({
     '@type': 'ProfessionalService',
     '@id': profileUrl,
     name: pro.name,
-    description: `${professionsText} in Dahanu${pro.locality ? `, ${pro.locality}` : ''}.`,
+    description: `${professionsText} in ${siteConfig.town}${pro.locality ? `, ${pro.locality}` : ''}.`,
     url: profileUrl,
     telephone: pro.phone,
-    areaServed: ['Dahanu', 'Bordi', 'Gholvad', 'Palghar'],
+    areaServed: [`${siteConfig.town}`, 'Bordi', 'Gholvad', 'Palghar'],
     address: {
       '@type': 'PostalAddress',
-      addressLocality: pro.locality || 'Dahanu',
+      addressLocality: pro.locality || `${siteConfig.town}`,
       addressRegion: 'Maharashtra',
       addressCountry: 'IN',
     },

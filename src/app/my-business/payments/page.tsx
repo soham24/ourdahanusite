@@ -7,6 +7,7 @@ import { loadSuspensionReasons } from '@/lib/selling/suspension-reasons'
 import { createClient } from '@/lib/supabase/server'
 
 import ConnectRazorpay, { type PaymentView } from './ConnectRazorpay'
+import { siteConfig } from '@/lib/site'
 
 type OwnerListing = {
   id: string
@@ -114,7 +115,7 @@ export default async function MyBusinessPaymentsPage({
             {selected ? selected.name : 'Online payments'}
           </h1>
           <p className="od-muted mt-2 text-sm leading-relaxed">
-            Connect your own Razorpay account. Customers pay you directly — OurDahanu never holds your money.
+            Connect your own Razorpay account. Customers pay you directly — {siteConfig.name} never holds your money.
           </p>
         </header>
 

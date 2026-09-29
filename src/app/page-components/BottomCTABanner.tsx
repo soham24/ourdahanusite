@@ -1,5 +1,6 @@
 import { Store, Search } from 'lucide-react'
 import Button from '@/components/ui/Button'
+import { siteConfig } from '@/lib/site'
 
 export default function BottomCTABanner() {
   return (
@@ -14,7 +15,7 @@ export default function BottomCTABanner() {
             letterSpacing: '-0.02em',
           }}
         >
-          Dahanu is yours.
+          {siteConfig.town} is yours.
           <br />
           <em className="italic text-[#F0C87A]">Make it yours online too.</em>
         </h2>
@@ -22,14 +23,14 @@ export default function BottomCTABanner() {
           className="text-[15px] mb-9"
           style={{ color: 'rgba(232,196,154,0.5)' }}
         >
-          Join hundreds of local businesses and residents already on OurDahanu.
+          Join hundreds of local businesses and residents already on {siteConfig.name}.
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           <Button href="/listings/submit" size="lg" icon={<Store size={15} />} className="bg-[#C8881E] hover:bg-[#D49A28] text-[var(--color-bark)] font-bold">
             List Your Business
           </Button>
           <Button href="/listings" size="lg" variant="outline" icon={<Search size={15} />} className="bg-white/[0.09] hover:bg-white/[0.15] border-white/20 text-[var(--color-cream)] font-semibold">
-            Explore Dahanu
+            Explore {siteConfig.town}
           </Button>
         </div>
       </div>

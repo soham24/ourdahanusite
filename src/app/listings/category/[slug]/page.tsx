@@ -11,6 +11,7 @@ import {
 } from '@/lib/listing-category'
 import { MIN_CATEGORY_SIZE } from '@/lib/seo-thresholds'
 import { getListingCategories, getListingsDirectoryData } from '../../directory-data'
+import { siteConfig } from '@/lib/site'
 
 async function resolveCategory(slug: string): Promise<string | null> {
   const { categories } = await getListingCategories()
@@ -47,28 +48,28 @@ export async function generateMetadata({
   const listingCount = directory.listings.length
 
   return {
-    title: `${category} in Dahanu`,
-    description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in Dahanu, Bordi, and Gholvad on OurDahanu.`,
+    title: `${category} in ${siteConfig.town}`,
+    description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in ${siteConfig.town}, Bordi, and Gholvad on ${siteConfig.name}.`,
     keywords: [
-      `${category} in Dahanu`,
-      `${category} near Dahanu`,
-      `${category} OurDahanu`,
-      `Dahanu ${category}`,
+      `${category} in ${siteConfig.town}`,
+      `${category} near ${siteConfig.town}`,
+      `${category} ${siteConfig.name}`,
+      `${siteConfig.town} ${category}`,
     ],
     alternates: {
       canonical: getCategoryPath(category),
     },
     openGraph: {
-      title: `${category} in Dahanu`,
-      description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in Dahanu, Bordi, and Gholvad on OurDahanu.`,
+      title: `${category} in ${siteConfig.town}`,
+      description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in ${siteConfig.town}, Bordi, and Gholvad on ${siteConfig.name}.`,
       url: getCategoryPath(category),
       type: 'website',
       images: [{ url: 'https://ourdahanu.in/logo.png' }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${category} in Dahanu`,
-      description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in Dahanu, Bordi, and Gholvad on OurDahanu.`,
+      title: `${category} in ${siteConfig.town}`,
+      description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in ${siteConfig.town}, Bordi, and Gholvad on ${siteConfig.name}.`,
       images: ['https://ourdahanu.in/logo.png'],
     },
     ...(listingCount < MIN_CATEGORY_SIZE ? { robots: { index: false, follow: true } } : {}),

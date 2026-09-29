@@ -6,6 +6,7 @@ import { getMyMarketplaceOrders } from '@/app/actions/marketplace-orders'
 import { orderItemName } from '@/lib/catalog/catalog'
 import { createClient } from '@/lib/supabase/server'
 import { buildAbsoluteUrl } from '@/lib/site'
+import { siteConfig } from '@/lib/site'
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-IN', {
@@ -64,7 +65,7 @@ export default async function MyAccountOrdersPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">My Orders</h1>
-          <p className="text-sm text-gray-500">Items and services you&apos;ve purchased on OurDahanu</p>
+          <p className="text-sm text-gray-500">Items and services you&apos;ve purchased on {siteConfig.name}</p>
         </div>
       </div>
 
@@ -75,7 +76,7 @@ export default async function MyAccountOrdersPage() {
           </div>
           <h3 className="font-semibold text-gray-900 mb-2">No orders yet</h3>
           <p className="text-sm text-gray-400 max-w-xs mx-auto mb-6">
-            Explore local businesses on Dahanu and shop directly from their catalog.
+            Explore local businesses on {siteConfig.town} and shop directly from their catalog.
           </p>
           <Link
             href={buildAbsoluteUrl('/listings')}

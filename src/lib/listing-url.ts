@@ -1,4 +1,9 @@
-const PRODUCTION_ROOT_DOMAIN = 'ourdahanu.in'
+import { siteConfig } from './site-config'
+
+// The production domain on purpose, not the current deployment's host:
+// canonical URLs and share links must keep working after a preview
+// deployment is gone.
+const PRODUCTION_ROOT_DOMAIN = siteConfig.domain
 
 function normalizeSubdomain(subdomain?: string | null): string | null {
   const value = subdomain?.trim().toLowerCase()

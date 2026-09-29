@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { Loader2 } from 'lucide-react'
 import { buildAbsoluteUrl } from '@/lib/site'
+import { siteConfig } from '@/lib/site'
 
 function LoginContent() {
   const searchParams = useSearchParams()
@@ -26,14 +27,14 @@ function LoginContent() {
       const name = c.split('=')[0].trim()
       if (name.includes('code-verifier')) {
         document.cookie = `${name}=; max-age=0; path=/`
-        document.cookie = `${name}=; max-age=0; path=/; domain=.ourdahanu.in`
+        document.cookie = `${name}=; max-age=0; path=/; domain=.${siteConfig.domain}`
       }
     })
 
     const hostname = window.location.hostname
-    const isSubdomain = hostname !== 'ourdahanu.in' && hostname.endsWith('.ourdahanu.in')
-    // Always callback via main domain so cookies get set with .ourdahanu.in domain
-    const callbackOrigin = isSubdomain ? 'https://ourdahanu.in' : window.location.origin
+    const isSubdomain = hostname !== siteConfig.domain && hostname.endsWith(`.${siteConfig.domain}`)
+    // Always callback via the main domain so cookies get the apex domain scope
+    const callbackOrigin = isSubdomain ? `https://${siteConfig.domain}` : window.location.origin
     // After auth, redirect back to where the user came from. On a business
     // subdomain the callback runs on the apex, so `next` must be absolute —
     // but it still has to keep the path, or a buyer signing in from a product
@@ -65,7 +66,7 @@ function LoginContent() {
             <div className="w-16 h-16 bg-brand rounded-2xl flex items-center justify-center mx-auto mb-4">
               <span className="text-bg font-bold text-2xl">OD</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">{checkoutMatch ? 'Sign in to finish your order' : 'Welcome to OurDahanu'}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{checkoutMatch ? 'Sign in to finish your order' : `Welcome to ${siteConfig.name}`}</h1>
             <p className="text-gray-500 mt-2">{checkoutMatch ? 'You’ll return to checkout after signing in. No payment is taken at this step.' : 'Sign in to access your community'}</p>
             {checkoutMatch && <a href={`/p/${checkoutMatch[1]}`} className="mt-3 inline-block text-sm font-semibold text-brand hover:underline">Back to item</a>}
           </div>
@@ -104,7 +105,7 @@ function LoginContent() {
 
           {/* Features */}
           <div className="mt-8 pt-6 border-t border-gray-100">
-            <p className="text-xs text-gray-400 text-center mb-4">What you get with OurDahanu</p>
+            <p className="text-xs text-gray-400 text-center mb-4">What you get with {siteConfig.name}</p>
             <div className="grid grid-cols-2 gap-3">
               {[
                 { icon: '🛒', text: 'Buy local products' },

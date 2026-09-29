@@ -6,6 +6,7 @@ import Badge from '@/components/ui/Badge'
 import { summarizeAddress } from '@/lib/listing-content'
 import type { FeaturedListing } from '@/lib/data/home'
 import { getListingHref } from '@/lib/listing-url'
+import { siteConfig } from '@/lib/site'
 
 export default function FeaturedSpotlight({ listing }: { listing: FeaturedListing }) {
   const href = getListingHref(listing.id, listing.subdomain)
@@ -83,7 +84,7 @@ export default function FeaturedSpotlight({ listing }: { listing: FeaturedListin
             )}
 
             <p className="mt-3 line-clamp-2 max-w-[540px] text-sm leading-6 text-[var(--od-muted)] md:mt-5 md:text-[15px] md:leading-7">
-              {listing.tagline || 'A handpicked business from the OurDahanu directory, selected for discovery this week.'}
+              {listing.tagline || `A handpicked business from the ${siteConfig.name} directory, selected for discovery this week.`}
             </p>
 
             <div className="mt-5 flex flex-wrap items-center gap-3 md:mt-7">

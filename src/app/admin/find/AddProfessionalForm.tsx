@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
 import { createProfessionalAsAdmin, type AdminProfessionalFields } from '@/app/actions/admin-find'
 import BusinessPicker from './BusinessPicker'
+import { siteConfig } from '@/lib/site'
 
 export default function AddProfessionalForm({ onDone }: { onDone: () => void }) {
   const router = useRouter()
@@ -78,7 +79,7 @@ export default function AddProfessionalForm({ onDone }: { onDone: () => void }) 
             checked={hasBusiness}
             onChange={(e) => { setHasBusiness(e.target.checked); if (!e.target.checked) setBusinessId(null) }}
           />
-          Has an OurDahanu business page (premium + verified)
+          Has an {siteConfig.name} business page (premium + verified)
         </label>
         {hasBusiness && (
           <div className="mt-2">

@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import type { Metadata } from 'next'
+import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Find — Trusted Local Professionals in Dahanu',
+  title: `Find — Trusted Local Professionals in ${siteConfig.town}`,
   description:
-    'Find rated local professionals in Dahanu — electricians, plumbers, doctors, tutors and more. Real ratings from real customers.',
+    `Find rated local professionals in ${siteConfig.town} — electricians, plumbers, doctors, tutors and more. Real ratings from real customers.`,
 }
 
 export default function FindLayout({ children }: { children: React.ReactNode }) {
@@ -26,7 +27,7 @@ export default function FindLayout({ children }: { children: React.ReactNode }) 
             href="https://ourdahanu.in/listings"
             className="border-b border-[var(--od-bg)]/40 transition-colors hover:border-[var(--od-bg)]/70"
           >
-            Browse verified business listings on OurDahanu →
+            Browse verified business listings on {siteConfig.name} →
           </a>
         </div>
       </div>
@@ -36,7 +37,7 @@ export default function FindLayout({ children }: { children: React.ReactNode }) 
           <Link href="/find" className="flex items-baseline">
             <span className="font-display text-[1.4rem] leading-none">Find</span>
             <span className="font-display text-[1.4rem] italic leading-none text-[var(--od-brand)]">
-              Dahanu
+              {siteConfig.town}
             </span>
           </Link>
           <Link
@@ -57,16 +58,16 @@ export default function FindLayout({ children }: { children: React.ReactNode }) 
         <div className="warli-divider opacity-70" aria-hidden />
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-1.5 px-4 py-6 text-center">
           <p className="font-display text-lg">
-            Find<span className="italic text-[var(--od-brand)]">Dahanu</span>
+            Find<span className="italic text-[var(--od-brand)]">{siteConfig.town}</span>
           </p>
           <p className="text-xs text-[var(--od-muted)]">
             Every listing and rating is checked by a moderator before it appears.
           </p>
           <a
-            href="https://ourdahanu.in"
+            href={`https://${siteConfig.domain}`}
             className="text-xs font-bold text-[var(--od-brand)] transition-colors hover:text-[var(--od-brand-strong)]"
           >
-            Part of OurDahanu →
+            Part of {siteConfig.name} →
           </a>
         </div>
       </footer>

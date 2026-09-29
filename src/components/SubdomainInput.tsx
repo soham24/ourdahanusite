@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { CheckCircle, XCircle, Loader2, Globe } from 'lucide-react'
+import { siteConfig } from '@/lib/site'
 
 type Status = 'idle' | 'checking' | 'available' | 'taken' | 'invalid' | 'reserved'
 
@@ -60,7 +61,7 @@ export default function SubdomainInput() {
   const statusUI: Record<Status, { icon: React.ReactNode; text: string; color: string } | null> = {
     idle: null,
     checking: { icon: <Loader2 size={13} className="animate-spin" />, text: 'Checking...', color: 'text-gray-400' },
-    available: { icon: <CheckCircle size={13} />, text: `${value}.ourdahanu.in is available!`, color: 'text-green-600' },
+    available: { icon: <CheckCircle size={13} />, text: `${value}.${siteConfig.domain} is available!`, color: 'text-green-600' },
     taken: { icon: <XCircle size={13} />, text: 'Already taken. Try another.', color: 'text-red-500' },
     invalid: { icon: <XCircle size={13} />, text: 'Use 3-30 lowercase letters, numbers, or hyphens.', color: 'text-red-500' },
     reserved: { icon: <XCircle size={13} />, text: 'This name is reserved.', color: 'text-red-500' },
@@ -99,7 +100,7 @@ export default function SubdomainInput() {
           className="flex-1 px-3 py-3 focus:outline-none text-sm bg-white"
         />
         <span className="px-3 py-3 bg-gray-50 text-gray-400 text-sm border-l border-gray-200 whitespace-nowrap flex-shrink-0">
-          .ourdahanu.in
+          .{siteConfig.domain}
         </span>
         <button
           type="button"

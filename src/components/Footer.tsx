@@ -4,14 +4,15 @@ import { ShieldAlert } from 'lucide-react'
 
 import FooterAccountLinks from '@/components/FooterAccountLinks'
 import { buildAbsoluteUrl } from '@/lib/site'
+import { siteConfig } from '@/lib/site'
 
 const EXPLORE_LINKS = [
   { href: '/listings', label: 'Business Listings' },
-  { href: '/guides', label: 'Dahanu Guides' },
+  { href: '/guides', label: `${siteConfig.town} Guides` },
   { href: '/listings/submit', label: 'List Your Business' },
   { href: '/emergency', label: 'Emergency & Safety' },
   { href: '/search', label: 'Search' },
-  { href: '/about', label: 'About OurDahanu' },
+  { href: '/about', label: `About ${siteConfig.name}` },
 ]
 
 export default function Footer() {
@@ -23,11 +24,11 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Image src="/logo.png" alt="OurDahanu" width={28} height={28} className="rounded-full" />
-              <span className="font-bold text-[18px] text-[#FBF0DC] tracking-[-0.01em]">OurDahanu</span>
+              <Image src="/logo.png" alt={siteConfig.name} width={28} height={28} className="rounded-full" />
+              <span className="font-bold text-[18px] text-[#FBF0DC] tracking-[-0.01em]">{siteConfig.name}</span>
             </div>
             <p className="text-[13px] leading-[1.7] mb-5 max-w-[280px]">
-              Dahanu&apos;s own community platform — find local businesses, services, and connect with 30,000+ people of Dahanu, Bordi, Gholvad and Palghar.
+              {siteConfig.town}&apos;s own community platform — find local businesses, services, and connect with the people of {siteConfig.areas}.
             </p>
             <Link
               href={buildAbsoluteUrl('/emergency')}
@@ -68,7 +69,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-white/[0.06] pt-6 flex flex-col md:flex-row items-center justify-between text-xs gap-2">
-          <p className="text-[rgba(251,240,220,0.45)]">© 2026 OurDahanu. All rights reserved.</p>
+          <p className="text-[rgba(251,240,220,0.45)]">© 2026 {siteConfig.name}. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <Link
               href={buildAbsoluteUrl('/contact')}
@@ -88,7 +89,7 @@ export default function Footer() {
             >
               Terms
             </Link>
-            <p className="text-[rgba(251,240,220,0.45)]">Made in Dahanu</p>
+            <p className="text-[rgba(251,240,220,0.45)]">Made in {siteConfig.town}</p>
           </div>
         </div>
       </div>

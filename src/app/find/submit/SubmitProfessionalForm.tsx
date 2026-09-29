@@ -7,6 +7,7 @@ import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
 import { safelySubmit } from '@/lib/find/safe-submission'
 import { submitProfessional } from '@/app/actions/find'
 import { chipBase, chipOff, chipOn, Mr } from '../find-ui'
+import { siteConfig } from '@/lib/site'
 
 const labelCls = 'mb-1 block text-[13px] font-bold text-[var(--od-ink-2)]'
 const inputCls = 'od-input h-11 w-full px-3.5 text-[15px] disabled:opacity-60'
@@ -149,11 +150,11 @@ export default function SubmitProfessionalForm() {
       )}
 
       <label className="block">
-        <span className={labelCls}>Area / locality in Dahanu</span>
+        <span className={labelCls}>Area / locality in {siteConfig.town}</span>
         <input
           name="locality"
           disabled={pending}
-          placeholder="e.g. Dahanu West, Malyan"
+          placeholder={`e.g. ${siteConfig.town} West, Malyan`}
           className={inputCls}
         />
       </label>

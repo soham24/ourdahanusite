@@ -4,6 +4,7 @@ import Link from 'next/link'
 import SectionHeader from '@/components/ui/SectionHeader'
 import type { HomeReview } from '@/lib/data/home'
 import { getListingHref } from '@/lib/listing-url'
+import { siteConfig } from '@/lib/site'
 
 interface RecentReviewsSectionProps {
   reviews: HomeReview[]
@@ -36,7 +37,7 @@ export default function RecentReviewsSection({ reviews }: RecentReviewsSectionPr
         <SectionHeader
           label="Community voices"
           title="What People Are Saying"
-          sub="Recent reviews from across Dahanu businesses"
+          sub={`Recent reviews from across ${siteConfig.town} businesses`}
           viewAllHref="/listings"
         />
 

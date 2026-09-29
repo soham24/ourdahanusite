@@ -11,6 +11,7 @@ import {
 import { normalizeOptionalUrlOrNull } from '@/lib/url'
 import { revalidatePath } from 'next/cache'
 import { getUserRole } from './admin'
+import { siteConfig } from '@/lib/site'
 
 async function checkAdmin() {
   const supabase = await createClient()
@@ -52,7 +53,7 @@ export async function adminCreateListing(
         .select('id')
         .eq('subdomain', rawSub)
         .maybeSingle()
-      if (existing) return { error: `Subdomain "${rawSub}.ourdahanu.in" is already taken.` }
+      if (existing) return { error: `Subdomain "${rawSub}.${siteConfig.domain}" is already taken.` }
       subdomain = rawSub
     }
 

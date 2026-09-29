@@ -2,13 +2,14 @@ import Link from 'next/link'
 import { ArrowRight, Handshake, Palette, Trees } from 'lucide-react'
 
 import Card from '@/components/ui/Card'
+import { siteConfig } from '@/lib/site'
 
 export default function AboutDahanu() {
   const features = [
     {
       title: 'Chikoo Capital',
       Icon: Trees,
-      desc: "Dahanu's sapodilla orchards are part of everyday life and the local economy — celebrated nationally for their quality.",
+      desc: `${siteConfig.town}'s sapodilla orchards are part of everyday life and the local economy — celebrated nationally for their quality.`,
     },
     {
       title: 'Warli Heritage',
@@ -34,7 +35,7 @@ export default function AboutDahanu() {
               A community page growing into a local marketplace
             </h2>
             <p className="text-sm text-[var(--color-text-muted)] mt-2 max-w-[620px] leading-[1.7]">
-              OurDahanu began as a social and WhatsApp community for Dahanu people. Now it is
+              {siteConfig.name} began as a social and WhatsApp community for {siteConfig.town} people. Now it is
               growing into a marketplace where locals can discover businesses, services and
               trusted recommendations.
             </p>

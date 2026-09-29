@@ -2,19 +2,20 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { getCachedPricingConfig } from '@/lib/data/pricing'
+import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
   description:
-    'The terms for using OurDahanu — listings, the marketplace, payments, refunds, and your responsibilities as a buyer, seller, or visitor.',
+    `The terms for using ${siteConfig.name} — listings, the marketplace, payments, refunds, and your responsibilities as a buyer, seller, or visitor.`,
   alternates: {
     canonical: 'https://ourdahanu.in/terms',
   },
 }
 
 const LAST_UPDATED = 'August 12, 2026'
-const ENTITY_NAME = 'OurDahanu'
-const CONTACT_EMAIL = 'railkarsoham@gmail.com'
+const ENTITY_NAME = `${siteConfig.name}`
+const CONTACT_EMAIL = siteConfig.contactEmail
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -47,7 +48,7 @@ export default async function TermsPage() {
           <p>
             {ENTITY_NAME} (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) operates the website
             <span className="whitespace-nowrap"> ourdahanu.in</span> and its subdomains (the
-            &ldquo;Service&rdquo;) — a community platform, local directory, and marketplace for Dahanu, Bordi,
+            &ldquo;Service&rdquo;) — a community platform, local directory, and marketplace for {siteConfig.town}, Bordi,
             Gholvad and the wider Palghar area. By using the Service, you agree to these Terms. If you don&rsquo;t
             agree, please don&rsquo;t use the Service.
           </p>
@@ -148,7 +149,7 @@ export default async function TermsPage() {
         </Section>
 
         <div className="mt-14 border-t border-[#EFE5D8] pt-6">
-          <Link href="/" className={linkClass}>← Back to OurDahanu</Link>
+          <Link href="/" className={linkClass}>← Back to {siteConfig.name}</Link>
         </div>
       </div>
     </main>

@@ -4,6 +4,7 @@ import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
 import { ShieldCheck } from 'lucide-react'
 import FindDirectory from './FindDirectory'
 import type { CategoryTile } from './CategoryGridClient'
+import { siteConfig } from '@/lib/site'
 
 interface FindParams { q?: string; profession?: string; sort?: string }
 
@@ -75,7 +76,7 @@ export default async function FindHomePage({
       <section className="relative -mx-4 -mt-6 overflow-hidden border-b border-[var(--od-border)] bg-[var(--color-surface-2)] px-4 pb-7 pt-9 sm:pb-9 sm:pt-11">
         <div className="warli-bg absolute inset-0 opacity-60" aria-hidden />
         <div className="relative mx-auto max-w-2xl text-center">
-          <p className="od-eyebrow">Dahanu’s people directory</p>
+          <p className="od-eyebrow">{siteConfig.town}’s people directory</p>
           <h1 className="mt-2 text-balance font-display text-4xl leading-[1.08] sm:text-5xl">
             Every name here is <em className="text-[var(--od-brand)]">vouched for</em>.
           </h1>

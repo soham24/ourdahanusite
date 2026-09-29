@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ArrowRight, Bell, ShoppingBag, Store } from 'lucide-react'
+import { siteConfig } from '@/lib/site'
 
 export default function ShopPage() {
   return (
@@ -8,7 +9,7 @@ export default function ShopPage() {
         <div>
           <p className="od-eyebrow mb-3">Local commerce</p>
           <h1 className="od-section-title max-w-2xl text-4xl md:text-6xl">
-            Shop from Dahanu businesses, directly.
+            Shop from {siteConfig.town} businesses, directly.
           </h1>
           <p className="od-muted mt-4 max-w-xl text-base leading-7">
             Product buying is being rolled into business profiles first, so customers can buy from the actual seller and owners can manage orders in one place.

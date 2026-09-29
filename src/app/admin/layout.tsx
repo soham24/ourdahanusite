@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ExternalLink, Shield } from 'lucide-react'
 import { getUserRole } from '@/app/actions/admin'
 import AdminNav from './AdminNav'
+import { siteConfig } from '@/lib/site'
 
 export const unstable_instant = false
 
@@ -32,7 +33,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[var(--od-ink)] text-white">
                   <Shield size={17} />
                 </span>
-                <span>OurDahanu Admin</span>
+                <span>{siteConfig.name} Admin</span>
               </div>
               {badge && (
                 <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${badge.color}`}>

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { UserCircle, User, CheckCircle, Shield, Store, Edit2, LogOut, Calendar } from 'lucide-react'
 import { updateProfile } from '@/app/actions/profile'
 import { getUserRole } from '@/app/actions/admin'
+import { siteConfig } from '@/lib/site'
 
 export const unstable_instant = false
 
@@ -89,7 +90,7 @@ export default async function DashboardPage() {
               {role === 'user' && !verified && (
                 <span className="inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1 text-sm">
                   <span className="w-2 h-2 bg-green-300 rounded-full" />
-                  OurDahanu Member
+                  {siteConfig.name} Member
                 </span>
               )}
             </div>
@@ -194,7 +195,7 @@ export default async function DashboardPage() {
               <input
                 type="text" id="address" name="address"
                 defaultValue={(profileData?.address as string) || ''}
-                placeholder="Dahanu, Palghar"
+                placeholder={`${siteConfig.town}, Palghar`}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
               />
             </div>

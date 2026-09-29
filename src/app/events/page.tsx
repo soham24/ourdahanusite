@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { siteConfig } from '@/lib/site'
 
 export default function EventsPage() {
   return (
@@ -9,9 +10,9 @@ export default function EventsPage() {
           <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse inline-block" />
           Coming Soon
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-3">Events in Dahanu</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-3">Events in {siteConfig.town}</h1>
         <p className="text-gray-500 text-base leading-relaxed mb-8">
-          Discover and share local events, festivals, and gatherings in Dahanu. Coming soon!
+          Discover and share local events, festivals, and gatherings in {siteConfig.town}. Coming soon!
         </p>
         <Link href="/" className="inline-flex items-center gap-2 bg-brand hover:bg-brand-strong text-bg font-semibold px-6 py-3 rounded-xl transition-colors">
           Back to Home

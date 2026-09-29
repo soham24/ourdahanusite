@@ -12,6 +12,7 @@ import { truncateAtWord } from '@/lib/text'
 import { BusinessBadge, CategoryPill, CollectedLabel, JOBS_URL, kindLabel, shortDate } from '../../jobs-ui'
 import ReportPostButton from './ReportPostButton'
 import ShowContactButton from './ShowContactButton'
+import { siteConfig } from '@/lib/site'
 
 const dtCls = 'text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--od-muted)]'
 const pillLinkCls =
@@ -38,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, type: 'website', siteName: 'OurDahanu Jobs' },
+    openGraph: { title, description, url, type: 'website', siteName: `${siteConfig.name} Jobs` },
     twitter: { card: 'summary_large_image', title, description },
     // A person's "looking for work" page should not linger in search results
     // after they find work. Only hiring posts are indexed.

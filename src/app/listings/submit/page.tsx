@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { CheckCircle, Star, Edit3, ImageIcon, Package, ArrowRight } from 'lucide-react'
 import ListingSubmitForm from './ListingSubmitForm'
 import { getPricingConfig, getActiveCoupons } from '@/app/actions/pricing'
+import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
   title: 'Submit Listing',
@@ -52,8 +53,8 @@ export default async function SubmitListingPage({
               Welcome to the family, {firstName}! 🎉
             </h1>
             <p className="text-border text-base leading-relaxed max-w-lg mx-auto">
-              Dear <strong className="text-bg">{firstName}</strong>, you are now part of the big <strong className="text-gold">OurDahanu</strong> online family.
-              Together, we will give <strong className="text-bg">{bizName}</strong> the visibility it truly deserves — reaching thousands of people right here in Dahanu and beyond.
+              Dear <strong className="text-bg">{firstName}</strong>, you are now part of the big <strong className="text-gold">{siteConfig.name}</strong> online family.
+              Together, we will give <strong className="text-bg">{bizName}</strong> the visibility it truly deserves — reaching thousands of people right here in {siteConfig.town} and beyond.
             </p>
           </div>
         </div>
@@ -65,7 +66,7 @@ export default async function SubmitListingPage({
             <p className="font-bold text-amber-800 mb-1">Approval in progress</p>
             <p className="text-amber-700 text-sm leading-relaxed">
               Our team will review and publish <strong>{bizName}</strong> within <strong>48 hours</strong>.
-              Once live, thousands of people in Dahanu will be able to find you.
+              Once live, thousands of people in {siteConfig.town} will be able to find you.
             </p>
           </div>
         </div>

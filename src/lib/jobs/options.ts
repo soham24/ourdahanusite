@@ -1,3 +1,5 @@
+import { siteConfig } from '@/lib/site'
+
 export const WORK_TYPES = ['Full-time', 'Part-time', 'Daily wage', 'Seasonal', 'Internship'] as const
 
 export type WorkType = (typeof WORK_TYPES)[number]
@@ -25,8 +27,8 @@ export function isPayPeriod(value: string): value is PayPeriod {
 
 /** Suggestions only — the area field accepts any text. */
 export const AREA_SUGGESTIONS = [
-  'Dahanu Road',
-  'Dahanu Town',
+  `${siteConfig.town} Road`,
+  `${siteConfig.town} Town`,
   'Bordi',
   'Gholvad',
   'Chinchani',
