@@ -15,7 +15,7 @@ import { fetchProductAndListing } from '@/lib/data/product-detail'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
 import { getServiceImageAspectOption } from '@/lib/service-image'
 import { siteConfig } from '@/lib/site'
-import { softenLineBreaks } from '@/lib/catalog/description'
+import { metaDescription, softenLineBreaks } from '@/lib/catalog/description'
 
 export async function generateMetadata({
   params,
@@ -30,7 +30,11 @@ export async function generateMetadata({
   const price = catalogPriceLine(product)
   const businessUrl = getCanonicalListingUrl(listing.id, listing.subdomain)
   const title = `${product.name} — ${price} | ${listing.name}`
-  const description = product.description ?? `${product.name} (${price}) from ${listing.name} in ${siteConfig.town}.`
+  // Trimmed: WhatsApp, Facebook and X all cut what they are given, and none
+  // of them cut it at a word.
+  const description = product.description
+    ? metaDescription(product.description)
+    : `${product.name} (${price}) from ${listing.name} in ${siteConfig.town}.`
   return {
     title,
     description,

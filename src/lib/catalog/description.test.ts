@@ -69,3 +69,49 @@ test('leaves text with no newlines untouched', () => {
 test('handles empty and missing text', () => {
   assert.equal(softenLineBreaks(''), '')
 })
+
+import { metaDescription } from './description'
+
+test('keeps the breaks in a labelled list, the shape three live descriptions use', () => {
+  const labelled =
+    'Individual Health Insurance: Covers one person.\nFamily Floater Plans: One policy covers the family.\nSenior Citizen Health Insurance: For over 60s.'
+  assert.equal(softenLineBreaks(labelled), labelled)
+})
+
+test('still joins a wrapped sentence that merely contains a colon later on', () => {
+  assert.equal(
+    softenLineBreaks('it removes makeup and revives dull skin in one step: gently\nand without stripping.'),
+    'it removes makeup and revives dull skin in one step: gently and without stripping.',
+  )
+})
+
+test('does not treat a long capitalised sentence as a label', () => {
+  const wrapped =
+    'Powered by saffron, calendula and sweetlime, it gently buffs away dead skin cells:\nnourishing as it goes.'
+  assert.equal(softenLineBreaks(wrapped), wrapped.replace('\n', ' '))
+})
+
+test('a short description passes through the meta trim untouched', () => {
+  assert.equal(metaDescription('A gentle face wash.'), 'A gentle face wash.')
+})
+
+test('meta trim cuts at a word boundary and marks the cut', () => {
+  const out = metaDescription('word '.repeat(80), 60)
+  assert.ok(out.length <= 61, `too long: ${out.length}`)
+  assert.ok(out.endsWith('…'))
+  assert.ok(!out.includes('wor…'))
+})
+
+test('meta trim flattens newlines so a preview is one line', () => {
+  assert.equal(metaDescription('one\ntwo\n\nthree'), 'one two three')
+})
+
+test('meta trim does not leave a dangling comma before the ellipsis', () => {
+  assert.equal(metaDescription('lemon powder, sweetlime hydrosol, and lily lotus', 22), 'lemon powder…')
+})
+
+test('meta trim falls back to a hard cut when one word fills the budget', () => {
+  const out = metaDescription('a' + 'b'.repeat(80), 20)
+  assert.equal(out.length, 21)
+  assert.ok(out.endsWith('…'))
+})

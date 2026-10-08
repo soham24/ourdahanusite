@@ -50,6 +50,13 @@ export default function ExpandableDescription({
     if (expanded) return
     measure()
 
+    // Re-measure once the real face has loaded. The clamp fixes the
+    // paragraph's height, so swapping from the fallback font changes how much
+    // text overflows without changing the box the ResizeObserver watches --
+    // it would never fire, and a description that only overflows in DM Sans
+    // would lose its toggle.
+    document.fonts?.ready.then(measure).catch(() => {})
+
     const el = paragraphRef.current
     if (!el || typeof ResizeObserver === 'undefined') return
     const observer = new ResizeObserver(measure)
@@ -74,7 +81,7 @@ export default function ExpandableDescription({
           type="button"
           onClick={() => setExpanded((open) => !open)}
           aria-expanded={expanded}
-          className="mt-1 inline-flex min-h-8 items-center gap-1 text-xs font-bold text-[var(--od-brand-strong)] transition-colors hover:text-[var(--od-brand)]"
+          className="-ml-1 mt-1 inline-flex min-h-10 items-center gap-1 px-1 text-xs font-bold text-[var(--od-brand-strong)] transition-colors hover:text-[var(--od-brand)]"
         >
           {expanded ? 'Show less' : 'Read more'}
           <ChevronDown

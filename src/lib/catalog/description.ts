@@ -39,6 +39,22 @@ export function isTextClamped(scrollHeight: number, clientHeight: number): boole
  */
 const LIST_ITEM = /^\s*([-*•·]|\d+[.)])\s+/
 
+/**
+ * A line that opens with a short label and a colon -- "Family Floater Plans:
+ * One policy covers the entire family".
+ *
+ * Three descriptions in this catalogue are written as one labelled entry per
+ * line with no bullet characters at all, and joining those into a paragraph
+ * reads far worse than the ragged wrapping this function exists to fix. The
+ * label is capped at 40 characters so an ordinary sentence that happens to
+ * contain a colon further along does not qualify.
+ */
+const LABELLED_LINE = /^\s*[A-Z][^:\n]{0,40}:\s/
+
+function isStructured(line: string): boolean {
+  return LIST_ITEM.test(line) || LABELLED_LINE.test(line)
+}
+
 export function softenLineBreaks(text: string): string {
   if (!text) return ''
 
@@ -54,12 +70,11 @@ export function softenLineBreaks(text: string): string {
 
     const next = lines[i + 1]
     const blankLineAhead = next.trim() === ''
-    const listAhead = LIST_ITEM.test(next)
-    const thisIsListItem = LIST_ITEM.test(line)
 
-    // Keep the break for a paragraph gap, for a list that is starting or
-    // continuing, and after an empty line. Otherwise join with a space.
-    if (blankLineAhead || listAhead || thisIsListItem || line.trim() === '') {
+    // Keep the break for a paragraph gap, around a list or a labelled line
+    // where the break carries the structure, and after an empty line.
+    // Otherwise the newline was a soft wrap: join with a space.
+    if (blankLineAhead || isStructured(next) || isStructured(line) || line.trim() === '') {
       out += '\n'
     } else {
       out += ' '
@@ -68,4 +83,30 @@ export function softenLineBreaks(text: string): string {
 
   // Joining can leave doubled spaces where a line ended in one.
   return out.replace(/[^\S\n]{2,}/g, ' ')
+}
+
+/**
+ * A description trimmed to fit a social preview.
+ *
+ * og:description and twitter:description are read by WhatsApp, Facebook and
+ * X, all of which cut what they are given and none of which cut it politely.
+ * Raising the editor's limit to 1500 characters made that reachable, so the
+ * trim happens here, at a word boundary, with an ellipsis that says the text
+ * continues.
+ *
+ * 200 is comfortably inside every major platform's display budget; going
+ * longer only means the platform does the cutting instead, mid-word.
+ */
+export function metaDescription(text: string, max = 200): string {
+  const flat = softenLineBreaks(text).replace(/\s+/g, ' ').trim()
+  if (flat.length <= max) return flat
+
+  const cut = flat.slice(0, max)
+  const lastSpace = cut.lastIndexOf(' ')
+  // Prefer the word boundary. Falling back to a hard cut only matters when a
+  // single word would swallow most of the budget -- the point of this is to
+  // avoid ending mid-word, so giving up a few characters to do that is the
+  // trade worth making, not the one to avoid.
+  const body = lastSpace > max * 0.5 ? cut.slice(0, lastSpace) : cut
+  return `${body.replace(/[\s.,;:—-]+$/, '')}…`
 }
