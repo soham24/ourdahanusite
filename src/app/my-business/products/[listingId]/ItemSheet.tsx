@@ -224,9 +224,9 @@ export default function ItemSheet({
                   id="item-description"
                   value={input.description}
                   maxLength={DESCRIPTION_MAX}
-                  rows={3}
+                  rows={6}
                   onChange={(event) => update('description', event.target.value)}
-                  className={`${inputCls} resize-none`}
+                  className={`${inputCls} min-h-32 resize-y`}
                 />
               </Field>
 

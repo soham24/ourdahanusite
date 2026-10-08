@@ -15,6 +15,7 @@ import { fetchProductAndListing } from '@/lib/data/product-detail'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
 import { getServiceImageAspectOption } from '@/lib/service-image'
 import { siteConfig } from '@/lib/site'
+import { softenLineBreaks } from '@/lib/catalog/description'
 
 export async function generateMetadata({
   params,
@@ -113,8 +114,14 @@ async function ProductContent({ params }: { params: Promise<{ productId: string 
 
             <h1 className="font-display text-2xl leading-tight text-[var(--od-ink)]">{product.name}</h1>
 
+            {/* Full text, never clamped: this page exists to tell someone
+                about the item, so there is nothing to protect the layout
+                from. Bigger and looser than the card's teaser because this
+                is meant to be read, not scanned. */}
             {product.description && (
-              <p className="whitespace-pre-line text-sm leading-relaxed text-[var(--od-muted)]">{product.description}</p>
+              <p className="whitespace-pre-line text-[15px] leading-7 text-[var(--od-ink-2)]">
+                {softenLineBreaks(product.description)}
+              </p>
             )}
 
             <p className="font-display text-[28px] leading-none text-[var(--od-brand-strong)]">{priceLine}</p>
