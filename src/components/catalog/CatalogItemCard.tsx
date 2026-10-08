@@ -91,11 +91,14 @@ export default function CatalogItemCard({
   action,
   whatsappHref,
   shareUrl,
+  collapsible = true,
 }: {
   item: CatalogItem
   action: CatalogAction
   whatsappHref: string | null
   shareUrl: string | null
+  /** False in the owner's preview, which is `inert` and so cannot be used. */
+  collapsible?: boolean
 }) {
   const aspect = getServiceImageAspectOption(item.image_aspect, 'square')
   const imageUrl = item.image_url || item.image_thumb_url
@@ -124,6 +127,7 @@ export default function CatalogItemCard({
         {item.description && (
           <ExpandableDescription
             text={item.description}
+            collapsible={collapsible}
             className="text-sm leading-relaxed text-[var(--od-muted)]"
           />
         )}

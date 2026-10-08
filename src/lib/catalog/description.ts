@@ -71,10 +71,12 @@ export function softenLineBreaks(text: string): string {
     const next = lines[i + 1]
     const blankLineAhead = next.trim() === ''
 
-    // Keep the break for a paragraph gap, around a list or a labelled line
-    // where the break carries the structure, and after an empty line.
-    // Otherwise the newline was a soft wrap: join with a space.
-    if (blankLineAhead || isStructured(next) || isStructured(line) || line.trim() === '') {
+    // What matters is whether the NEXT line starts something, not whether
+    // this one did. A break before a list item or a labelled entry separates
+    // two entries and is kept; a break after one is just where the entry ran
+    // out of room, so a wrapped "Delivery: free on orders / above Rs 500."
+    // joins back up rather than stranding its own tail.
+    if (blankLineAhead || isStructured(next) || line.trim() === '') {
       out += '\n'
     } else {
       out += ' '
@@ -98,10 +100,12 @@ export function softenLineBreaks(text: string): string {
  * longer only means the platform does the cutting instead, mid-word.
  */
 export function metaDescription(text: string, max = 200): string {
-  const flat = softenLineBreaks(text).replace(/\s+/g, ' ').trim()
+  const flat = text.replace(/\s+/g, ' ').trim()
   if (flat.length <= max) return flat
 
-  const cut = flat.slice(0, max)
+  // Slice by code point: cutting mid-surrogate leaves half an emoji, which
+  // renders as a replacement glyph in a link preview.
+  const cut = Array.from(flat).slice(0, max).join('')
   const lastSpace = cut.lastIndexOf(' ')
   // Prefer the word boundary. Falling back to a hard cut only matters when a
   // single word would swallow most of the budget -- the point of this is to
@@ -109,4 +113,22 @@ export function metaDescription(text: string, max = 200): string {
   // trade worth making, not the one to avoid.
   const body = lastSpace > max * 0.5 ? cut.slice(0, lastSpace) : cut
   return `${body.replace(/[\s.,;:—-]+$/, '')}…`
+}
+
+/**
+ * A cheap guess, before any measurement, at whether a three-line clamp will
+ * bite.
+ *
+ * The toggle can only be decided for real in the browser, but deciding it
+ * only there means it appears after hydration and shoves every card below it
+ * down the page. Seeding the first render from the text length gets the
+ * common case right, and the measurement that follows corrects the rest.
+ *
+ * Roughly 42 characters fit a line in a catalog card at phone width, so three
+ * lines is about 125. The threshold sits a little above that: guessing "no
+ * toggle" and adding one is a smaller, later shift than guessing "toggle" and
+ * taking it away.
+ */
+export function likelyClamped(text: string, perLine = 42, lines = 3): boolean {
+  return softenLineBreaks(text).length > perLine * lines
 }

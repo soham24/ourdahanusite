@@ -115,3 +115,51 @@ test('meta trim falls back to a hard cut when one word fills the budget', () => 
   assert.equal(out.length, 21)
   assert.ok(out.endsWith('…'))
 })
+
+import { likelyClamped } from './description'
+
+test('a labelled line that merely wrapped is joined, not left stranded', () => {
+  assert.equal(
+    softenLineBreaks('Delivery: we deliver within Dahanu for free on orders\nabove Rs 500.'),
+    'Delivery: we deliver within Dahanu for free on orders above Rs 500.',
+  )
+})
+
+test('consecutive labelled entries still keep their breaks', () => {
+  const entries = 'Delivery: free above Rs 500.\nReturns: within 7 days.\nSupport: on WhatsApp.'
+  assert.equal(softenLineBreaks(entries), entries)
+})
+
+test('a wrapped list item joins back onto its bullet', () => {
+  assert.equal(
+    softenLineBreaks('- Cleanser for all skin types and\nevery season\n- Toner'),
+    '- Cleanser for all skin types and every season\n- Toner',
+  )
+})
+
+test('meta trim never splits an emoji in half', () => {
+  const out = metaDescription('a' + '\u{1F33F}'.repeat(150), 20)
+  // A lone surrogate is a code unit in the D800-DFFF range with no partner.
+  for (let i = 0; i < out.length; i += 1) {
+    const code = out.charCodeAt(i)
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const next = out.charCodeAt(i + 1)
+      assert.ok(next >= 0xdc00 && next <= 0xdfff, `lone high surrogate at ${i}`)
+      i += 1
+    } else {
+      assert.ok(!(code >= 0xdc00 && code <= 0xdfff), `lone low surrogate at ${i}`)
+    }
+  }
+})
+
+test('guesses a toggle is needed for text past three lines, and not before', () => {
+  assert.equal(likelyClamped('Short and sweet.'), false)
+  assert.equal(likelyClamped('x'.repeat(126)), false)
+  assert.equal(likelyClamped('x'.repeat(127)), true)
+})
+
+test('the guess measures the softened text, not the raw newlines', () => {
+  // Hard-wrapped at 20 chars: six short lines that become one 119-char line.
+  const wrapped = Array.from({ length: 6 }, () => 'nineteen chars here').join('\n')
+  assert.equal(likelyClamped(wrapped), false)
+})

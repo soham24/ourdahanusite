@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 
-import { isTextClamped, softenLineBreaks } from '@/lib/catalog/description'
+import { isTextClamped, likelyClamped, softenLineBreaks } from '@/lib/catalog/description'
 
 /**
  * An item description that is short by default and opens in place.
@@ -26,15 +26,27 @@ export default function ExpandableDescription({
   text,
   className = '',
   clampClassName = 'line-clamp-3',
+  collapsible = true,
 }: {
   text: string
   /** Applied to the paragraph in both states. */
   className?: string
   /** The clamp to use while collapsed. */
   clampClassName?: string
+  /**
+   * False where the description cannot be interacted with -- the owner's
+   * preview card sits inside `inert`, so a toggle there would be a control
+   * that visibly does nothing. Those places show the whole description
+   * instead, which is what an owner checking their own text wants to see.
+   */
+  collapsible?: boolean
 }) {
   const [expanded, setExpanded] = useState(false)
-  const [clamped, setClamped] = useState(false)
+  // Seeded from the text length so the toggle is in the server HTML for the
+  // descriptions that will need it. Deciding it purely from measurement meant
+  // it appeared after hydration and pushed every card below it down the page.
+  // The effect below corrects the guess either way.
+  const [clamped, setClamped] = useState(() => likelyClamped(text))
   const paragraphRef = useRef<HTMLParagraphElement>(null)
 
   const measure = useCallback(() => {
@@ -44,6 +56,7 @@ export default function ExpandableDescription({
   }, [])
 
   useEffect(() => {
+    if (!collapsible) return
     // Only measure while collapsed. Expanded, the paragraph is its own full
     // height by definition, so measuring would decide nothing is hidden and
     // take away the control the reader just used to open it.
@@ -62,13 +75,13 @@ export default function ExpandableDescription({
     const observer = new ResizeObserver(measure)
     observer.observe(el)
     return () => observer.disconnect()
-  }, [expanded, measure, text])
+  }, [collapsible, expanded, measure, text])
 
   return (
     <div>
       <p
         ref={paragraphRef}
-        className={`whitespace-pre-line ${expanded ? '' : clampClassName} ${className}`}
+        className={`whitespace-pre-line ${expanded || !collapsible ? '' : clampClassName} ${className}`}
       >
         {softenLineBreaks(text)}
       </p>
@@ -76,7 +89,7 @@ export default function ExpandableDescription({
       {/* Rendered only once something is actually hidden: a control that
           reveals nothing is worse than no control. Once open it stays, so the
           reader can collapse it again. */}
-      {(clamped || expanded) && (
+      {collapsible && (clamped || expanded) && (
         <button
           type="button"
           onClick={() => setExpanded((open) => !open)}
