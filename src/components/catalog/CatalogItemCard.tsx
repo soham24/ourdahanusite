@@ -7,6 +7,7 @@ import { Check, Link2, MessageCircle, Package, ShoppingBag, Wrench } from 'lucid
 import { catalogPriceLine, type CatalogAction } from '@/lib/catalog/catalog'
 import type { CatalogItem } from '@/lib/catalog/types'
 import { getServiceImageAspectOption } from '@/lib/service-image'
+import ExpandableDescription from './ExpandableDescription'
 
 function ShareButton({ url }: { url: string }) {
   const [copied, setCopied] = useState(false)
@@ -121,9 +122,11 @@ export default function CatalogItemCard({
         </span>
         <h3 className="text-base font-extrabold leading-snug text-[var(--od-ink)]">{item.name}</h3>
         {item.description && (
-          <p className="line-clamp-3 whitespace-pre-line text-sm leading-relaxed text-[var(--od-muted)]">
-            {item.description}
-          </p>
+          <ExpandableDescription
+            text={item.description}
+            label={item.name}
+            className="text-sm leading-relaxed text-[var(--od-muted)]"
+          />
         )}
         <p className="mt-auto pt-1 text-lg font-extrabold text-[var(--od-ink)]">{catalogPriceLine(item)}</p>
         <div className="flex flex-wrap items-center gap-2">

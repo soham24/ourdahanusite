@@ -3,7 +3,7 @@ import { MAX_OPTIONS, MAX_PRICE_PAISE, MIN_ONLINE_PRICE_PAISE } from './catalog'
 import type { CatalogItemType } from './types'
 
 export const NAME_MAX = 80
-export const DESCRIPTION_MAX = 600
+export const DESCRIPTION_MAX = 1500
 export const PRICE_NOTE_MAX = 32
 export const OPTION_LABEL_MAX = 40
 const STOCK_MAX = 1_000_000
