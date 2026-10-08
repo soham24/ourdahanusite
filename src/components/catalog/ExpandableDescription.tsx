@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 
 import { isTextClamped, likelyClamped, softenLineBreaks } from '@/lib/catalog/description'
@@ -24,23 +24,24 @@ import { isTextClamped, likelyClamped, softenLineBreaks } from '@/lib/catalog/de
  */
 export default function ExpandableDescription({
   text,
+  label,
   className = '',
   clampClassName = 'line-clamp-3',
-  collapsible = true,
 }: {
   text: string
+  /**
+   * What the description is about, for the toggle's accessible name. A
+   * listing can show eight of these at once, and eight buttons all reading
+   * "Read more" tell a screen-reader user nothing about which item they are
+   * on.
+   */
+  label?: string
   /** Applied to the paragraph in both states. */
   className?: string
   /** The clamp to use while collapsed. */
   clampClassName?: string
-  /**
-   * False where the description cannot be interacted with -- the owner's
-   * preview card sits inside `inert`, so a toggle there would be a control
-   * that visibly does nothing. Those places show the whole description
-   * instead, which is what an owner checking their own text wants to see.
-   */
-  collapsible?: boolean
 }) {
+  const paragraphId = useId()
   const [expanded, setExpanded] = useState(false)
   // Seeded from the text length so the toggle is in the server HTML for the
   // descriptions that will need it. Deciding it purely from measurement meant
@@ -56,7 +57,6 @@ export default function ExpandableDescription({
   }, [])
 
   useEffect(() => {
-    if (!collapsible) return
     // Only measure while collapsed. Expanded, the paragraph is its own full
     // height by definition, so measuring would decide nothing is hidden and
     // take away the control the reader just used to open it.
@@ -68,20 +68,31 @@ export default function ExpandableDescription({
     // text overflows without changing the box the ResizeObserver watches --
     // it would never fire, and a description that only overflows in DM Sans
     // would lose its toggle.
-    document.fonts?.ready.then(measure).catch(() => {})
+    let cancelled = false
+    document.fonts?.ready.then(() => {
+      if (!cancelled) measure()
+    }).catch(() => {})
 
     const el = paragraphRef.current
-    if (!el || typeof ResizeObserver === 'undefined') return
+    if (!el || typeof ResizeObserver === 'undefined') {
+      return () => {
+        cancelled = true
+      }
+    }
     const observer = new ResizeObserver(measure)
     observer.observe(el)
-    return () => observer.disconnect()
-  }, [collapsible, expanded, measure, text])
+    return () => {
+      cancelled = true
+      observer.disconnect()
+    }
+  }, [expanded, measure, text])
 
   return (
     <div>
       <p
+        id={paragraphId}
         ref={paragraphRef}
-        className={`whitespace-pre-line ${expanded || !collapsible ? '' : clampClassName} ${className}`}
+        className={`whitespace-pre-line ${expanded ? '' : clampClassName} ${className}`}
       >
         {softenLineBreaks(text)}
       </p>
@@ -89,11 +100,13 @@ export default function ExpandableDescription({
       {/* Rendered only once something is actually hidden: a control that
           reveals nothing is worse than no control. Once open it stays, so the
           reader can collapse it again. */}
-      {collapsible && (clamped || expanded) && (
+      {(clamped || expanded) && (
         <button
           type="button"
           onClick={() => setExpanded((open) => !open)}
           aria-expanded={expanded}
+          aria-controls={paragraphId}
+          aria-label={label ? `${expanded ? 'Show less of' : 'Read more about'} ${label}` : undefined}
           className="-ml-1 mt-1 inline-flex min-h-10 items-center gap-1 px-1 text-xs font-bold text-[var(--od-brand-strong)] transition-colors hover:text-[var(--od-brand)]"
         >
           {expanded ? 'Show less' : 'Read more'}

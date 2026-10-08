@@ -37,7 +37,7 @@ export function isTextClamped(scrollHeight: number, clientHeight: number): boole
  * Display only: the stored text is never modified, so an owner editing a
  * description still sees exactly what they wrote.
  */
-const LIST_ITEM = /^\s*([-*•·]|\d+[.)])\s+/
+const LIST_ITEM = /^\s*([-*•·]|\d+[.)])\s*\S/u
 
 /**
  * A line that opens with a short label and a colon -- "Family Floater Plans:
@@ -49,7 +49,11 @@ const LIST_ITEM = /^\s*([-*•·]|\d+[.)])\s+/
  * label is capped at 40 characters so an ordinary sentence that happens to
  * contain a colon further along does not qualify.
  */
-const LABELLED_LINE = /^\s*[A-Z][^:\n]{0,40}:\s/
+// Not `[A-Z]`: Devanagari has no case, and this is a catalogue for a town
+// where a description may well be written in it. The anchor is instead "does
+// not open with a lowercase Latin letter", because that is what a wrapped
+// English sentence continuing onto the next line looks like.
+const LABELLED_LINE = /^\s*[^\p{Ll}\s][^:\n]{0,40}:\s/u
 
 function isStructured(line: string): boolean {
   return LIST_ITEM.test(line) || LABELLED_LINE.test(line)
@@ -101,11 +105,15 @@ export function softenLineBreaks(text: string): string {
  */
 export function metaDescription(text: string, max = 200): string {
   const flat = text.replace(/\s+/g, ' ').trim()
-  if (flat.length <= max) return flat
+  // Count by code point throughout, so an emoji is one character to both the
+  // budget check and the slice. Comparing flat.length (UTF-16 units) against
+  // a code-point slice would let emoji-heavy text out at twice the budget.
+  const points = Array.from(flat)
+  if (points.length <= max) return flat
 
   // Slice by code point: cutting mid-surrogate leaves half an emoji, which
   // renders as a replacement glyph in a link preview.
-  const cut = Array.from(flat).slice(0, max).join('')
+  const cut = points.slice(0, max).join('')
   const lastSpace = cut.lastIndexOf(' ')
   // Prefer the word boundary. Falling back to a hard cut only matters when a
   // single word would swallow most of the budget -- the point of this is to

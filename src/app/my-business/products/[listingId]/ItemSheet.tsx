@@ -322,13 +322,7 @@ export default function ItemSheet({
             <div className="space-y-3">
               {/* inert: the preview's buttons and links must not work */}
               <div inert className="mx-auto max-w-sm">
-                <CatalogItemCard
-                  item={preview}
-                  action={previewAction}
-                  whatsappHref={previewWhatsApp}
-                  shareUrl={null}
-                  collapsible={false}
-                />
+                <CatalogItemCard item={preview} action={previewAction} whatsappHref={previewWhatsApp} shareUrl={null} />
               </div>
               <p className="od-muted text-center text-xs">{previewNote(shopMode)}</p>
             </div>
