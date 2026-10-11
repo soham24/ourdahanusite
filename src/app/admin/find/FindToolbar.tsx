@@ -50,7 +50,13 @@ export default function FindToolbar({
   const [showAdd, setShowAdd] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => { setQuery(q) }, [q])
+  // Follow the URL's q when it changes (back/forward, a filter link) without
+  // an effect: adjusting state during render skips the extra render pass.
+  const [syncedQ, setSyncedQ] = useState(q)
+  if (q !== syncedQ) {
+    setSyncedQ(q)
+    setQuery(q)
+  }
 
   useEffect(() => {
     return () => {

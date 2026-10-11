@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { FindProfessional } from '@/lib/find/types'
 import { setProfessionalStatus } from '@/app/actions/admin-find'
 import EditProfessionalForm from './EditProfessionalForm'
@@ -27,7 +27,13 @@ export default function ProfessionalList({
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [errorById, setErrorById] = useState<Record<string, string>>({})
 
-  useEffect(() => { setRows(initialRows) }, [initialRows])
+  // Take fresh rows from the server after a refresh, adjusting state during
+  // render rather than in an effect.
+  const [syncedRows, setSyncedRows] = useState(initialRows)
+  if (initialRows !== syncedRows) {
+    setSyncedRows(initialRows)
+    setRows(initialRows)
+  }
 
   async function quickAction(id: string, status: 'approved' | 'rejected') {
     setPendingId(id)

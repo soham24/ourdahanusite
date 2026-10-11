@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition, useEffect, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/navigation'
 import { BarChart3, Clock, CheckCircle, Lock } from 'lucide-react'
 import { castVote } from '@/app/actions/polls'
@@ -27,6 +27,8 @@ interface Props {
   loginNextPath?: string
   pollHref?: string | null
 }
+
+const subscribeNever = () => () => {}
 
 function timeLeft(endsAt: string): string {
   const diff = new Date(endsAt).getTime() - Date.now()
@@ -59,17 +61,30 @@ export default function PollCard({
   const hasEnded = new Date(poll.ends_at) < new Date()
   const showResults = hasVoted || hasEnded
 
-  useEffect(() => {
+  // Start over from the server's props when they change (another poll, or a
+  // refresh after signing in), adjusting state during render rather than in
+  // an effect.
+  const propsKey = `${poll.id}|${isLoggedIn}|${userVote ?? ''}`
+  const [syncedPropsKey, setSyncedPropsKey] = useState(propsKey)
+  if (propsKey !== syncedPropsKey) {
+    setSyncedPropsKey(propsKey)
     setIsLoggedInState(isLoggedIn)
     setSelected(userVote)
     setHasVoted(!!userVote)
-  }, [isLoggedIn, userVote, poll.id])
+  }
+
+  // The card is rendered signed-out from cache. A session cookie means the
+  // viewer is probably signed in, so treat them as signed in -- no "sign in
+  // to vote" flash -- until /viewer answers for this poll.
+  const hasSessionCookie = useSyncExternalStore(subscribeNever, hasSupabaseSessionCookie, () => false)
+  const [viewerCheckedFor, setViewerCheckedFor] = useState<string | null>(null)
+  const awaitingViewer = !isLoggedIn && hasSessionCookie && viewerCheckedFor !== poll.id
+  const signedIn = isLoggedInState || awaitingViewer
 
   useEffect(() => {
     if (isLoggedIn || !hasSupabaseSessionCookie()) return
 
     let active = true
-    setIsLoggedInState(true)
 
     async function loadViewer() {
       try {
@@ -93,6 +108,8 @@ export default function PollCard({
         }
       } catch {
         if (active) setIsLoggedInState(false)
+      } finally {
+        if (active) setViewerCheckedFor(poll.id)
       }
     }
 
@@ -112,7 +129,7 @@ export default function PollCard({
 
   const handleVote = (optionId: string) => {
     if (hasEnded) return
-    if (!isLoggedInState) {
+    if (!signedIn) {
       router.push(loginHref(loginNextPath))
       return
     }
@@ -256,7 +273,7 @@ export default function PollCard({
             </Link>
           )}
         </div>
-        {!isLoggedInState && !hasEnded && (
+        {!signedIn && !hasEnded && (
           <a
             href={loginHref(loginNextPath)}
             className="text-xs text-brand hover:underline"

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Star } from 'lucide-react'
 import RatingModerationButtons from './RatingModerationButtons'
 
@@ -22,7 +22,13 @@ export default function RatingsList({
 }) {
   const [rows, setRows] = useState(initialRows)
 
-  useEffect(() => { setRows(initialRows) }, [initialRows])
+  // Take fresh rows from the server after a refresh, adjusting state during
+  // render rather than in an effect.
+  const [syncedRows, setSyncedRows] = useState(initialRows)
+  if (initialRows !== syncedRows) {
+    setSyncedRows(initialRows)
+    setRows(initialRows)
+  }
 
   if (rows.length === 0) {
     return <p className="text-sm text-gray-500">No pending ratings.</p>
