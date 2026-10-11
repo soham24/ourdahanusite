@@ -30,7 +30,6 @@ const localContacts = [
   { name: 'Dahanu Fire Station', number: '02528-222101', address: 'Station Road, Dahanu' },
   { name: 'Palghar Collector Office', number: '02525-252552', address: 'Palghar' },
   { name: 'MSEB Dahanu (Power Outage)', number: '02528-222200', address: 'MSEB Office, Dahanu Road' },
-  { name: 'Tahsildar Office Dahanu', number: '02528-222XXX', address: 'Civil Lines, Dahanu' },
 ]
 
 const preparednessGuides = [
