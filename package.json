@@ -15,17 +15,17 @@
     "check:action-boundaries": "node scripts/check-action-boundaries.mjs"
   },
   "dependencies": {
-    "@next/third-parties": "^16.3.5",
-    "@supabase/ssr": "^0.9.0",
-    "@supabase/supabase-js": "2.109.0",
+    "@next/third-parties": "^16.4.0",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "2.117.3",
     "@vercel/analytics": "^2.0.1",
-    "lucide-react": "^1.0.1",
-    "marked": "^18.0.9",
-    "next": "^16.3.5",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "lucide-react": "^1.53.0",
+    "marked": "^18.1.0",
+    "next": "^16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "react-easy-crop": "^6.2.4",
-    "resend": "^6.9.4"
+    "resend": "^6.32.1"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
@@ -34,10 +34,10 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "^16.3.5",
-    "sharp": "^0.35.4",
+    "eslint-config-next": "^16.4.0",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4",
-    "tsx": "^4.20.6",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
