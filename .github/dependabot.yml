@@ -8,6 +8,13 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # Pinned on purpose to 2.109.0 to stop the Find auth refresh storm
+      # (commit f565aba); src/lib/supabase/auth-regression.test.ts guards it.
+      # Upgrade by hand, re-testing sign-in on a find.* host, never in a batch.
+      - dependency-name: "@supabase/supabase-js"
+      # 0.10+ requires supabase-js >= 2.114, so it moves with the pin above.
+      - dependency-name: "@supabase/ssr"
     groups:
       minor-and-patch:
         update-types: [minor, patch]
