@@ -186,7 +186,6 @@ go through these before you launch:
 | Professions | `src/lib/find/` | The trades listed in the FindDahanu directory. |
 | Chikoo Catcher | `src/app/play/` | A chikoo is Dahanu's fruit and the game is themed on it. Rename it, re-theme it, or delete the route. |
 | About page | `src/app/about/page.tsx` | The story of this project and who built it. Yours is different. |
-| Homepage events | `src/app/events/fallback.ts` | Six real Dahanu events, shown when the events table is empty. A fork publishing these is publishing another town's calendar as fact. |
 | Terms and privacy | `src/app/terms/`, `src/app/privacy/` | Written for one operator in one jurisdiction. **Have someone qualified read these before publishing them.** |
 
 To find anything still naming the old town once you have edited the config:
