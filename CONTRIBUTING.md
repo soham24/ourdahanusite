@@ -56,6 +56,9 @@ unsure how an API behaves in this version, read the copy of the docs in
 **Tests are run by `node:test` through `tsx`, and each test file is listed
 explicitly** in the `test:existing` script in `package.json`. A new test file
 that is not added to that list will never run. This has bitten us before.
+The entries are glob patterns, so a route folder like `[id]` must be written
+as `*` and the entry quoted (`"src/app/listings/*/components/X.test.tsx"`);
+`npm test` refuses to start if an entry matches no file.
 
 **Pure logic goes in `src/lib/` and gets a test.** Pricing, validation, display
 rules and anything with a branch worth arguing about belongs there rather than
