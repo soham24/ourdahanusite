@@ -1,4 +1,5 @@
 import { normalizeOptionalUrlOrNull } from '@/lib/url'
+import { siteConfig } from '@/lib/site'
 
 export type AppointmentWeekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
 
@@ -163,7 +164,7 @@ export function buildDirectionsUrl(
   const normalizedAddress = normalizeInlineText(address, 220)
   if (!normalizedAddress) return null
 
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${normalizedAddress}, Dahanu, Maharashtra`)}` // fall back to a safe search query
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${normalizedAddress}, ${siteConfig.town}, ${siteConfig.region}`)}` // fall back to a safe search query
 }
 
 export function normalizeStringArray(

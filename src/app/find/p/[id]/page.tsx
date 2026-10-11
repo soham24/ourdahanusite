@@ -13,11 +13,11 @@ import { findLoginHref } from '../../find-server'
 import TrackedContactLink from '../../TrackedContactLink'
 import FindCard from '../../FindCard'
 import RatingForm from './RatingForm'
-import { siteConfig } from '@/lib/site'
+import { ADDRESS_REGION, siteConfig } from '@/lib/site'
 
 const NEARBY_AREAS = [`${siteConfig.town}`, 'Bordi', 'Gholvad', 'Palghar']
 
-const FIND_URL = 'https://find.ourdahanu.in'
+const FIND_URL = `https://find.${siteConfig.domain}`
 
 // Per-professional SEO: "Jayprakash Jaiswal — Electrician in Dahanu" is
 // exactly what people search for. getProfessionalById is cached, so the
@@ -111,7 +111,7 @@ export default async function ProfessionalDetailPage({
     address: {
       '@type': 'PostalAddress',
       addressLocality: pro.locality || `${siteConfig.town}`,
-      addressRegion: 'Maharashtra',
+      ...(ADDRESS_REGION ? { addressRegion: ADDRESS_REGION } : {}),
       addressCountry: 'IN',
     },
     ...(pro.business?.image_url ? { image: pro.business.image_url } : {}),
@@ -172,7 +172,7 @@ export default async function ProfessionalDetailPage({
       <div className={`relative p-5 sm:p-6 ${pro.business ? premiumSurfaceClass : 'od-card'}`}>
         <a
           href={`https://wa.me/?text=${encodeURIComponent(
-            `${pro.name} — ${professionLabels(pro).map((l) => l.label).join(', ')} in Dahanu\n${FIND_URL}/p/${pro.id}`,
+            `${pro.name} — ${professionLabels(pro).map((l) => l.label).join(', ')} in ${siteConfig.town}\n${FIND_URL}/p/${pro.id}`,
           )}`}
           target="_blank"
           rel="noopener noreferrer"
@@ -324,7 +324,7 @@ export default async function ProfessionalDetailPage({
       {related.length > 0 && (
         <section className="mt-10 border-t border-[var(--od-border)] pt-8">
           <h2 className="mb-3 font-display text-2xl">
-            More {primaryProfessionPlural} in Dahanu
+            More {primaryProfessionPlural} in {siteConfig.town}
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {related.map((p) => (
@@ -335,7 +335,7 @@ export default async function ProfessionalDetailPage({
             href={`/find/c/${primarySlug}`}
             className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-bold text-[var(--od-brand)] hover:text-[var(--od-brand-strong)]"
           >
-            View all {primaryProfessionPlural} in Dahanu →
+            View all {primaryProfessionPlural} in {siteConfig.town} →
           </Link>
         </section>
       )}

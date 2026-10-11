@@ -49,7 +49,7 @@ export async function generateMetadata({
 
   return {
     title: `${category} in ${siteConfig.town}`,
-    description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in ${siteConfig.town}, Bordi, and Gholvad on ${siteConfig.name}.`,
+    description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in ${siteConfig.areas} on ${siteConfig.name}.`,
     keywords: [
       `${category} in ${siteConfig.town}`,
       `${category} near ${siteConfig.town}`,
@@ -61,16 +61,16 @@ export async function generateMetadata({
     },
     openGraph: {
       title: `${category} in ${siteConfig.town}`,
-      description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in ${siteConfig.town}, Bordi, and Gholvad on ${siteConfig.name}.`,
+      description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in ${siteConfig.areas} on ${siteConfig.name}.`,
       url: getCategoryPath(category),
       type: 'website',
-      images: [{ url: 'https://ourdahanu.in/logo.png' }],
+      images: [{ url: `https://${siteConfig.domain}/logo.png` }],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${category} in ${siteConfig.town}`,
-      description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in ${siteConfig.town}, Bordi, and Gholvad on ${siteConfig.name}.`,
-      images: ['https://ourdahanu.in/logo.png'],
+      description: `Browse ${listingCount} ${category.toLowerCase()} business${listingCount === 1 ? '' : 'es'} in ${siteConfig.areas} on ${siteConfig.name}.`,
+      images: [`https://${siteConfig.domain}/logo.png`],
     },
     ...(listingCount < MIN_CATEGORY_SIZE ? { robots: { index: false, follow: true } } : {}),
   }

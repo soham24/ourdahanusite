@@ -1,3 +1,7 @@
+import { ROOT_DOMAIN } from './site-config'
+
+const ROOT_SUFFIX = `.${ROOT_DOMAIN}`
+
 // Reserved prefixes that are never business subdomains. Keep in sync with
 // the inline regex literals in src/proxy.ts `export const config` — those
 // cannot reference this module because Next.js requires pure inline
@@ -21,8 +25,8 @@ export function getBusinessSubdomain(host: string | null | undefined): string | 
   const normalized = (host || '').split(',')[0]?.trim().toLowerCase() || ''
   if (!normalized) return null
 
-  if (normalized.endsWith('.ourdahanu.in')) {
-    const prefix = normalized.slice(0, normalized.length - '.ourdahanu.in'.length)
+  if (normalized.endsWith(ROOT_SUFFIX)) {
+    const prefix = normalized.slice(0, normalized.length - ROOT_SUFFIX.length)
     if (prefix && !prefix.includes('.') && !RESERVED_SUBDOMAINS.has(prefix)) return prefix
   } else if (normalized.includes('.localhost')) {
     const withoutPort = normalized.split(':')[0]

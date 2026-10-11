@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
+import { ROOT_DOMAIN } from '@/lib/site-config'
 import { getBusinessSubdomain } from '@/lib/subdomain'
 
 export function proxy(request: NextRequest) {
@@ -7,7 +8,7 @@ export function proxy(request: NextRequest) {
 
   // find.ourdahanu.in → /find/* (standalone directory, own layout)
   const findHost = host.split(':')[0].toLowerCase()
-  if (findHost === 'find.ourdahanu.in' || findHost === 'find.localhost') {
+  if (findHost === `find.${ROOT_DOMAIN}` || findHost === 'find.localhost') {
     const pathname = request.nextUrl.pathname
     // Let Next serve framework internals, API routes, and static files
     // directly — only page paths get rewritten under /find.
@@ -27,7 +28,7 @@ export function proxy(request: NextRequest) {
 
   // appointments.ourdahanu.in → /appointments/* (standalone booking directory,
   // own layout). Same shape as the find branch above.
-  if (findHost === 'appointments.ourdahanu.in' || findHost === 'appointments.localhost') {
+  if (findHost === `appointments.${ROOT_DOMAIN}` || findHost === 'appointments.localhost') {
     const pathname = request.nextUrl.pathname
     const isInternalOrAsset =
       pathname.startsWith('/_next') ||
@@ -45,7 +46,7 @@ export function proxy(request: NextRequest) {
 
   // jobs.ourdahanu.in → /jobs/* (standalone jobs board, own layout). Same
   // shape as the find and appointments branches above.
-  if (findHost === 'jobs.ourdahanu.in' || findHost === 'jobs.localhost') {
+  if (findHost === `jobs.${ROOT_DOMAIN}` || findHost === 'jobs.localhost') {
     const pathname = request.nextUrl.pathname
     const isInternalOrAsset =
       pathname.startsWith('/_next') ||
@@ -78,8 +79,8 @@ export function proxy(request: NextRequest) {
       'User-agent: *',
       'Allow: /',
       '',
-      `Sitemap: https://ourdahanu.in/sitemap.xml`,
-      `Host: https://${subdomain}.ourdahanu.in`,
+      `Sitemap: https://${ROOT_DOMAIN}/sitemap.xml`,
+      `Host: https://${subdomain}.${ROOT_DOMAIN}`,
     ].join('\n')
     return new NextResponse(robotsTxt, {
       headers: { 'Content-Type': 'text/plain', 'Cache-Control': 'public, max-age=86400' },

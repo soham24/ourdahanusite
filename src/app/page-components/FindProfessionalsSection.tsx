@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { siteConfig } from '@/lib/site'
 
-const FIND_URL = 'https://find.ourdahanu.in'
+const FIND_URL = `https://find.${siteConfig.domain}`
 
 const PROFESSIONS = [
   { label: 'Photographers', Icon: Camera },

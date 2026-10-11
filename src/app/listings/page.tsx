@@ -10,7 +10,7 @@ import { siteConfig } from '@/lib/site'
 export const metadata: Metadata = {
   title: `Business Listings in ${siteConfig.town}`,
   description:
-    `Browse trusted businesses, shops, hotels, restaurants, clinics, and local services in ${siteConfig.town}, Bordi, and Gholvad on ${siteConfig.name}.`,
+    `Browse trusted businesses, shops, hotels, restaurants, clinics, and local services in ${siteConfig.areas} on ${siteConfig.name}.`,
   keywords: [
     `${siteConfig.town} business directory`,
     `${siteConfig.name} listings`,
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `Business Listings in ${siteConfig.town}`,
     description:
-      `Browse trusted businesses, shops, hotels, restaurants, clinics, and local services in ${siteConfig.town}, Bordi, and Gholvad on ${siteConfig.name}.`,
+      `Browse trusted businesses, shops, hotels, restaurants, clinics, and local services in ${siteConfig.areas} on ${siteConfig.name}.`,
     url: '/listings',
     type: 'website',
   },
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `Business Listings in ${siteConfig.town}`,
     description:
-      `Browse trusted businesses, shops, hotels, restaurants, clinics, and local services in ${siteConfig.town}, Bordi, and Gholvad on ${siteConfig.name}.`,
+      `Browse trusted businesses, shops, hotels, restaurants, clinics, and local services in ${siteConfig.areas} on ${siteConfig.name}.`,
   },
 }
 

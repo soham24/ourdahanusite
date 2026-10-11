@@ -118,6 +118,19 @@ export const SITE_URL = (
 export const ROOT_DOMAIN = siteConfig.domain
 
 /**
+ * The state or province from `siteConfig.region` — its second-to-last part,
+ * so "Palghar, Maharashtra, India" gives "Maharashtra". It is what schema.org
+ * means by `PostalAddress.addressRegion`.
+ *
+ * Empty when `region` has fewer than two parts, and structured data then
+ * leaves `addressRegion` out rather than guessing at one.
+ */
+export const ADDRESS_REGION = (() => {
+  const parts = siteConfig.region.split(',').map((part) => part.trim()).filter(Boolean)
+  return parts.length >= 2 ? parts[parts.length - 2] : ''
+})()
+
+/**
  * `path` resolved against this deployment's origin.
  *
  * Everything that must be absolute — canonical URLs, structured data, links

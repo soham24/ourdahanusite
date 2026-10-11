@@ -14,7 +14,7 @@ import {
 import { getCategoryPath } from '@/lib/listing-category'
 import { siteConfig } from '@/lib/site'
 
-const FIND_URL = 'https://find.ourdahanu.in'
+const FIND_URL = `https://find.${siteConfig.domain}`
 
 const QUICK_NEEDS = [
   { label: 'Eat & order', href: getCategoryPath('Restaurants'), Icon: Utensils },
@@ -39,7 +39,7 @@ export default function HeroSection() {
         <div className="max-w-[720px]">
           <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.08] px-3 py-1.5 text-xs font-semibold text-[var(--color-cream)] backdrop-blur-sm">
             <MapPin size={13} aria-hidden />
-            {siteConfig.town}, Bordi, Gholvad & nearby
+            {siteConfig.areas}
           </div>
 
           <h1 className="max-w-[650px] font-display text-[38px] leading-[1.02] tracking-[-0.025em] text-white sm:text-[50px] md:text-[62px]">

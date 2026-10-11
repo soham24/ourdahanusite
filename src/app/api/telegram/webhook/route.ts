@@ -12,7 +12,7 @@
  *
  * Security:
  *  The webhook URL embeds a secret path param: register it via
- *    `https://ourdahanu.in/api/telegram/webhook?secret=<TELEGRAM_WEBHOOK_SECRET>`
+ *    `https://<your domain>/api/telegram/webhook?secret=<TELEGRAM_WEBHOOK_SECRET>`
  *  Telegram's `setWebhook` is called once manually with that URL. The secret
  *  is required: without TELEGRAM_WEBHOOK_SECRET set, this route answers 500
  *  to everything. See the Telegram section of SETUP.md.
@@ -22,7 +22,7 @@ import { NextResponse } from 'next/server'
 import { isConfigured, secretMatches } from '@/lib/http/shared-secret'
 
 import { createAdminClient } from '@/lib/supabase/admin-client'
-import { siteConfig } from '@/lib/site'
+import { buildAbsoluteUrl, siteConfig } from '@/lib/site'
 
 type TelegramUpdate = {
   update_id: number
@@ -34,6 +34,11 @@ type TelegramUpdate = {
     text?: string
   }
 }
+
+// This deployment's own settings page, so a bot wired to a preview deployment
+// sends people to the preview rather than to production.
+const SETTINGS_URL = buildAbsoluteUrl('/account/notifications')
+const SETTINGS_LINK = `<a href="${SETTINGS_URL}">your notification settings</a>`
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN?.trim() || process.env.TELEGRAM_USER_BOT_TOKEN?.trim()
 
@@ -120,7 +125,7 @@ export async function POST(request: Request) {
     if (!token) {
       await replyToChat(
         chatId,
-        `👋 <b>Welcome to OurDahanu Notifications</b>\n\nTo receive alerts here, open <a href="https://ourdahanu.in/account/notifications">your notification settings</a> on ourdahanu.in and click <b>Connect Telegram</b>. That will bring you back here with a one-tap link.`,
+        `👋 <b>Welcome to ${siteConfig.name} Notifications</b>\n\nTo receive alerts here, open ${SETTINGS_LINK} on ${siteConfig.name} and click <b>Connect Telegram</b>. That will bring you back here with a one-tap link.`,
       )
       return NextResponse.json({ ok: true })
     }
@@ -135,7 +140,7 @@ export async function POST(request: Request) {
     if (!linkRow) {
       await replyToChat(
         chatId,
-        `⚠️ That link is invalid. Please open <a href="https://ourdahanu.in/account/notifications">your notification settings</a> and click <b>Connect Telegram</b> to generate a new one.`,
+        `⚠️ That link is invalid. Please open ${SETTINGS_LINK} and click <b>Connect Telegram</b> to generate a new one.`,
       )
       return NextResponse.json({ ok: true })
     }
@@ -143,7 +148,7 @@ export async function POST(request: Request) {
     if (linkRow.consumed_at) {
       await replyToChat(
         chatId,
-        `⚠️ That link has already been used. Generate a fresh one from <a href="https://ourdahanu.in/account/notifications">your notification settings</a> if you need to reconnect.`,
+        `⚠️ That link has already been used. Generate a fresh one from ${SETTINGS_LINK} if you need to reconnect.`,
       )
       return NextResponse.json({ ok: true })
     }
@@ -151,7 +156,7 @@ export async function POST(request: Request) {
     if (new Date(linkRow.expires_at as string).getTime() < Date.now()) {
       await replyToChat(
         chatId,
-        `⚠️ That link has expired. Please open <a href="https://ourdahanu.in/account/notifications">your notification settings</a> and click <b>Connect Telegram</b> again.`,
+        `⚠️ That link has expired. Please open ${SETTINGS_LINK} and click <b>Connect Telegram</b> again.`,
       )
       return NextResponse.json({ ok: true })
     }
@@ -176,7 +181,7 @@ export async function POST(request: Request) {
       console.error('[telegram/webhook:upsert-prefs]', upsertErr)
       await replyToChat(
         chatId,
-        `❌ Sorry, something went wrong on our end. Please try again in a few minutes, or email <a href="mailto:hello@ourdahanu.in">hello@ourdahanu.in</a> if it keeps happening.`,
+        `❌ Sorry, something went wrong on our end. Please try again in a few minutes, or email <a href="mailto:${siteConfig.contactEmail}">${siteConfig.contactEmail}</a> if it keeps happening.`,
       )
       return NextResponse.json({ ok: true })
     }
@@ -189,7 +194,7 @@ export async function POST(request: Request) {
 
     await replyToChat(
       chatId,
-      `✅ <b>All set!</b>\n\nYou're now connected to OurDahanu. You'll get instant alerts here for bookings, orders, listing approvals, expiry reminders, and more.\n\nYou can manage what lands in Telegram any time from <a href="https://ourdahanu.in/account/notifications">your notification settings</a>.\n\nSend <b>/stop</b> to disconnect.`,
+      `✅ <b>All set!</b>\n\nYou're now connected to ${siteConfig.name}. You'll get instant alerts here for bookings, orders, listing approvals, expiry reminders, and more.\n\nYou can manage what lands in Telegram any time from ${SETTINGS_LINK}.\n\nSend <b>/stop</b> to disconnect.`,
     )
     return NextResponse.json({ ok: true })
   }
@@ -219,7 +224,7 @@ export async function POST(request: Request) {
 
     await replyToChat(
       chatId,
-      `👋 Disconnected. You won't get Telegram alerts from ${siteConfig.name} anymore.\n\nYou can reconnect any time from <a href="https://ourdahanu.in/account/notifications">your notification settings</a>.`,
+      `👋 Disconnected. You won't get Telegram alerts from ${siteConfig.name} anymore.\n\nYou can reconnect any time from ${SETTINGS_LINK}.`,
     )
     return NextResponse.json({ ok: true })
   }
@@ -227,7 +232,7 @@ export async function POST(request: Request) {
   // ── anything else ────────────────────────────────────────────────────────
   await replyToChat(
     chatId,
-    `👋 Hi! I'm the OurDahanu notifications bot.\n\n<b>Commands</b>\n• <b>/start</b> — show connection instructions\n• <b>/stop</b> — disconnect this chat\n\nManage your notification settings at <a href="https://ourdahanu.in/account/notifications">ourdahanu.in/account/notifications</a>.`,
+    `👋 Hi! I'm the ${siteConfig.name} notifications bot.\n\n<b>Commands</b>\n• <b>/start</b> — show connection instructions\n• <b>/stop</b> — disconnect this chat\n\nManage your notification settings at <a href="${SETTINGS_URL}">${SETTINGS_URL.replace(/^https?:\/\//, '')}</a>.`,
   )
   return NextResponse.json({ ok: true })
 }

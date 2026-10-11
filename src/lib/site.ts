@@ -7,4 +7,4 @@
  * imports would have buried the interesting part of the change in churn.
  * New code can import from either; they are the same values.
  */
-export { SITE_URL, ROOT_DOMAIN, siteConfig, buildAbsoluteUrl } from './site-config'
+export { SITE_URL, ROOT_DOMAIN, ADDRESS_REGION, siteConfig, buildAbsoluteUrl } from './site-config'

@@ -1,5 +1,5 @@
 import { GOOGLE_EMPLOYMENT_TYPE, isValidWorkType, type PayPeriod } from './options'
-import { siteConfig } from '@/lib/site'
+import { ADDRESS_REGION, siteConfig } from '@/lib/site'
 
 const UNIT_TEXT: Record<PayPeriod, string> = { month: 'MONTH', day: 'DAY', hour: 'HOUR' }
 
@@ -35,7 +35,7 @@ export function buildJobPostingLd(post: JobPostingSource, url: string): Record<s
       address: {
         '@type': 'PostalAddress',
         addressLocality: post.area,
-        addressRegion: 'Maharashtra',
+        ...(ADDRESS_REGION ? { addressRegion: ADDRESS_REGION } : {}),
         addressCountry: 'IN',
       },
     },

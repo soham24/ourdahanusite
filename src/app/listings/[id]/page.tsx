@@ -34,7 +34,7 @@ import ListingSidebar from './components/ListingSidebar'
 import ListingReviewsSection from './components/ListingReviewsSection'
 import ListingQASection from './components/ListingQASection'
 import MobileContactBar from './components/MobileContactBar'
-import { siteConfig } from '@/lib/site'
+import { ADDRESS_REGION, siteConfig } from '@/lib/site'
 
 export async function generateMetadata({
   params,
@@ -62,7 +62,7 @@ export async function generateMetadata({
   if (listing.tagline) descParts.push(String(listing.tagline))
   if (listing.description) descParts.push(String(listing.description).replace(/\s+/g, ' ').trim())
   const baseDesc = truncateAtWord(descParts.join(' — '), 130)
-  const locationSuffix = `${listing.category} in ${siteConfig.town}${listing.address ? `, ${String(listing.address).split(',')[0]}` : ''}, Maharashtra.`
+  const locationSuffix = `${listing.category} in ${siteConfig.town}${listing.address ? `, ${String(listing.address).split(',')[0]}` : ''}${ADDRESS_REGION ? `, ${ADDRESS_REGION}` : ''}.`
   const description = baseDesc
     ? truncateAtWord(`${baseDesc}. ${locationSuffix}`, 159)
     : `${String(listing.name)} — ${locationSuffix} Find contact info, reviews & more on ${siteConfig.name}.`
@@ -109,7 +109,7 @@ export async function generateMetadata({
     },
     other: {
       'geo.region': 'IN-MH',
-      'geo.placename': `${siteConfig.town}, Maharashtra, India`,
+      'geo.placename': `${siteConfig.town}, ${siteConfig.region}`,
       'geo.position': '19.9667;72.7167',
       'ICBM': '19.9667, 72.7167',
     },
@@ -296,8 +296,8 @@ async function ListingDetailContent({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://ourdahanu.in' },
-      { '@type': 'ListItem', position: 2, name: 'Business Listings', item: 'https://ourdahanu.in/listings' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `https://${siteConfig.domain}` },
+      { '@type': 'ListItem', position: 2, name: 'Business Listings', item: `https://${siteConfig.domain}/listings` },
       { '@type': 'ListItem', position: 3, name: String(listing.category), item: getCategoryUrl(String(listing.category)) },
       { '@type': 'ListItem', position: 4, name: String(listing.name), item: businessUrl },
     ],
@@ -307,7 +307,7 @@ async function ListingDetailContent({
     '@context': 'https://schema.org',
     '@type': getListingSchemaType(String(listing.category)),
     name: String(listing.name),
-    description: String(listing.description || listing.tagline || `${listing.name} in ${listing.category} listed on OurDahanu.`),
+    description: String(listing.description || listing.tagline || `${listing.name} in ${listing.category} listed on ${siteConfig.name}.`),
     url: businessUrl,
     ...(imageUrls.length > 0 ? { image: imageUrls } : {}),
     ...(listing.phone ? { telephone: String(listing.phone) } : {}),
@@ -316,8 +316,9 @@ async function ListingDetailContent({
         '@type': 'PostalAddress',
         streetAddress: String(listing.address),
         addressLocality: inferAddressLocality(String(listing.address)),
-        addressRegion: 'Maharashtra',
-        postalCode: '401602',
+        // No postalCode: one PIN for every business would be wrong for many of
+        // them, and in a fork every business would claim this town's.
+        ...(ADDRESS_REGION ? { addressRegion: ADDRESS_REGION } : {}),
         addressCountry: 'IN',
       },
     } : {}),
@@ -331,7 +332,6 @@ async function ListingDetailContent({
         worstRating: 1,
       },
     } : {}),
-    ...(Boolean(listing.verified) ? { isVerified: true } : {}),
   }
 
   return (

@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const posts = await getJobBoard({ kind: 'hiring', category })
   const canonical = `${JOBS_URL}/c/${slug}`
   const title = `${category} jobs in ${siteConfig.town}`
-  const description = `${posts.length > 0 ? `${posts.length} ` : ''}${category.toLowerCase()} jobs open now in ${siteConfig.town}, Bordi, Gholvad and Palghar. Free to use — reach the employer directly.`.slice(0, 160)
+  const description = `${posts.length > 0 ? `${posts.length} ` : ''}${category.toLowerCase()} jobs open now in ${siteConfig.areas}. Free to use — reach the employer directly.`.slice(0, 160)
 
   return {
     title,

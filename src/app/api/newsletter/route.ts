@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         const resend = new Resend(process.env.RESEND_API_KEY)
 
         await resend.emails.send({
-          from: `${siteConfig.name} <hello@ourdahanu.in>`,
+          from: `${siteConfig.name} <hello@${siteConfig.domain}>`,
           to: email,
           subject: `Welcome to ${siteConfig.name} Newsletter! 🌴`,
           html: `
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
             <td style="background:#f9fafb;padding:20px 40px;text-align:center;border-top:1px solid #f3f4f6;">
               <p style="color:#9ca3af;font-size:12px;margin:0;">
                 You're receiving this because you subscribed at ${siteConfig.domain}.<br/>
-                ${siteConfig.town}, Palghar, Maharashtra, India 401602
+                ${siteConfig.town}, ${siteConfig.region}
               </p>
             </td>
           </tr>

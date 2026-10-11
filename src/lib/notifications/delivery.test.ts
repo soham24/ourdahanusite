@@ -47,6 +47,7 @@ test('Telegram delivery uses the same primary bot as the linking webhook', async
   const requests: string[] = []
   const channel = loadModule('./channels/telegram.ts', {
     'server-only': {}, '../email-layout': { escapeHtml: (s: string) => s },
+    '@/lib/site': { siteConfig: { domain: 'ourdahanu.in' } },
   }, {
     process: { env: { TELEGRAM_BOT_TOKEN: 'primary', TELEGRAM_USER_BOT_TOKEN: 'other' } },
     fetch: async (url: string) => { requests.push(url); return { ok: true } },

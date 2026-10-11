@@ -37,13 +37,13 @@ export async function generateMetadata({
       description: `Vote on this community poll and see what ${siteConfig.town} thinks.`,
       url: pollUrl,
       type: 'article',
-      images: [{ url: 'https://ourdahanu.in/logo.png' }],
+      images: [{ url: `https://${siteConfig.domain}/logo.png` }],
     },
     twitter: {
       card: 'summary',
       title: poll.title,
       description: `Vote on this community poll and see what ${siteConfig.town} thinks.`,
-      images: ['https://ourdahanu.in/logo.png'],
+      images: [`https://${siteConfig.domain}/logo.png`],
     },
   }
 }
