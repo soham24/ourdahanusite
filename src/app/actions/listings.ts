@@ -356,7 +356,7 @@ export async function updateListing(
   return {}
 }
 
-export async function submitReview(formData: FormData) {
+export async function submitReview(formData: FormData): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -366,7 +366,19 @@ export async function submitReview(formData: FormData) {
   const comment = normalizeMultilineText(formData.get('comment') as string, 500)
 
   if (!listingId || !rating || rating < 1 || rating > 5) {
-    throw new Error('Invalid review data')
+    return { error: 'Please choose a rating from 1 to 5.' }
+  }
+
+  // One review per person per business. The database enforces this too
+  // (one_review_per_user trigger); asking first gives a kind message.
+  const { data: existing } = await supabase
+    .from('reviews')
+    .select('id')
+    .eq('listing_id', listingId)
+    .eq('user_id', user.id)
+    .limit(1)
+  if (existing && existing.length > 0) {
+    return { error: "You've already reviewed this business." }
   }
 
   const { error: reviewError } = await supabase.from('reviews').insert({
@@ -376,7 +388,13 @@ export async function submitReview(formData: FormData) {
     comment,
   })
 
-  if (reviewError) throw new Error(reviewError.message)
+  if (reviewError) {
+    return {
+      error: /already reviewed/i.test(reviewError.message)
+        ? "You've already reviewed this business."
+        : 'Could not post your review. Please try again.',
+    }
+  }
 
   // Recalculate average rating - use admin client to bypass RLS on listings UPDATE
   const adminClient = createAdminClient()
@@ -436,6 +454,8 @@ export async function submitReview(formData: FormData) {
       }
     })()
   }
+
+  return {}
 }
 
 /**

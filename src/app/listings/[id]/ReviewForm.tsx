@@ -2,7 +2,7 @@
 
 import { useFormStatus } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import { useRef, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import { submitReview } from '@/app/actions/listings'
 
 function SubmitButton() {
@@ -38,9 +38,15 @@ export default function ReviewForm({
   const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
   const [, startTransition] = useTransition()
+  const [error, setError] = useState('')
 
   async function handleAction(formData: FormData) {
-    await submitReview(formData)
+    setError('')
+    const result = await submitReview(formData)
+    if (result.error) {
+      setError(result.error)
+      return
+    }
     // Force page refresh so new review + updated rating shows immediately
     startTransition(() => {
       router.refresh()
@@ -91,6 +97,9 @@ export default function ReviewForm({
         <p className="mt-1 text-xs text-gray-400">Optional. Keep it genuine and useful for other locals.</p>
       </div>
 
+      {error && (
+        <p role="alert" className="text-sm text-red-700">{error}</p>
+      )}
       <SubmitButton />
     </form>
   )

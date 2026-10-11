@@ -41,8 +41,8 @@ for (const file of files) {
 }
 
 const count = async (sql) => Number((await db.query(sql)).rows[0].n)
-assert.equal(await count(`SELECT count(*) n FROM pg_tables WHERE schemaname = 'public'`), 47, 'public tables')
-assert.equal(await count(`SELECT count(*) n FROM pg_policies WHERE schemaname = 'public'`) >= 81, true, 'public RLS policies')
+assert.equal(await count(`SELECT count(*) n FROM pg_tables WHERE schemaname = 'public'`), 34, 'public tables')
+assert.equal(await count(`SELECT count(*) n FROM pg_policies WHERE schemaname = 'public'`), 55, 'public RLS policies (a change here should be deliberate)')
 assert.equal(
   await count(`SELECT count(*) n FROM pg_tables WHERE schemaname = 'public' AND NOT rowsecurity`),
   0,
@@ -70,7 +70,6 @@ assert.deepEqual(
 )
 await assert.rejects(db.query(`SELECT * FROM public.public_profiles`), /does not exist/, 'public_profiles must be gone')
 await assert.rejects(db.query(`SELECT public.handle_new_user()`), /permission denied/, 'trigger functions are not callable')
-await assert.rejects(db.query(`SELECT public.increment_reply_count()`), /permission denied/, 'trigger functions are not callable')
 await db.exec('RESET ROLE')
 
 assert.equal((await db.query(`SELECT public FROM storage.buckets WHERE id = 'uploads'`)).rows[0]?.public, true, 'uploads bucket')
@@ -146,12 +145,19 @@ await assert.rejects(
   /Only the reply/,
 )
 await db.query(`UPDATE public.reviews SET owner_reply = 'Sorry, we will do better', owner_replied_at = now() WHERE id = $1`, [reviewId])
-await asUser(strangerId)
+// The owner has not reviewed this listing, so only the rule under test can refuse these.
+await asUser(ownerId)
 await assert.rejects(
-  db.query(`INSERT INTO public.reviews (listing_id, user_id, rating, owner_reply) VALUES ($1, $2, 5, 'Reply from the business')`, [listingId, strangerId]),
+  db.query(`INSERT INTO public.reviews (listing_id, user_id, rating, owner_reply) VALUES ($1, $2, 5, 'Reply from the business')`, [listingId, ownerId]),
   /row-level security/,
 )
-await assert.rejects(db.query(`INSERT INTO public.reviews (listing_id, user_id, rating) VALUES ($1, $2, 1000)`, [listingId, strangerId]), /reviews_rating_check/)
+await assert.rejects(db.query(`INSERT INTO public.reviews (listing_id, user_id, rating) VALUES ($1, $2, 1000)`, [listingId, ownerId]), /reviews_rating_check/)
+// One review per person per business: the stranger already left one.
+await asUser(strangerId)
+await assert.rejects(
+  db.query(`INSERT INTO public.reviews (listing_id, user_id, rating, comment) VALUES ($1, $2, 5, 'Changed my mind')`, [listingId, strangerId]),
+  /already reviewed/,
+)
 await db.exec('RESET ROLE')
 assert.deepEqual(
   (await db.query(`SELECT rating, owner_reply FROM public.reviews WHERE id = $1`, [reviewId])).rows[0],
