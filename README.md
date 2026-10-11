@@ -25,7 +25,7 @@ New to this repository? Read these three, in order:
 
 ## Try it in five minutes
 
-You need **Node.js 20+** and a free **Supabase** account. Nothing else — no
+You need **Node.js 24** (`.nvmrc` has it; `nvm use` picks it up) and a free **Supabase** account. Nothing else — no
 payment account, no email provider. Those come later, and only if you want
 them.
 

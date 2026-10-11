@@ -1,17 +1,19 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { readFileSync } from 'node:fs'
-import ts from 'typescript'
+import { transformSync } from 'esbuild'
 
+// CommonJS so each import becomes a require() answered from deps. esbuild,
+// because TypeScript 7 dropped ts.transpileModule.
 function load(path: string, deps: Record<string, unknown>) {
   const source = readFileSync(new URL(path, import.meta.url), 'utf8')
-  const js = ts.transpileModule(source, {compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText
-  const exports: Record<string, (...args: any[]) => any> = {} // eslint-disable-line @typescript-eslint/no-explicit-any
-  new Function('require', 'exports', js)((name: string) => {
+  const js = transformSync(source, {loader:'ts', format:'cjs', target:'es2022'}).code
+  const cjs = {exports: {} as Record<string, (...args: any[]) => any>} // eslint-disable-line @typescript-eslint/no-explicit-any
+  new Function('require', 'exports', 'module', js)((name: string) => {
     if (!(name in deps)) throw new Error(`Unexpected dependency ${name}`)
     return deps[name]
-  }, exports)
-  return exports
+  }, cjs.exports, cjs)
+  return cjs.exports
 }
 
 test('an authorized but uncaptured Razorpay order must not be accepted as paid', () => {
