@@ -13,6 +13,7 @@ import {
   Droplets,
   Wind,
 } from 'lucide-react'
+import { siteConfig } from '@/lib/site'
 
 const emergencyContacts = [
   { name: 'Police Control Room', number: '100', icon: '👮', color: 'bg-blue-50 border-blue-200', badge: 'bg-blue-600' },
@@ -283,8 +284,8 @@ export default function EmergencyPage() {
 
         {/* Footer note */}
         <div className="text-center text-sm text-gray-400 bg-gray-50 rounded-xl p-4">
-          This page is available offline for emergencies. Bookmark it now:{' '}
-          <span className="font-semibold text-gray-600">ourdahanu.com/emergency</span>
+          Bookmark this page so it is one tap away in an emergency:{' '}
+          <span className="font-semibold text-gray-600">{siteConfig.domain}/emergency</span>
         </div>
       </div>
     </div>

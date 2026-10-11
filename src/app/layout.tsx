@@ -7,7 +7,6 @@ import { EmergencyRibbonFallback } from '@/components/EmergencyRibbon'
 import { SiteNavbar, SiteFooter, SiteBottomTabBar, SiteEmergencyRibbon } from '@/components/SiteChrome'
 import LoaderFontsReady from '@/components/LoaderFontsReady'
 import PaymentRecoveryWatcher from '@/components/PaymentRecoveryWatcher'
-import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import StructuredData from '@/components/StructuredData'
 import { buildAbsoluteUrl, SITE_URL, siteConfig } from '@/lib/site'
 import Script from 'next/script'
@@ -197,7 +196,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Suspense fallback={null}>
             <SiteBottomTabBar />
           </Suspense>
-          <ServiceWorkerRegistration />
           <Suspense fallback={null}>
             <PaymentRecoveryWatcher />
           </Suspense>
