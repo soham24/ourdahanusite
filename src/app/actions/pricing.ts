@@ -7,11 +7,11 @@ import {
   revalidatePricingCache,
 } from '@/lib/cache-tags'
 import {
-  getCachedActiveCoupons,
   getCachedPricingConfig,
   type Coupon,
   type PricingConfig,
 } from '@/lib/data/pricing'
+import { getListingSubmissionCharge } from '@/lib/payment-security'
 import { fetchAllRedemptions } from '@/lib/data/coupon-redemptions'
 import {
   summariseByCoupon,
@@ -38,8 +38,20 @@ export async function getPricingConfig(): Promise<PricingConfig> {
   return getCachedPricingConfig()
 }
 
-export async function getActiveCoupons(): Promise<Coupon[]> {
-  return getCachedActiveCoupons()
+/**
+ * What one coupon code does to the listing fee, for the submit and renew
+ * forms. The forms used to receive every active code up front, which put
+ * them all in the page source; this answers for the code typed, nothing
+ * more. The server re-checks the code again when the order is created.
+ */
+export async function checkListingCoupon(
+  code: string,
+): Promise<{ code: string; label: string; finalPrice: number } | { error: string }> {
+  const charge = await getListingSubmissionCharge(code.slice(0, 64))
+  if (!charge.couponValid || !charge.couponCode) {
+    return { error: 'Invalid coupon code. Please check and try again.' }
+  }
+  return { code: charge.couponCode, label: charge.couponLabel ?? charge.couponCode.toUpperCase(), finalPrice: charge.finalPrice }
 }
 
 export async function getAllCoupons(): Promise<Coupon[]> {

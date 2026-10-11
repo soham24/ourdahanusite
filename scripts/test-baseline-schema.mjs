@@ -75,6 +75,90 @@ await db.exec('RESET ROLE')
 
 assert.equal((await db.query(`SELECT public FROM storage.buckets WHERE id = 'uploads'`)).rows[0]?.public, true, 'uploads bucket')
 
+// ── Direct API writes the app never makes must be refused ────────────────
+// Each of these is one hand-written PostgREST request with the public anon
+// key, or a signed-in user's own token, skipping every server action.
+const asUser = async (id) => {
+  await db.exec('RESET ROLE')
+  await db.query(`SELECT set_config('request.jwt.claim.sub', $1, false)`, [id ?? ''])
+  await db.exec(id ? 'SET ROLE authenticated' : 'SET ROLE anon')
+}
+const ownerId = userId
+const strangerId = otherId
+const staffId = '00000000-0000-0000-0000-0000000000a3'
+await db.exec('RESET ROLE')
+await db.query(`INSERT INTO auth.users (id, email, raw_user_meta_data) VALUES ($1, 'staff@example.test', '{}')`, [staffId])
+await db.query(`UPDATE public.profiles SET role = 'admin' WHERE id = $1`, [staffId])
+const listingId = (await db.query(
+  `INSERT INTO public.listings (name, category, approved, owner_id, expires_at) VALUES ('Owned', 'shop', true, $1, now() + interval '30 days') RETURNING id`,
+  [ownerId],
+)).rows[0].id
+const questionId = (await db.query(
+  `INSERT INTO public.listing_questions (listing_id, user_id, question) VALUES ($1, $2, 'Open on Sunday?') RETURNING id`,
+  [listingId, strangerId],
+)).rows[0].id
+const reviewId = (await db.query(
+  `INSERT INTO public.reviews (listing_id, user_id, rating, comment) VALUES ($1, $2, 1, 'Bad') RETURNING id`,
+  [listingId, strangerId],
+)).rows[0].id
+await db.query(`INSERT INTO public.coupons (code, label, final_price, enabled) VALUES ('secret50', 'Half off', 50, true)`)
+
+// Q&A: signed out or a stranger cannot rewrite answers; the owner can.
+const answerOf = async () => (await db.query(`SELECT answer FROM public.listing_questions WHERE id = $1`, [questionId])).rows[0].answer
+await asUser(null)
+await db.query(`UPDATE public.listing_questions SET answer = 'hacked' WHERE id = $1`, [questionId]).catch(() => {})
+await asUser(strangerId)
+await db.query(`UPDATE public.listing_questions SET answer = 'hacked' WHERE id = $1`, [questionId]).catch(() => {})
+await db.exec('RESET ROLE')
+assert.equal(await answerOf(), null, 'only the owner may answer a question')
+await asUser(ownerId)
+await db.query(`UPDATE public.listing_questions SET answer = 'Yes, 9 to 5', answered_at = now() WHERE id = $1`, [questionId])
+await assert.rejects(db.query(`UPDATE public.listing_questions SET question = 'edited' WHERE id = $1`, [questionId]), /permission denied/)
+await db.exec('RESET ROLE')
+assert.equal(await answerOf(), 'Yes, 9 to 5', 'the owner can answer')
+
+// Coupons: invisible to visitors and ordinary users, listed for staff.
+await asUser(null)
+await assert.rejects(db.query(`SELECT code FROM public.coupons`), /permission denied/)
+await asUser(strangerId)
+assert.equal((await db.query(`SELECT code FROM public.coupons`)).rows.length, 0, 'users cannot list coupons')
+await asUser(staffId)
+assert.equal((await db.query(`SELECT code FROM public.coupons`)).rows.length, 1, 'staff can list coupons')
+
+// Listings: an owner edits their description but not billing, badges or rating.
+await asUser(ownerId)
+await db.query(`UPDATE public.listings SET description = 'Fresh bread daily' WHERE id = $1`, [listingId])
+for (const assignment of ['expires_at = NULL', 'verified = true', "plan = 'premium'", 'rating = 5', 'appointments_enabled = true', "subdomain = 'stolen'"]) {
+  await assert.rejects(db.query(`UPDATE public.listings SET ${assignment} WHERE id = $1`, [listingId]), /only be changed by the site/, assignment)
+}
+const inserted = (await db.query(
+  `INSERT INTO public.listings (name, category, owner_id, verified, rating, appointments_enabled) VALUES ('Mine', 'shop', $1, true, 5, true) RETURNING verified, rating, appointments_enabled, approved`,
+  [ownerId],
+)).rows[0]
+assert.deepEqual(inserted, { verified: false, rating: '0.0', appointments_enabled: false, approved: false }, 'insert cannot self-grant')
+await asUser(staffId)
+await db.query(`UPDATE public.listings SET verified = true WHERE id = $1`, [listingId])
+
+// Reviews: the owner may reply, not rewrite; authors cannot fake a reply or a rating.
+await asUser(ownerId)
+await assert.rejects(
+  db.query(`UPDATE public.reviews SET rating = 5, comment = 'Excellent', owner_reply = 'Thanks' WHERE id = $1`, [reviewId]),
+  /Only the reply/,
+)
+await db.query(`UPDATE public.reviews SET owner_reply = 'Sorry, we will do better', owner_replied_at = now() WHERE id = $1`, [reviewId])
+await asUser(strangerId)
+await assert.rejects(
+  db.query(`INSERT INTO public.reviews (listing_id, user_id, rating, owner_reply) VALUES ($1, $2, 5, 'Reply from the business')`, [listingId, strangerId]),
+  /row-level security/,
+)
+await assert.rejects(db.query(`INSERT INTO public.reviews (listing_id, user_id, rating) VALUES ($1, $2, 1000)`, [listingId, strangerId]), /reviews_rating_check/)
+await db.exec('RESET ROLE')
+assert.deepEqual(
+  (await db.query(`SELECT rating, owner_reply FROM public.reviews WHERE id = $1`, [reviewId])).rows[0],
+  { rating: 1, owner_reply: 'Sorry, we will do better' },
+)
+await db.exec(`DELETE FROM public.reviews; DELETE FROM public.listing_questions; DELETE FROM public.coupons; DELETE FROM public.listings;`)
+
 // The sample data loads on top, and moderation still hides what is unapproved.
 await db.exec(`DELETE FROM public.listings`)
 await db.exec(await readFile(new URL('../supabase/seed.sql', import.meta.url), 'utf8'))

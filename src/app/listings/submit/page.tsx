@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, Star, Edit3, ImageIcon, Package, ArrowRight } from 'lucide-react'
 import ListingSubmitForm from './ListingSubmitForm'
-import { getPricingConfig, getActiveCoupons } from '@/app/actions/pricing'
+import { getPricingConfig } from '@/app/actions/pricing'
 import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
@@ -123,7 +123,7 @@ export default async function SubmitListingPage({
   const userName  = user.user_metadata?.full_name || user.email?.split('@')[0] || ''
   const userEmail = user.email || ''
 
-  const [pricing, activeCoupons] = await Promise.all([getPricingConfig(), getActiveCoupons()])
+  const pricing = await getPricingConfig()
 
   return (
     <ListingSubmitForm
@@ -131,11 +131,6 @@ export default async function SubmitListingPage({
       userName={userName}
       basePrice={pricing.current_price}
       originalPrice={pricing.base_price}
-      activeCoupons={activeCoupons.map(c => ({
-        code: c.code,
-        label: c.label,
-        finalPrice: c.final_price,
-      }))}
     />
   )
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { checkListingCoupon } from '@/app/actions/pricing'
 import Link from 'next/link'
 import {
   Loader2, CheckCircle, X, BadgePercent,
@@ -32,8 +33,6 @@ declare global {
   interface Window { Razorpay: new (o: RazorpayOptions) => { open: () => void } }
 }
 
-interface CouponMeta { code: string; label: string; finalPrice: number }
-
 interface Props {
   listingId:        string
   listingName:      string
@@ -42,7 +41,6 @@ interface Props {
   userName:         string
   basePrice?:       number
   originalPrice?:   number
-  activeCoupons?:   CouponMeta[]
 }
 
 function formatDate(dateStr: string): string {
@@ -59,7 +57,6 @@ export default function RenewForm({
   userName,
   basePrice     = 210,
   originalPrice = 500,
-  activeCoupons = [],
 }: Props) {
   const router = useRouter()
   const [scriptReady, setScriptReady] = useState(
@@ -77,13 +74,11 @@ export default function RenewForm({
   const [couponInput, setCouponInput]     = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null)
   const [couponError, setCouponError]     = useState('')
+  // Label and price of the applied code, as the server reported them.
+  const [couponMeta, setCouponMeta] = useState<{ label: string; finalPrice: number } | null>(null)
+  const [couponChecking, setCouponChecking] = useState(false)
 
-  const COUPON_META = Object.fromEntries(
-    activeCoupons.map(c => [c.code, { label: c.label, finalPrice: c.finalPrice }])
-  )
-
-  const finalPrice = appliedCoupon && COUPON_META[appliedCoupon]
-    ? COUPON_META[appliedCoupon].finalPrice
+  const finalPrice = appliedCoupon && couponMeta ? couponMeta.finalPrice
     : basePrice
   const discount = basePrice - finalPrice
 
@@ -113,20 +108,26 @@ export default function RenewForm({
     document.body.appendChild(s)
   }, [])
 
-  const applyCoupon = () => {
+  const applyCoupon = async () => {
     const code = couponInput.trim().toLowerCase()
-    if (!code) return
-    if (COUPON_META[code]) {
-      setAppliedCoupon(code)
-      setCouponError('')
-    } else {
+    if (!code || couponChecking) return
+    setCouponChecking(true)
+    const result = await checkListingCoupon(code).catch(() => ({ error: 'Could not check that code. Please try again.' }))
+    setCouponChecking(false)
+    if ('error' in result) {
       setAppliedCoupon(null)
-      setCouponError('Invalid coupon code. Please check and try again.')
+      setCouponMeta(null)
+      setCouponError(result.error)
+      return
     }
+    setAppliedCoupon(result.code)
+    setCouponMeta({ label: result.label, finalPrice: result.finalPrice })
+    setCouponError('')
   }
 
   const removeCoupon = () => {
     setAppliedCoupon(null)
+    setCouponMeta(null)
     setCouponInput('')
     setCouponError('')
   }
@@ -380,8 +381,8 @@ export default function RenewForm({
               <CheckCircle size={15} className="text-green-600 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="text-green-700 font-bold text-sm uppercase">{appliedCoupon}</span>
-                {COUPON_META[appliedCoupon] && (
-                  <span className="text-green-600 text-xs ml-2">— {COUPON_META[appliedCoupon].label}</span>
+                {couponMeta && (
+                  <span className="text-green-600 text-xs ml-2">— {couponMeta?.label}</span>
                 )}
               </div>
               <button onClick={removeCoupon} className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -402,8 +403,8 @@ export default function RenewForm({
                 type="button"
                 onClick={applyCoupon}
                 className="bg-surface-soft hover:bg-border text-brand font-semibold text-sm px-4 py-2 rounded-xl transition-colors"
-              >
-                Apply
+               disabled={couponChecking}>
+                {couponChecking ? 'Checking…' : 'Apply'}
               </button>
             </div>
           )}

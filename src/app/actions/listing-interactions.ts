@@ -119,10 +119,12 @@ export async function answerQuestion(
   const isAdmin = profile?.role === 'admin' || profile?.role === 'moderator'
   if (listing?.owner_id !== user.id && !isAdmin) return { error: 'Not authorized.' }
 
+  // Scoped to the listing whose ownership was just checked: without the
+  // listing_id filter an owner of any listing could answer any question.
   const { error } = await supabase.from('listing_questions').update({
     answer: normalizedAnswer,
     answered_at: new Date().toISOString(),
-  }).eq('id', questionId)
+  }).eq('id', questionId).eq('listing_id', listingId)
 
   if (error) return { error: error.message }
   revalidateListing(listingId)
