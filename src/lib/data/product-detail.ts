@@ -32,6 +32,9 @@ export async function fetchProductAndListing(productId: string): Promise<{
   'use cache'
 
   cacheLife(PUBLIC_CONTENT_CACHE)
+  // Tagged before the fetch so a not-found result (a hidden item) is tagged
+  // too: making the item visible again clears it.
+  cacheTag(CACHE_TAGS.product(productId))
 
   const supabase = createPublicClient()
   const { data: productData } = await supabase

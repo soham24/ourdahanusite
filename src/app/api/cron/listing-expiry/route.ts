@@ -14,8 +14,9 @@
  */
 
 import { connection, NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
+import { CACHE_TAGS } from '@/lib/cache-tags'
 import { createAdminClient } from '@/lib/supabase/admin-client'
-import { runAppointmentReminders } from '@/lib/cron/appointment-reminders'
 import { sendNotification } from '@/lib/notifications'
 import { addIndiaDays, getIndiaToday } from '@/lib/india-time'
 import { bearerToken, isConfigured, secretMatches } from '@/lib/http/shared-secret'
@@ -64,6 +65,15 @@ export async function GET(request: Request) {
       .update({ approved: false })
       .in('id', expiredIds)
 
+    // Without this the homepage, directory and each business page kept
+    // showing expired listings -- shop and booking included -- for up to a
+    // day. updateTag is for Server Actions; a route handler uses
+    // revalidateTag, as create-marketplace-order does.
+    for (const tag of [CACHE_TAGS.home, CACHE_TAGS.listings, CACHE_TAGS.listingCategories, CACHE_TAGS.appointments]) {
+      revalidateTag(tag, 'max')
+    }
+    for (const id of expiredIds) revalidateTag(CACHE_TAGS.listing(id), 'max')
+
     // Notifications still need to fire per-listing (awaited delivery)
     for (const listing of expiredListings) {
       if (listing.owner_id && listing.name) {
@@ -95,34 +105,34 @@ export async function GET(request: Request) {
     const expiresAt = new Date(listing.expires_at as string).getTime()
     const daysLeft = Math.floor((expiresAt - now.getTime()) / MS_PER_DAY)
 
-    // Find which milestones this listing qualifies for and hasn't been notified about
-    for (const milestone of MILESTONES) {
-      if (daysLeft > milestone) continue    // not yet within this window
-      if (sent.includes(milestone)) continue // already sent
+    // Every milestone this listing has passed and not been told about. The
+    // cron runs weekly, so several can come due at once: one seen with a day
+    // left has passed 30, 15, 5, 3 and 1. Sending each was a burst of
+    // contradictory messages ("3 days left", "1 day left") in one go, so the
+    // owner gets one, with the real number of days, and all are marked sent.
+    const due = MILESTONES.filter((milestone) => daysLeft <= milestone && !sent.includes(milestone))
+    if (due.length === 0) continue
+    const closest = Math.min(...due)
 
-      try {
-        if (listing.owner_id && listing.name) {
-          await sendNotification(listing.owner_id as string, 'listing.expiring', {
-            listingId: listing.id as string,
-            listingName: listing.name as string,
-            daysLeft: milestone,
-          })
-        }
-
-        await adminClient
-          .from('listings')
-          .update({ reminders_sent: [...sent, milestone] })
-          .eq('id', listing.id)
-
-        sent.push(milestone)
-        stats.reminded[milestone]++
-      } catch {
-        stats.errors++
+    try {
+      if (listing.owner_id && listing.name) {
+        await sendNotification(listing.owner_id as string, 'listing.expiring', {
+          listingId: listing.id as string,
+          listingName: listing.name as string,
+          daysLeft: Math.max(1, daysLeft),
+        })
       }
+
+      await adminClient
+        .from('listings')
+        .update({ reminders_sent: [...sent, ...due] })
+        .eq('id', listing.id)
+
+      stats.reminded[closest]++
+    } catch {
+      stats.errors++
     }
   }
-
-  const appointmentReminders = await runAppointmentReminders(adminClient, now)
 
   // Retention: listing_events exists to answer "this month vs last month",
   // so anything older than 180 days is dead weight on a free-tier database.
@@ -139,6 +149,5 @@ export async function GET(request: Request) {
   }
 
   console.log('[cron/listing-expiry]', stats)
-  console.log('[cron/appointment-reminders]', appointmentReminders)
-  return NextResponse.json({ ok: true, listings: stats, appointmentReminders })
+  return NextResponse.json({ ok: true, listings: stats })
 }

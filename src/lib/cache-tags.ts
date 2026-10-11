@@ -15,6 +15,7 @@ export const CACHE_TAGS = {
   polls: 'polls',
   appointments: 'appointments',
   listing: (listingId: string) => `listing:${listingId}`,
+  product: (productId: string) => `product:${productId}`,
   find: 'find-directory',
   jobs: 'jobs',
 } as const
@@ -50,6 +51,11 @@ export function revalidatePublicListingCollections() {
 
 export function revalidatePublicListingDetail(listingId: string) {
   updatePublicTag('public-listing-detail', CACHE_TAGS.listing(listingId))
+}
+
+/** A catalog item's own page, including its cached "not found". */
+export function revalidateProductDetail(productId: string) {
+  updatePublicTag('public-product-detail', CACHE_TAGS.product(productId))
 }
 
 export function revalidatePublicListingContent(listingId: string) {

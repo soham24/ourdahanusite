@@ -7,8 +7,11 @@ const ANON_VIEWER = {
   userVote: null,
 } as const
 
+// Never edge-cached, even signed out: the URL is the same for signed-in
+// voters, and a shared signed-out answer could hide their vote. PollCard only
+// calls this with a session cookie, so this case is just expired sessions.
 const ANON_CACHE_HEADERS = {
-  'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
+  'Cache-Control': 'private, no-store',
 } as const
 
 const PRIVATE_HEADERS = {

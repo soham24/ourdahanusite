@@ -110,6 +110,10 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
       .single()
 
     if (!listingData) {
+      // A pending or expired listing reads as not found. Without a tag that
+      // null stayed cached for a day after the listing was approved or
+      // renewed; both of those update the listings tag.
+      cacheTag(CACHE_TAGS.listings)
       return null
     }
 

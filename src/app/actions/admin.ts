@@ -11,6 +11,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { siteConfig } from '@/lib/site'
+import { recomputeListingRating } from '@/lib/listing-rating'
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL
 
@@ -400,6 +401,8 @@ export async function deleteReview(formData: FormData) {
   if (error) throw new Error(error.message)
 
   if (listingId) {
+    // The listing's stored rating still counted the deleted review.
+    await recomputeListingRating(db, listingId)
     revalidatePublicListingContent(listingId)
   }
   revalidatePath('/admin/reviews')
