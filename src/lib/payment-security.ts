@@ -1,13 +1,15 @@
 import 'server-only'
 
 import { getCachedPricingConfig } from '@/lib/data/pricing'
-import { createPublicClient } from '@/lib/supabase/public'
+import { createAdminClient } from '@/lib/supabase/admin-client'
 
 type FlowKind = 'listing' | 'order' | 'appointment'
 
 export type SubmissionCharge = {
   couponCode: string | null
   couponValid: boolean
+  /** The coupon's display label, when couponValid. */
+  couponLabel: string | null
   finalPrice: number
   isFree: boolean
   paymentStatus: 'paid' | 'free_coupon'
@@ -28,18 +30,24 @@ function normalizeCouponCode(value: string | null | undefined): string | null {
   return code || null
 }
 
-async function getEnabledCouponFinalPrice(code: string): Promise<number | null> {
+// Coupons are readable by staff only -- otherwise anyone could list every
+// code -- so this server-side lookup uses the service role and answers for
+// one code at a time.
+async function getEnabledCoupon(code: string): Promise<{ finalPrice: number; label: string } | null> {
   try {
-    const supabase = createPublicClient()
+    const supabase = createAdminClient()
+    if (!supabase) return null
     const { data } = await supabase
       .from('coupons')
-      .select('final_price')
+      .select('final_price, label')
       .eq('code', code)
       .eq('enabled', true)
       .maybeSingle()
 
-    const coupon = data as { final_price?: number } | null
-    return typeof coupon?.final_price === 'number' ? coupon.final_price : null
+    const coupon = data as { final_price?: number; label?: string | null } | null
+    return typeof coupon?.final_price === 'number'
+      ? { finalPrice: coupon.final_price, label: coupon.label?.trim() || code.toUpperCase() }
+      : null
   } catch {
     return null
   }
@@ -56,17 +64,19 @@ async function getSubmissionCharge(
     return {
       couponCode: null,
       couponValid: false,
+      couponLabel: null,
       finalPrice: basePrice,
       isFree: basePrice === 0,
       paymentStatus: basePrice === 0 ? 'free_coupon' : 'paid',
     }
   }
 
-  const couponFinalPrice = await getEnabledCouponFinalPrice(normalizedCode)
-  if (couponFinalPrice === null) {
+  const coupon = await getEnabledCoupon(normalizedCode)
+  if (coupon === null) {
     return {
       couponCode: normalizedCode,
       couponValid: false,
+      couponLabel: null,
       finalPrice: basePrice,
       isFree: false,
       paymentStatus: 'paid',
@@ -76,9 +86,10 @@ async function getSubmissionCharge(
   return {
     couponCode: normalizedCode,
     couponValid: true,
-    finalPrice: couponFinalPrice,
-    isFree: couponFinalPrice === 0,
-    paymentStatus: couponFinalPrice === 0 ? 'free_coupon' : 'paid',
+    couponLabel: coupon.label,
+    finalPrice: coupon.finalPrice,
+    isFree: coupon.finalPrice === 0,
+    paymentStatus: coupon.finalPrice === 0 ? 'free_coupon' : 'paid',
   }
 }
 

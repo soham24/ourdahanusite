@@ -165,6 +165,47 @@ export async function markIntentFinalized(args: {
 }
 
 /**
+ * Atomically claim an intent for one entity: mark it finalized only if it is
+ * not finalized already. Returns false when another request got there first,
+ * which is what stops one payment being spent twice by concurrent calls.
+ * Pair with releaseIntentClaim if the entity write then fails.
+ */
+export async function claimIntentForFinalization(args: {
+  razorpayOrderId: string
+  entityId: string
+  entityTable: string
+}): Promise<boolean> {
+  const adminClient = createAdminClient()
+  if (!adminClient) return false
+  const { data, error } = await adminClient
+    .from('payment_intents')
+    .update({
+      status: 'finalized',
+      entity_id: args.entityId,
+      entity_table: args.entityTable,
+      finalized_at: new Date().toISOString(),
+      last_error: null,
+    })
+    .eq('razorpay_order_id', args.razorpayOrderId)
+    .neq('status', 'finalized')
+    .select('id')
+  return !error && Array.isArray(data) && data.length > 0
+}
+
+/** Undo claimIntentForFinalization after a failed write, keeping it recoverable. */
+export async function releaseIntentClaim(args: {
+  razorpayOrderId: string
+  message: string
+}): Promise<void> {
+  const adminClient = createAdminClient()
+  if (!adminClient) return
+  await adminClient
+    .from('payment_intents')
+    .update({ status: 'captured', entity_id: null, finalized_at: null, last_error: args.message })
+    .eq('razorpay_order_id', args.razorpayOrderId)
+}
+
+/**
  * Record a failure attempt without losing the intent — the recovery
  * API + admin page can retry later.
  */

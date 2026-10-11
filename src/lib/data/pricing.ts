@@ -60,24 +60,3 @@ export async function getCachedPricingConfig(): Promise<PricingConfig> {
   return FALLBACK_PRICING
 }
 
-export async function getCachedActiveCoupons(): Promise<Coupon[]> {
-  'use cache'
-
-  cacheLife(PUBLIC_CONTENT_CACHE)
-  cacheTag(CACHE_TAGS.coupons)
-  logCacheRegeneration({ scope: 'pricing:coupons', tags: [CACHE_TAGS.coupons] })
-
-  try {
-    const supabase = createPublicClient()
-    const { data } = await supabase
-      .from('coupons')
-      .select('id, code, label, final_price, enabled, usage_count, assigned_to, created_at')
-      .eq('enabled', true)
-      .order('created_at', { ascending: false })
-      .order('id', { ascending: true })
-
-    return (data ?? []) as unknown as Coupon[]
-  } catch {
-    return []
-  }
-}

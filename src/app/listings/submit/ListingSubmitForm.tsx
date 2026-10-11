@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { checkListingCoupon } from '@/app/actions/pricing'
 import Link from 'next/link'
 import {
   Loader2, CreditCard, ShieldCheck, Tag, CheckCircle,
@@ -48,14 +49,11 @@ declare global {
   interface Window { Razorpay: new (o: RazorpayOptions) => { open: () => void } }
 }
 
-interface CouponMeta { code: string; label: string; finalPrice: number }
-
 interface Props {
   userEmail: string
   userName: string
   basePrice?: number
   originalPrice?: number
-  activeCoupons?: CouponMeta[]
 }
 
 export default function ListingSubmitForm({
@@ -63,7 +61,6 @@ export default function ListingSubmitForm({
   userName,
   basePrice = 210,
   originalPrice = 500,
-  activeCoupons = [],
 }: Props) {
   const router     = useRouter()
   const formRef    = useRef<HTMLFormElement>(null)
@@ -80,15 +77,16 @@ export default function ListingSubmitForm({
   // fires in the same tick as the payment handler.
   const capturedRef = useRef(false)
 
-  // Build coupon lookup from props
-  const COUPON_META = Object.fromEntries(activeCoupons.map(c => [c.code, { label: c.label, finalPrice: c.finalPrice }]))
+  // Label and price of the applied code, as the server reported them.
+  const [couponMeta, setCouponMeta] = useState<{ label: string; finalPrice: number } | null>(null)
+  const [couponChecking, setCouponChecking] = useState(false)
 
   // Coupon state
   const [couponInput, setCouponInput]   = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null)
   const [couponError, setCouponError]   = useState('')
 
-  const finalPrice = appliedCoupon && COUPON_META[appliedCoupon] ? COUPON_META[appliedCoupon].finalPrice : basePrice
+  const finalPrice = appliedCoupon && couponMeta ? couponMeta.finalPrice : basePrice
   const discount   = basePrice - finalPrice
 
   // Load Razorpay SDK
@@ -112,20 +110,26 @@ export default function ListingSubmitForm({
     document.body.appendChild(s)
   }, [])
 
-  const applyCoupon = () => {
+  const applyCoupon = async () => {
     const code = couponInput.trim().toLowerCase()
-    if (!code) return
-    if (COUPON_META[code]) {
-      setAppliedCoupon(code)
-      setCouponError('')
-    } else {
+    if (!code || couponChecking) return
+    setCouponChecking(true)
+    const result = await checkListingCoupon(code).catch(() => ({ error: 'Could not check that code. Please try again.' }))
+    setCouponChecking(false)
+    if ('error' in result) {
       setAppliedCoupon(null)
-      setCouponError('Invalid coupon code. Please check and try again.')
+      setCouponMeta(null)
+      setCouponError(result.error)
+      return
     }
+    setAppliedCoupon(result.code)
+    setCouponMeta({ label: result.label, finalPrice: result.finalPrice })
+    setCouponError('')
   }
 
   const removeCoupon = () => {
     setAppliedCoupon(null)
+    setCouponMeta(null)
     setCouponInput('')
     setCouponError('')
   }
@@ -511,7 +515,7 @@ export default function ListingSubmitForm({
             <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-4 py-3">
               <div className="flex items-center gap-2 text-green-700 text-sm font-medium">
                 <CheckCircle size={15} className="text-green-500" />
-                {COUPON_META[appliedCoupon].label}
+                {couponMeta?.label}
               </div>
               <button type="button" onClick={removeCoupon}
                 className="text-gray-400 hover:text-red-500 transition-colors ml-3">
@@ -529,8 +533,8 @@ export default function ListingSubmitForm({
                 className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
               />
               <button type="button" onClick={applyCoupon}
-                className="px-5 py-2.5 bg-brand text-bg text-sm font-semibold rounded-xl hover:bg-brand-strong transition-colors">
-                Apply
+                className="px-5 py-2.5 bg-brand text-bg text-sm font-semibold rounded-xl hover:bg-brand-strong transition-colors" disabled={couponChecking}>
+                {couponChecking ? 'Checking…' : 'Apply'}
               </button>
             </div>
           )}

@@ -17,7 +17,7 @@ function load(path: string, deps: Record<string, unknown>) {
 }
 
 test('an authorized but uncaptured Razorpay order must not be accepted as paid', () => {
-  const {validateRazorpayOrder} = load('../payment-security.ts', {'server-only':{},'@/lib/data/pricing':{},'@/lib/supabase/public':{}})
+  const {validateRazorpayOrder} = load('../payment-security.ts', {'server-only':{},'@/lib/data/pricing':{},'@/lib/supabase/admin-client':{}})
   const options = {flow:'appointment',userId:'12345678-rest',expectedAmountPaise:100,order:{id:'order',amount:100,amount_paid:0,currency:'INR',receipt:'appointment_12345678_1',status:'attempted'}}
   assert.ok(validateRazorpayOrder(options))
   assert.equal(validateRazorpayOrder({...options,order:{...options.order,status:'paid',amount_paid:100}}), null)

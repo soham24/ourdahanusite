@@ -23,10 +23,13 @@ import {
 } from '@/lib/listing-content'
 import { recordCouponRedemption } from '@/lib/coupon-redemptions'
 import {
+  claimIntentForFinalization,
   findFinalizedIntentByPaymentId,
+  getIntentByOrderId,
   markIntentCaptured,
   markIntentFinalized,
   recordIntentError,
+  releaseIntentClaim,
 } from '@/lib/payment-intents'
 import {
   fetchRazorpayOrder,
@@ -586,13 +589,18 @@ export async function renewListing(
     }
 
     const finalized = await findFinalizedIntentByPaymentId(paymentId)
-    if (
-      finalized &&
-      finalized.user_id === user.id &&
-      finalized.entity_table === 'listings' &&
-      finalized.entity_id === listingId
-    ) {
-      return {}
+    if (finalized) {
+      // Already applied to this listing: a retry, answer as success.
+      if (
+        finalized.user_id === user.id &&
+        finalized.entity_table === 'listings' &&
+        finalized.entity_id === listingId
+      ) {
+        return {}
+      }
+      // Spent on something else. Without this, one payment could renew
+      // listing after listing, a year each time.
+      return { error: 'This payment has already been used.' }
     }
 
     const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim()
@@ -611,12 +619,20 @@ export async function renewListing(
   // 2. Verify listing ownership
   const { data: listing } = await supabase
     .from('listings')
-    .select('id, owner_id, expires_at')
+    .select('id, owner_id, expires_at, approved')
     .eq('id', listingId)
     .eq('owner_id', user.id)
     .single()
 
   if (!listing) return { error: 'Listing not found or access denied.' }
+
+  // The order must have been created to renew this listing, by this user.
+  if (!isFree) {
+    const intent = await getIntentByOrderId(orderId)
+    if (!intent || intent.user_id !== user.id || intent.flow !== 'renew' || intent.listing_id !== listingId) {
+      return { error: 'This payment was not made for renewing this listing.' }
+    }
+  }
 
   const coupon_used = (formData.get('coupon')      as string)?.trim() || null
   const charge = await getListingSubmissionCharge(coupon_used)
@@ -660,6 +676,24 @@ export async function renewListing(
   const base      = currentExpiry && currentExpiry > new Date() ? currentExpiry : new Date()
   const newExpiry = new Date(base.getTime() + 365 * 24 * 60 * 60 * 1000)
 
+  // Renewing brings back a listing that went offline because it expired --
+  // the expiry cron only ever sets approved=false on listings past
+  // expires_at. It must not approve one still awaiting review, or one an
+  // admin took down before its expiry: that would skip moderation.
+  const wasAutoExpired = !listing.approved && currentExpiry !== null && currentExpiry <= new Date()
+  const approved = Boolean(listing.approved) || wasAutoExpired
+
+  // Claim the payment before applying it, so two concurrent calls with the
+  // same payment cannot both extend the listing.
+  if (!isFree) {
+    const claimed = await claimIntentForFinalization({
+      razorpayOrderId: orderId,
+      entityId: listingId,
+      entityTable: 'listings',
+    })
+    if (!claimed) return { error: 'This payment has already been used.' }
+  }
+
   // Use admin client to bypass RLS (owner might have approved=false if expired)
   const adminClient = createAdminClient()
   const db = adminClient ?? supabase
@@ -668,7 +702,7 @@ export async function renewListing(
     .from('listings')
     .update({
       expires_at:     newExpiry.toISOString(),
-      approved:       true,          // re-activate if auto-expired
+      approved,
       reminders_sent: [],            // reset reminder tracking
       payment_id:     isFree ? null : paymentId,
       payment_status: charge.paymentStatus,
@@ -679,17 +713,10 @@ export async function renewListing(
 
   if (error) {
     if (!isFree) {
-      await recordIntentError({ razorpayOrderId: orderId, message: error.message })
+      // Give the claim back so the paid renewal can still be recovered.
+      await releaseIntentClaim({ razorpayOrderId: orderId, message: error.message })
     }
     return { error: error.message }
-  }
-
-  if (!isFree) {
-    await markIntentFinalized({
-      razorpayOrderId: orderId,
-      entityId: listingId,
-      entityTable: 'listings',
-    })
   }
 
   if (charge.couponValid && charge.couponCode) {

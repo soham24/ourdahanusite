@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { notFound } from 'next/navigation'
 import RenewForm from './RenewForm'
-import { getPricingConfig, getActiveCoupons } from '@/app/actions/pricing'
+import { getPricingConfig } from '@/app/actions/pricing'
 
 export default async function RenewListingPage({
   params,
@@ -25,10 +25,7 @@ export default async function RenewListingPage({
 
   if (!listing) notFound()
 
-  const [pricing, activeCoupons] = await Promise.all([
-    getPricingConfig(),
-    getActiveCoupons(),
-  ])
+  const pricing = await getPricingConfig()
 
   return (
     <RenewForm
@@ -43,11 +40,6 @@ export default async function RenewListingPage({
       }
       basePrice={pricing.current_price}
       originalPrice={pricing.base_price}
-      activeCoupons={activeCoupons.map(c => ({
-        code:       c.code,
-        label:      c.label,
-        finalPrice: c.final_price,
-      }))}
     />
   )
 }
