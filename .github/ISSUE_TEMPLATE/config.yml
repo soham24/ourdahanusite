@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/soham24/ourdahanusite/security/advisories/new
+    about: Privately, so it can be fixed before it is public.
+  - name: Setting up your own town
+    url: https://github.com/soham24/ourdahanusite/blob/main/SETUP.md
+    about: Step-by-step from clone to deployed.

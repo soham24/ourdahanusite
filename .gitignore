@@ -52,3 +52,7 @@ OurDahanu-Sales-Pitch.pptx
 *.tsbuildinfo
 
 .vercel
+
+# Internal working notes (AI plans/specs, review evidence) stay local
+docs/superpowers/
+docs/reviews/

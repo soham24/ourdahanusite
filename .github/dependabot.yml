@@ -1,0 +1,17 @@
+# Weekly dependency update PRs. Minor and patch npm updates arrive as one
+# grouped PR so they do not drown out real work; majors come one at a time,
+# since this repo pins to Next.js 16 behaviour (see AGENTS.md).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
