@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import {
   ArrowRight,
   Calendar,
@@ -106,6 +106,8 @@ function formatFee(value: number): string {
   return value > 0 ? `Rs ${value.toLocaleString('en-IN')}` : 'Free'
 }
 
+const subscribeNever = () => () => {}
+
 const STEPS: { id: Step; label: string }[] = [
   { id: 'date', label: 'Date' },
   { id: 'time', label: 'Time' },
@@ -150,7 +152,11 @@ export default function BookingWidget({
   const capturedRef = useRef(false)
   const [error, setError] = useState('')
   const [confirmation, setConfirmation] = useState<{ date: string; slot: AppointmentSlot } | null>(null)
-  const [scriptReady, setScriptReady] = useState(bookingFee <= 0)
+  const [scriptLoaded, setScriptLoaded] = useState(false)
+  // Razorpay's global, read at render. False on the server so hydration
+  // matches; true on the client once checkout.js has run.
+  const razorpayOnPage = useSyncExternalStore(subscribeNever, () => typeof window.Razorpay !== 'undefined', () => false)
+  const scriptReady = bookingFee <= 0 || scriptLoaded || razorpayOnPage
   const [name, setName] = useState(userName)
   const [phone, setPhone] = useState(userPhone)
   const [notes, setNotes] = useState('')
@@ -161,8 +167,14 @@ export default function BookingWidget({
     [slots],
   )
 
-  useEffect(() => { setName(userName) }, [userName])
-  useEffect(() => { setPhone(userPhone) }, [userPhone])
+  // Prefill again if the signed-in user's details arrive or change, adjusting
+  // state during render rather than in an effect.
+  const [syncedUser, setSyncedUser] = useState({ userName, userPhone })
+  if (userName !== syncedUser.userName || userPhone !== syncedUser.userPhone) {
+    if (userName !== syncedUser.userName) setName(userName)
+    if (userPhone !== syncedUser.userPhone) setPhone(userPhone)
+    setSyncedUser({ userName, userPhone })
+  }
 
   useEffect(() => {
     let active = true
@@ -190,16 +202,23 @@ export default function BookingWidget({
   }, [listingId, selectedDate])
 
   useEffect(() => {
-    if (bookingFee <= 0 || document.getElementById('razorpay-script')) {
-      setScriptReady(true)
-      return
+    if (bookingFee <= 0) return
+
+    const markLoaded = () => setScriptLoaded(true)
+    // Another widget on the page may have added the script already. It may
+    // still be loading, so wait for it rather than assuming it is ready;
+    // if it has finished, razorpayOnPage above is already true.
+    const existing = document.getElementById('razorpay-script')
+    if (existing) {
+      existing.addEventListener('load', markLoaded)
+      return () => existing.removeEventListener('load', markLoaded)
     }
 
     const script = document.createElement('script')
     script.id = 'razorpay-script'
     script.src = 'https://checkout.razorpay.com/v1/checkout.js'
     script.async = true
-    script.onload = () => setScriptReady(true)
+    script.onload = markLoaded
     document.body.appendChild(script)
   }, [bookingFee])
 
