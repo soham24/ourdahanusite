@@ -145,107 +145,6 @@ export type Database = {
           },
         ]
       }
-      classifieds: {
-        Row: {
-          active: boolean | null
-          approved: boolean | null
-          created_at: string | null
-          description: string | null
-          expires_at: string | null
-          id: string
-          image: string | null
-          location: string | null
-          price: number | null
-          seller_id: string | null
-          seller_name: string | null
-          title: string
-          type: string
-          urgent: boolean | null
-        }
-        Insert: {
-          active?: boolean | null
-          approved?: boolean | null
-          created_at?: string | null
-          description?: string | null
-          expires_at?: string | null
-          id?: string
-          image?: string | null
-          location?: string | null
-          price?: number | null
-          seller_id?: string | null
-          seller_name?: string | null
-          title: string
-          type: string
-          urgent?: boolean | null
-        }
-        Update: {
-          active?: boolean | null
-          approved?: boolean | null
-          created_at?: string | null
-          description?: string | null
-          expires_at?: string | null
-          id?: string
-          image?: string | null
-          location?: string | null
-          price?: number | null
-          seller_id?: string | null
-          seller_name?: string | null
-          title?: string
-          type?: string
-          urgent?: boolean | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "classifieds_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cod_collections: {
-        Row: {
-          amount_paise: number
-          created_at: string
-          delivery_order_id: string
-          id: string
-          rider_id: string | null
-          settled: boolean
-        }
-        Insert: {
-          amount_paise: number
-          created_at?: string
-          delivery_order_id: string
-          id?: string
-          rider_id?: string | null
-          settled?: boolean
-        }
-        Update: {
-          amount_paise?: number
-          created_at?: string
-          delivery_order_id?: string
-          id?: string
-          rider_id?: string | null
-          settled?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cod_collections_delivery_order_id_fkey"
-            columns: ["delivery_order_id"]
-            isOneToOne: false
-            referencedRelation: "delivery_orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cod_collections_rider_id_fkey"
-            columns: ["rider_id"]
-            isOneToOne: false
-            referencedRelation: "riders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       coupon_redemptions: {
         Row: {
           amount_paid: number
@@ -340,171 +239,6 @@ export type Database = {
         }
         Relationships: []
       }
-      delivery_order_items: {
-        Row: {
-          delivery_order_id: string
-          id: string
-          line_total_paise: number
-          listing_product_id: string | null
-          name: string
-          price_paise: number
-          quantity: number
-        }
-        Insert: {
-          delivery_order_id: string
-          id?: string
-          line_total_paise: number
-          listing_product_id?: string | null
-          name: string
-          price_paise: number
-          quantity: number
-        }
-        Update: {
-          delivery_order_id?: string
-          id?: string
-          line_total_paise?: number
-          listing_product_id?: string | null
-          name?: string
-          price_paise?: number
-          quantity?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "delivery_order_items_delivery_order_id_fkey"
-            columns: ["delivery_order_id"]
-            isOneToOne: false
-            referencedRelation: "delivery_orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "delivery_order_items_listing_product_id_fkey"
-            columns: ["listing_product_id"]
-            isOneToOne: false
-            referencedRelation: "listing_products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      delivery_orders: {
-        Row: {
-          assigned_at: string | null
-          cancel_reason: string | null
-          created_at: string
-          customer_id: string
-          customer_name: string
-          customer_phone: string
-          delivered_at: string | null
-          delivery_fee_paise: number
-          distance_km: number | null
-          drop_address: string
-          drop_lat: number | null
-          drop_lng: number | null
-          grand_total_paise: number
-          handoff_otp: string | null
-          id: string
-          items_total_paise: number
-          listing_id: string
-          notes: string | null
-          payment_mode: string
-          payment_status: string
-          picked_up_at: string | null
-          pickup_address: string | null
-          pickup_lat: number | null
-          pickup_lng: number | null
-          rated: boolean
-          razorpay_order_id: string | null
-          razorpay_payment_id: string | null
-          razorpay_signature: string | null
-          rider_id: string | null
-          rider_rating: number | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          assigned_at?: string | null
-          cancel_reason?: string | null
-          created_at?: string
-          customer_id: string
-          customer_name: string
-          customer_phone: string
-          delivered_at?: string | null
-          delivery_fee_paise?: number
-          distance_km?: number | null
-          drop_address: string
-          drop_lat?: number | null
-          drop_lng?: number | null
-          grand_total_paise: number
-          handoff_otp?: string | null
-          id?: string
-          items_total_paise: number
-          listing_id: string
-          notes?: string | null
-          payment_mode: string
-          payment_status?: string
-          picked_up_at?: string | null
-          pickup_address?: string | null
-          pickup_lat?: number | null
-          pickup_lng?: number | null
-          rated?: boolean
-          razorpay_order_id?: string | null
-          razorpay_payment_id?: string | null
-          razorpay_signature?: string | null
-          rider_id?: string | null
-          rider_rating?: number | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          assigned_at?: string | null
-          cancel_reason?: string | null
-          created_at?: string
-          customer_id?: string
-          customer_name?: string
-          customer_phone?: string
-          delivered_at?: string | null
-          delivery_fee_paise?: number
-          distance_km?: number | null
-          drop_address?: string
-          drop_lat?: number | null
-          drop_lng?: number | null
-          grand_total_paise?: number
-          handoff_otp?: string | null
-          id?: string
-          items_total_paise?: number
-          listing_id?: string
-          notes?: string | null
-          payment_mode?: string
-          payment_status?: string
-          picked_up_at?: string | null
-          pickup_address?: string | null
-          pickup_lat?: number | null
-          pickup_lng?: number | null
-          rated?: boolean
-          razorpay_order_id?: string | null
-          razorpay_payment_id?: string | null
-          razorpay_signature?: string | null
-          rider_id?: string | null
-          rider_rating?: number | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "delivery_orders_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "listings"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "delivery_orders_rider_id_fkey"
-            columns: ["rider_id"]
-            isOneToOne: false
-            referencedRelation: "riders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       emergency_alerts: {
         Row: {
           active: boolean | null
@@ -543,42 +277,6 @@ export type Database = {
           {
             foreignKeyName: "emergency_alerts_created_by_fkey"
             columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      event_rsvps: {
-        Row: {
-          created_at: string | null
-          event_id: string | null
-          id: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          event_id?: string | null
-          id?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          event_id?: string | null
-          id?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "event_rsvps_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_rsvps_user_id_fkey"
-            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -746,110 +444,6 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "find_professionals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      forum_replies: {
-        Row: {
-          author_id: string | null
-          author_name: string | null
-          body: string
-          created_at: string | null
-          id: string
-          thread_id: string | null
-          upvotes: number | null
-        }
-        Insert: {
-          author_id?: string | null
-          author_name?: string | null
-          body: string
-          created_at?: string | null
-          id?: string
-          thread_id?: string | null
-          upvotes?: number | null
-        }
-        Update: {
-          author_id?: string | null
-          author_name?: string | null
-          body?: string
-          created_at?: string | null
-          id?: string
-          thread_id?: string | null
-          upvotes?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "forum_replies_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forum_replies_thread_id_fkey"
-            columns: ["thread_id"]
-            isOneToOne: false
-            referencedRelation: "forum_threads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      forum_threads: {
-        Row: {
-          approved: boolean | null
-          author_id: string | null
-          author_name: string | null
-          body: string | null
-          category: string
-          category_slug: string
-          created_at: string | null
-          id: string
-          last_activity_at: string | null
-          pinned: boolean | null
-          reply_count: number | null
-          title: string
-          upvotes: number | null
-          view_count: number | null
-        }
-        Insert: {
-          approved?: boolean | null
-          author_id?: string | null
-          author_name?: string | null
-          body?: string | null
-          category: string
-          category_slug: string
-          created_at?: string | null
-          id?: string
-          last_activity_at?: string | null
-          pinned?: boolean | null
-          reply_count?: number | null
-          title: string
-          upvotes?: number | null
-          view_count?: number | null
-        }
-        Update: {
-          approved?: boolean | null
-          author_id?: string | null
-          author_name?: string | null
-          body?: string | null
-          category?: string
-          category_slug?: string
-          created_at?: string | null
-          id?: string
-          last_activity_at?: string | null
-          pinned?: boolean | null
-          reply_count?: number | null
-          title?: string
-          upvotes?: number | null
-          view_count?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "forum_threads_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1064,50 +658,6 @@ export type Database = {
             foreignKeyName: "job_posts_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
-            referencedRelation: "listings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      listing_delivery_config: {
-        Row: {
-          base_fee_paise: number
-          delivery_enabled: boolean
-          free_above_paise: number | null
-          listing_id: string
-          min_order_paise: number
-          per_km_fee_paise: number
-          prep_time_min: number
-          radius_km: number
-          updated_at: string
-        }
-        Insert: {
-          base_fee_paise?: number
-          delivery_enabled?: boolean
-          free_above_paise?: number | null
-          listing_id: string
-          min_order_paise?: number
-          per_km_fee_paise?: number
-          prep_time_min?: number
-          radius_km?: number
-          updated_at?: string
-        }
-        Update: {
-          base_fee_paise?: number
-          delivery_enabled?: boolean
-          free_above_paise?: number | null
-          listing_id?: string
-          min_order_paise?: number
-          per_km_fee_paise?: number
-          prep_time_min?: number
-          radius_km?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "listing_delivery_config_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: true
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
@@ -1593,62 +1143,6 @@ export type Database = {
           },
         ]
       }
-      news_articles: {
-        Row: {
-          author: string | null
-          author_id: string | null
-          category: string
-          content: string | null
-          created_at: string | null
-          date: string | null
-          excerpt: string | null
-          featured: boolean | null
-          id: string
-          image: string | null
-          published: boolean | null
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          author?: string | null
-          author_id?: string | null
-          category: string
-          content?: string | null
-          created_at?: string | null
-          date?: string | null
-          excerpt?: string | null
-          featured?: boolean | null
-          id?: string
-          image?: string | null
-          published?: boolean | null
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          author?: string | null
-          author_id?: string | null
-          category?: string
-          content?: string | null
-          created_at?: string | null
-          date?: string | null
-          excerpt?: string | null
-          featured?: boolean | null
-          id?: string
-          image?: string | null
-          published?: boolean | null
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "news_articles_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       newsletter_subscriptions: {
         Row: {
           created_at: string | null
@@ -1769,6 +1263,7 @@ export type Database = {
           buyer_phone: string
           created_at: string | null
           delivery_address: string | null
+          fulfillment_issue: string | null
           id: string
           is_test: boolean
           listing_id: string | null
@@ -1793,6 +1288,7 @@ export type Database = {
           buyer_phone: string
           created_at?: string | null
           delivery_address?: string | null
+          fulfillment_issue?: string | null
           id?: string
           is_test?: boolean
           listing_id?: string | null
@@ -1817,6 +1313,7 @@ export type Database = {
           buyer_phone?: string
           created_at?: string | null
           delivery_address?: string | null
+          fulfillment_issue?: string | null
           id?: string
           is_test?: boolean
           listing_id?: string | null
@@ -2050,53 +1547,6 @@ export type Database = {
         }
         Relationships: []
       }
-      products: {
-        Row: {
-          category: string
-          created_at: string | null
-          description: string | null
-          id: string
-          image_url: string | null
-          in_stock: boolean | null
-          name: string
-          price: number
-          seller_id: string | null
-          unit: string | null
-        }
-        Insert: {
-          category: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          in_stock?: boolean | null
-          name: string
-          price: number
-          seller_id?: string | null
-          unit?: string | null
-        }
-        Update: {
-          category?: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          in_stock?: boolean | null
-          name?: string
-          price?: number
-          seller_id?: string | null
-          unit?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "products_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           address: string | null
@@ -2187,152 +1637,6 @@ export type Database = {
           },
         ]
       }
-      rider_assignments: {
-        Row: {
-          delivery_order_id: string
-          id: string
-          offered_at: string
-          responded_at: string | null
-          rider_id: string
-          status: string
-        }
-        Insert: {
-          delivery_order_id: string
-          id?: string
-          offered_at?: string
-          responded_at?: string | null
-          rider_id: string
-          status?: string
-        }
-        Update: {
-          delivery_order_id?: string
-          id?: string
-          offered_at?: string
-          responded_at?: string | null
-          rider_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rider_assignments_delivery_order_id_fkey"
-            columns: ["delivery_order_id"]
-            isOneToOne: false
-            referencedRelation: "delivery_orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rider_assignments_rider_id_fkey"
-            columns: ["rider_id"]
-            isOneToOne: false
-            referencedRelation: "riders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rider_earnings: {
-        Row: {
-          amount_paise: number
-          created_at: string
-          delivery_order_id: string | null
-          id: string
-          rider_id: string
-          status: string
-        }
-        Insert: {
-          amount_paise: number
-          created_at?: string
-          delivery_order_id?: string | null
-          id?: string
-          rider_id: string
-          status?: string
-        }
-        Update: {
-          amount_paise?: number
-          created_at?: string
-          delivery_order_id?: string | null
-          id?: string
-          rider_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rider_earnings_delivery_order_id_fkey"
-            columns: ["delivery_order_id"]
-            isOneToOne: false
-            referencedRelation: "delivery_orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rider_earnings_rider_id_fkey"
-            columns: ["rider_id"]
-            isOneToOne: false
-            referencedRelation: "riders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      riders: {
-        Row: {
-          created_at: string
-          current_lat: number | null
-          current_lng: number | null
-          full_name: string
-          home_business_id: string | null
-          id: string
-          is_online: boolean
-          last_ping_at: string | null
-          payout_upi: string | null
-          phone: string
-          rating: number | null
-          status: string
-          updated_at: string
-          user_id: string
-          vehicle_type: string
-        }
-        Insert: {
-          created_at?: string
-          current_lat?: number | null
-          current_lng?: number | null
-          full_name: string
-          home_business_id?: string | null
-          id?: string
-          is_online?: boolean
-          last_ping_at?: string | null
-          payout_upi?: string | null
-          phone: string
-          rating?: number | null
-          status?: string
-          updated_at?: string
-          user_id: string
-          vehicle_type?: string
-        }
-        Update: {
-          created_at?: string
-          current_lat?: number | null
-          current_lng?: number | null
-          full_name?: string
-          home_business_id?: string | null
-          id?: string
-          is_online?: boolean
-          last_ping_at?: string | null
-          payout_upi?: string | null
-          phone?: string
-          rating?: number | null
-          status?: string
-          updated_at?: string
-          user_id?: string
-          vehicle_type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "riders_home_business_id_fkey"
-            columns: ["home_business_id"]
-            isOneToOne: false
-            referencedRelation: "listings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       site_settings: {
         Row: {
           key: string
@@ -2388,10 +1692,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      accept_delivery_offer: {
-        Args: { p_order_id: string; p_rider_id: string }
-        Returns: boolean
-      }
       create_appointment_booking: {
         Args: {
           p_booking_date: string
@@ -2419,6 +1719,7 @@ export type Database = {
         Args: { p_product_id: string; p_quantity: number }
         Returns: boolean
       }
+      finalize_marketplace_order: { Args: { p_order: Json }; Returns: Json }
       get_admin_find_counts: { Args: never; Returns: Json }
       get_game_leaderboard: {
         Args: { p_game: string; p_scope: string }
@@ -2427,7 +1728,10 @@ export type Database = {
       get_homepage_stats: { Args: never; Returns: Json }
       get_profile_names: {
         Args: { p_ids: string[] }
-        Returns: { id: string; full_name: string | null }[]
+        Returns: {
+          full_name: string
+          id: string
+        }[]
       }
       increment_listing_views: {
         Args: { p_listing_id: string }
