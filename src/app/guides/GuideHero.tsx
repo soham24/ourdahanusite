@@ -12,7 +12,6 @@ export default function GuideHero({ image }: { image: GuideImage }) {
       <div className="overflow-hidden rounded-[var(--od-radius)] border border-[var(--od-border)] bg-[var(--color-surface-soft)]">
         {/* Project sets images.unoptimized — plain <img> avoids next/image's
             optimizer round-trip for what are already pre-sized files. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={image.src}
           alt={image.alt}

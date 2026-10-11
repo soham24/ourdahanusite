@@ -273,7 +273,6 @@ export default function CompactImageUpload({
           className="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
           style={previewStyle}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={value} alt="" className="h-full w-full object-cover" />
           <span className="absolute bottom-1 left-1 rounded-full bg-black/60 px-1.5 py-0.5 text-[9px] font-semibold text-white">
             {aspectOption.label}

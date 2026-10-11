@@ -215,7 +215,6 @@ export default function ImageCropUpload({
       <div className="w-full">
         {label && <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>}
         <div className="relative rounded-2xl overflow-hidden border-2 border-green-300 bg-gray-50 inline-block">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={preview} alt="Preview" className="w-40 h-40 object-cover rounded-2xl" />
           {uploading && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-2xl">

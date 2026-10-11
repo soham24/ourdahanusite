@@ -60,7 +60,6 @@ export function BusinessAvatar({
   const cls = size === 'lg' ? 'h-16 w-16 rounded-[20px]' : 'h-11 w-11 rounded-[14px]'
   if (!business.image_url) return <Monogram name={name} size={size} />
   return (
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={business.image_url}
       alt=""

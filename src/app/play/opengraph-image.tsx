@@ -58,7 +58,6 @@ export default async function Image() {
         />
 
         {/* falling chikoos, decorative */}
-        {/* eslint-disable-next-line @next/next/no-img-element -- next/og requires plain <img> */}
         <img
           src={chikooSvg(-8)}
           width={92}
@@ -66,7 +65,6 @@ export default async function Image() {
           alt=""
           style={{ position: 'absolute', top: 90, right: 160 }}
         />
-        {/* eslint-disable-next-line @next/next/no-img-element -- next/og requires plain <img> */}
         <img
           src={chikooSvg(14)}
           width={64}
@@ -74,7 +72,6 @@ export default async function Image() {
           alt=""
           style={{ position: 'absolute', top: 220, right: 60 }}
         />
-        {/* eslint-disable-next-line @next/next/no-img-element -- next/og requires plain <img> */}
         <img
           src={chikooSvg(6)}
           width={56}
