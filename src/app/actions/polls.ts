@@ -65,6 +65,10 @@ export async function castVote(
 
   if (error) return { error: error.message }
 
+  // The poll pages cache their totals; without this a reload showed the old
+  // counts (the voter's own vote "vanishing") for up to a day.
+  revalidatePollsCache()
+
   const totals = await getLivePollVoteTotals(pollId, options)
   return { optionId, ...totals }
 }

@@ -41,6 +41,7 @@ import { RESERVED_SUBDOMAINS } from '@/lib/subdomain'
 import { redirect } from 'next/navigation'
 import { siteConfig } from '@/lib/site'
 import { fetchProfileNames } from '@/lib/data/profile-names'
+import { recomputeListingRating } from '@/lib/listing-rating'
 
 export async function submitPaidListing(formData: FormData): Promise<{ error?: string }> {
   const supabase = await createClient()
@@ -400,18 +401,7 @@ export async function submitReview(formData: FormData): Promise<{ error?: string
   const adminClient = createAdminClient()
   const dbClient = adminClient ?? supabase
 
-  const { data: reviews } = await dbClient
-    .from('reviews')
-    .select('rating')
-    .eq('listing_id', listingId)
-
-  if (reviews && reviews.length > 0) {
-    const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-    await dbClient
-      .from('listings')
-      .update({ rating: Math.round(avg * 10) / 10, review_count: reviews.length })
-      .eq('id', listingId)
-  }
+  await recomputeListingRating(dbClient, listingId)
 
   revalidatePublicListingContent(listingId)
   const { data: listingMeta } = await dbClient

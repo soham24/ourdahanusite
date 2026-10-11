@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePublicListingDetail } from '@/lib/cache-tags'
+import { revalidateProductDetail, revalidatePublicListingDetail } from '@/lib/cache-tags'
 import { OWNER_CATALOG_ITEM_SELECT, toCatalogItem, type OwnerCatalogRow } from '@/lib/catalog/catalog'
 import { assertListingOwner } from '@/lib/catalog/owner-gate'
 import type { OwnerCatalogItem } from '@/lib/catalog/types'
@@ -195,6 +195,7 @@ export async function updateCatalogItem(itemId: string, input: unknown): Promise
 
   const optionsError = await saveOptions(adminClient, itemId, validation.values.options)
   revalidatePublicListingDetail(listingId)
+  revalidateProductDetail(itemId)
   const item = (await loadItem(adminClient, itemId)) ?? undefined
 
   if (optionsError) {
@@ -224,6 +225,7 @@ export async function setCatalogItemVisible(itemId: string, visible: boolean): P
   }
 
   revalidatePublicListingDetail(listingId)
+  revalidateProductDetail(itemId)
   const item = await loadItem(adminClient, itemId)
   return item ? { item } : { error: 'This item no longer exists.' }
 }
@@ -276,5 +278,6 @@ export async function deleteCatalogItem(itemId: string): Promise<{ error?: strin
   }
 
   revalidatePublicListingDetail(listingId)
+  revalidateProductDetail(itemId)
   return {}
 }

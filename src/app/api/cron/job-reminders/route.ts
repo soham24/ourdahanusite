@@ -4,7 +4,9 @@
  * Vercel runs this at 03:30 UTC (09:00 IST) every day, per vercel.json. Hobby
  * crons may fire anywhere within that hour. Secured with CRON_SECRET.
  *
- * Sends one `job.expiring` reminder for each live post within 3 days of expiry.
+ * Sends one `job.expiring` reminder for each live post within 3 days of expiry,
+ * then appointment reminders for the next 24 hours (moved here from the weekly
+ * listing-expiry cron, which could only ever catch a sliver of them).
  * Nothing here expires posts: the board stops showing a post once its
  * expires_at passes.
  */
@@ -13,6 +15,7 @@ import { connection, NextResponse } from 'next/server'
 
 import { daysLeft, REMINDER_WINDOW_DAYS } from '@/lib/jobs/lifecycle'
 import { sendNotification } from '@/lib/notifications'
+import { runAppointmentReminders } from '@/lib/cron/appointment-reminders'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { bearerToken, isConfigured, secretMatches } from '@/lib/http/shared-secret'
 
@@ -89,6 +92,9 @@ export async function GET(request: Request) {
     else stats.failed += 1
   }
 
+  const appointmentReminders = await runAppointmentReminders(db)
+
   console.log('[cron/job-reminders]', stats)
-  return NextResponse.json({ ok: true, ...stats })
+  console.log('[cron/appointment-reminders]', appointmentReminders)
+  return NextResponse.json({ ok: true, ...stats, appointmentReminders })
 }

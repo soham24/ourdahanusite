@@ -294,20 +294,20 @@ function renderAppointmentReminder(
   return {
     title: isOwner
       ? `Upcoming appointment · ${p.listingName}`
-      : `Your appointment starts soon · ${p.listingName}`,
+      : `Appointment reminder · ${p.listingName}`,
     body: `${date}, ${time}`,
     link: isOwner ? `/my-business/appointments` : `/dashboard/appointments`,
     icon: 'Clock',
     email: {
       subject: isOwner
         ? `Reminder: upcoming appointment at ${p.listingName}`
-        : `Reminder: your appointment at ${p.listingName} starts soon`,
+        : `Reminder: your appointment at ${p.listingName}`,
       html: renderEmailLayout({
         eyebrow: 'Appointment Reminder',
-        headline: isOwner ? 'Upcoming appointment in the next 2 hours' : 'Your appointment starts soon',
+        headline: isOwner ? 'Upcoming appointment' : 'Your upcoming appointment',
         introHtml: isOwner
-          ? `A booked appointment at <strong>${escapeHtml(p.listingName)}</strong> is starting soon.`
-          : `Your appointment with <strong>${escapeHtml(p.listingName)}</strong> is coming up within the next 2 hours.`,
+          ? `A booked appointment at <strong>${escapeHtml(p.listingName)}</strong> is coming up.`
+          : `Your appointment with <strong>${escapeHtml(p.listingName)}</strong> is coming up.`,
         detailRows: [
           buildDetailRow('Business', `<strong>${escapeHtml(p.listingName)}</strong>`, false),
           buildDetailRow('Date', `<strong>${escapeHtml(date)}</strong>`),

@@ -13,11 +13,12 @@ const ANON_VIEWER = {
   isRecommended: false,
 } as const
 
-// Logged-out responses are identical for everyone, so let the edge cache
-// serve repeats and skip the function invocation entirely. Logged-in
-// responses must stay private and uncached because they include user data.
+// Never edge-cached, even signed out. The URL is the same for signed-in
+// users, and a shared cached signed-out answer could be served to them,
+// hiding their name, votes and favourites. The client only calls this when
+// it has a session cookie, so the signed-out case is just expired sessions.
 const ANON_CACHE_HEADERS = {
-  'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
+  'Cache-Control': 'private, no-store',
 } as const
 
 const PRIVATE_HEADERS = {

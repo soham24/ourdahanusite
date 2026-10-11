@@ -163,6 +163,41 @@ assert.deepEqual(
   (await db.query(`SELECT rating, owner_reply FROM public.reviews WHERE id = $1`, [reviewId])).rows[0],
   { rating: 1, owner_reply: 'Sorry, we will do better' },
 )
+// ── Marketplace order status ─────────────────────────────────────────────
+// Cancelling returns the stock checkout took, once; settled orders stay settled.
+await db.exec('RESET ROLE')
+const productId = (await db.query(
+  `INSERT INTO public.listing_products (listing_id, type, name, quantity_in_stock) VALUES ($1, 'product', 'Mango box', 3) RETURNING id`,
+  [listingId],
+)).rows[0].id
+const orderFor = async (extra = {}) => (await db.query(
+  `INSERT INTO public.orders (listing_id, product_id, quantity, status, is_test, fulfillment_issue, buyer_name, buyer_phone, service_name, service_price, amount_total)
+   VALUES ($1, $2, 2, 'confirmed', $3, $4, 'Buyer', '9000000009', 'Mango box', 500, 1000) RETURNING id`,
+  [listingId, productId, extra.isTest ?? false, extra.issue ?? null],
+)).rows[0].id
+const stock = async () => (await db.query(`SELECT quantity_in_stock FROM public.listing_products WHERE id = $1`, [productId])).rows[0].quantity_in_stock
+const setStatus = async (id, status) => (await db.query(`SELECT public.set_marketplace_order_status($1, $2) AS r`, [id, status])).rows[0].r
+
+const paidOrder = await orderFor()
+assert.equal(await setStatus(paidOrder, 'cancelled'), 'updated')
+assert.equal(await stock(), 5, 'cancelling returns the 2 units checkout took')
+assert.equal(await setStatus(paidOrder, 'cancelled'), 'unchanged')
+assert.equal(await stock(), 5, 'a second cancel does not return them again')
+assert.equal(await setStatus(paidOrder, 'confirmed'), 'final', 'a cancelled order cannot be confirmed again')
+
+const fulfilledOrder = await orderFor()
+assert.equal(await setStatus(fulfilledOrder, 'fulfilled'), 'updated')
+assert.equal(await setStatus(fulfilledOrder, 'cancelled'), 'final', 'a fulfilled order cannot be cancelled')
+
+assert.equal(await setStatus(await orderFor({ isTest: true }), 'cancelled'), 'updated')
+assert.equal(await setStatus(await orderFor({ issue: 'Insufficient stock after payment.' }), 'cancelled'), 'updated')
+assert.equal(await stock(), 5, 'test orders and orders that took no stock return none')
+
+await db.exec('SET ROLE anon')
+await assert.rejects(db.query(`SELECT public.set_marketplace_order_status($1, 'cancelled')`, [paidOrder]), /permission denied/)
+await db.exec('RESET ROLE')
+await db.exec(`DELETE FROM public.orders; DELETE FROM public.listing_products;`)
+
 await db.exec(`DELETE FROM public.reviews; DELETE FROM public.listing_questions; DELETE FROM public.coupons; DELETE FROM public.listings;`)
 
 // The sample data loads on top, and moderation still hides what is unapproved.

@@ -14,6 +14,7 @@ import {
 } from '@/lib/notifications'
 import {
   findFinalizedIntentByPaymentId,
+  getIntentByOrderId,
   markIntentCaptured,
   markIntentFinalized,
   recordIntentError,
@@ -234,23 +235,49 @@ export async function bookAppointment(
     }
   }
 
+  // A payment for this booking. Once someone has paid, the slot was offered
+  // to them when they started checkout; re-checking it against the clock now
+  // refused paid bookings when a UPI payment crossed the minimum-notice line,
+  // the owner changed the fee or added a closed day, or it crossed midnight.
+  // So a verified payment skips those checks -- the booking RPC still holds
+  // the line on capacity under its lock -- and is charged what was paid.
+  const paidIntent = paymentId && orderId && signature ? await getIntentByOrderId(orderId) : null
+  const paidFor = (paidIntent?.payload ?? {}) as Record<string, unknown>
+  if (paymentId && orderId && signature) {
+    if (
+      !paidIntent ||
+      paidIntent.user_id !== user.id ||
+      paidIntent.flow !== 'appointment' ||
+      paidIntent.listing_id !== listingId ||
+      paidFor.booking_date !== bookingDate ||
+      paidFor.slot_start !== slotStart
+    ) {
+      return { error: 'This payment was not made for this booking.' }
+    }
+  }
+
   const { config, slots, error: slotsError } = await resolveLiveSlots(listingId, bookingDate)
   if (!config || !config.appointments_enabled || !config.appointment_settings) {
-    return { error: slotsError || 'Appointments are not available for this listing.' }
+    const message = slotsError || 'Appointments are not available for this listing.'
+    if (paidIntent && orderId) await recordIntentError({ razorpayOrderId: orderId, message })
+    return { error: message }
   }
-  if (slotsError) {
+  if (slotsError && !paidIntent) {
     return { error: slotsError }
   }
 
   const selectedSlot = slots.find((slot) => slot.start === slotStart)
-  if (!selectedSlot) {
+  const slotEnd = selectedSlot?.end ?? (paidIntent && typeof paidFor.slot_end === 'string' ? paidFor.slot_end : null)
+  if (!slotEnd) {
     return { error: 'Selected time slot is invalid.' }
   }
-  if (!selectedSlot.available) {
+  if (!paidIntent && !selectedSlot?.available) {
     return { error: 'Selected slot is already full. Please choose another time.' }
   }
 
-  const bookingFee = parseMoney(config.appointment_booking_fee)
+  const bookingFee = paidIntent
+    ? paidIntent.amount_paise / 100
+    : parseMoney(config.appointment_booking_fee)
   let paymentStatus: 'paid' | 'free' = bookingFee > 0 ? 'paid' : 'free'
 
   if (bookingFee > 0) {
@@ -307,7 +334,7 @@ export async function bookAppointment(
     p_user_id: user.id,
     p_booking_date: bookingDate,
     p_slot_start: slotStart,
-    p_slot_end: selectedSlot.end,
+    p_slot_end: slotEnd,
     p_user_name: userName,
     p_user_phone: userPhone,
     p_user_email: userEmail,
@@ -371,7 +398,7 @@ export async function bookAppointment(
         customerPhone: userPhone ?? '',
         bookingDate,
         slotStart,
-        slotEnd: selectedSlot.end,
+        slotEnd,
         bookingFee,
       }
 
@@ -446,7 +473,10 @@ export async function cancelAppointment(
   const cancelledBy: 'user' | 'owner' | 'admin' =
     isAdmin ? 'admin' : isOwner && !isCustomer ? 'owner' : 'user'
 
-  const { error } = await adminClient
+  // Only flips a still-confirmed booking. The status check above came from an
+  // earlier read, so a double click -- or owner and customer cancelling at
+  // once -- both passed it and both sent cancellation notices.
+  const { data: cancelled, error } = await adminClient
     .from('appointments')
     .update({
       status: 'cancelled',
@@ -454,8 +484,11 @@ export async function cancelAppointment(
       cancellation_reason: cancellationReason,
     })
     .eq('id', appointmentId)
+    .eq('status', 'confirmed')
+    .select('id')
 
   if (error) return { error: error.message }
+  if (!cancelled || cancelled.length === 0) return {}
 
   // Fire-and-forget cancellation notifications to the other party
   await (async () => {

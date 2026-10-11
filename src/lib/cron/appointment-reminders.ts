@@ -2,7 +2,11 @@ import { addIndiaDays, getIndiaToday } from '@/lib/india-time'
 import { sendNotification } from '@/lib/notifications'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 
-const REMINDER_WINDOW_MS = 2 * 60 * 60 * 1000
+// Runs from the daily 09:00 IST job-reminders cron: Vercel Hobby crons fire at
+// most once a day, so this reminds about everything in the next 24 hours --
+// today's appointments that morning, early ones tomorrow a day ahead. (It
+// was 2 hours, called from the weekly cron, so it almost never matched.)
+const REMINDER_WINDOW_MS = 24 * 60 * 60 * 1000
 
 type AdminClient = NonNullable<ReturnType<typeof createAdminClient>>
 

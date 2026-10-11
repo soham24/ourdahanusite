@@ -488,19 +488,20 @@ export async function updateMarketplaceOrderStatus(
     return { error: 'Access denied.' }
   }
 
-  const { error } = await adminClient
-    .from('orders')
-    .update({
-      status,
-      // A settled order — fulfilled or cancelled — no longer needs the
-      // "needs attention" flag: it either resolved fine or won't be
-      // fulfilled at all, so the banner shouldn't keep following it around.
-      ...(status === 'fulfilled' || status === 'cancelled' ? { fulfillment_issue: null } : {}),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', orderId)
+  // One locked step in the database: fulfilled and cancelled are final,
+  // cancelling returns the stock checkout took, and a settled order drops its
+  // "needs attention" flag. See set_marketplace_order_status.
+  const { data: outcome, error } = await adminClient.rpc('set_marketplace_order_status', {
+    p_order_id: orderId,
+    p_status: status,
+  })
 
   if (error) return { error: error.message }
+  if (outcome === 'final') return { error: 'This order is already fulfilled or cancelled.' }
+  if (outcome !== 'updated') return {}
+
+  // Stock shown on the business page and product pages may have changed.
+  revalidatePublicListingDetail(listing.id)
 
   // Notify the buyer on status change (awaited delivery)
   if (order.buyer_id && (status === 'fulfilled' || status === 'cancelled')) {
