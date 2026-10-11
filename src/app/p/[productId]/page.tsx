@@ -104,7 +104,6 @@ async function ProductContent({ params }: { params: Promise<{ productId: string 
                 className={`relative overflow-hidden ${aspect.value === 'portrait' ? 'mx-auto w-3/4' : 'w-full'}`}
                 style={{ aspectRatio: aspect.cssAspectRatio }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={imageUrl} alt={product.name} className="h-full w-full object-cover" />
               </div>
             </div>

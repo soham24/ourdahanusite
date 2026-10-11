@@ -160,7 +160,6 @@ export function ProductsManager({
                 <div className={`flex gap-3 ${item.is_active ? '' : 'opacity-60'}`}>
                   <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[var(--od-surface-soft)] text-[var(--od-muted)]">
                     {imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={imageUrl}
                         alt=""

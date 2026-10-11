@@ -73,7 +73,6 @@ export default async function GuidesIndexPage() {
                     // Decorative here — the card's heading already names the
                     // article, so an alt would just repeat it to a screen reader.
                     // Full credit is rendered on the article page itself.
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={g.hero.src}
                       alt=""

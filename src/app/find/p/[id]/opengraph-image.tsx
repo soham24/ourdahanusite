@@ -148,7 +148,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           >
             {ratingText ? (
               <>
-                {/* eslint-disable-next-line @next/next/no-img-element -- next/og requires plain <img> */}
                 <img src={starSvg} width={26} height={26} alt="" />
                 <span style={{ display: 'flex' }}>{ratingText}</span>
               </>

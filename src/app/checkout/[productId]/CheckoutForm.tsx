@@ -465,7 +465,6 @@ export default function CheckoutForm({
       {/* Product strip */}
       <div className="flex items-center gap-3 rounded-[14px] border border-[var(--od-border)] bg-[var(--color-surface-soft)] p-3">
         {product.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={product.imageUrl}
             alt=""
