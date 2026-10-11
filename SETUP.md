@@ -33,9 +33,32 @@ Leave `.env.local` alone for now; step 4 fills it in.
 
 ## Step 2: Set Up Database
 
+The schema lives in `supabase/migrations/`, one file per change, applied in
+filename order. Pick either way:
+
+**In the dashboard (no tools needed)**
+
 1. In Supabase Dashboard → go to **SQL Editor**
-2. Copy the contents of `supabase/schema.sql` and run it
-3. This creates all tables (profiles, products, events, listings, orders, reviews)
+2. Open each file in `supabase/migrations/` **in filename order** — start with
+   `…_baseline.sql` — paste it in and run it
+3. Optional: run `supabase/seed.sql` too, for a made-up town with sample
+   businesses, events and tradespeople, so the pages are not empty
+
+**With the Supabase CLI**
+
+```bash
+npx supabase init          # once; creates supabase/config.toml
+npx supabase link --project-ref YOUR_PROJECT_ID
+npx supabase db push       # applies every migration not yet applied
+```
+
+For a throwaway local database instead (needs Docker): `npx supabase start`,
+then `npx supabase db reset` replays the migrations and loads `seed.sql`.
+
+Either way this creates every table, the row level security policies, the
+`uploads` storage bucket and the trigger that creates a profile on sign-up.
+Do not run anything from `supabase/legacy/` — those are the old hand-applied
+files, kept as history only.
 
 ## Step 3: Enable Google Login
 

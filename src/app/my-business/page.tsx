@@ -26,6 +26,7 @@ import { deriveSellingChecklist } from '@/lib/selling/checklist'
 import { loadSuspensionReasons } from '@/lib/selling/suspension-reasons'
 import SellOnlineCard, { type SellOnlineRow } from './SellOnlineCard'
 import { siteConfig } from '@/lib/site'
+import { fetchProfileNames } from '@/lib/data/profile-names'
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'approved') {
@@ -199,18 +200,10 @@ export default async function MyBusinessPage({
 
       if (reviewsData) {
         const rawReviews = reviewsData as unknown as Review[]
-        const userIds = [...new Set(rawReviews.map(r => r.user_id))]
-        const { data: profileData } = await supabase
-          .from('public_profiles')
-          .select('id, full_name')
-          .in('id', userIds)
-        const profileMap: Record<string, string> = {}
-        for (const p of profileData || []) {
-          if (p.full_name) profileMap[p.id] = p.full_name
-        }
+        const names = await fetchProfileNames(supabase, rawReviews.map(r => r.user_id))
         reviews = rawReviews.map(r => ({
           ...r,
-          reviewer_name: profileMap[r.user_id] || null,
+          reviewer_name: names.get(r.user_id) || null,
         }))
       }
     }

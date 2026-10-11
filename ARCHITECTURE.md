@@ -53,7 +53,7 @@ If you've built Android apps, here's how web concepts map to what you already kn
 | Firebase Cloud Messaging | **Resend** (email), **Telegram Bot API**, **WhatsApp Cloud API** | `src/lib/notify-*.ts` |
 | Gradle build variants (debug/release) | **Environment variables** (`.env.local` for dev, Vercel env for prod) | `.env.local` |
 | `WorkManager` (background tasks) | **Vercel Cron Jobs** | `vercel.json` crons |
-| RoomDatabase migrations | **SQL scripts** run in Supabase SQL Editor | `supabase/*.sql` |
+| RoomDatabase migrations | **SQL migrations**, applied in filename order | `supabase/migrations/*.sql` |
 | OkHttp Interceptors | **Next.js Middleware** — runs before every request | `src/proxy.ts` |
 
 ---
@@ -1104,7 +1104,7 @@ The site works even if JavaScript fails to load — forms submit via HTML, links
 | Add a new admin section | Create in `src/app/admin/your-section/` + add to layout |
 | Add a new cache-aware data fetcher | Create in `src/lib/data/` with `'use cache'` + tags |
 | Send a notification | Use patterns from `src/lib/notify-admin.ts` |
-| Add a new database table | Write SQL in `supabase/` and run in Supabase SQL Editor |
+| Add a new database table | Add a new file in `supabase/migrations/` and apply it (SQL Editor or `npx supabase db push`) |
 | Add new colors/design tokens | Add to `@theme` in `src/app/globals.css` |
 | Protect a page (auth required) | Use `requireAdmin()` or check `getUserRole()` |
 | Accept payments | Follow Razorpay pattern in `src/app/api/razorpay/` |

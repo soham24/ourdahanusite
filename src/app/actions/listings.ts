@@ -37,6 +37,7 @@ import { normalizeOptionalUrlOrNull } from '@/lib/url'
 import { RESERVED_SUBDOMAINS } from '@/lib/subdomain'
 import { redirect } from 'next/navigation'
 import { siteConfig } from '@/lib/site'
+import { fetchProfileNames } from '@/lib/data/profile-names'
 
 export async function submitPaidListing(formData: FormData): Promise<{ error?: string }> {
   const supabase = await createClient()
@@ -527,16 +528,9 @@ export async function replyToReview(
     (listing.name as string | undefined)?.trim() ||
     null
 
-  let reviewerName: string | null = null
-  if (reviewRow.user_id) {
-    const { data: reviewerProfile } = await dbClient
-      .from('public_profiles')
-      .select('full_name')
-      .eq('id', reviewRow.user_id)
-      .maybeSingle()
-    reviewerName =
-      (reviewerProfile?.full_name as string | null | undefined) ?? null
-  }
+  const reviewerName = reviewRow.user_id
+    ? ((await fetchProfileNames(dbClient, [reviewRow.user_id])).get(reviewRow.user_id) ?? null)
+    : null
 
   const payloadBase = {
     reviewId,

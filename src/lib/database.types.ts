@@ -2385,10 +2385,7 @@ export type Database = {
       }
     }
     Views: {
-      public_profiles: {
-        Row: { id: string; full_name: string | null; avatar_url: string | null }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       accept_delivery_offer: {
@@ -2428,6 +2425,10 @@ export type Database = {
         Returns: Json
       }
       get_homepage_stats: { Args: never; Returns: Json }
+      get_profile_names: {
+        Args: { p_ids: string[] }
+        Returns: { id: string; full_name: string | null }[]
+      }
       increment_listing_views: {
         Args: { p_listing_id: string }
         Returns: undefined

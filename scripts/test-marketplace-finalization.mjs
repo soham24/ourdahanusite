@@ -13,7 +13,7 @@ await db.exec(`
  INSERT INTO listing_products VALUES ('00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000001',5);
  INSERT INTO payment_intents(razorpay_order_id,user_id,status) VALUES ('order_1','00000000-0000-0000-0000-000000000003','created');
 `)
-await db.exec(await readFile('supabase/atomic_marketplace_finalization.sql','utf8'))
+await db.exec(await readFile('supabase/legacy/atomic_marketplace_finalization.sql','utf8'))
 const order = {listing_id:'00000000-0000-0000-0000-000000000001',product_id:'00000000-0000-0000-0000-000000000002',buyer_id:'00000000-0000-0000-0000-000000000003',buyer_name:'Buyer',buyer_phone:'9999999999',service_name:'Rice',service_price:100,quantity:2,amount_total:200,owner_razorpay_order_id:'order_1',owner_razorpay_payment_id:'pay_1',owner_razorpay_signature:'verified',is_test:false}
 const finalize = (value) => db.query('SELECT public.finalize_marketplace_order($1::jsonb) AS result',[JSON.stringify(value)])
 const a = (await finalize(order)).rows[0].result

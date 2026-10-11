@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { createPublicClient } from '@/lib/supabase/public'
+import { fetchProfileNames } from '@/lib/data/profile-names'
 
 export type ReviewRecord = Record<string, unknown>
 
@@ -35,24 +36,14 @@ async function attachReviewerNames(
 ): Promise<ReviewRecord[]> {
   if (rawReviews.length === 0) return rawReviews
 
-  const userIds = [...new Set(rawReviews.map((review) => review.user_id).filter(Boolean))]
-  if (userIds.length === 0) return rawReviews
+  const userIds = rawReviews.map((review) => (typeof review.user_id === 'string' ? review.user_id : null))
+  if (!userIds.some(Boolean)) return rawReviews
 
-  const { data: profileData } = await supabase
-    .from('public_profiles')
-    .select('id, full_name')
-    .in('id', userIds as string[])
-
-  const profileMap: Record<string, string> = {}
-  for (const profile of (profileData ?? []) as Array<{ id: string; full_name: string | null }>) {
-    if (profile.full_name) {
-      profileMap[profile.id] = profile.full_name
-    }
-  }
+  const names = await fetchProfileNames(supabase, userIds)
 
   return rawReviews.map((review) => ({
     ...review,
-    reviewer_name: typeof review.user_id === 'string' ? (profileMap[review.user_id] ?? null) : null,
+    reviewer_name: typeof review.user_id === 'string' ? (names.get(review.user_id) ?? null) : null,
   }))
 }
 

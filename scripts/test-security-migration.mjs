@@ -18,7 +18,7 @@ await db.exec(`
   INSERT INTO public.profiles VALUES ('00000000-0000-0000-0000-000000000001', 'Public name', NULL, 'private@example.test', 'private', 'private', 'user', false, false);
 `)
 // Exercise actual SQL privileges, including bypasses of the application UI.
-await db.exec(await readFile('supabase/harden_profile_access.sql', 'utf8'))
+await db.exec(await readFile('supabase/legacy/harden_profile_access.sql', 'utf8'))
 await db.exec(`SET ROLE anon`)
 assert.equal((await db.query('SELECT email FROM public.profiles')).rows.length, 0, 'anonymous users must not read private profile rows')
 await db.exec(`RESET ROLE; SET ROLE authenticated; SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', false)`)
@@ -35,6 +35,6 @@ await db.exec('RESET ROLE; SET ROLE service_role')
 await db.exec("UPDATE public.profiles SET role = 'admin', verified = true")
 await db.exec('RESET ROLE')
 // Reapplying must preserve privileges and remain safe.
-await db.exec(await readFile('supabase/harden_profile_access.sql', 'utf8'))
+await db.exec(await readFile('supabase/legacy/harden_profile_access.sql', 'utf8'))
 await db.close()
 console.log('Profile privacy, protected roles and order-write permissions passed')

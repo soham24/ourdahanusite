@@ -12,6 +12,7 @@ import {
 import { logCacheRegeneration } from '@/lib/isr-debug'
 import { sortCategoriesForDiscovery } from '@/lib/listing-category'
 import { createPublicClient } from '@/lib/supabase/public'
+import { fetchProfileNames } from '@/lib/data/profile-names'
 
 export interface HomeListing {
   id: string
@@ -246,9 +247,7 @@ export async function getHomeRecentReviews(): Promise<HomeReview[]> {
 
     if (!data) return []
 
-    const ids = [...new Set(data.map((row) => row.user_id).filter(Boolean))] as string[]
-    const { data: names } = await supabase.from('public_profiles').select('id, full_name').in('id', ids)
-    const nameById = new Map((names ?? []).map((row) => [row.id, row.full_name]))
+    const nameById = await fetchProfileNames(supabase, data.map((row) => row.user_id))
 
     // Dedupe: keep first (most recent) review per listing_id
     const seen = new Set<string>()

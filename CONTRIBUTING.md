@@ -24,10 +24,11 @@ cp .env.local.example .env.local   # fill in your own Supabase project
 npm run dev
 ```
 
-You need your own Supabase project. Apply `supabase/schema.sql` first, then the
-other files in `supabase/` — they are individual migrations, applied in the
-order their contents imply. You do not need Razorpay, Telegram or WhatsApp
-credentials unless you are working on those paths.
+You need your own Supabase project. Apply the files in `supabase/migrations/`
+in filename order, then `supabase/seed.sql` for sample data — SETUP.md step 2
+has both the dashboard and the CLI way. Schema changes go in a new migration
+file, never an edit to an existing one. You do not need Razorpay, Telegram or
+WhatsApp credentials unless you are working on those paths.
 
 ## Before you open a pull request
 

@@ -36,8 +36,9 @@ npm install
 cp .env.local.example .env.local
 ```
 
-Create a Supabase project, run `supabase/schema.sql` in its SQL editor, and
-put three values in `.env.local`:
+Create a Supabase project, run the files in `supabase/migrations/` in its SQL
+editor in filename order (then `supabase/seed.sql` if you want sample data),
+and put three values in `.env.local`:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
@@ -211,12 +212,19 @@ subdomains resolve.
 
 ## Database
 
-Schema and row level security policies live in `supabase/`. Run `schema.sql`
-first, then the other files — each one is a migration.
+The schema — tables, row level security policies, functions, grants, the
+storage bucket — lives in `supabase/migrations/`, applied in filename order.
+`…_baseline.sql` is the whole schema as it stood when the project went open
+source, generated from the production database and checked against it.
+`supabase/seed.sql` is a made-up town to fill an empty database.
+`supabase/legacy/` holds the old hand-applied files; never run them.
 
-After any schema change, regenerate the types into
-`src/lib/database.types.ts`, and run Supabase's security and performance
-advisors.
+To change the schema, add a new `supabase/migrations/<timestamp>_<what>.sql`
+— never edit one that has shipped — then regenerate
+`src/lib/database.types.ts` and run Supabase's security and performance
+advisors. `npm test` builds a database from the migrations and seed
+(`scripts/test-baseline-schema.mjs`), so a migration that does not apply
+cleanly fails CI.
 
 ## Contributing
 
