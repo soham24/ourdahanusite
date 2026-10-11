@@ -8,7 +8,7 @@ Work through it in order. Steps 1–6 get the site running, step 7 makes it your
 town, and step 8 replaces the parts that are about Dahanu rather than about
 the software.
 
-**You need:** Node.js 20 or newer, a free Supabase account, and a Google
+**You need:** Node.js 24 (the version production runs; see `.nvmrc`), a free Supabase account, and a Google
 account. Razorpay, Resend, Telegram and WhatsApp are all optional — leave them
 until the site is up.
 

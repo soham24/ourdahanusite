@@ -15,6 +15,13 @@ updates:
       - dependency-name: "@supabase/supabase-js"
       # 0.10+ requires supabase-js >= 2.114, so it moves with the pin above.
       - dependency-name: "@supabase/ssr"
+      # typescript-eslint (via eslint-config-next) needs typescript < 6.1;
+      # TypeScript 7 stops lint from loading at all. Lift when it supports 7.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # Type definitions follow the Node major production runs (24.x).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       minor-and-patch:
         update-types: [minor, patch]

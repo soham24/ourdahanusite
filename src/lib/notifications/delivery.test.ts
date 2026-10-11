@@ -1,20 +1,21 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { readFileSync } from 'node:fs'
-import ts from 'typescript'
+import { transformSync } from 'esbuild'
 
+// Compiled to CommonJS so every import becomes a require() the test answers.
+// esbuild rather than ts.transpileModule: TypeScript 7 no longer ships that
+// JavaScript API.
 function loadModule(path: string, dependencies: Record<string, unknown>, globals: Record<string, unknown> = {}) {
   const source = readFileSync(new URL(path, import.meta.url), 'utf8')
-  const compiled = ts.transpileModule(source, {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  }).outputText
-  const exports: Record<string, (...args: unknown[]) => Promise<unknown>> = {}
+  const compiled = transformSync(source, { loader: 'ts', format: 'cjs', target: 'es2022' }).code
+  const cjs = { exports: {} as Record<string, (...args: unknown[]) => Promise<unknown>> }
   const require = (name: string) => {
     if (!(name in dependencies)) throw new Error(`Unexpected dependency: ${name}`)
     return dependencies[name]
   }
-  new Function('require', 'exports', ...Object.keys(globals), compiled)(require, exports, ...Object.values(globals))
-  return exports
+  new Function('require', 'exports', 'module', ...Object.keys(globals), compiled)(require, cjs.exports, cjs, ...Object.values(globals))
+  return cjs.exports
 }
 
 test('default dispatch waits for Telegram delivery before resolving', async () => {
