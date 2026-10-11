@@ -1,0 +1,22 @@
+name: Idea or improvement
+description: Suggest something new, or a better way to do something that exists.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: Who runs into it, and when? Describing the problem helps more than describing a fix.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you have in mind
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Would this help other towns too?
+      description: This code is meant to be re-pointed at any town. Ideas that only fit one place may be better kept in a fork.
+      options:
+        - label: Yes, it is not specific to one town

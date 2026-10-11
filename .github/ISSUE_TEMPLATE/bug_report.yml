@@ -1,0 +1,47 @@
+name: Bug report
+description: Something on the site or in the code does not work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Found a security problem?** Do not file it here — use the private
+        [Report a vulnerability](https://github.com/soham24/ourdahanusite/security/advisories/new)
+        form instead (see SECURITY.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you got instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to …
+        2. Click …
+        3. See …
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: The page URL, or the file and line if it is in the code.
+  - type: dropdown
+    id: setup
+    attributes:
+      label: Which copy
+      options:
+        - The live site (ourdahanu.in)
+        - My own copy of this code, run locally
+        - My own copy, deployed
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Browser and device, screenshots, console errors. Leave out phone numbers, emails and keys.
