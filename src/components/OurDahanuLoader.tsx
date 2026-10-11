@@ -191,7 +191,7 @@ export default function OurDahanuLoader({
                 <g className="our-dahanu-loader__logo-arc-top">
                   <path id="loaderTopArc" d="M 25,58 A 28,28 0 0,1 85,58" fill="none" />
                   <text
-                    fontFamily="'DM Sans', sans-serif"
+                    style={{ fontFamily: "var(--font-dm), 'DM Sans', sans-serif" }}
                     fontSize="6"
                     fontWeight="700"
                     fill="#C8881E"
@@ -229,7 +229,7 @@ export default function OurDahanuLoader({
                   className="our-dahanu-loader__logo-mono"
                   x="55"
                   y="62"
-                  fontFamily="'Instrument Serif', Georgia, serif"
+                  style={{ fontFamily: "var(--font-instrument), 'Instrument Serif', Georgia, serif" }}
                   fontSize="26"
                   fontWeight="400"
                   fill="url(#loaderGoldGrad)"

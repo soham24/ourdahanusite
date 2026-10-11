@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Suspense } from 'react'
-import { DM_Sans, Instrument_Serif, Noto_Sans_Devanagari } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 import { NavbarFallback } from '@/components/Navbar'
 import { EmergencyRibbonFallback } from '@/components/EmergencyRibbon'
@@ -28,31 +28,45 @@ const LOGO_URL = `${METADATA_BASE_URL}/logo.png`
 // without its own metadata get.
 const SITE_TITLE = `${siteConfig.name} - ${siteConfig.town} Business Directory, Jobs & Community`
 
+// The font files live in ./fonts (from Fontsource, OFL-1.1) rather than
+// coming through next/font/google, because that fetches from Google Fonts
+// at build time and a slow response there has failed a production build.
+
 // Primary body font — DM Sans (revamped design system)
-const dmSans = DM_Sans({
-  subsets: ['latin'],
+const dmSans = localFont({
+  src: [
+    { path: './fonts/dm-sans-latin-300-normal.woff2', weight: '300', style: 'normal' },
+    { path: './fonts/dm-sans-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/dm-sans-latin-500-normal.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/dm-sans-latin-600-normal.woff2', weight: '600', style: 'normal' },
+    { path: './fonts/dm-sans-latin-700-normal.woff2', weight: '700', style: 'normal' },
+  ],
   variable: '--font-dm',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700'],
 })
 
 // Display serif for hero + section headlines
-const instrumentSerif = Instrument_Serif({
-  weight: ['400'],
-  style: ['normal', 'italic'],
-  subsets: ['latin'],
+const instrumentSerif = localFont({
+  src: [
+    { path: './fonts/instrument-serif-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/instrument-serif-latin-400-italic.woff2', weight: '400', style: 'italic' },
+  ],
   variable: '--font-instrument',
   display: 'swap',
+  adjustFontFallback: 'Times New Roman',
 })
 
 // Devanagari support for the loader logo ("आपले डहाणू"). Loaded so the
 // curved text renders consistently on devices that don't ship a
 // compatible system Devanagari font (e.g. iOS mobile Safari).
-const notoDevanagari = Noto_Sans_Devanagari({
-  subsets: ['devanagari'],
+const notoDevanagari = localFont({
+  src: [
+    { path: './fonts/noto-sans-devanagari-devanagari-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/noto-sans-devanagari-devanagari-500-normal.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/noto-sans-devanagari-devanagari-600-normal.woff2', weight: '600', style: 'normal' },
+  ],
   variable: '--font-devanagari',
   display: 'swap',
-  weight: ['400', '500', '600'],
 })
 
 export const metadata: Metadata = {

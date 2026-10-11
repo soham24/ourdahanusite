@@ -27,8 +27,13 @@ export default function LoaderFontsReady() {
     }
 
     if ('fonts' in document) {
+      // next/font names the face after the loader variable, not the real
+      // family, so ask for whatever --font-devanagari resolves to.
+      const devanagari =
+        getComputedStyle(document.documentElement).getPropertyValue('--font-devanagari').trim() ||
+        '"Noto Sans Devanagari"'
       document.fonts
-        .load('500 6.5px "Noto Sans Devanagari"')
+        .load(`500 6.5px ${devanagari}`)
         .then(markReady)
         .catch(markReady) // fail-open so the text isn't invisible forever
       document.fonts.ready.then(markReady).catch(markReady)
