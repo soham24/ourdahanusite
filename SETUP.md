@@ -12,6 +12,11 @@ the software.
 account. Razorpay, Resend, Telegram and WhatsApp are all optional — leave them
 until the site is up.
 
+**Stuck?** Run `npm run doctor` at any point. It reads `.env.local`, checks
+the database, migrations, sign-in and every optional service, and says what to
+fix. It changes nothing. Common problems are under
+[Troubleshooting](#troubleshooting) at the end.
+
 ---
 
 ## Step 0: Clone and install
@@ -107,7 +112,13 @@ npm run dev
 
 Open http://localhost:3000 and sign in with the `ADMIN_EMAIL` account.
 
+If anything is off, `npm run doctor` will tell you which step to revisit.
+
 ## Step 6: Deploy
+
+The quickest way is the **Deploy with Vercel** button in the README: it copies
+the repository, creates the Supabase database for you and deploys. The steps
+below are the manual way, and what to finish after the button.
 
 1. Push the project to GitHub and import it in Vercel (**New Project**).
 2. Add the same environment variables in Vercel's **Settings → Environment
@@ -191,7 +202,7 @@ go through these before you launch:
 | Area suggestions | `src/lib/jobs/options.ts` | Localities offered when posting a job. |
 | Chikoo Catcher | `src/app/play/` | A chikoo is Dahanu's fruit and the game is themed on it. Rename it, re-theme it, or delete the route. |
 | About page | `src/app/about/page.tsx` | The story of this project and who built it. Yours is different. |
-| WhatsApp templates | `src/lib/whatsapp.ts` | The three message templates Meta must approve, with their wording. |
+| WhatsApp template | `docs/EMAIL-AND-NOTIFICATIONS.md` | The wording of the one template Meta must approve names the site. |
 | Terms and privacy | `src/app/terms/`, `src/app/privacy/` | Written for one operator in one jurisdiction. **Have someone qualified read these before publishing them.** |
 
 ## Optional services
@@ -204,10 +215,10 @@ without it. `.env.local.example` has the details for each.
   (`https://<your domain>/api/razorpay/webhook`, events `payment.captured` and
   `order.paid`) so a payment is still recorded if the buyer's browser dies.
   The listing price is set on the admin pricing page.
-- **Email (Resend).** Verify your domain first — see "Email sender" above.
-- **WhatsApp (Meta Cloud API).** Needs the three approved templates listed in
-  `src/lib/whatsapp.ts`.
-- **Telegram.** Below.
+- **Email, Telegram and WhatsApp.** What each sends, to whom, and how to set
+  up Resend, a Telegram bot and Meta's WhatsApp API is in
+  **[docs/EMAIL-AND-NOTIFICATIONS.md](docs/EMAIL-AND-NOTIFICATIONS.md)**. With
+  none of them configured, notifications still appear in the app.
 
 ## Telegram notifications (optional)
 
@@ -241,3 +252,67 @@ Skip this entirely if you are not using Telegram — nothing else depends on it.
 If you ever rotate the secret, set the new value **and** re-run `setWebhook`
 with it. Changing only one of the two leaves Telegram posting to a URL the app
 now rejects, and account linking stops working with no error visible to users.
+
+## Troubleshooting
+
+Run `npm run doctor` first — it catches most of these. To check the deployed
+site's settings rather than your local ones, pull them with
+`vercel env pull .env.local` and run it again.
+
+**Signing in sends me back to the homepage, or to the live site, without
+logging me in.**
+The address you are on is missing from Supabase → Authentication → URL
+Configuration → **Redirect URLs**. Add `<that address>/auth/callback` —
+`http://localhost:3000/auth/callback` locally, `https://<your domain>/auth/callback`
+in production (steps 5 and 6).
+
+**"Unsupported provider" or the Google button does nothing.**
+Google is not switched on in Supabase → Authentication → Providers, or its
+Client ID/Secret are wrong (step 3).
+
+**I signed in but have no admin panel.**
+`ADMIN_EMAIL` must match the Google account's address exactly (same case), and
+must be set where the site runs — in Vercel too, followed by a redeploy. Admin
+emails and alerts go to profiles whose role is `admin`, so also mark yourself
+in the SQL editor:
+`update profiles set role = 'admin' where email = 'you@example.com';`
+
+**"relation … does not exist", or pages error on an empty database.**
+The migrations have not been run, or not all of them. Run every file in
+`supabase/migrations/` in filename order (step 2). The doctor reports which
+ones are missing.
+
+**"Server configuration error" when booking, ordering or saving settings.**
+`SUPABASE_SERVICE_ROLE_KEY` is not set where the site runs — add it in Vercel
+too, then redeploy. Environment variable changes only reach new deployments.
+
+**Business subdomains (`shop.yourtown.in`) do not load, or show a
+certificate warning.**
+Add the wildcard `*.yourtown.in` in Vercel → Domains, and let Vercel run the
+domain's DNS (point the nameservers at Vercel). Wildcard certificates need it.
+On a `*.vercel.app` address subdomains cannot work; listings still open at
+`/listings/<id>`.
+
+**Listings never expire / no appointment reminders.**
+`CRON_SECRET` is missing in Vercel, so the scheduled jobs refuse to run. Set it
+and redeploy; Vercel → Settings → Cron Jobs shows each run.
+
+**Emails do not arrive.**
+Usually the sending domain is not verified in Resend. Resend → **Logs** shows
+each attempt and why it failed. See
+[docs/EMAIL-AND-NOTIFICATIONS.md](docs/EMAIL-AND-NOTIFICATIONS.md).
+
+**"Connect Telegram" opens the bot, but the account never links.**
+The webhook is not registered, or was registered with a different
+`TELEGRAM_WEBHOOK_SECRET` than the site has. Re-run `setWebhook` (above).
+
+**Payments succeed but the order stays unpaid.**
+The Razorpay webhook is missing, or `RAZORPAY_WEBHOOK_SECRET` does not match
+the secret entered in Razorpay's dashboard (Optional services, above).
+
+**Images fail to upload.**
+The `uploads` storage bucket is missing — it is created by the baseline
+migration, so re-check step 2.
+
+**The site still says Dahanu.**
+Step 7: `src/lib/site-config.ts`, and step 8 for content outside it.
