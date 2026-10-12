@@ -73,35 +73,60 @@ files, kept as history only.
 
 ## Step 4: Set Environment Variables
 
-Edit `.env.local` with your real values:
+Edit `.env.local`. Four values are required; everything else in
+`.env.local.example` is optional and should stay **empty** until you have real
+credentials for it (an optional value that is merely set switches its feature
+on).
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
-NEXT_PUBLIC_SITE_URL=https://yourdomain.com
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-Find these in: Supabase Dashboard → **Settings** → **API**
+The first three are in Supabase Dashboard → **Project Settings** → **API**.
+The service-role key is not optional: admin, payment and notification writes
+all use it, and without it they fail with "Server configuration error". Never
+expose it to the browser.
 
-## Step 5: Deploy to Vercel
+Also set `ADMIN_EMAIL` to the Google account you will sign in with — that
+account becomes the first admin.
 
-1. Push this project to GitHub
-2. Go to https://vercel.com → New Project → Import from GitHub
-3. Add the 3 environment variables above in Vercel's settings
-4. Deploy!
+## Step 5: Sign in locally
 
-## Step 6: Update Supabase Auth URL
+In Supabase → **Authentication** → **URL Configuration**, add
+`http://localhost:3000/auth/callback` to **Redirect URLs**. Without it, signing
+in on your machine bounces you to the Site URL instead.
 
-After deploying, in Supabase:
-- **Authentication** → **URL Configuration**
-- Set **Site URL** to your Vercel URL (e.g., `https://ourdahanu.vercel.app`)
-- Add to **Redirect URLs**: `https://ourdahanu.vercel.app/auth/callback`
+Then:
+
+```bash
+npm run dev
+```
+
+Open http://localhost:3000 and sign in with the `ADMIN_EMAIL` account.
+
+## Step 6: Deploy
+
+1. Push the project to GitHub and import it in Vercel (**New Project**).
+2. Add the same environment variables in Vercel's **Settings → Environment
+   Variables**, with `NEXT_PUBLIC_SITE_URL` set to your real domain
+   (`https://ourpune.in`).
+3. Add your domain in Vercel → **Settings → Domains**, and also the wildcard
+   `*.ourpune.in`: every business gets its own subdomain. Vercel needs to run
+   the domain's DNS (its nameservers) to issue wildcard certificates.
+4. In Supabase → **Authentication** → **URL Configuration**, set **Site URL** to
+   `https://ourpune.in` and add `https://ourpune.in/auth/callback` to
+   **Redirect URLs** (keep the localhost one for development).
+5. Set `CRON_SECRET` (any long random string) in Vercel. The two jobs in
+   `vercel.json` — listing expiry and the daily reminders — refuse to run
+   without it.
 
 ## Step 7: Make it your town
 
 Open **`src/lib/site-config.ts`**. This one file is what the interface reads
-for its name, its town and its address — the things the code used to have
-written out across 159 separate files.
+for its name, its town, its domain and its address.
 
 ```ts
 export const siteConfig = {
@@ -111,66 +136,42 @@ export const siteConfig = {
   domain: 'ourdahanu.in',               // → 'ourpune.in'
   areas: 'Dahanu, Bordi, Gholvad and Palghar',
   region: 'Palghar, Maharashtra, India',
-  contactEmail: 'railkarsoham@gmail.com',
+  contactEmail: 'you@example.com',
   tagline: 'OurDahanu is the local platform for …',
 }
 ```
 
-Change those, run `npm run dev`, and the site is your town's.
+Change those, run `npm run dev`, and the site is your town's: sign-in cookies,
+business subdomains, canonical URLs, robots.txt, the sitemap and the links in
+emails and Telegram messages all follow `domain`.
 
-`areas` is the villages around the town, written as a phrase. A lot of the
-copy says "Dahanu, Bordi, Gholvad and Palghar" rather than just "Dahanu", and
-substituting only the town name into those sentences would have produced
-"Pune, Bordi, Gholvad and Palghar".
-
+`areas` is the places around the town, written as a phrase; much of the copy
+says "Dahanu, Bordi, Gholvad and Palghar" rather than just "Dahanu".
 `townLocal` is the name in your own script, shown under the logo while pages
-load. Set it to `''` to show nothing. A non-Latin script also needs a font
-with the right glyphs — see the Devanagari subset loaded in
-`src/app/layout.tsx` and swap it for yours.
+load — `''` shows nothing, and a non-Latin script needs a font with its glyphs
+(see the Devanagari subset in `src/app/layout.tsx`).
 
 ### What the config does not reach
 
-Most of the interface reads `site-config.ts`, but not all of it. After
-changing the config, run this and work through what it finds:
+After changing the config, list what still names the old town:
 
 ```bash
-git grep -in "ourdahanu\|dahanu" -- src/ public/ | grep -v "od-\|dahanu-loader\|OurDahanuLoader"
+git grep -in "ourdahanu\|dahanu\|palghar" -- src/ public/ | grep -v "od-\|dahanu-loader\|OurDahanuLoader"
 ```
 
-The two that matter most:
-
-**`src/proxy.ts`** — the per-business subdomain routing, and the single most
-important file to get right: miss it and `yourbusiness.ourpune.in` keeps
-routing against `ourdahanu.in`. Next.js requires the `config.matcher` export
-to be inline literals, so a variable there fails the build with "Invalid
-segment configuration export detected". There are **19 references** in that
-file — the subdomain matcher regex alone appears five times, plus the
-standalone-host patterns, the runtime host checks and the robots.txt output.
-Replace every one.
-
-**`public/manifest.json`** — the installable-app name and description, read
-by the browser before any JavaScript runs.
-
-Beyond those, roughly **50 references remain in ordinary code**: canonical
-URL helpers, a few host checks in `src/lib/`, and the test fixtures, which
-assert against the literal domain and will need updating for yours. The grep
-above lists them all.
-
-**The email sender addresses are a special case.** Four files set a Resend
-`from:` address — `src/app/actions/admin.ts`,
-`src/app/actions/newsletter.ts`, `src/app/api/newsletter/route.ts` and
-`src/lib/notifications/channels/email.ts`. These are deliberately left as
-literals, because a sender address is not a display string: it has to be a
-domain you have verified with your email provider, so renaming it to match
-your site is necessary but not sufficient. Verify the domain with Resend
-first, then change all four. `deliverEmail` discards the provider's error
-result, so a wrong sender fails silently rather than loudly.
-
-### Deliberately left alone
+- **`src/proxy.ts`** — the `config.matcher` entries must be inline literals
+  (Next.js analyses them at build time; a variable fails the build with
+  "Invalid segment configuration export detected"). Replace the domain in each
+  matcher regex. The rest of the file reads the config.
+- **`public/manifest.json`** — the installable-app name and description, read
+  by the browser before any JavaScript runs.
+- **Test fixtures** assert against the literal domain; update them to yours.
+- **Email sender.** Mail is sent from `hello@<domain>`. That domain must be
+  verified with Resend before anything is delivered — and `deliverEmail`
+  discards the provider's error, so an unverified sender fails silently.
 
 The `--od-` CSS custom properties and the `dahanu-loader` class names are a
-namespace prefix no reader ever sees. Rename them if you want; nothing depends
-on the spelling.
+namespace prefix no reader ever sees; rename them only if you want to.
 
 ## Step 8: Replace what is about Dahanu, not about the software
 
@@ -181,21 +182,32 @@ go through these before you launch:
 | What | Where | Why |
 |---|---|---|
 | Emergency contacts | `src/app/emergency/` | Real phone numbers for Dahanu's police, hospitals and fire services. **Wrong numbers in an emergency are the worst bug this site can have.** |
-| Guides | `src/app/guides/` | Travel, food and local know-how, written about Dahanu. |
+| Guides | `content/guides/*.md`, images in `public/guides/` | Travel, food and local know-how, written about Dahanu. |
+| Contact details | `src/app/contact/page.tsx` | The maintainer's WhatsApp number and Instagram handle. |
+| Team on the homepage | `src/app/page-components/HeritageSection.tsx` | Names the people behind OurDahanu. |
+| Logo and verification | `public/logo.png`, `public/google*.html` | The logo, and Google Search Console's ownership file for ourdahanu.in — delete it and add your own. |
 | Business categories | `src/lib/category-groups.ts` | Tuned to what Dahanu actually has; a bigger town will want more, and different. |
-| Professions | `src/lib/find/` | The trades listed in the FindDahanu directory. |
+| Professions | `src/lib/find/` | The trades in the Find directory, which is branded "FindDahanu". |
+| Area suggestions | `src/lib/jobs/options.ts` | Localities offered when posting a job. |
 | Chikoo Catcher | `src/app/play/` | A chikoo is Dahanu's fruit and the game is themed on it. Rename it, re-theme it, or delete the route. |
 | About page | `src/app/about/page.tsx` | The story of this project and who built it. Yours is different. |
+| WhatsApp templates | `src/lib/whatsapp.ts` | The three message templates Meta must approve, with their wording. |
 | Terms and privacy | `src/app/terms/`, `src/app/privacy/` | Written for one operator in one jurisdiction. **Have someone qualified read these before publishing them.** |
 
-To find anything still naming the old town once you have edited the config:
+## Optional services
 
-```bash
-git grep -in dahanu -- src/ public/
-```
+Each is off until its variables are set, and the rest of the site works
+without it. `.env.local.example` has the details for each.
 
-Hits inside `--od-`, `dahanu-loader` and `OurDahanuLoader` are the harmless
-namespace ones.
+- **Payments (Razorpay).** Without it, listings and bookings are free only: a
+  listing price of 0, or a 100% coupon. With it, also add the webhook
+  (`https://<your domain>/api/razorpay/webhook`, events `payment.captured` and
+  `order.paid`) so a payment is still recorded if the buyer's browser dies.
+  The listing price is set on the admin pricing page.
+- **Email (Resend).** Verify your domain first — see "Email sender" above.
+- **WhatsApp (Meta Cloud API).** Needs the three approved templates listed in
+  `src/lib/whatsapp.ts`.
+- **Telegram.** Below.
 
 ## Telegram notifications (optional)
 
@@ -229,32 +241,3 @@ Skip this entirely if you are not using Telegram — nothing else depends on it.
 If you ever rotate the secret, set the new value **and** re-run `setWebhook`
 with it. Changing only one of the two leaves Telegram posting to a URL the app
 now rejects, and account linking stops working with no error visible to users.
-
-
-## Local Development
-
-```bash
-npm run dev
-```
-
-Open http://localhost:3000
-
----
-
-## Site Pages
-
-| Page | URL | Description |
-|------|-----|-------------|
-| Home | `/` | Landing page with all sections |
-| Shop | `/shop` | Local products marketplace |
-| Events | `/events` | Dahanu events listing |
-| Listings | `/listings` | Business directory with paid plans |
-| About | `/about` | Info, tourism, transport, emergency contacts |
-| Login | `/login` | Google sign-in |
-| Dashboard | `/dashboard` | User account (protected) |
-
-## Listing Plans (Monetization)
-
-- **Basic** — ₹499/month
-- **Featured** — ₹999/month (homepage placement)
-- **Premium** — ₹1999/month (full features)

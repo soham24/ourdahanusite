@@ -45,8 +45,9 @@ do not spend time on them:
   bundle by design. Row level security, not the key, is the access boundary.
   A way to read or write data the RLS policies should have refused *is* a
   finding, and an important one.
-- **`public_profiles` exposes the id, display name and avatar of every
-  account.** That is what puts a name on a review. The underlying `profiles`
-  table is restricted to each user's own row.
+- **`get_profile_names(ids)` returns display names to anyone.** That is what
+  puts a name on a review. It answers only for the user ids it is given (at
+  most 200 per call), so it cannot list accounts; the `profiles` table itself
+  is restricted to each user's own row.
 - **Business subdomains serve the main app.** `anything.ourdahanu.in` is the
   same deployment; only the business page is rewritten.

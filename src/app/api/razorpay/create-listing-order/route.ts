@@ -15,12 +15,6 @@ export async function POST(request: Request) {
   const rl = rateLimit(`rzp-order:${user.id}`, 20, 10 * 60 * 1000)
   if (!rl.ok) return tooManyRequests(rl.resetAt)
 
-  const keyId = process.env.RAZORPAY_KEY_ID?.trim()
-  const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim()
-  if (!keyId || !keySecret) {
-    return NextResponse.json({ error: 'Payment gateway not configured.' }, { status: 500 })
-  }
-
   const body = await request.json().catch(() => ({})) as {
     coupon?: string
     intent?: 'submit' | 'renew'
@@ -35,6 +29,15 @@ export async function POST(request: Request) {
 
   if (amountRupees === 0) {
     return NextResponse.json({ free: true, couponValid: true, finalAmountRupees: 0 })
+  }
+
+  // Checked only once a payment is actually needed, so a site run without
+  // Razorpay -- a fresh fork, or a town that lists for free -- can still
+  // take free listings.
+  const keyId = process.env.RAZORPAY_KEY_ID?.trim()
+  const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim()
+  if (!keyId || !keySecret) {
+    return NextResponse.json({ error: 'Payment gateway not configured.' }, { status: 500 })
   }
 
   const amountPaise = amountRupees * 100

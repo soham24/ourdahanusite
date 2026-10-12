@@ -104,8 +104,8 @@ export async function submitPaidListing(formData: FormData): Promise<{ error?: s
     return { error: 'Coupon code is invalid or inactive.' }
   }
   if (isFree) {
-    if (!charge.couponValid || !charge.isFree) {
-      return { error: 'A valid free coupon is required to skip payment.' }
+    if (!charge.isFree) {
+      return { error: 'This listing is not free. Please pay to continue.' }
     }
   } else {
     if (charge.isFree) {
@@ -651,8 +651,8 @@ export async function renewListing(
     return { error: 'Coupon code is invalid or inactive.' }
   }
   if (isFree) {
-    if (!charge.couponValid || !charge.isFree) {
-      return { error: 'A valid free coupon is required to renew without payment.' }
+    if (!charge.isFree) {
+      return { error: 'This renewal is not free. Please pay to continue.' }
     }
   } else {
     if (charge.isFree) {
