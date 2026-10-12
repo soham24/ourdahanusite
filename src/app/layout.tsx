@@ -87,7 +87,6 @@ export const metadata: Metadata = {
     `${siteConfig.town} community`,
   ],
   applicationName: siteConfig.name,
-  manifest: '/manifest.json',
   robots: {
     index: true,
     follow: true,

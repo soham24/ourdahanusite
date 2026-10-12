@@ -35,6 +35,13 @@ const nextConfig: NextConfig = {
     '/**': ['./content/**/*'],
   },
   cacheComponents: true,
+  async redirects() {
+    return [
+      // The manifest moved to src/app/manifest.ts, which Next.js serves at
+      // /manifest.webmanifest. Phones that installed the app know the old URL.
+      { source: '/manifest.json', destination: '/manifest.webmanifest', permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

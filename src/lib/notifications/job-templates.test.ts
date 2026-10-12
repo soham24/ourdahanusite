@@ -2,12 +2,13 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import { renderNotification } from './templates'
+import { ROOT_DOMAIN } from '@/lib/site-config'
 
 test('job.approved links to the live post', () => {
   const rendered = renderNotification('job.approved', { postId: 'p1', title: 'Cook', kind: 'hiring' })
   assert.equal(rendered.title, '✅ Your job post is live · Cook')
   assert.equal(rendered.link, '/jobs/j/p1')
-  assert.match(rendered.email?.html ?? '', /https:\/\/jobs\.ourdahanu\.in\/j\/p1/)
+  assert.ok((rendered.email?.html ?? '').includes(`https://jobs.${ROOT_DOMAIN}/j/p1`))
 })
 
 test('job.rejected carries the reason, escaped in the email', () => {

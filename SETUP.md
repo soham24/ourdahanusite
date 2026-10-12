@@ -162,7 +162,8 @@ export const siteConfig = {
 }
 ```
 
-Change those, run `npm run dev`, and the site is your town's: sign-in cookies,
+Change those, run `npm run sync:proxy` (step below), then `npm run dev`, and
+the site is your town's: sign-in cookies,
 business subdomains, canonical URLs, robots.txt, the sitemap and the links in
 emails and Telegram messages all follow `domain`.
 
@@ -187,11 +188,9 @@ git grep -in "ourdahanu\|dahanu\|palghar" -- src/ public/ | grep -v "od-\|dahanu
 
 - **`src/proxy.ts`** — the `config.matcher` entries must be inline literals
   (Next.js analyses them at build time; a variable fails the build with
-  "Invalid segment configuration export detected"). Replace the domain in each
-  matcher regex. The rest of the file reads the config.
-- **`public/manifest.json`** — the installable-app name and description, read
-  by the browser before any JavaScript runs.
-- **Test fixtures** assert against the literal domain; update them to yours.
+  "Invalid segment configuration export detected"). Run `npm run sync:proxy`
+  after changing `domain` and it rewrites them; `npm test` fails until you do,
+  so CI catches a forgotten one.
 - **Email sender.** Mail is sent from `hello@<domain>`. That domain must be
   verified with Resend before anything is delivered — and `deliverEmail`
   discards the provider's error, so an unverified sender fails silently.

@@ -39,8 +39,8 @@ Then, to finish:
    filename order (SETUP.md step 2).
 2. **Turn on Google sign-in** in Supabase and add your site's
    `/auth/callback` to its redirect URLs (SETUP.md steps 3 and 6).
-3. **Make it your town** — edit `src/lib/site-config.ts` in your copy and
-   push (SETUP.md step 7).
+3. **Make it your town** — edit `src/lib/site-config.ts` in your copy, run
+   `npm run sync:proxy`, and push (SETUP.md step 7).
 4. **Check everything:** clone your copy, `vercel env pull .env.local`, then
    `npm run doctor` — it lists anything still missing, with the fix.
 
@@ -114,13 +114,10 @@ export const siteConfig = {
 Change those, reload, and the site is your city's — page titles, navigation,
 emails, structured data and page copy all read from here.
 
-Two files cannot read it, both for real reasons:
-
-- **`src/proxy.ts`** — the per-business subdomain routing. Next.js requires
-  those values to be inline literals. There are 19 references; miss them and
-  `bakery.ourpune.in` keeps routing against `ourdahanu.in`. This is the one to
-  get right.
-- **`public/manifest.json`** — read by the browser before any JavaScript runs.
+One file cannot read it: **`src/proxy.ts`**, the per-business subdomain
+routing, because Next.js requires its matchers to be inline literals. After
+changing `domain`, run `npm run sync:proxy` and it rewrites them for you;
+`npm test` (and so CI) fails if you forget.
 
 ### Then replace what is *about* Dahanu
 
