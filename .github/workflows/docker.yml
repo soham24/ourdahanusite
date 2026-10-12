@@ -1,0 +1,57 @@
+name: Docker
+
+# Builds the self-hosting image (Dockerfile) and checks that it serves pages,
+# so the non-Vercel route cannot break unnoticed. Runs only when something the
+# image depends on changes; ordinary app changes are covered by ci.yml's build.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - docker-compose.yml
+      - package.json
+      - package-lock.json
+      - next.config.ts
+      - .github/workflows/docker.yml
+  pull_request:
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - docker-compose.yml
+      - package.json
+      - package-lock.json
+      - next.config.ts
+      - .github/workflows/docker.yml
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build
+        # Placeholder values, as in ci.yml: prerendering falls back to empty
+        # states, which is enough to prove the image builds and serves.
+        run: |
+          docker build -t ourtown \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co \
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=build-time-placeholder \
+            --build-arg NEXT_PUBLIC_SITE_URL=http://localhost:3000 \
+            .
+
+      - name: Serves pages
+        run: |
+          docker run -d --name ourtown -p 3000:3000 ourtown
+          for i in $(seq 60); do curl -sf -o /dev/null http://localhost:3000/ && break; sleep 1; done
+          for path in / /guides /emergency /manifest.webmanifest; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:3000$path")
+            echo "$path $code"
+            [ "$code" = 200 ] || { docker logs ourtown; exit 1; }
+          done

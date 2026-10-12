@@ -202,6 +202,10 @@ namespace prefix no reader ever sees; rename them only if you want to.
 
 ## Step 8: Replace what is about Dahanu, not about the software
 
+Once `domain` in `site-config.ts` is yours, `npm run doctor` lists which of
+these still carry OurDahanu's content, and fails while the emergency page still
+has Dahanu's numbers.
+
 Some of this repository is local knowledge, and no config can translate it.
 Publishing it unchanged means publishing another town's facts as your own, so
 go through these before you launch:
