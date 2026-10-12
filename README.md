@@ -127,7 +127,6 @@ for production. `.env.local.example` has the full list with comments.
 |---|---|
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | Order creation and signature verification |
 | `RAZORPAY_WEBHOOK_SECRET` | Safety net so a captured payment is never lost |
-| `RAZORPAY_X_ACCOUNT_NUMBER` | RazorpayX account for seller payouts |
 
 **Everything else is optional**
 

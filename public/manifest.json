@@ -15,7 +15,6 @@
   "lang": "en-IN",
   "shortcuts": [
     { "name": "Emergency", "url": "/emergency", "description": "Emergency contacts" },
-    { "name": "Events", "url": "/events", "description": "Upcoming events" },
-    { "name": "Forum", "url": "/forum", "description": "Community forum" }
+    { "name": "Events", "url": "/events", "description": "Upcoming events" }
   ]
 }

@@ -130,9 +130,6 @@ ourdahanu/
 │   │   ├── auth/             # Login / signup / callback
 │   │   ├── events/           # Events section
 │   │   ├── jobs/             # Jobs board
-│   │   ├── classifieds/      # Classifieds
-│   │   ├── forum/            # Community forum
-│   │   ├── news/             # News articles
 │   │   ├── emergency/        # Emergency services
 │   │   ├── search/           # Search pages
 │   │   ├── my-business/      # Business owner dashboard
@@ -145,7 +142,6 @@ ourdahanu/
 │   │   ├── Footer.tsx        # Site footer
 │   │   ├── BottomTabBar.tsx  # Mobile bottom navigation
 │   │   ├── EmergencyRibbon.tsx # Alert banner
-│   │   ├── OrderModal.tsx    # Payment checkout modal
 │   │   ├── ImageCropUpload.tsx # Image upload with cropping
 │   │   ├── LocationPicker.tsx  # Map-based location picker
 │   │   ├── SubdomainInput.tsx  # Custom domain input
@@ -164,8 +160,7 @@ ourdahanu/
 │   │   ├── listing-url.ts    # URL builders for listings
 │   │   ├── listing-content.ts # Text normalization
 │   │   ├── payment-security.ts # Payment validation (HMAC)
-│   │   ├── notify-admin.ts   # Admin email + Telegram notifications
-│   │   ├── notify-expiry.ts  # Listing expiry reminders
+│   │   ├── notifications/    # One engine: templates + email/Telegram/WhatsApp/in-app channels
 │   │   └── whatsapp.ts       # WhatsApp Cloud API client
 │   │
 │   └── proxy.ts              # Middleware — subdomain routing
@@ -567,24 +562,27 @@ CREATE POLICY "admin_delete" ON listings
 
 **Key insight:** Even if someone hacks the browser JavaScript, they can't read unapproved listings or delete other people's data — the database itself enforces the rules.
 
-### Main Tables (inferred from code)
+### Main Tables
+
+The full schema is `supabase/migrations/20261011000000_baseline.sql` plus the
+migrations after it. The tables you will meet first:
 
 | Table | Purpose |
 |---|---|
-| `listings` | Business listings (name, category, phone, address, UPI, subdomain, images) |
-| `profiles` | User profiles (linked to auth, role, verified status) |
-| `events` | Community events |
-| `jobs` | Job postings |
-| `classifieds` | Classified ads |
-| `forum_threads` | Forum discussions |
-| `news_articles` | News (uses `published` instead of `approved`) |
-| `emergency_alerts` | Emergency notifications |
-| `orders` | Product/service orders |
-| `reviews` | Listing reviews and ratings |
-| `pricing_config` | Listing/job pricing (base price, current price) |
-| `coupons` | Discount coupons |
-| `site_settings` | Key-value admin settings (e.g., featured listing) |
-| `newsletter_subscriptions` | Email subscribers |
+| `listings` | Businesses: name, category, contact, subdomain, images, expiry, payment settings |
+| `profiles` | One per user, linked to `auth.users`; holds the role |
+| `reviews` | Ratings and comments on listings, one per person per business |
+| `listing_products` / `listing_product_options` | Each business's catalog (products and services) |
+| `orders` | Marketplace orders, paid into the business's own Razorpay account |
+| `payment_intents` | Every checkout, recorded before payment so a paid-but-lost order can be recovered |
+| `appointments` / `appointment_date_overrides` | Bookings, and per-day closures or changed hours |
+| `job_posts` | The jobs board (hiring and seeking) |
+| `find_professionals` / `find_ratings` | The tradespeople directory |
+| `events`, `polls` / `poll_votes` | Community events and polls |
+| `notifications` / `notification_preferences` | In-app notifications and each user's channels |
+| `emergency_alerts` | Admin-issued alerts shown site-wide |
+| `pricing_config` / `coupons` | The listing fee, and discount codes (staff-only) |
+| `site_settings` | Key-value admin settings (e.g. the featured listing) |
 
 ### Querying Data
 
@@ -737,20 +735,23 @@ Used for: approval notifications, expiry reminders, admin alerts, newsletter wel
 
 ### Telegram Bot API
 
+Every notification goes through one engine in `src/lib/notifications/`:
+`sendNotification(userId, type, payload)` renders the message from
+`templates.ts` and delivers it on each channel the user has switched on in
+`notification_preferences` — in-app, email, Telegram, WhatsApp. The Telegram
+channel (`channels/telegram.ts`) posts to the bot API:
+
 ```tsx
-// src/lib/notify-admin.ts
 await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    chat_id: TELEGRAM_CHAT_ID,
-    text: '🏪 *New Listing Submitted*\n📌 Nisarg Farm',
-    parse_mode: 'Markdown',
-  }),
+  body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
 })
 ```
 
-Used for: real-time admin alerts when new content is submitted.
+A user links their Telegram account from `/account/notifications`; the bot's
+webhook (`/api/telegram/webhook`) receives the `/start <token>` message and
+stores their chat id.
 
 ### WhatsApp Cloud API (Meta)
 
@@ -815,44 +816,42 @@ Instead of writing CSS files, you add utility classes directly in JSX:
 
 ### OurDahanu's Design Tokens
 
-The site uses a custom **Warli art** inspired color palette (from `src/app/globals.css`):
+Colours are Tailwind theme tokens defined in `src/app/globals.css` under
+`@theme`, so each becomes a utility class (`bg-brand`, `text-ink`,
+`border-border`):
 
 ```css
 @theme {
-  /* Warli terracotta palette — inspired by tribal art of Dahanu */
-  --color-warli-terra: #C4663A;   /* Primary terracotta */
-  --color-warli-deep: #8B3A1A;    /* Deep brown */
-  --color-warli-clay: #D4784A;    /* Light clay */
-  --color-warli-cream: #FBF0DC;   /* Cream background */
-  --color-warli-sand: #E8C99A;    /* Sand accent */
-
-  /* Chikoo (sapodilla fruit) palette — Dahanu is famous for chikoo */
-  --color-chikoo-bark: #3D1A08;   /* Darkest brown (text) */
-  --color-chikoo-brown: #7A4A25;  /* Medium brown */
-  --color-chikoo-leaf: #4A7040;   /* Leaf green */
-  --color-chikoo-gold: #D4952A;   /* Gold accent */
+  --color-brand: #C0582E;        /* terracotta: primary actions */
+  --color-brand-strong: #8A3618;
+  --color-gold: #C8881E;         /* accents, the loader logo */
+  --color-ink: #1C0D05;          /* body text */
+  --color-ink-2: #4F3424;
+  --color-bg: #FAFAF7;
+  --color-surface-soft: #F6F1EA;
+  --color-border: #E8DDD2;
+  --color-success: #138A4B;
+  --color-danger: #B42318;
 }
 ```
 
-Usage in components:
 ```tsx
-<div className="bg-warli-cream text-chikoo-bark">
-  <h1 className="text-warli-terra font-bold">Welcome to Dahanu</h1>
+<div className="bg-surface-soft text-ink">
+  <h1 className="text-brand font-bold">Welcome</h1>
 </div>
 ```
 
-### Custom Utilities
+`globals.css` also has a few hand-written utilities, such as `.warli-pattern`
+and `.warli-divider` — decorative motifs from Warli art, the tribal art of the
+Dahanu region.
 
-```css
-.warli-pattern { /* SVG geometric pattern overlay — Warli tribal art motif */ }
-.warli-divider { /* Decorative triangle + dot strip between sections */ }
-.listing-card:hover { transform: translateY(-3px); /* Card lift on hover */ }
-.shadow-warm { /* Warm terracotta-tinted shadow */ }
-```
+### Fonts
 
-### Font
-
-The site uses **Plus Jakarta Sans** — a modern geometric sans-serif font loaded via Next.js `next/font/google` (automatic optimization, no layout shift).
+Three fonts, bundled in `src/app/fonts/` and loaded with `next/font/local`
+in `src/app/layout.tsx` (no request to Google at build or run time):
+**DM Sans** for body text, **Instrument Serif** for headlines, and **Noto Sans
+Devanagari** for the Marathi name under the loader logo. Each is exposed as a
+CSS variable (`--font-dm`, `--font-instrument`, `--font-devanagari`).
 
 ---
 
@@ -919,14 +918,13 @@ Structured data tells Google what your page content means:
 
 ```tsx
 // src/app/actions/admin.ts
-export type UserRole = 'admin' | 'moderator' | 'business_owner' | 'job_reviewer' | 'user'
+export type UserRole = 'admin' | 'moderator' | 'business_owner' | 'user'
 ```
 
 | Role | Can do |
 |---|---|
 | `admin` | Everything — approve/reject/delete any content, manage settings |
 | `moderator` | Approve/reject content (not delete or settings) |
-| `job_reviewer` | Approve/reject job postings only |
 | `business_owner` | Manage their own listings |
 | `user` | Browse, submit content for review |
 
@@ -993,24 +991,30 @@ Live at ourdahanu.in (+ all *.ourdahanu.in subdomains)
 
 ### Vercel Configuration
 
+`vercel.json` sets the framework and two cron jobs. Vercel's Hobby plan runs
+a cron at most once a day.
+
 ```json
-// vercel.json
 {
   "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "crons": [{
-    "path": "/api/cron/listing-expiry",
-    "schedule": "0 0 * * 1"
-  }]
+  "crons": [
+    { "path": "/api/cron/listing-expiry", "schedule": "0 0 * * 1" },
+    { "path": "/api/cron/job-reminders", "schedule": "30 3 * * *" }
+  ]
 }
 ```
 
 ### Cron Jobs
 
-The listing expiry cron runs every Monday at midnight UTC (5:30 AM IST):
-1. Finds listings past their `expires_at` date → unpublishes them
-2. Sends email + WhatsApp reminders at 30/15/5/3/1 day milestones
-3. Tracks which reminders were already sent via `reminders_sent` array
+- **Listing expiry** — Mondays, 05:30 IST. Unpublishes listings past
+  `expires_at` (and clears the caches that showed them), and sends one
+  expiry reminder per listing as it passes the 30/15/5/3/1-day milestones.
+- **Daily reminders** — every day, 09:00 IST. Job posts about to expire, then
+  appointment reminders for everything in the next 24 hours.
+
+Both refuse to run unless the request carries `CRON_SECRET`.
+`/api/cron/appointment-reminders` runs just the appointment part, for an
+external scheduler if you want reminders more often than daily.
 
 **Android equivalent:** Like a `PeriodicWorkRequest` with `WorkManager`, but it runs on Vercel's infrastructure instead of the device.
 
@@ -1018,22 +1022,10 @@ The listing expiry cron runs every Monday at midnight UTC (5:30 AM IST):
 
 ## 18. Environment Variables
 
-Environment variables are secrets and configuration that change between development and production.
-
-| Variable | Purpose | Where Used |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | Everywhere (public) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | Browser + server (public) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Full database access (SECRET) | Server only — admin client |
-| `RAZORPAY_KEY_ID` | Razorpay merchant ID | Payment routes |
-| `RAZORPAY_KEY_SECRET` | Razorpay secret (SECRET) | Signature verification |
-| `RESEND_API_KEY` | Email sending (SECRET) | Notification functions |
-| `ADMIN_EMAIL` | Admin email address | Admin notifications |
-| `TELEGRAM_BOT_TOKEN` | Telegram bot (SECRET) | Admin alerts |
-| `TELEGRAM_CHAT_ID` | Telegram group chat | Admin alerts |
-| `WHATSAPP_ACCESS_TOKEN` | Meta WhatsApp API (SECRET) | WhatsApp notifications |
-| `WHATSAPP_PHONE_NUMBER_ID` | WhatsApp phone number | WhatsApp notifications |
-| `CRON_SECRET` | Cron job auth token | Cron route protection |
+Environment variables are secrets and configuration that change between
+development and production. The authoritative list, with what each one does
+and which are required, is the table in `README.md`; `.env.local.example`
+has the same variables with setup notes, every optional one empty.
 
 **`NEXT_PUBLIC_` prefix:** Variables starting with `NEXT_PUBLIC_` are safe to expose to the browser. All others are server-only secrets.
 
@@ -1103,7 +1095,7 @@ The site works even if JavaScript fails to load — forms submit via HTML, links
 | Add a reusable UI component | Create in `src/components/` |
 | Add a new admin section | Create in `src/app/admin/your-section/` + add to layout |
 | Add a new cache-aware data fetcher | Create in `src/lib/data/` with `'use cache'` + tags |
-| Send a notification | Use patterns from `src/lib/notify-admin.ts` |
+| Send a notification | Add a type and template in `src/lib/notifications/`, then call `sendNotification` |
 | Add a new database table | Add a new file in `supabase/migrations/` and apply it (SQL Editor or `npx supabase db push`) |
 | Add new colors/design tokens | Add to `@theme` in `src/app/globals.css` |
 | Protect a page (auth required) | Use `requireAdmin()` or check `getUserRole()` |

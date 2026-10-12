@@ -75,10 +75,11 @@ export async function updatePricing(formData: FormData): Promise<{ error?: strin
     if (isNaN(base_price) || isNaN(current_price)) return { error: 'Invalid prices.' }
     if (current_price > base_price) return { error: 'Current price cannot exceed base price.' }
 
+    // Upsert: on a fresh database there may be no row yet, and an update
+    // would silently save nothing.
     const { error } = await db
       .from('pricing_config')
-      .update({ base_price, current_price, updated_at: new Date().toISOString() })
-      .eq('id', 1)
+      .upsert({ id: 1, base_price, current_price, updated_at: new Date().toISOString() }, { onConflict: 'id' })
 
     if (error) return { error: error.message }
     revalidatePricingCache()
