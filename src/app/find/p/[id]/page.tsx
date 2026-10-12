@@ -13,9 +13,9 @@ import { findLoginHref } from '../../find-server'
 import TrackedContactLink from '../../TrackedContactLink'
 import FindCard from '../../FindCard'
 import RatingForm from './RatingForm'
-import { ADDRESS_REGION, siteConfig } from '@/lib/site'
+import { ADDRESS_REGION, FIND_NAME, siteConfig } from '@/lib/site'
 
-const NEARBY_AREAS = [`${siteConfig.town}`, 'Bordi', 'Gholvad', 'Palghar']
+const NEARBY_AREAS = [siteConfig.town, ...siteConfig.localities]
 
 const FIND_URL = `https://find.${siteConfig.domain}`
 
@@ -35,7 +35,7 @@ export async function generateMetadata({
   const descriptionParts = [
     pro.rating_count > 0
       ? `Rated ${pro.avg_rating.toFixed(1)}/5 by ${pro.rating_count} verified customer${pro.rating_count > 1 ? 's' : ''}.`
-      : 'Vouched for by neighbours on FindDahanu.',
+      : `Vouched for by neighbours on ${FIND_NAME}.`,
     pro.locality ? `Serves ${pro.locality}.` : null,
     pro.note,
   ]
@@ -47,7 +47,7 @@ export async function generateMetadata({
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, type: 'profile', siteName: 'FindDahanu' },
+    openGraph: { title, description, url, type: 'profile', siteName: FIND_NAME },
     twitter: { card: 'summary', title, description },
     ...(isProfileIndexable(pro) ? {} : { robots: { index: false, follow: true } }),
   }
@@ -107,7 +107,7 @@ export default async function ProfessionalDetailPage({
     description: `${professionsText} in ${siteConfig.town}${pro.locality ? `, ${pro.locality}` : ''}.`,
     url: profileUrl,
     telephone: pro.phone,
-    areaServed: [`${siteConfig.town}`, 'Bordi', 'Gholvad', 'Palghar'],
+    areaServed: NEARBY_AREAS,
     address: {
       '@type': 'PostalAddress',
       addressLocality: pro.locality || `${siteConfig.town}`,
@@ -143,7 +143,7 @@ export default async function ProfessionalDetailPage({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'FindDahanu', item: `${FIND_URL}/` },
+      { '@type': 'ListItem', position: 1, name: FIND_NAME, item: `${FIND_URL}/` },
       { '@type': 'ListItem', position: 2, name: primaryProfession, item: categoryUrl },
       { '@type': 'ListItem', position: 3, name: pro.name, item: profileUrl },
     ],
@@ -158,7 +158,7 @@ export default async function ProfessionalDetailPage({
           href="/find"
           className="inline-flex items-center gap-1.5 rounded-full border border-[var(--od-border)] bg-white/70 px-3 py-1.5 text-[13px] font-semibold text-[var(--od-ink-2)] transition-colors hover:border-[rgba(192,88,46,0.4)] hover:text-[var(--od-brand-strong)]"
         >
-          <ArrowLeft size={13} aria-hidden /> FindDahanu
+          <ArrowLeft size={13} aria-hidden /> {FIND_NAME}
         </Link>
         <span className="text-[var(--od-muted)]" aria-hidden>/</span>
         <Link

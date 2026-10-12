@@ -12,6 +12,7 @@ import SellingStatusBadge from '@/app/admin/payments/SellingStatusBadge'
 import { deriveSellingStatus } from '@/lib/selling/shop-mode'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
+import { siteConfig } from '@/lib/site'
 
 type AdminListingRow = {
   id: string
@@ -225,7 +226,7 @@ export default async function AdminProductsIndex() {
                       {row.subdomain && (
                         <>
                           <span className="mx-2 text-[#d6c2b0]">·</span>
-                          <span className="text-[#6f584a]">{row.subdomain}.ourdahanu.in</span>
+                          <span className="text-[#6f584a]">{row.subdomain}.{siteConfig.domain}</span>
                         </>
                       )}
                     </p>

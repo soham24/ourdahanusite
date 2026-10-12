@@ -159,8 +159,8 @@ async function ProductContent({ params }: { params: Promise<{ productId: string 
 
         <p className="mt-6 text-center text-xs text-[var(--od-muted)]">
           Listed on{' '}
-          <Link href="https://ourdahanu.in" className="font-semibold hover:text-[var(--od-brand)]">
-            OurDahanu
+          <Link href={`https://${siteConfig.domain}`} className="font-semibold hover:text-[var(--od-brand)]">
+            {siteConfig.name}
           </Link>
         </p>
       </div>

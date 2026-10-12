@@ -14,7 +14,7 @@ import { PROFESSION_ICON } from '@/lib/find/profession-icons'
 import StructuredData from '@/components/StructuredData'
 import FindCard from '../../FindCard'
 import { Mr } from '../../find-ui'
-import { siteConfig } from '@/lib/site'
+import { FIND_NAME, siteConfig } from '@/lib/site'
 
 const FIND_URL = `https://find.${siteConfig.domain}`
 
@@ -47,7 +47,7 @@ export async function generateMetadata({
     title,
     description,
     alternates: { canonical },
-    openGraph: { title, description, url: canonical, type: 'website', siteName: 'FindDahanu' },
+    openGraph: { title, description, url: canonical, type: 'website', siteName: FIND_NAME },
     // Don't index a category page that doesn't yet look like a real category.
     ...(count < MIN_CATEGORY_SIZE ? { robots: { index: false, follow: true } } : {}),
   }
@@ -93,7 +93,7 @@ export default async function CategoryPage({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'FindDahanu', item: `${FIND_URL}/` },
+      { '@type': 'ListItem', position: 1, name: FIND_NAME, item: `${FIND_URL}/` },
       { '@type': 'ListItem', position: 2, name: profession, item: canonical },
     ],
   }
@@ -146,7 +146,7 @@ export default async function CategoryPage({
           </span>
           <h2 className="mt-4 font-display text-2xl">No {profession.toLowerCase()} yet</h2>
           <p className="mt-1 max-w-sm text-sm leading-relaxed text-[var(--od-muted)]">
-            Be the first to add a {profession.toLowerCase()} you trust in Dahanu.
+            Be the first to add a {profession.toLowerCase()} you trust in {siteConfig.town}.
           </p>
           <Link href="/find/submit" className="od-button-primary mt-5 px-4 py-2 text-sm">
             Add a professional

@@ -114,7 +114,7 @@ export default function AdminNewListingForm() {
             <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-blue-400">
               <input name="subdomain" placeholder="businessname"
                 className="flex-1 px-4 py-3 focus:outline-none text-sm" />
-              <span className="px-3 py-3 bg-gray-50 text-gray-400 text-xs border-l border-gray-200">.ourdahanu.in</span>
+              <span className="px-3 py-3 bg-gray-50 text-gray-400 text-xs border-l border-gray-200">.{siteConfig.domain}</span>
             </div>
           </div>
 

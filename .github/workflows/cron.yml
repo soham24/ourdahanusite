@@ -1,0 +1,37 @@
+name: Scheduled jobs (self-hosted)
+
+# On Vercel, vercel.json runs these and this workflow stays idle. Hosting
+# anywhere else (Docker, a VPS, Render, Fly, ...), turn it on by adding, in
+# GitHub → Settings → Secrets and variables → Actions:
+#
+#   Variable  CRON_SITE_URL  https://yourtown.in   (no trailing slash)
+#   Secret    CRON_SECRET    the same value the site has
+#
+# The schedules match vercel.json. Keep the two in step if you change either.
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"   # listing expiry, weekly
+    - cron: "30 3 * * *"  # job and appointment reminders, daily
+  workflow_dispatch:
+    inputs:
+      job:
+        description: Which job to run now
+        type: choice
+        options: [listing-expiry, job-reminders]
+
+jobs:
+  run:
+    if: vars.CRON_SITE_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call the cron route
+        env:
+          SITE: ${{ vars.CRON_SITE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          JOB: ${{ inputs.job || (github.event.schedule == '0 0 * * 1' && 'listing-expiry' || 'job-reminders') }}
+        run: |
+          curl --fail-with-body --silent --show-error --max-time 240 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$SITE/api/cron/$JOB"

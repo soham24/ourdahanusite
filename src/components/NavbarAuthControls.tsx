@@ -5,7 +5,7 @@ import type { User } from '@supabase/supabase-js'
 
 import NotificationBell from '@/components/NotificationBell'
 import { useAuth } from '@/lib/auth-context'
-import { buildAbsoluteUrl } from '@/lib/site'
+import { buildAbsoluteUrl, siteConfig } from '@/lib/site'
 
 interface NavbarAuthControlsProps {
   mobile?: boolean
@@ -18,7 +18,7 @@ function getDisplayName(user: User) {
 function getAvatarUrl(user: User) {
   return (
     user.user_metadata?.avatar_url ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email || 'OurDahanu')}&background=C0582E&color=FBF0DC`
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email || siteConfig.name)}&background=C0582E&color=FBF0DC`
   )
 }
 

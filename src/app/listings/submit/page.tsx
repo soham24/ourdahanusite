@@ -100,7 +100,7 @@ export default async function SubmitListingPage({
         {/* Closing message */}
         <div className="text-center mb-8 px-4">
           <p className="text-gray-600 text-sm leading-relaxed italic">
-            &ldquo;This is just the beginning, {firstName}. Let&rsquo;s start this growth journey together — OurDahanu is rooting for <strong>{bizName}</strong>.&rdquo; 🌱
+            &ldquo;This is just the beginning, {firstName}. Let&rsquo;s start this growth journey together — {siteConfig.name} is rooting for <strong>{bizName}</strong>.&rdquo; 🌱
           </p>
         </div>
 

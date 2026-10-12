@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 
 import { buildStandaloneLoginHref, getStandaloneSubdomain } from '@/lib/standalone-hosts'
+import { siteConfig } from '@/lib/site'
 
 /**
  * Main-site login URL that brings the user back to a jobs page.
@@ -11,7 +12,7 @@ import { buildStandaloneLoginHref, getStandaloneSubdomain } from '@/lib/standalo
  */
 export async function jobsLoginHref(returnPath: string): Promise<string> {
   const h = await headers()
-  const rawHost = (h.get('x-forwarded-host') ?? h.get('host') ?? 'jobs.ourdahanu.in').split(',')[0].trim()
+  const rawHost = (h.get('x-forwarded-host') ?? h.get('host') ?? `jobs.${siteConfig.domain}`).split(',')[0].trim()
   const path =
     getStandaloneSubdomain(rawHost) === 'jobs' ? returnPath : `/jobs${returnPath === '/' ? '' : returnPath}`
   return buildStandaloneLoginHref(rawHost, path)

@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 
 import { buildStandaloneLoginHref } from '@/lib/standalone-hosts'
+import { siteConfig } from '@/lib/site'
 
 /**
  * Build a login URL that works from the `find` subdomain.
@@ -16,7 +17,7 @@ import { buildStandaloneLoginHref } from '@/lib/standalone-hosts'
  */
 export async function findLoginHref(returnPath: string): Promise<string> {
   const h = await headers()
-  const rawHost = (h.get('x-forwarded-host') ?? h.get('host') ?? 'find.ourdahanu.in')
+  const rawHost = (h.get('x-forwarded-host') ?? h.get('host') ?? `find.${siteConfig.domain}`)
     .split(',')[0]
     .trim()
   return buildStandaloneLoginHref(rawHost, returnPath)

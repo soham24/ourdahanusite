@@ -403,7 +403,7 @@ export default function JobPostForm({
           disabled={pending}
           list="job-post-areas"
           maxLength={JOB_TEXT_LIMITS.area}
-          placeholder={hiring ? `e.g. ${siteConfig.town} Road` : `e.g. ${siteConfig.town}, Bordi`}
+          placeholder={hiring ? `e.g. ${siteConfig.town} Road` : `e.g. ${siteConfig.town}, ${siteConfig.localities[0] ?? ''}`}
           onChange={(event) => update('area', event.target.value)}
           className={inputCls}
         />

@@ -105,7 +105,7 @@ export default function EmergencyPage() {
       {/* ---- TOP ALERT BANNER ---- */}
       <div className="bg-brand text-bg px-4 py-2.5 text-center text-sm font-medium flex items-center justify-center gap-2">
         <CheckCircle size={15} />
-        <span>No active emergency alerts for Dahanu right now. All clear.</span>
+        <span>No active emergency alerts for {siteConfig.town} right now. All clear.</span>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -117,7 +117,7 @@ export default function EmergencyPage() {
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Emergency & Safety</h1>
             <p className="text-gray-500 mt-1">
-              Critical contacts, preparedness guides, and safety information for Dahanu residents
+              Critical contacts, preparedness guides, and safety information for {siteConfig.town} residents
             </p>
           </div>
         </div>
@@ -145,11 +145,11 @@ export default function EmergencyPage() {
           </div>
         </section>
 
-        {/* Local Dahanu contacts */}
+        {/* Local contacts */}
         <section className="mb-12">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <MapPin size={18} className="text-brand" />
-            Local Dahanu Emergency Contacts
+            Local {siteConfig.town} Emergency Contacts
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {localContacts.map((c) => (
@@ -182,7 +182,7 @@ export default function EmergencyPage() {
         <section className="mb-12">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <AlertTriangle size={18} className="text-orange-500" />
-            Dahanu Flood Evacuation Zones
+            {siteConfig.town} Flood Evacuation Zones
           </h2>
           <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6">
             <div className="text-6xl">🗺️</div>
@@ -263,9 +263,9 @@ export default function EmergencyPage() {
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="text-5xl">👀</div>
               <div className="flex-1">
-                <h2 className="text-xl font-bold mb-1">Dahanu Neighbourhood Watch</h2>
+                <h2 className="text-xl font-bold mb-1">{siteConfig.town} Neighbourhood Watch</h2>
                 <p className="text-[#F8E9D5]/75 text-sm leading-relaxed mb-4">
-                  Be the eyes and ears of your community. If you notice suspicious activity, do not confront anyone — report it. Our network coordinates with the Dahanu Police to keep our streets safe.
+                  Be the eyes and ears of your community. If you notice suspicious activity, do not confront anyone — report it. Our network coordinates with the local police to keep our streets safe.
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <Link

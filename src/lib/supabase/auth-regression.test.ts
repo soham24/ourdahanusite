@@ -10,6 +10,7 @@ import {
   getAuthCookieOptions,
   getLegacyHostOnlyAuthCookieRemovals,
 } from './auth-cookie'
+import { ROOT_DOMAIN } from '@/lib/site-config'
 
 test('pins the lockless Supabase client and its Node 20-compatible engine metadata', async () => {
   const packageJson = JSON.parse(
@@ -41,20 +42,20 @@ test('pins the lockless Supabase client and its Node 20-compatible engine metada
 })
 
 test('shares production auth cookies across OurDahanu subdomains only', async () => {
-  assert.deepEqual(getAuthCookieOptions('https://ourdahanu.in'), {
-    domain: '.ourdahanu.in',
+  assert.deepEqual(getAuthCookieOptions(`https://${ROOT_DOMAIN}`), {
+    domain: `.${ROOT_DOMAIN}`,
   })
-  assert.deepEqual(getAuthCookieOptions('ourdahanu.in'), {
-    domain: '.ourdahanu.in',
+  assert.deepEqual(getAuthCookieOptions(`${ROOT_DOMAIN}`), {
+    domain: `.${ROOT_DOMAIN}`,
   })
-  assert.deepEqual(getAuthCookieOptions('find.ourdahanu.in'), {
-    domain: '.ourdahanu.in',
+  assert.deepEqual(getAuthCookieOptions(`find.${ROOT_DOMAIN}`), {
+    domain: `.${ROOT_DOMAIN}`,
   })
-  assert.deepEqual(getAuthCookieOptions('https://find.ourdahanu.in'), {
-    domain: '.ourdahanu.in',
+  assert.deepEqual(getAuthCookieOptions(`https://find.${ROOT_DOMAIN}`), {
+    domain: `.${ROOT_DOMAIN}`,
   })
   assert.deepEqual(getAuthCookieOptions('http://localhost:3000'), {})
-  assert.deepEqual(getAuthCookieOptions('https://ourdahanu.in.evil.example'), {})
+  assert.deepEqual(getAuthCookieOptions(`https://${ROOT_DOMAIN}.evil.example`), {})
   assert.deepEqual(getAuthCookieOptions(undefined), {})
 })
 
@@ -78,11 +79,11 @@ test('removes only legacy host-only auth-token cookies and leaves PKCE cookies i
 })
 
 test('skips browser auth on Find hosts and tolerates an initial getUser rejection', async () => {
-  assert.equal(shouldInitializeBrowserAuth('find.ourdahanu.in'), false)
+  assert.equal(shouldInitializeBrowserAuth(`find.${ROOT_DOMAIN}`), false)
   assert.equal(shouldInitializeBrowserAuth('find.localhost'), false)
   assert.equal(shouldInitializeBrowserAuth('find.localhost:3000'), false)
-  assert.equal(shouldInitializeBrowserAuth('ourdahanu.in'), true)
-  assert.equal(shouldInitializeBrowserAuth('shop.ourdahanu.in'), true)
+  assert.equal(shouldInitializeBrowserAuth(`${ROOT_DOMAIN}`), true)
+  assert.equal(shouldInitializeBrowserAuth(`shop.${ROOT_DOMAIN}`), true)
 
   const expectedUser = { id: 'user-1' }
   assert.equal(
@@ -108,7 +109,7 @@ test('Find auth planning clears legacy host cookies without initializing a clien
       hostname: string,
       cookieHeader: string,
     ) => unknown)(
-      'find.ourdahanu.in',
+      `find.${ROOT_DOMAIN}`,
       [
         'sb-project-auth-token.0=stale-host-token',
         'sb-project-auth-token-code-verifier=keep-pkce',

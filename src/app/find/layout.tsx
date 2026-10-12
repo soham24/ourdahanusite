@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import type { Metadata } from 'next'
-import { siteConfig } from '@/lib/site'
+import { FIND_NAME, siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
   title: `Find — Trusted Local Professionals in ${siteConfig.town}`,
@@ -22,9 +22,9 @@ export default function FindLayout({ children }: { children: React.ReactNode }) 
       <div className="w-full bg-[var(--od-ink)] px-4 py-2 text-center text-xs font-semibold text-[var(--od-bg)]">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
           <span aria-hidden>🏪</span>
-          <span>FindDahanu is a directory of vouched-for local contacts.</span>
+          <span>{FIND_NAME} is a directory of vouched-for local contacts.</span>
           <a
-            href="https://ourdahanu.in/listings"
+            href={`https://${siteConfig.domain}/listings`}
             className="border-b border-[var(--od-bg)]/40 transition-colors hover:border-[var(--od-bg)]/70"
           >
             Browse verified business listings on {siteConfig.name} →

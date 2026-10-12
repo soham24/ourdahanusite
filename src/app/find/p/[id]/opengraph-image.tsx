@@ -2,9 +2,9 @@ import { ImageResponse } from 'next/og'
 import { loadDmSansPair } from '@/lib/og-font'
 import { getProfessionalById } from '@/lib/data/find'
 import { professionLabels } from '../../find-ui'
-import { siteConfig } from '@/lib/site'
+import { FIND_NAME, siteConfig } from '@/lib/site'
 
-export const alt = 'Professional profile on FindDahanu'
+export const alt = `Professional profile on ${FIND_NAME}`
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -29,7 +29,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const { id } = await params
   const pro = await getProfessionalById(id)
 
-  const name = pro?.name ?? 'FindDahanu'
+  const name = pro?.name ?? FIND_NAME
   const professions = pro ? professionLabels(pro).map((l) => l.label).join(' · ') : 'Trusted local professionals'
   const ratingText = pro && pro.rating_count > 0 ? `${pro.avg_rating.toFixed(1)} · ${pro.rating_count} rating${pro.rating_count === 1 ? '' : 's'}` : null
   // The star beside the rating is a drawn SVG, not a character: DM Sans's
@@ -107,7 +107,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
               letterSpacing: -0.5,
             }}
           >
-            FindDahanu
+            {FIND_NAME}
           </div>
         </div>
 

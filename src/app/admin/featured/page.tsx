@@ -2,6 +2,7 @@ import { createPublicClient } from '@/lib/supabase/public'
 import { setFeaturedListing } from '@/app/actions/settings'
 import { Star, MapPin, CheckCircle, Search, Sparkles } from 'lucide-react'
 import Image from 'next/image'
+import { siteConfig } from '@/lib/site'
 
 interface ListingRow {
   id: string
@@ -115,7 +116,7 @@ export default async function AdminFeaturedPage({
                 )}
               </div>
               <p className="text-xs text-gray-500 mt-0.5">{currentListing.category}</p>
-              <p className="text-xs font-mono text-brand mt-1">{currentSubdomain}.ourdahanu.in</p>
+              <p className="text-xs font-mono text-brand mt-1">{currentSubdomain}.{siteConfig.domain}</p>
               {currentListing.address && (
                 <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
                   <MapPin size={10} className="text-brand" />
@@ -131,7 +132,7 @@ export default async function AdminFeaturedPage({
 
             {/* Preview link */}
             <a
-              href={`https://${currentSubdomain}.ourdahanu.in`}
+              href={`https://${currentSubdomain}.${siteConfig.domain}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-shrink-0 text-xs font-semibold text-brand hover:text-brand-strong border border-brand/30 rounded-xl px-3 py-2 hover:bg-surface-soft transition-colors"
@@ -167,7 +168,7 @@ export default async function AdminFeaturedPage({
               className="flex-1 px-3 py-3 text-sm focus:outline-none"
               required
             />
-            <span className="px-3 text-xs text-gray-400 font-mono whitespace-nowrap bg-gray-50 border-l border-gray-200 py-3">.ourdahanu.in</span>
+            <span className="px-3 text-xs text-gray-400 font-mono whitespace-nowrap bg-gray-50 border-l border-gray-200 py-3">.{siteConfig.domain}</span>
           </div>
           <button
             type="submit"
@@ -244,7 +245,7 @@ export default async function AdminFeaturedPage({
                   <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
                     <span>{listing.category}</span>
                     {listing.subdomain && (
-                      <span className="font-mono text-brand/70">{listing.subdomain}.ourdahanu.in</span>
+                      <span className="font-mono text-brand/70">{listing.subdomain}.{siteConfig.domain}</span>
                     )}
                     {(listing.rating ?? 0) > 0 && (
                       <span className="flex items-center gap-0.5">

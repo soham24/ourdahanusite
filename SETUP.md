@@ -49,16 +49,25 @@ filename order. Pick either way:
 3. Optional: run `supabase/seed.sql` too, for a made-up town with sample
    businesses, events and tradespeople, so the pages are not empty
 
-**With the Supabase CLI**
+**With the Supabase CLI** (`supabase/config.toml` is already committed; the
+scripts fetch a pinned CLI through npx, so nothing to install)
 
 ```bash
-npx supabase init          # once; creates supabase/config.toml
-npx supabase link --project-ref YOUR_PROJECT_ID
-npx supabase db push       # applies every migration not yet applied
+npm run db:link -- --project-ref YOUR_PROJECT_ID
+npm run db:push            # applies every migration not yet applied
 ```
 
-For a throwaway local database instead (needs Docker): `npx supabase start`,
-then `npx supabase db reset` replays the migrations and loads `seed.sql`.
+**Or entirely on your machine** (needs Docker; no Supabase account at all)
+
+```bash
+npm run db:start           # starts Postgres, Auth and Storage; applies migrations + seed.sql
+```
+
+It prints an API URL and keys: put `API URL` in `NEXT_PUBLIC_SUPABASE_URL`,
+the anon/publishable key in `NEXT_PUBLIC_SUPABASE_ANON_KEY` and the
+service-role/secret key in `SUPABASE_SERVICE_ROLE_KEY`. `npm run db:reset`
+wipes it back to migrations + seed; `npm run db:stop` shuts it down. Sign-in
+needs Google keys even locally; `supabase/config.toml` says where they go.
 
 Either way this creates every table, the row level security policies, the
 `uploads` storage bucket and the trigger that creates a profile on sign-up.
@@ -146,18 +155,25 @@ export const siteConfig = {
   townLocal: 'आपले डहाणू',                // → 'आपले पुणे', or '' for none
   domain: 'ourdahanu.in',               // → 'ourpune.in'
   areas: 'Dahanu, Bordi, Gholvad and Palghar',
+  localities: ['Dahanu Road', 'Bordi', 'Gholvad', …],
   region: 'Palghar, Maharashtra, India',
   contactEmail: 'you@example.com',
   tagline: 'OurDahanu is the local platform for …',
 }
 ```
 
-Change those, run `npm run dev`, and the site is your town's: sign-in cookies,
+Change those, run `npm run sync:proxy` (step below), then `npm run dev`, and
+the site is your town's: sign-in cookies,
 business subdomains, canonical URLs, robots.txt, the sitemap and the links in
 emails and Telegram messages all follow `domain`.
 
 `areas` is the places around the town, written as a phrase; much of the copy
 says "Dahanu, Bordi, Gholvad and Palghar" rather than just "Dahanu".
+`localities` is the same surroundings as a list: the area suggestions on the
+jobs board, `areaServed` in search results, and the locality guessed from a
+business's address. The professionals directory takes its name from `town`
+("FindDahanu" → "FindPune"), and the governing-law line in the terms from
+`region`.
 `townLocal` is the name in your own script, shown under the logo while pages
 load — `''` shows nothing, and a non-Latin script needs a font with its glyphs
 (see the Devanagari subset in `src/app/layout.tsx`).
@@ -172,11 +188,9 @@ git grep -in "ourdahanu\|dahanu\|palghar" -- src/ public/ | grep -v "od-\|dahanu
 
 - **`src/proxy.ts`** — the `config.matcher` entries must be inline literals
   (Next.js analyses them at build time; a variable fails the build with
-  "Invalid segment configuration export detected"). Replace the domain in each
-  matcher regex. The rest of the file reads the config.
-- **`public/manifest.json`** — the installable-app name and description, read
-  by the browser before any JavaScript runs.
-- **Test fixtures** assert against the literal domain; update them to yours.
+  "Invalid segment configuration export detected"). Run `npm run sync:proxy`
+  after changing `domain` and it rewrites them; `npm test` fails until you do,
+  so CI catches a forgotten one.
 - **Email sender.** Mail is sent from `hello@<domain>`. That domain must be
   verified with Resend before anything is delivered — and `deliverEmail`
   discards the provider's error, so an unverified sender fails silently.
@@ -198,12 +212,40 @@ go through these before you launch:
 | Team on the homepage | `src/app/page-components/HeritageSection.tsx` | Names the people behind OurDahanu. |
 | Logo and verification | `public/logo.png`, `public/google*.html` | The logo, and Google Search Console's ownership file for ourdahanu.in — delete it and add your own. |
 | Business categories | `src/lib/category-groups.ts` | Tuned to what Dahanu actually has; a bigger town will want more, and different. |
-| Professions | `src/lib/find/` | The trades in the Find directory, which is branded "FindDahanu". |
-| Area suggestions | `src/lib/jobs/options.ts` | Localities offered when posting a job. |
+| Professions | `src/lib/find/` | The trades in the Find directory. |
 | Chikoo Catcher | `src/app/play/` | A chikoo is Dahanu's fruit and the game is themed on it. Rename it, re-theme it, or delete the route. |
 | About page | `src/app/about/page.tsx` | The story of this project and who built it. Yours is different. |
 | WhatsApp template | `docs/EMAIL-AND-NOTIFICATIONS.md` | The wording of the one template Meta must approve names the site. |
 | Terms and privacy | `src/app/terms/`, `src/app/privacy/` | Written for one operator in one jurisdiction. **Have someone qualified read these before publishing them.** |
+
+## Hosting without Vercel
+
+The repository also builds into a plain Node server in a Docker image, for a
+VPS, Render, Fly.io, Railway or anywhere else that runs containers.
+
+```bash
+docker compose --env-file .env.local up --build -d
+```
+
+That builds the `Dockerfile` with your `.env.local` and serves the site on
+port 3000; put it behind a reverse proxy (Caddy, nginx, your platform's own)
+that terminates HTTPS. Without Docker, the same thing is
+`NEXT_OUTPUT=standalone npm run build`, then copy `public/` and `.next/static/`
+into `.next/standalone/` and run `node .next/standalone/server.js`.
+
+Three things Vercel was doing for you:
+
+- **`NEXT_PUBLIC_*` values are baked in at build time.** Change one and
+  rebuild the image; every other variable is read at runtime.
+- **Scheduled jobs.** Add the repository variable `CRON_SITE_URL` (your site's
+  address) and the secret `CRON_SECRET` in GitHub → Settings → Secrets and
+  variables → Actions, and `.github/workflows/cron.yml` calls the jobs on the
+  schedule in `vercel.json`. Any other scheduler works too: it only needs to
+  send `GET /api/cron/listing-expiry` weekly and `GET /api/cron/job-reminders`
+  daily with the header `Authorization: Bearer <CRON_SECRET>`.
+- **Business subdomains.** Point both `yourtown.in` and `*.yourtown.in` at the
+  server, and get a wildcard certificate (Caddy and certbot both can, via a DNS
+  challenge).
 
 ## Optional services
 

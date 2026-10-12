@@ -1,0 +1,25 @@
+# Run the site in Docker on any machine, outside Vercel:
+#
+#   docker compose --env-file .env.local up --build -d
+#
+# `--env-file` lets Compose fill in the build arguments below from your
+# .env.local; `env_file` hands the same file to the running server. The
+# database is your hosted Supabase project.
+#
+# Vercel's crons do not exist here. .github/workflows/cron.yml can call them on
+# a schedule instead; see "Hosting without Vercel" in SETUP.md.
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+        NEXT_PUBLIC_GA_ID: ${NEXT_PUBLIC_GA_ID:-}
+        NEXT_PUBLIC_ADSENSE_CLIENT_ID: ${NEXT_PUBLIC_ADSENSE_CLIENT_ID:-}
+    env_file: .env.local
+    ports:
+      - "3000:3000"
+    restart: unless-stopped

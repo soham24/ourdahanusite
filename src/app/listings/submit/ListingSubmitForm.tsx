@@ -29,7 +29,7 @@ import { siteConfig } from '@/lib/site'
 
 const PLAN_FEATURES = [
   `Your own profile page on ${siteConfig.name}`,
-  'Your unique subdomain (yourname.ourdahanu.in)',
+  `Your unique subdomain (yourname.${siteConfig.domain})`,
   'Phone, address & website display',
   'Customer reviews',
   'Photos',
@@ -478,7 +478,7 @@ export default function ListingSubmitForm({
           <div>
             <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-1.5">Address</label>
             <input type="text" id="address" name="address"
-              placeholder={`e.g. Main Market, ${siteConfig.town} Road, Palghar - 401602`}
+              placeholder={`e.g. Main Market, ${siteConfig.town}`}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm mb-3" />
             <LocationPicker />
           </div>
