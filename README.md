@@ -35,8 +35,10 @@ becomes admin, and a random string for the scheduled jobs — and deploys.
 Then, to finish:
 
 1. **Make sure the database has its tables.** If the Supabase project is
-   empty, run the files in `supabase/migrations/` in its SQL editor in
-   filename order (SETUP.md step 2).
+   empty, from a clone of your copy run
+   `npm run db:link -- --project-ref <project id>` then `npm run db:push`, or
+   paste the files in `supabase/migrations/` into its SQL editor in filename
+   order (SETUP.md step 2).
 2. **Turn on Google sign-in** in Supabase and add your site's
    `/auth/callback` to its redirect URLs (SETUP.md steps 3 and 6).
 3. **Make it your town** — edit `src/lib/site-config.ts` in your copy, run
@@ -168,12 +170,19 @@ What each notification provider sends, to whom, and how to set it up:
 ## Scripts
 
 ```bash
-npm run dev       # dev server (Turbopack)
-npm run build     # production build — run this before you push
-npm test          # unit, game and security suites
-npm run lint      # eslint
-npx tsc --noEmit  # types
-npm run doctor    # checks your .env.local, database and services; changes nothing
+npm run setup       # local database with sample data (Docker), and .env.local to match
+npm run dev         # dev server (Turbopack)
+npm run build       # production build — run this before you push
+npm test            # unit, game and security suites (also checks proxy.ts matches the config)
+npm run lint        # eslint
+npx tsc --noEmit    # types
+npm run doctor      # checks your .env.local, database, services and leftover Dahanu content; changes nothing
+npm run sync:proxy  # rewrites src/proxy.ts's matchers after you change `domain`
+
+npm run db:start    # start the local database   · db:stop   stop it
+npm run db:reset    # wipe it back to migrations + sample data
+npm run db:link -- --project-ref <id>   # point the CLI at a hosted Supabase project
+npm run db:push     # apply any migrations it does not have yet
 ```
 
 `npm run build` also runs a check that fails if a server action leaks a
