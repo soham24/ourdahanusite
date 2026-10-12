@@ -2,10 +2,11 @@ import {
   getAuthCookieOptions,
   getLegacyHostOnlyAuthCookieRemovals,
 } from '@/lib/supabase/auth-cookie'
+import { ROOT_DOMAIN } from '@/lib/site-config'
 
 export function shouldInitializeBrowserAuth(hostname: string): boolean {
   const normalized = hostname.split(',')[0].trim().split(':')[0].toLowerCase()
-  return normalized !== 'find.ourdahanu.in' && normalized !== 'find.localhost'
+  return normalized !== `find.${ROOT_DOMAIN}` && normalized !== 'find.localhost'
 }
 
 export function getBrowserAuthPlan(

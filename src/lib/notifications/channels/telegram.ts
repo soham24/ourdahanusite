@@ -2,6 +2,7 @@ import 'server-only'
 
 import { escapeHtml } from '../email-layout'
 import type { RenderedNotification } from '../types'
+import { siteConfig } from '@/lib/site'
 
 const TG_API = 'https://api.telegram.org'
 
@@ -44,10 +45,12 @@ export async function deliverTelegram(params: {
 }
 
 function buildFallbackText(rendered: RenderedNotification): string {
+  // The production domain, like ../templates.ts: a link in a notification
+  // outlives the preview deployment that sent it.
   const link = rendered.link
     ? rendered.link.startsWith('http')
       ? rendered.link
-      : `https://ourdahanu.in${rendered.link}`
+      : `https://${siteConfig.domain}${rendered.link}`
     : null
   return [
     `<b>${escapeHtml(rendered.title)}</b>`,

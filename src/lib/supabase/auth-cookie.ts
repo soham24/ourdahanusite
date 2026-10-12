@@ -1,4 +1,6 @@
-const SHARED_AUTH_COOKIE_DOMAIN = '.ourdahanu.in'
+import { ROOT_DOMAIN } from '../site-config'
+
+const SHARED_AUTH_COOKIE_DOMAIN = `.${ROOT_DOMAIN}`
 const LEGACY_AUTH_COOKIE_NAME = /^sb-[A-Za-z0-9_-]+-auth-token(?:\.\d+)?$/
 
 export type AuthCookieOptions = {
@@ -13,7 +15,7 @@ export function getAuthCookieOptions(hostOrUrl?: string): AuthCookieOptions {
     const hostname = new URL(
       value.includes('://') ? value : `https://${value}`,
     ).hostname.toLowerCase()
-    if (hostname === 'ourdahanu.in' || hostname.endsWith('.ourdahanu.in')) {
+    if (hostname === ROOT_DOMAIN || hostname.endsWith(SHARED_AUTH_COOKIE_DOMAIN)) {
       return { domain: SHARED_AUTH_COOKIE_DOMAIN }
     }
   } catch {
@@ -25,7 +27,7 @@ export function getAuthCookieOptions(hostOrUrl?: string): AuthCookieOptions {
 
 /**
  * Build host-only deletion cookies for auth-token cookies written before the
- * shared `.ourdahanu.in` domain was configured. Omitting Domain is deliberate:
+ * shared `.<ROOT_DOMAIN>` domain was configured. Omitting Domain is deliberate:
  * it deletes only the legacy cookie for the current host and preserves the new
  * shared-domain cookie. PKCE code-verifier cookies never match this pattern.
  */

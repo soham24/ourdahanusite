@@ -16,7 +16,7 @@ import FindCard from '../../FindCard'
 import { Mr } from '../../find-ui'
 import { siteConfig } from '@/lib/site'
 
-const FIND_URL = 'https://find.ourdahanu.in'
+const FIND_URL = `https://find.${siteConfig.domain}`
 
 // Pre-render one crawlable landing page per real category. 'Other' is not a
 // rankable category, so it's excluded.
@@ -38,7 +38,7 @@ export async function generateMetadata({
   const canonical = `${FIND_URL}/c/${slug}`
   const title = `${profession} in ${siteConfig.town} — Trusted, Rated Professionals`
   const description =
-    `Find ${count > 0 ? `${count} ` : ''}trusted, neighbour-rated ${profession.toLowerCase()} in ${siteConfig.town}, Bordi, Gholvad & Palghar. Real ratings, checked by moderators.`.slice(
+    `Find ${count > 0 ? `${count} ` : ''}trusted, neighbour-rated ${profession.toLowerCase()} in ${siteConfig.areas}. Real ratings, checked by moderators.`.slice(
       0,
       160,
     )
@@ -124,8 +124,8 @@ export default async function CategoryPage({
           </p>
         )}
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--od-muted)]">
-          Trusted, neighbour-rated {profession.toLowerCase()} across Dahanu, Bordi, Gholvad and
-          Palghar — added by locals, rated only by people who actually hired them.
+          Trusted, neighbour-rated {profession.toLowerCase()} across {siteConfig.areas} — added by
+          locals, rated only by people who actually hired them.
         </p>
         <p className="mt-3 flex items-center gap-1.5 text-xs font-bold text-[var(--od-ink-2)]">
           <ShieldCheck size={13} className="text-[var(--od-success)]" aria-hidden />

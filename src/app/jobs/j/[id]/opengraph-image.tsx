@@ -57,7 +57,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             fontSize: 24,
           }}
         >
-          <div style={{ display: 'flex' }}>jobs.ourdahanu.in</div>
+          <div style={{ display: 'flex' }}>{`jobs.${siteConfig.domain}`}</div>
           <div style={{ display: 'flex' }}>Never pay anyone to get a job</div>
         </div>
       </div>

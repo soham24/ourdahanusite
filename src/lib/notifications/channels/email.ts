@@ -25,7 +25,7 @@ export async function deliverEmail(params: {
     params.rendered.email?.html ?? buildFallbackHtml(params.rendered)
 
   await resend.emails.send({
-    from: `${siteConfig.name} <hello@ourdahanu.in>`,
+    from: `${siteConfig.name} <hello@${siteConfig.domain}>`,
     to: params.to,
     subject,
     html,
@@ -33,10 +33,12 @@ export async function deliverEmail(params: {
 }
 
 function buildFallbackHtml(rendered: RenderedNotification): string {
+  // The production domain, like ../templates.ts: a link in a notification
+  // outlives the preview deployment that sent it.
   const ctaUrl = rendered.link
     ? rendered.link.startsWith('http')
       ? rendered.link
-      : `https://ourdahanu.in${rendered.link}`
+      : `https://${siteConfig.domain}${rendered.link}`
     : undefined
 
   return renderEmailLayout({

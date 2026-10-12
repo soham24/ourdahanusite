@@ -39,7 +39,7 @@ function formatCurrency(amount: number): string {
 }
 
 function getListingUrl(listingId: string, subdomain?: string | null): string {
-  return subdomain ? `https://${subdomain}.ourdahanu.in` : `${SITE_URL}/listings/${listingId}`
+  return subdomain ? `https://${subdomain}.${siteConfig.domain}` : `${SITE_URL}/listings/${listingId}`
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

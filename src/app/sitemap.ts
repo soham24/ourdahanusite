@@ -6,7 +6,7 @@ import { PUBLIC_SITEMAP_CACHE } from '@/lib/cache-policy'
 import { logCacheRegeneration } from '@/lib/isr-debug'
 import { getPublishedGuides } from '@/lib/guides'
 import { compareStableText, getCategoryUrl } from '@/lib/listing-category'
-import { SITE_URL } from '@/lib/site'
+import { ROOT_DOMAIN, SITE_URL } from '@/lib/site'
 import { createPublicClient } from '@/lib/supabase/public'
 import { isValidProfession, professionSlug } from '@/lib/find/professions'
 import { MIN_CATEGORY_SIZE, isProfileIndexable } from '@/lib/seo-thresholds'
@@ -76,7 +76,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const sitemapListings = (listings ?? []) as SitemapListing[]
     const listingRoutes: MetadataRoute.Sitemap = sitemapListings.flatMap((l) => {
-      const subdomainUrl = l.subdomain ? `https://${l.subdomain}.ourdahanu.in` : null
+      const subdomainUrl = l.subdomain ? `https://${l.subdomain}.${ROOT_DOMAIN}` : null
       const uuidUrl = `${base}/listings/${l.id}`
       const canonicalUrl = subdomainUrl || uuidUrl
       const images = [l.image_url, l.cover_image]
@@ -112,7 +112,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
       }))
 
-    // find.ourdahanu.in — cross-host entries are valid here because the find
+    // find.<ROOT_DOMAIN> — cross-host entries are valid here because the find
     // subdomain's robots.txt declares this sitemap (same mechanism the
     // business-subdomain URLs above rely on).
     const { data: professionals } = await supabase
@@ -176,26 +176,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const findRoutes: MetadataRoute.Sitemap = [
       {
-        url: 'https://find.ourdahanu.in/',
+        url: `https://find.${ROOT_DOMAIN}/`,
         lastModified: STATIC_LAST_MODIFIED,
         changeFrequency: 'daily',
         priority: 0.8,
       },
       ...[...categorySet].map((prof) => ({
-        url: `https://find.ourdahanu.in/c/${professionSlug(prof)}`,
+        url: `https://find.${ROOT_DOMAIN}/c/${professionSlug(prof)}`,
         lastModified: STATIC_LAST_MODIFIED,
         changeFrequency: 'daily' as const,
         priority: 0.7,
       })),
       ...indexableFindRows.map((p) => ({
-        url: `https://find.ourdahanu.in/p/${p.id}`,
+        url: `https://find.${ROOT_DOMAIN}/p/${p.id}`,
         lastModified: p.updated_at ? new Date(p.updated_at) : STATIC_LAST_MODIFIED,
         changeFrequency: 'weekly' as const,
         priority: 0.6,
       })),
     ]
 
-    // jobs.ourdahanu.in — the board, category pages with enough live hiring
+    // jobs.<ROOT_DOMAIN> — the board, category pages with enough live hiring
     // posts, and each live hiring post. "Looking for work" profiles are left
     // out on purpose: their pages are noindex, so a person's profile never
     // lingers in search results. The public client can only read live posts.
@@ -218,7 +218,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const jobRoutes: MetadataRoute.Sitemap = [
       {
-        url: 'https://jobs.ourdahanu.in/',
+        url: `https://jobs.${ROOT_DOMAIN}/`,
         lastModified: STATIC_LAST_MODIFIED,
         changeFrequency: 'daily',
         priority: 0.8,
@@ -226,13 +226,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...[...jobCategoryCounts.entries()]
         .filter(([, count]) => count >= MIN_CATEGORY_SIZE)
         .map(([category]) => ({
-          url: `https://jobs.ourdahanu.in/c/${jobCategorySlug(category)}`,
+          url: `https://jobs.${ROOT_DOMAIN}/c/${jobCategorySlug(category)}`,
           lastModified: STATIC_LAST_MODIFIED,
           changeFrequency: 'daily' as const,
           priority: 0.7,
         })),
       ...liveHiring.map((row) => ({
-        url: `https://jobs.ourdahanu.in/j/${row.id}`,
+        url: `https://jobs.${ROOT_DOMAIN}/j/${row.id}`,
         lastModified: row.published_at ? new Date(row.published_at) : STATIC_LAST_MODIFIED,
         changeFrequency: 'weekly' as const,
         priority: 0.6,

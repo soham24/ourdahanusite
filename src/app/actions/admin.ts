@@ -115,7 +115,7 @@ async function notifyGenericApproval(table: string, id: string) {
     const resend = new Resend(process.env.RESEND_API_KEY)
 
     await resend.emails.send({
-      from: `${siteConfig.name} <hello@ourdahanu.in>`,
+      from: `${siteConfig.name} <hello@${siteConfig.domain}>`,
       to: email,
       subject: `✅ Your ${contentLabel} is now live on ${siteConfig.name}!`,
       html: `<!DOCTYPE html>
@@ -157,7 +157,7 @@ async function notifyGenericApproval(table: string, id: string) {
         <tr>
           <td style="background:#FBF0DC;padding:18px 40px;text-align:center;border-top:1px solid #E8C99A;">
             <p style="color:#7A4A25;font-size:12px;margin:0;">
-              ${siteConfig.name} · ${siteConfig.town}, Palghar, Maharashtra 401602
+              ${siteConfig.name} · ${siteConfig.town}, ${siteConfig.region}
             </p>
           </td>
         </tr>

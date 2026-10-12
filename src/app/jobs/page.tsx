@@ -7,6 +7,7 @@ import { getJobBoard } from '@/lib/data/jobs'
 import { JOB_CATEGORIES, jobCategoryMarathi } from '@/lib/jobs/categories'
 import { AREA_SUGGESTIONS, WORK_TYPES } from '@/lib/jobs/options'
 import JobCard from './JobCard'
+import { JOBS_URL } from './jobs-ui'
 import { siteConfig } from '@/lib/site'
 
 type Tab = 'hiring' | 'seeking'
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
   title: { absolute: `${siteConfig.name} Jobs — Local Jobs in ${siteConfig.town}` },
   description:
     `Local jobs in ${siteConfig.areas} — shops, hotels, farms, clinics and homes hiring. Free to post a job, or to say you are looking for work.`,
-  alternates: { canonical: 'https://jobs.ourdahanu.in/' },
+  alternates: { canonical: `${JOBS_URL}/` },
 }
 
 const labelCls = 'mb-1 block text-[12px] font-bold text-[var(--od-ink-2)]'

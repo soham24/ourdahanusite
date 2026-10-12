@@ -36,7 +36,7 @@ export default function ListingsDirectoryContent({
     ? `${activeCategory} in ${siteConfig.town}`
     : `Business Listings in ${siteConfig.town}`
   const collectionDescription = activeCategory
-    ? `Browse ${listings.length} ${activeCategory.toLowerCase()} business${listings.length === 1 ? '' : 'es'} in ${siteConfig.town}, Bordi, Gholvad, and nearby areas on ${siteConfig.name}.`
+    ? `Browse ${listings.length} ${activeCategory.toLowerCase()} business${listings.length === 1 ? '' : 'es'} in ${siteConfig.areas} on ${siteConfig.name}.`
     : `Browse verified businesses, services, shops, restaurants, hotels, and local professionals in ${siteConfig.town} on ${siteConfig.name}.`
 
   const breadcrumbSchema = {
@@ -104,7 +104,7 @@ export default function ListingsDirectoryContent({
           title={activeCategory ? `${activeCategory} in ${siteConfig.town}` : `Business Listings in ${siteConfig.town}`}
           sub={activeCategory
             ? `${listings.length} business${listings.length !== 1 ? 'es' : ''} currently visible in ${activeCategory}. Search, sort, and compare before you contact them.`
-            : `Search, sort, and compare trusted businesses and services across ${siteConfig.town}, Bordi, Gholvad, and nearby areas.`}
+            : `Search, sort, and compare trusted businesses and services across ${siteConfig.areas}.`}
         />
 
         <Card padding="sm" className="hidden md:inline-flex self-start md:self-auto text-sm text-[var(--od-ink-2)]">

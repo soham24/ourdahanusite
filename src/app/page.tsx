@@ -23,27 +23,32 @@ import HeritageSection from './page-components/HeritageSection'
 import HomeSectionSkeleton from './page-components/HomeSectionSkeleton'
 import { siteConfig } from '@/lib/site'
 
+// Production on purpose, like the layout's metadataBase: a preview deployment
+// must not tell search engines it is the canonical home page.
+const HOME_URL = `https://${siteConfig.domain}/`
+const LOGO_URL = `https://${siteConfig.domain}/logo.png`
+
 export const metadata: Metadata = {
   title: `${siteConfig.town} Business Directory & Community`,
   description:
     `Discover ${siteConfig.town} businesses, restaurants, hotels, services, and community updates on ${siteConfig.name}.`,
   alternates: {
-    canonical: 'https://ourdahanu.in/',
+    canonical: HOME_URL,
   },
   openGraph: {
     title: `${siteConfig.town} Business Directory & Community`,
     description:
       `Discover ${siteConfig.town} businesses, restaurants, hotels, services, and community updates on ${siteConfig.name}.`,
-    url: 'https://ourdahanu.in/',
+    url: HOME_URL,
     type: 'website',
-    images: [{ url: 'https://ourdahanu.in/logo.png' }],
+    images: [{ url: LOGO_URL }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${siteConfig.town} Business Directory & Community`,
     description:
       `Discover ${siteConfig.town} businesses, restaurants, hotels, services, and community updates on ${siteConfig.name}.`,
-    images: ['https://ourdahanu.in/logo.png'],
+    images: [LOGO_URL],
   },
 }
 
