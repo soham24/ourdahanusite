@@ -35,6 +35,12 @@ const nextConfig: NextConfig = {
     '/**': ['./content/**/*'],
   },
   cacheComponents: true,
+  async rewrites() {
+    return [
+      // Search Console's ownership file; see src/app/api/google-site-verification.
+      { source: '/:file(google[0-9a-f]+\\.html)', destination: '/api/google-site-verification/:file' },
+    ];
+  },
   async redirects() {
     return [
       // The manifest moved to src/app/manifest.ts, which Next.js serves at

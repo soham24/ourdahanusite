@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -71,6 +71,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function useAuth() {
-  return useContext(AuthContext)
+const subscribeToNothing = () => () => {}
+
+/**
+ * The signed-in user, as seen by this component.
+ *
+ * The server always renders signed-out (it does not read the session), and
+ * AuthProvider loads the user in an effect. Components inside a Suspense
+ * boundary hydrate *after* that effect has run, so reading the context
+ * directly gave them the signed-in user mid-hydration and React threw away
+ * the server HTML on every page ("Hydration failed"). Until this component
+ * has hydrated it therefore sees the same signed-out state the server
+ * rendered; React re-renders it with the real user straight afterwards.
+ */
+export function useAuth(): AuthContextValue {
+  const auth = useContext(AuthContext)
+  const hydrated = useSyncExternalStore(subscribeToNothing, () => true, () => false)
+  return hydrated ? auth : { ...auth, user: null, loading: true }
 }
