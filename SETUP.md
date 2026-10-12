@@ -212,7 +212,7 @@ go through these before you launch:
 | Guides | `content/guides/*.md`, images in `public/guides/` | Travel, food and local know-how, written about Dahanu. |
 | Contact details | `src/app/contact/page.tsx` | The maintainer's WhatsApp number and Instagram handle. |
 | Team on the homepage | `src/app/page-components/HeritageSection.tsx` | Names the people behind OurDahanu. |
-| Logo and verification | `public/logo.png`, `public/google*.html` | The logo, and Google Search Console's ownership file for ourdahanu.in — delete it and add your own. |
+| Logo | `public/logo.png` | Shown in the navbar, share previews and the installed app. (Search Console ownership is the `GOOGLE_SITE_VERIFICATION` setting, not a file.) |
 | Business categories | `src/lib/category-groups.ts` | Tuned to what Dahanu actually has; a bigger town will want more, and different. |
 | Professions | `src/lib/find/` | The trades in the Find directory. |
 | Chikoo Catcher | `src/app/play/` | A chikoo is Dahanu's fruit and the game is themed on it. Rename it, re-theme it, or delete the route. |
