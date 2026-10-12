@@ -71,6 +71,7 @@ export default function SlotPicker({ slots, selectedStart, loading, onSelect }: 
                   key={slot.start}
                   type="button"
                   disabled={!slot.available}
+                  aria-pressed={isSelected}
                   onClick={() => onSelect(slot)}
                   aria-label={
                     slot.available

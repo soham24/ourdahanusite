@@ -64,7 +64,7 @@ export default async function PollDetailPage({
     <div className="min-h-screen bg-[#FDFAF6]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center gap-3 mb-3">
-          <Link href="/polls" className="text-gray-400 hover:text-brand transition-colors">
+          <Link href="/polls" aria-label="Back to polls" className="text-gray-400 hover:text-brand transition-colors">
             <ArrowLeft size={18} />
           </Link>
           <div>

@@ -93,6 +93,7 @@ export default function QASection({ listingId, subdomain, questions: initial, is
             <div key={question.id} className="overflow-hidden rounded-xl border border-gray-100">
               <button
                 className="flex w-full items-start justify-between gap-3 p-4 text-left transition-colors hover:bg-gray-50"
+                aria-expanded={Boolean(expanded[question.id])}
                 onClick={() =>
                   setExpanded((current) => ({
                     ...current,
@@ -130,11 +131,13 @@ export default function QASection({ listingId, subdomain, questions: initial, is
                           setAnswerTexts((current) => ({ ...current, [question.id]: event.target.value }))
                         }
                         placeholder="Type your answer..."
+                        aria-label="Your answer"
                         className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
                       />
                       <button
                         onClick={() => handleAnswer(question.id)}
                         disabled={isPending || !answerTexts[question.id]?.trim()}
+                        aria-label="Send answer"
                         className="rounded-xl bg-brand px-3 py-2 text-sm font-semibold text-bg transition-colors hover:bg-brand-strong disabled:opacity-50"
                       >
                         <Send size={14} />
@@ -158,6 +161,7 @@ export default function QASection({ listingId, subdomain, questions: initial, is
             onChange={(event) => setQuestionText(event.target.value)}
             onKeyDown={(event) => event.key === 'Enter' && handleAsk()}
             placeholder="Ask a question about this business..."
+            aria-label="Your question"
             disabled={isPending}
             className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none disabled:bg-gray-50 disabled:text-gray-400"
           />

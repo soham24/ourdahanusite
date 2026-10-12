@@ -1,14 +1,66 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 export default function PhotoGallery({ photos }: { photos: string[] }) {
   const [lightbox, setLightbox] = useState<number | null>(null)
+  const thumbRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const openerRef = useRef(0)
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const isOpen = lightbox !== null
+  const count = photos.length
+
+  useEffect(() => {
+    if (!isOpen) return
+    const thumbs = thumbRefs.current
+    const opener = openerRef.current
+    closeRef.current?.focus()
+
+    // Listening on document, not the dialog: clicking the photo itself moves
+    // focus to <body>, and the keys must keep working after that.
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setLightbox(null)
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        setLightbox(i => (i! > 0 ? i! - 1 : count - 1))
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        setLightbox(i => (i! < count - 1 ? i! + 1 : 0))
+      } else if (e.key === 'Tab') {
+        const buttons = Array.from(dialogRef.current?.querySelectorAll('button') ?? [])
+        if (buttons.length === 0) return
+        const first = buttons[0]
+        const last = buttons[buttons.length - 1]
+        const active = document.activeElement
+        const inside = buttons.includes(active as HTMLButtonElement)
+        if (e.shiftKey && (active === first || !inside)) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && (active === last || !inside)) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      thumbs[opener]?.focus()
+    }
+  }, [isOpen, count])
 
   if (photos.length === 0) return null
 
+  const open = (i: number) => {
+    openerRef.current = i
+    setLightbox(i)
+  }
   const prev = () => setLightbox(i => (i! > 0 ? i! - 1 : photos.length - 1))
   const next = () => setLightbox(i => (i! < photos.length - 1 ? i! + 1 : 0))
 
@@ -23,7 +75,8 @@ export default function PhotoGallery({ photos }: { photos: string[] }) {
         {photos.map((url, i) => (
           <button
             key={i}
-            onClick={() => setLightbox(i)}
+            ref={el => { thumbRefs.current[i] = el }}
+            onClick={() => open(i)}
             className={`relative overflow-hidden rounded-xl bg-gray-100 ${
               photos.length > 3 && i === 0 ? 'col-span-2 row-span-2' : ''
             }`}
@@ -48,10 +101,15 @@ export default function PhotoGallery({ photos }: { photos: string[] }) {
       {/* Lightbox */}
       {lightbox !== null && (
         <div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Photo ${lightbox + 1} of ${photos.length}`}
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
           onClick={() => setLightbox(null)}
         >
           <button onClick={e => { e.stopPropagation(); prev() }}
+            aria-label="Previous photo"
             className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-full transition-colors">
             <ChevronLeft size={24} />
           </button>
@@ -59,10 +117,12 @@ export default function PhotoGallery({ photos }: { photos: string[] }) {
             <Image src={photos[lightbox]} alt={`Photo ${lightbox + 1}`} fill sizes="100vw" className="object-contain" />
           </div>
           <button onClick={e => { e.stopPropagation(); next() }}
+            aria-label="Next photo"
             className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-full transition-colors">
             <ChevronRight size={24} />
           </button>
-          <button onClick={() => setLightbox(null)}
+          <button ref={closeRef} onClick={() => setLightbox(null)}
+            aria-label="Close photo viewer"
             className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white p-3 rounded-full transition-colors">
             <X size={20} />
           </button>

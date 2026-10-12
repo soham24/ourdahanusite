@@ -196,7 +196,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
       {/* Header */}
       <div className="flex items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <Link href="/my-business" className="text-gray-400 hover:text-brand transition-colors">
+          <Link href="/my-business" aria-label="Back to my business" className="text-gray-400 hover:text-brand transition-colors">
             <ArrowLeft size={20} />
           </Link>
           <div>
@@ -221,7 +221,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
       {saved && (
         <div className="bg-green-50 border border-green-200 rounded-2xl px-4 py-3 flex items-center justify-between text-green-700 text-sm font-medium mb-6">
           <span className="flex items-center gap-2"><CheckCircle size={16} />Changes saved successfully!</span>
-          <button type="button" onClick={() => setSaved(false)} className="text-green-400 hover:text-green-600 ml-4">✕</button>
+          <button type="button" onClick={() => setSaved(false)} aria-label="Dismiss" className="text-green-400 hover:text-green-600 ml-4">✕</button>
         </div>
       )}
 
@@ -232,6 +232,10 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
+            // The visible label is display:none below sm, which leaves the
+            // button nameless on phones without this.
+            aria-label={tab.label}
+            aria-pressed={activeTab === tab.id}
             className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-all ${
               activeTab === tab.id
                 ? 'bg-white text-brand shadow-sm'
@@ -299,7 +303,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
                 {tags.map(t => (
                   <span key={t} className="inline-flex items-center gap-1 bg-surface-soft border border-border text-brand text-xs px-2.5 py-1 rounded-full">
                     {t}
-                    <button type="button" onClick={() => removeTag(t)} className="hover:text-red-500 ml-0.5">×</button>
+                    <button type="button" onClick={() => removeTag(t)} aria-label={`Remove tag ${t}`} className="hover:text-red-500 ml-0.5">×</button>
                   </span>
                 ))}
               </div>
@@ -554,7 +558,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
                 {beforeAfter.before && (
                   <div className="relative mb-2 rounded-lg overflow-hidden bg-gray-100" style={{ aspectRatio: '4/3' }}>
                     <img src={beforeAfter.before} alt="Before" className="w-full h-full object-cover" />
-                    <button type="button" onClick={() => setBeforeAfter(b => ({ ...b, before: '' }))}
+                    <button type="button" onClick={() => setBeforeAfter(b => ({ ...b, before: '' }))} aria-label="Remove before photo"
                       className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
                   </div>
                 )}
@@ -565,7 +569,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
                 {beforeAfter.after && (
                   <div className="relative mb-2 rounded-lg overflow-hidden bg-gray-100" style={{ aspectRatio: '4/3' }}>
                     <img src={beforeAfter.after} alt="After" className="w-full h-full object-cover" />
-                    <button type="button" onClick={() => setBeforeAfter(b => ({ ...b, after: '' }))}
+                    <button type="button" onClick={() => setBeforeAfter(b => ({ ...b, after: '' }))} aria-label="Remove after photo"
                       className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
                   </div>
                 )}
@@ -665,12 +669,15 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
                   <input type="text" value={h.label}
                     onChange={e => setHighlights(hs => hs.map((x, idx) => idx === i ? { ...x, label: e.target.value } : x))}
                     placeholder="Label (e.g. Happy Customers)"
+                    aria-label={`Highlight ${i + 1} label`}
                     className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand" />
                   <input type="text" value={h.value}
                     onChange={e => setHighlights(hs => hs.map((x, idx) => idx === i ? { ...x, value: e.target.value } : x))}
                     placeholder="Value (e.g. 500+)"
+                    aria-label={`Highlight ${i + 1} value`}
                     className="w-28 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand" />
                   <button type="button" onClick={() => setHighlights(hs => hs.filter((_, idx) => idx !== i))}
+                    aria-label={`Remove highlight ${i + 1}`}
                     className="text-gray-300 hover:text-red-500 transition-colors px-1">
                     <Trash2 size={15} />
                   </button>
@@ -693,7 +700,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
               {certifications.map((c, i) => (
                 <span key={i} className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-700 text-xs px-2.5 py-1 rounded-full">
                   {c}
-                  <button type="button" onClick={() => setCertifications(cs => cs.filter((_, idx) => idx !== i))} className="hover:text-red-500 ml-0.5">×</button>
+                  <button type="button" onClick={() => setCertifications(cs => cs.filter((_, idx) => idx !== i))} aria-label={`Remove certification ${c}`} className="hover:text-red-500 ml-0.5">×</button>
                 </span>
               ))}
             </div>

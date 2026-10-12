@@ -171,6 +171,7 @@ export default function ImageCropUpload({
                 type="range" min={1} max={3} step={0.05}
                 value={zoom}
                 onChange={e => setZoom(Number(e.target.value))}
+                aria-label="Zoom"
                 className="flex-1 accent-brand"
               />
               <ZoomIn size={14} className="text-gray-400 flex-shrink-0" />
@@ -183,6 +184,7 @@ export default function ImageCropUpload({
                 type="range" min={-180} max={180} step={1}
                 value={rotation}
                 onChange={e => setRotation(Number(e.target.value))}
+                aria-label="Rotation"
                 className="flex-1 accent-brand"
               />
               <span className="text-xs text-gray-400 w-10 text-right">{rotation}°</span>
@@ -225,7 +227,7 @@ export default function ImageCropUpload({
             </div>
           )}
           {!uploading && (
-            <button type="button" onClick={reset}
+            <button type="button" onClick={reset} aria-label="Remove image"
               className="absolute top-1.5 right-1.5 bg-white/90 hover:bg-white text-red-600 rounded-full p-1 shadow transition-colors">
               <X size={14} />
             </button>
@@ -241,8 +243,18 @@ export default function ImageCropUpload({
     <div className="w-full">
       {label && <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>}
 
+      {/* The file input is hidden, so this drop zone is the only way in and
+          has to be reachable and operable from the keyboard. */}
       <div
+        role="button"
+        tabIndex={0}
         onClick={() => inputRef.current?.click()}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            inputRef.current?.click()
+          }
+        }}
         className="border-2 border-dashed border-gray-300 hover:border-brand rounded-2xl p-10 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors bg-gray-50 hover:bg-surface-soft"
       >
         <div className="w-14 h-14 bg-surface-soft rounded-2xl flex items-center justify-center">
