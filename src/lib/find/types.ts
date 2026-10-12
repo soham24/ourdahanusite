@@ -35,6 +35,8 @@ export interface LinkedBusiness {
   name: string
   subdomain: string | null
   image_url: string | null
+  /** 240px upload thumbnail, for the small avatar; image_url stays for structured data. */
+  image_thumb_url: string | null
 }
 
 // Public-facing professional plus computed rating aggregates and the linked

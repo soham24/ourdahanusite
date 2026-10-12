@@ -66,7 +66,22 @@ export default function ListingHero({
       {/* ── Cover Image / Hero ──────────────────────────────────────────────── */}
       <div className="relative h-36 w-full overflow-hidden bg-gradient-to-br from-[#2E1205] via-[#7A4520] to-[#C0582E] md:h-56">
         {listing.cover_image ? (
-          <Image src={String(listing.cover_image)} alt="Cover" fill priority sizes="100vw" className="object-cover opacity-80" />
+          // The page's largest image. Images are served unoptimized, so the
+          // browser downloads exactly the URL given: with a srcSet, phones
+          // take the 640px thumbnail made at upload instead of the original
+          // (up to 1920px), and wide screens still get the full image.
+          <img
+            src={String(listing.cover_image)}
+            srcSet={
+              listing.cover_image_thumb_url
+                ? `${String(listing.cover_image_thumb_url)} 640w, ${String(listing.cover_image)} 1920w`
+                : undefined
+            }
+            sizes="100vw"
+            alt="Cover"
+            fetchPriority="high"
+            className="absolute inset-0 h-full w-full object-cover opacity-80"
+          />
         ) : (
           <div className="absolute inset-0 opacity-10 text-8xl flex flex-wrap gap-8 p-8 select-none pointer-events-none">
             🏪🍽️🎨🌿🏗️💇✂️📸
@@ -114,7 +129,8 @@ export default function ListingHero({
               {/* Avatar */}
               <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-[#F4EDE3] shadow">
                 {listing.image_url ? (
-                  <Image src={String(listing.image_url)} alt={String(listing.name)} width={80} height={80} className="object-cover w-full h-full" />
+                  // 80px box: the 240px logo thumbnail is plenty.
+                  <Image src={String(listing.image_thumb_url || listing.image_url)} alt={String(listing.name)} width={80} height={80} className="object-cover w-full h-full" />
                 ) : (
                   <span className="text-4xl">🏪</span>
                 )}

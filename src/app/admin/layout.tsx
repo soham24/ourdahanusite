@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -5,6 +6,9 @@ import { ExternalLink, Shield } from 'lucide-react'
 import { getUserRole } from '@/app/actions/admin'
 import AdminNav from './AdminNav'
 import { siteConfig } from '@/lib/site'
+
+// Signed-in workspace: never in search results, even if a URL leaks.
+export const metadata: Metadata = { robots: { index: false, follow: false } }
 
 export const unstable_instant = false
 

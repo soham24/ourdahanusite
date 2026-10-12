@@ -38,6 +38,9 @@ export async function generateMetadata({
   return {
     title,
     description,
+    // The product is reachable by id on the main domain and on every
+    // subdomain; its home is under its own business.
+    alternates: { canonical: `${businessUrl}/p/${product.id}` },
     openGraph: {
       title,
       description,

@@ -1,5 +1,12 @@
 import type { NextConfig } from "next";
 
+import { ROOT_DOMAIN } from "./src/lib/site-config";
+import { RESERVED_SUBDOMAINS } from "./src/lib/subdomain";
+
+// A business subdomain (`organic.ourdahanu.in`), not www/jobs/find/... .
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const BUSINESS_HOST = `(?!(?:${[...RESERVED_SUBDOMAINS].map(escapeRegex).join("|")})\\.)[^.]+\\.${escapeRegex(ROOT_DOMAIN)}`;
+
 // Baseline security headers applied to every route. A strict Content-Security-Policy
 // is intentionally omitted for now — it needs per-domain testing against Razorpay,
 // Supabase, Google OAuth and Vercel Analytics before it can be enabled safely.
@@ -23,6 +30,16 @@ const nextConfig: NextConfig = {
       {
         source: '/:path*',
         headers: securityHeaders,
+      },
+      {
+        // A business subdomain is the business page (`/`) and its catalog
+        // (`/p/…`, `/s/…`), but the whole main site answers there too:
+        // `organic.ourdahanu.in/emergency` is the emergency page. Those copies
+        // stay reachable -- sign-in and checkout start from them -- but are
+        // kept out of search, which had them as duplicates on every subdomain.
+        source: '/:path((?!p/|s/|robots\\.txt$).+)',
+        has: [{ type: 'host', value: BUSINESS_HOST }],
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, follow' }],
       },
     ];
   },

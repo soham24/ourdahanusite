@@ -18,13 +18,13 @@ export interface FindPage {
   total: number
 }
 
-type RawLinkedBusiness = { id: string; name: string; subdomain: string | null; image_url: string | null; approved: boolean } | null
+type RawLinkedBusiness = { id: string; name: string; subdomain: string | null; image_url: string | null; image_thumb_url: string | null; approved: boolean } | null
 
 // Surface the linked business ONLY when the listing is approved (live) —
 // this is the single gate that decides premium rendering.
 function normalizeLinkedBusiness(raw: RawLinkedBusiness) {
   return raw && raw.approved
-    ? { id: raw.id, name: raw.name, subdomain: raw.subdomain, image_url: raw.image_url }
+    ? { id: raw.id, name: raw.name, subdomain: raw.subdomain, image_url: raw.image_url, image_thumb_url: raw.image_thumb_url }
     : null
 }
 
@@ -53,7 +53,7 @@ async function getFindDirectory(): Promise<ProfessionalWithStats[]> {
   const supabase = createPublicClient()
   const { data } = await supabase
     .from('find_professionals')
-    .select(`${PROFESSIONAL_COLUMNS}, business:listings(id, name, subdomain, image_url, approved)`)
+    .select(`${PROFESSIONAL_COLUMNS}, business:listings(id, name, subdomain, image_url, image_thumb_url, approved)`)
     .eq('status', 'approved')
     .eq('is_active', true)
     .order('created_at', { ascending: false })
@@ -165,7 +165,7 @@ export async function getProfessionalById(
   const supabase = createPublicClient()
   const { data } = await supabase
     .from('find_professionals')
-    .select(`${PROFESSIONAL_COLUMNS}, business:listings(id, name, subdomain, image_url, approved)`)
+    .select(`${PROFESSIONAL_COLUMNS}, business:listings(id, name, subdomain, image_url, image_thumb_url, approved)`)
     .eq('id', id)
     .eq('status', 'approved')
     .eq('is_active', true)

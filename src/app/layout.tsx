@@ -99,10 +99,12 @@ export const metadata: Metadata = {
       'max-video-preview': -1,
     },
   },
+  // Only what is true of every page. Metadata merges shallowly, so a title,
+  // description or url here was inherited by every page without its own
+  // openGraph -- about eighteen of them previewed as the homepage when
+  // shared. Without them, link previews fall back to each page's own
+  // <title> and description; the homepage sets its own openGraph.
   openGraph: {
-    title: SITE_TITLE,
-    description: siteConfig.tagline,
-    url: METADATA_BASE_URL,
     siteName: siteConfig.name,
     type: 'website',
     locale: 'en_IN',
@@ -114,8 +116,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: SITE_TITLE,
-    description: siteConfig.tagline,
     images: [LOGO_URL],
   },
   icons: {
@@ -201,12 +201,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </Suspense>
         </AuthProvider>
         <Analytics />
-        {/* AdSense loader — injected into <head> (beforeInteractive), gated on
-            a configured publisher ID. Doubles as ownership verification. */}
+        {/* AdSense loader, gated on a configured publisher ID. Loaded once the
+            page is idle (lazyOnload): beforeInteractive fetched it ahead of
+            every first-party script on every page. Auto ads still run from
+            it; ownership verification is the meta tag in `metadata.other`. */}
         {adsEnabled() && (
           <Script
             id="adsbygoogle-init"
-            strategy="beforeInteractive"
+            strategy="lazyOnload"
             crossOrigin="anonymous"
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
           />
