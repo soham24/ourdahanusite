@@ -34,7 +34,7 @@ export default function LocationPicker({ defaultMapUrl }: LocationPickerProps) {
               </a>
             </div>
           </div>
-          <button type="button" onClick={clear} className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0">
+          <button type="button" onClick={clear} aria-label="Clear location" className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0">
             <X size={15} />
           </button>
         </div>
@@ -44,6 +44,7 @@ export default function LocationPicker({ defaultMapUrl }: LocationPickerProps) {
           value={url}
           onChange={e => setUrl(e.target.value)}
           placeholder="Paste Google Maps link (place, share link, etc.)…"
+          aria-label="Google Maps link"
           className="w-full px-3 py-2.5 text-sm border border-border rounded-xl bg-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30 placeholder-gray-400"
           autoComplete="off"
         />

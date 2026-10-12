@@ -385,7 +385,7 @@ export default function RenewForm({
                   <span className="text-green-600 text-xs ml-2">— {couponMeta?.label}</span>
                 )}
               </div>
-              <button onClick={removeCoupon} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <button onClick={removeCoupon} aria-label="Remove coupon" className="text-gray-400 hover:text-gray-600 transition-colors">
                 <X size={15} />
               </button>
             </div>
@@ -397,6 +397,7 @@ export default function RenewForm({
                 onChange={e => setCouponInput(e.target.value.toLowerCase())}
                 onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), applyCoupon())}
                 placeholder="Enter coupon code"
+                aria-label="Coupon code"
                 className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
               />
               <button

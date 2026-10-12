@@ -2,7 +2,7 @@
 
 import { useFormStatus } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import { useRef, useState, useTransition } from 'react'
+import { useId, useRef, useState, useTransition } from 'react'
 import { submitReview } from '@/app/actions/listings'
 
 function SubmitButton() {
@@ -39,6 +39,9 @@ export default function ReviewForm({
   const formRef = useRef<HTMLFormElement>(null)
   const [, startTransition] = useTransition()
   const [error, setError] = useState('')
+  const fieldId = useId()
+  const ratingId = `${fieldId}-rating`
+  const commentId = `${fieldId}-comment`
 
   async function handleAction(formData: FormData) {
     setError('')
@@ -68,10 +71,11 @@ export default function ReviewForm({
       )}
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+        <label htmlFor={ratingId} className="block text-sm font-semibold text-gray-700 mb-1.5">
           Rating <span className="text-red-500">*</span>
         </label>
         <select
+          id={ratingId}
           name="rating"
           required
           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm bg-white"
@@ -86,8 +90,9 @@ export default function ReviewForm({
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Your Review</label>
+        <label htmlFor={commentId} className="block text-sm font-semibold text-gray-700 mb-1.5">Your Review</label>
         <textarea
+          id={commentId}
           name="comment"
           rows={3}
           maxLength={500}

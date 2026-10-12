@@ -517,7 +517,7 @@ export default function ListingSubmitForm({
                 <CheckCircle size={15} className="text-green-500" />
                 {couponMeta?.label}
               </div>
-              <button type="button" onClick={removeCoupon}
+              <button type="button" onClick={removeCoupon} aria-label="Remove coupon"
                 className="text-gray-400 hover:text-red-500 transition-colors ml-3">
                 <X size={16} />
               </button>
@@ -530,6 +530,7 @@ export default function ListingSubmitForm({
                 onChange={e => { setCouponInput(e.target.value); setCouponError('') }}
                 onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), applyCoupon())}
                 placeholder="Enter coupon code"
+                aria-label="Coupon code"
                 className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm"
               />
               <button type="button" onClick={applyCoupon}

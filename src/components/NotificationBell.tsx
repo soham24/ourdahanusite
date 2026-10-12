@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import {
   AlertCircle,
   Bell,
@@ -62,6 +62,8 @@ export default function NotificationBell({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(false)
   const [supabase] = useState(() => createClient())
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const buttonRef = useRef<HTMLButtonElement | null>(null)
+  const panelId = useId()
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -114,8 +116,17 @@ export default function NotificationBell({ userId }: { userId: string }) {
         setOpen(false)
       }
     }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setOpen(false)
+      buttonRef.current?.focus()
+    }
     document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onClick)
+      document.removeEventListener('keydown', onKeyDown)
+    }
   }, [open])
 
   const handleRowClick = async (row: NotificationRow) => {
@@ -146,9 +157,14 @@ export default function NotificationBell({ userId }: { userId: string }) {
   return (
     <div ref={containerRef} className="relative">
       <button
+        ref={buttonRef}
         type="button"
         onClick={handleToggleOpen}
-        aria-label={unread > 0 ? `${unread} unread notifications` : 'Notifications'}
+        aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        // Only while the panel is mounted, so the reference never dangles.
+        aria-controls={open ? panelId : undefined}
         className="relative flex items-center justify-center w-9 h-9 rounded-lg text-ink-2 hover:text-brand hover:bg-surface-soft transition-colors"
       >
         <Bell size={18} />
@@ -160,7 +176,11 @@ export default function NotificationBell({ userId }: { userId: string }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-[340px] sm:w-[380px] bg-white rounded-2xl shadow-xl border border-border/60 overflow-hidden z-[60]">
+        <div
+          id={panelId}
+          role="dialog"
+          aria-label="Notifications"
+          className="absolute right-0 mt-2 w-[340px] sm:w-[380px] bg-white rounded-2xl shadow-xl border border-border/60 overflow-hidden z-[60]">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <p className="text-sm font-bold text-ink">Notifications</p>
             {unread > 0 && (
