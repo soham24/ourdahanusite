@@ -7,7 +7,7 @@
 //
 // Exit code 1 when something required is broken; warnings alone exit 0.
 
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
 
 const results = []
@@ -54,6 +54,37 @@ const { siteConfig } = await import('../src/lib/site-config.ts')
   } else {
     pass('Town', `${siteConfig.name} — ${siteConfig.town} (${siteConfig.domain})`)
   }
+}
+
+// ── Local content (forks only) ────────────────────────────────────────────
+// Changing site-config.ts renames the site, but the content SETUP.md step 8
+// lists is still OurDahanu's: its emergency numbers, team, guides and contact
+// details. On a fork, point at whatever still carries them. ourdahanu.in
+// itself skips this.
+if (siteConfig.domain !== 'ourdahanu.in') {
+  const read = (path) => { try { return readFileSync(new URL(`../${path}`, import.meta.url), 'utf8') } catch { return '' } }
+  const step8 = 'Replace it with your own (SETUP.md step 8).'
+
+  if (/Dahanu|Palghar/.test(read('src/app/emergency/page.tsx'))) {
+    fail('Content', "The emergency page still lists Dahanu's police, hospital and fire numbers", `Wrong numbers in an emergency are the worst bug this site can have. Edit src/app/emergency/page.tsx. ${step8}`)
+  }
+  if (siteConfig.contactEmail === 'railkarsoham@gmail.com') {
+    warn('Content', 'contactEmail in site-config.ts is still the OurDahanu maintainer\'s address', 'Set it to your own; it is shown on the contact, privacy and terms pages.')
+  }
+  const checks = [
+    ['src/app/contact/page.tsx', /8149314106|'ourdahanu'/, 'The contact page has OurDahanu\'s WhatsApp number and Instagram'],
+    ['src/app/page-components/HeritageSection.tsx', /Railkar|Dahanu/, 'The homepage names the OurDahanu team'],
+    ['src/app/about/page.tsx', /Railkar|Dahanu/, 'The about page tells OurDahanu\'s story'],
+  ]
+  for (const [path, pattern, msg] of checks) {
+    if (pattern.test(read(path))) warn('Content', msg, `Edit ${path}. ${step8}`)
+  }
+  let guides = []
+  try {
+    guides = readdirSync(new URL('../content/guides', import.meta.url))
+      .filter((name) => name.endsWith('.md') && name !== 'README.md' && /Dahanu/.test(read(`content/guides/${name}`)))
+  } catch { /* no guides directory */ }
+  if (guides.length) warn('Content', `${guides.length} guide(s) in content/guides/ are about Dahanu`, 'Rewrite or delete them (SETUP.md step 8).')
 }
 
 // ── Required settings ─────────────────────────────────────────────────────
