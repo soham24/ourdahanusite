@@ -36,10 +36,15 @@ page.on('console', (message) => {
   }
 })
 
+// Wait for `load`, then give hydration time to finish. Not 'networkidle':
+// signed-in pages keep polling (the notification bell), so the network never
+// goes quiet and the wait times out.
+const SETTLE_MS = 2_000
+
 async function visit(url, label) {
   pageErrors = []
-  const response = await page.goto(url, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(500)
+  const response = await page.goto(url, { waitUntil: 'load' })
+  await page.waitForTimeout(SETTLE_MS)
   check(response?.status() === 200, `${label}: HTTP ${response?.status()}`)
   check(pageErrors.length === 0, `${label}: no page or hydration errors${pageErrors.length ? ` (${pageErrors[0].slice(0, 160)})` : ''}`)
 }
@@ -74,9 +79,10 @@ for (let attempt = 0; attempt < 30 && !link; attempt++) {
 check(Boolean(link), 'sign-in: magic link arrived in the local inbox')
 
 if (link) {
-  await page.goto(link, { waitUntil: 'networkidle' })
+  await page.goto(link, { waitUntil: 'load' })
+  await page.locator("text=Today's control room").first().waitFor({ timeout: 15_000 }).catch(() => {})
   check(new URL(page.url()).pathname === '/admin', `sign-in: landed on /admin (got ${new URL(page.url()).pathname})`)
-  check(await page.locator('text=Today\'s control room').isVisible(), 'sign-in: admin dashboard renders')
+  check(await page.locator('text=Today\'s control room').first().isVisible(), 'sign-in: admin dashboard renders')
 
   // ── Signed in ──────────────────────────────────────────────────────────
   for (const path of [...PAGES, '/admin', '/profile']) await visit(`${BASE}${path}`, `signed in ${path}`)
