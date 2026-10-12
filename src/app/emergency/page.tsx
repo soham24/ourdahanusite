@@ -15,6 +15,7 @@ import {
   Wind,
 } from 'lucide-react'
 import { siteConfig } from '@/lib/site'
+import { emergency } from '@/content/local'
 
 export const metadata: Metadata = {
   title: `Emergency Contacts — ${siteConfig.town}`,
@@ -22,22 +23,22 @@ export const metadata: Metadata = {
   alternates: { canonical: `https://${siteConfig.domain}/emergency` },
 }
 
-const emergencyContacts = [
-  { name: 'Police Control Room', number: '100', icon: '👮', color: 'bg-blue-50 border-blue-200', badge: 'bg-blue-600' },
-  { name: 'Fire Brigade', number: '101', icon: '🚒', color: 'bg-red-50 border-red-200', badge: 'bg-red-600' },
-  { name: 'Ambulance', number: '108', icon: '🚑', color: 'bg-green-50 border-green-200', badge: 'bg-green-600' },
-  { name: 'Disaster Management', number: '1077', icon: '🆘', color: 'bg-orange-50 border-orange-200', badge: 'bg-orange-600' },
-  { name: 'Women Helpline', number: '1091', icon: '👩', color: 'bg-pink-50 border-pink-200', badge: 'bg-pink-600' },
-  { name: 'Child Helpline', number: '1098', icon: '👶', color: 'bg-purple-50 border-purple-200', badge: 'bg-purple-600' },
+// Styling per helpline, in the order of emergency.national.
+const NATIONAL_STYLES = [
+  { color: 'bg-blue-50 border-blue-200', badge: 'bg-blue-600' },
+  { color: 'bg-red-50 border-red-200', badge: 'bg-red-600' },
+  { color: 'bg-green-50 border-green-200', badge: 'bg-green-600' },
+  { color: 'bg-orange-50 border-orange-200', badge: 'bg-orange-600' },
+  { color: 'bg-pink-50 border-pink-200', badge: 'bg-pink-600' },
+  { color: 'bg-purple-50 border-purple-200', badge: 'bg-purple-600' },
 ]
+const emergencyContacts = emergency.national.map((c, i) => ({ ...c, ...NATIONAL_STYLES[i % NATIONAL_STYLES.length] }))
 
-const localContacts = [
-  { name: 'Dahanu Police Station', number: '02528-222033', address: 'Main Road, Dahanu' },
-  { name: 'Dahanu Sub-District Hospital', number: '02528-222037', address: 'Hospital Road, Dahanu' },
-  { name: 'Dahanu Fire Station', number: '02528-222101', address: 'Station Road, Dahanu' },
-  { name: 'Palghar Collector Office', number: '02525-252552', address: 'Palghar' },
-  { name: 'MSEB Dahanu (Power Outage)', number: '02528-222200', address: 'MSEB Office, Dahanu Road' },
-]
+const ZONE_COLORS = {
+  high: 'border-red-300 bg-red-50',
+  moderate: 'border-orange-300 bg-orange-50',
+  safe: 'border-green-300 bg-green-50',
+} as const
 
 const preparednessGuides = [
   {
@@ -152,7 +153,7 @@ export default function EmergencyPage() {
             Local {siteConfig.town} Emergency Contacts
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {localContacts.map((c) => (
+            {emergency.local.map((c) => (
               <div
                 key={c.name}
                 className="bg-white border border-gray-100 hover:border-red-200 rounded-2xl p-4 flex items-center justify-between gap-4 group hover:shadow-sm transition-all"
@@ -187,17 +188,13 @@ export default function EmergencyPage() {
           <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6">
             <div className="text-6xl">🗺️</div>
             <div className="flex-1">
-              <h3 className="font-bold text-gray-900 mb-2">Evacuation Map — Dahanu Taluka</h3>
+              <h3 className="font-bold text-gray-900 mb-2">Evacuation Map — {emergency.evacuation.area}</h3>
               <p className="text-gray-600 text-sm mb-4">
-                During floods, coastal and low-lying areas near the creek are at highest risk. Community shelters are located at Dahanu Municipal School, Vavsed Community Hall, and Gholvad Gram Panchayat building.
+                {emergency.evacuation.summary}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                {[
-                  { zone: 'Zone A — High Risk', desc: 'Creek-side areas, Kosbad Hill foothills', color: 'border-red-300 bg-red-50' },
-                  { zone: 'Zone B — Moderate Risk', desc: 'Low-lying agricultural land, coastal belt', color: 'border-orange-300 bg-orange-50' },
-                  { zone: 'Zone C — Safe', desc: 'Elevated areas, main town, railway station', color: 'border-green-300 bg-green-50' },
-                ].map((z) => (
-                  <div key={z.zone} className={`border rounded-xl p-3 ${z.color}`}>
+                {emergency.evacuation.zones.map((z) => (
+                  <div key={z.zone} className={`border rounded-xl p-3 ${ZONE_COLORS[z.risk]}`}>
                     <div className="font-semibold text-xs text-gray-800">{z.zone}</div>
                     <div className="text-xs text-gray-500 mt-0.5">{z.desc}</div>
                   </div>

@@ -5,6 +5,7 @@ import { Mail, MessageCircle } from 'lucide-react'
 import StructuredData from '@/components/StructuredData'
 import { SITE_URL } from '@/lib/site'
 import { siteConfig } from '@/lib/site'
+import { contact } from '@/content/local'
 
 // lucide-react dropped brand/logo icons — a small inline outline in the same style.
 function InstagramIcon({ size = 22 }: { size?: number }) {
@@ -18,9 +19,9 @@ function InstagramIcon({ size = 22 }: { size?: number }) {
 }
 
 const CONTACT_EMAIL = siteConfig.contactEmail
-const WHATSAPP_NUMBER = '8149314106'
-const WHATSAPP_HREF = `https://wa.me/91${WHATSAPP_NUMBER}`
-const INSTAGRAM_HANDLE = 'ourdahanu'
+const WHATSAPP_NUMBER = contact.whatsapp
+const WHATSAPP_HREF = `https://wa.me/${contact.whatsappCountryCode}${WHATSAPP_NUMBER}`
+const INSTAGRAM_HANDLE = contact.instagram
 const INSTAGRAM_HREF = `https://instagram.com/${INSTAGRAM_HANDLE}`
 
 const TITLE = 'Contact Us'
@@ -101,7 +102,7 @@ export default function ContactPage() {
               <MessageCircle size={22} />
             </span>
             <h2 className="mt-5 font-display text-xl text-[#2E1205]">WhatsApp</h2>
-            <p className="mt-2 text-sm leading-6 text-[#7B6658]">+91 {WHATSAPP_NUMBER} — messages only, no calls.</p>
+            <p className="mt-2 text-sm leading-6 text-[#7B6658]">+{contact.whatsappCountryCode} {WHATSAPP_NUMBER} — messages only, no calls.</p>
           </a>
 
           <a
