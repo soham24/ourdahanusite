@@ -60,14 +60,16 @@ npm run db:push            # applies every migration not yet applied
 **Or entirely on your machine** (needs Docker; no Supabase account at all)
 
 ```bash
-npm run db:start           # starts Postgres, Auth and Storage; applies migrations + seed.sql
+npm run setup              # starts Postgres, Auth and Storage, applies migrations + seed.sql,
+                           # and writes the local URL and keys into .env.local
 ```
 
-It prints an API URL and keys: put `API URL` in `NEXT_PUBLIC_SUPABASE_URL`,
-the anon/publishable key in `NEXT_PUBLIC_SUPABASE_ANON_KEY` and the
-service-role/secret key in `SUPABASE_SERVICE_ROLE_KEY`. `npm run db:reset`
-wipes it back to migrations + seed; `npm run db:stop` shuts it down. Sign-in
-needs Google keys even locally; `supabase/config.toml` says where they go.
+Against this local database the login page also offers email sign-in, with
+links delivered to a local inbox at http://127.0.0.1:54324, so you can sign in
+without doing step 3. `setup` sets `ADMIN_EMAIL=admin@example.com` if it was
+empty, which makes that address the admin. `npm run db:reset` wipes the
+database back to migrations + seed; `npm run db:stop` shuts it down. With a
+local database you can skip to step 5.
 
 Either way this creates every table, the row level security policies, the
 `uploads` storage bucket and the trigger that creates a profile on sign-up.

@@ -50,39 +50,30 @@ scheduled jobs and subdomains that Vercel would otherwise handle.
 
 ## Try it in five minutes
 
-You need **Node.js 24** (`.nvmrc` has it; `nvm use` picks it up) and a free **Supabase** account. Nothing else — no
-payment account, no email provider. Those come later, and only if you want
-them.
+You need **Node.js 24** (`.nvmrc` has it; `nvm use` picks it up) and
+**Docker**. No accounts at all: no Supabase, no Google, no payment or email
+provider.
 
 ```bash
 git clone https://github.com/soham24/ourdahanusite.git ourpune
 cd ourpune
 npm install
-cp .env.local.example .env.local
-```
-
-Create a Supabase project, run the files in `supabase/migrations/` in its SQL
-editor in filename order (then `supabase/seed.sql` if you want sample data),
-and put three values in `.env.local`:
-
-```bash
-NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
-```
-
-Or skip the account: with Docker running, `npm run db:start` brings up a
-local Supabase with every migration and the sample data applied, and prints
-the three values.
-
-Then:
-
-```bash
+npm run setup     # local database with sample data; writes .env.local
 npm run dev
 ```
 
-Open <http://localhost:3000>. You should get the homepage with an empty
-directory. **If you got that far, everything else is optional.**
+Open <http://localhost:3000>: the homepage, with sample businesses, events and
+tradespeople. To sign in, go to `/login`, enter `admin@example.com` under
+"Local development only", and click the link that arrives in the local inbox
+at <http://127.0.0.1:54324>. That account is the admin.
+
+**If you got that far, everything else is optional.**
+
+No Docker? Create a free Supabase project instead, run the files in
+`supabase/migrations/` in its SQL editor in filename order (then
+`supabase/seed.sql` for sample data), and put its URL, anon key and
+service-role key in `.env.local` (copied from `.env.local.example`).
+Signing in there needs Google set up: [SETUP.md](SETUP.md) steps 1–5.
 
 At any point, `npm run doctor` checks your setup — database, migrations,
 sign-in, and each optional service — and says what to fix.

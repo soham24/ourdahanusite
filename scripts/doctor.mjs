@@ -64,6 +64,9 @@ else pass('Settings', 'All four required values are set')
 
 // ── Supabase ──────────────────────────────────────────────────────────────
 const supabaseUrl = env('NEXT_PUBLIC_SUPABASE_URL').replace(/\/$/, '')
+// The stack from `npm run setup` — same test as src/lib/local-supabase.ts,
+// which this plain-Node script cannot import.
+const isLocalSupabase = /^http:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?$/.test(supabaseUrl)
 const canReachSupabase = isSet('NEXT_PUBLIC_SUPABASE_URL') && isSet('SUPABASE_SERVICE_ROLE_KEY') && isSet('NEXT_PUBLIC_SUPABASE_ANON_KEY')
 if (canReachSupabase) {
   const admin = createClient(supabaseUrl, env('SUPABASE_SERVICE_ROLE_KEY'), { auth: { persistSession: false } })
@@ -100,7 +103,13 @@ if (canReachSupabase) {
     else pass('Storage', `"uploads" bucket exists (${bucket.data.public ? 'public' : 'PRIVATE — images will not load'})`)
 
     const admins = await admin.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'admin')
+    // ADMIN_EMAIL makes its account admin at request time (src/app/actions/admin.ts)
+    // without changing its profile row, so a signed-in ADMIN_EMAIL counts too.
+    const envAdmin = isSet('ADMIN_EMAIL')
+      ? await admin.from('profiles').select('id', { count: 'exact', head: true }).eq('email', env('ADMIN_EMAIL'))
+      : { count: 0 }
     if ((admins.count ?? 0) > 0) pass('Admin', `${admins.count} admin account(s)`)
+    else if ((envAdmin.count ?? 0) > 0) pass('Admin', `${env('ADMIN_EMAIL')} (ADMIN_EMAIL) has signed in and is admin`)
     else if (isSet('ADMIN_EMAIL')) warn('Admin', 'No admin yet', 'Sign in once with the Google account in ADMIN_EMAIL; it is made admin.')
     else warn('Admin', 'No admin and ADMIN_EMAIL is not set', 'Set ADMIN_EMAIL to your Google address, then sign in.')
   }
@@ -110,12 +119,15 @@ if (canReachSupabase) {
     // Already reported under Database when Supabase is unreachable; saying
     // "Google is off" here would send people to the wrong fix.
     warn('Sign-in', 'Could not read Supabase auth settings', 'Fix the Database problem above first.')
+  } else if (isLocalSupabase) {
+    pass('Sign-in', 'Local database: sign in by email on /login; links land in http://127.0.0.1:54324')
   } else if (auth.body?.external?.google) {
     pass('Sign-in', 'Google sign-in is enabled in Supabase')
   } else {
     fail('Sign-in', 'Google sign-in is not enabled in Supabase', 'Supabase → Authentication → Providers → Google (SETUP.md step 3).')
   }
-  note('Sign-in', 'Redirect URLs cannot be checked from here', `In Supabase → Authentication → URL Configuration, the Redirect URLs must include ${env('NEXT_PUBLIC_SITE_URL') || 'your site'}/auth/callback.`)
+  // supabase/config.toml already lists localhost's callback for the local stack.
+  if (!isLocalSupabase) note('Sign-in', 'Redirect URLs cannot be checked from here', `In Supabase → Authentication → URL Configuration, the Redirect URLs must include ${env('NEXT_PUBLIC_SITE_URL') || 'your site'}/auth/callback.`)
 }
 
 // ── Cron ──────────────────────────────────────────────────────────────────
