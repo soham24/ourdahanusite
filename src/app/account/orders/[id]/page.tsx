@@ -141,7 +141,7 @@ export default async function MyOrderDetailPage({ params }: PageProps) {
           <p className="font-semibold text-ink-2">{listingName}</p>
           {subdomain ? (
             <a
-              href={`https://${subdomain}.ourdahanu.in`}
+              href={`https://${subdomain}.${siteConfig.domain}`}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-xs text-brand hover:underline"

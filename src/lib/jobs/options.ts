@@ -26,16 +26,4 @@ export function isPayPeriod(value: string): value is PayPeriod {
 }
 
 /** Suggestions only — the area field accepts any text. */
-export const AREA_SUGGESTIONS = [
-  `${siteConfig.town} Road`,
-  `${siteConfig.town} Town`,
-  'Bordi',
-  'Gholvad',
-  'Chinchani',
-  'Vangaon',
-  'Kasa',
-  'Talasari',
-  'Boisar',
-  'Tarapur',
-  'Palghar',
-] as const
+export const AREA_SUGGESTIONS = [siteConfig.town, ...siteConfig.localities] as const

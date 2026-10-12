@@ -107,7 +107,7 @@ export async function sendNewsletter(
                 <span style="color:#FBF0DC;font-weight:900;font-size:16px;">OD</span>
               </div>
               <h1 style="color:#FBF0DC;font-size:22px;font-weight:800;margin:0;">${subject}</h1>
-              <p style="color:#E8C99A;font-size:13px;margin:6px 0 0;">OurDahanu Community Newsletter</p>
+              <p style="color:#E8C99A;font-size:13px;margin:6px 0 0;">${siteConfig.name} Community Newsletter</p>
             </td>
           </tr>
           <tr>

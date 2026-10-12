@@ -24,6 +24,16 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // `NEXT_OUTPUT=standalone` (set by the Dockerfile) builds a self-contained
+  // server in .next/standalone for hosting anywhere Node runs. Vercel builds
+  // leave it unset and keep their default output.
+  output: process.env.NEXT_OUTPUT === 'standalone' ? 'standalone' : undefined,
+  // The guides are Markdown read from disk (src/lib/guides.ts) by the guide
+  // pages and the sitemap, which the file tracer cannot see from an import;
+  // without this the standalone server would ship without them.
+  outputFileTracingIncludes: {
+    '/**': ['./content/**/*'],
+  },
   cacheComponents: true,
   async headers() {
     return [

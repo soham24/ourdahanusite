@@ -78,6 +78,25 @@ export const siteConfig = {
   areas: 'Dahanu, Bordi, Gholvad and Palghar',
 
   /**
+   * The same surroundings as a list, for the places that need them one at a
+   * time: the area suggestions on the jobs board, `areaServed` in structured
+   * data, and guessing a business's locality from its address. Nearest
+   * first. The town itself is added wherever it is needed, so leave it out.
+   */
+  localities: [
+    'Dahanu Road',
+    'Bordi',
+    'Gholvad',
+    'Chinchani',
+    'Vangaon',
+    'Kasa',
+    'Talasari',
+    'Boisar',
+    'Tarapur',
+    'Palghar',
+  ],
+
+  /**
    * Where the town is, for structured data and for search engines deciding
    * which region a result belongs to. Written as a person would say it,
    * narrowest first.
@@ -116,6 +135,21 @@ export const SITE_URL = (
  * it.
  */
 export const ROOT_DOMAIN = siteConfig.domain
+
+/**
+ * The name of the professionals directory at `find.<domain>`: "FindDahanu".
+ * Spaces in the town are dropped, so "Navi Mumbai" gives "FindNaviMumbai".
+ */
+export const FIND_NAME = `Find${siteConfig.town.replace(/\s+/g, '')}`
+
+/**
+ * `siteConfig.region` without its country — "Palghar, Maharashtra" — which is
+ * how the terms of service name the courts that have jurisdiction.
+ */
+export const JURISDICTION = (() => {
+  const parts = siteConfig.region.split(',').map((part) => part.trim()).filter(Boolean)
+  return (parts.length >= 2 ? parts.slice(0, -1) : parts).join(', ')
+})()
 
 /**
  * The state or province from `siteConfig.region` — its second-to-last part,

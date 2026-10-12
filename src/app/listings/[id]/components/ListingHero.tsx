@@ -166,7 +166,7 @@ export default function ListingHero({
                     </div>
                   </div>
                   {subdomain && (
-                    <a href={`https://${subdomain}.ourdahanu.in`} target="_blank" rel="noopener noreferrer"
+                    <a href={`https://${subdomain}.${siteConfig.domain}`} target="_blank" rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs text-brand border border-border bg-surface-soft px-2.5 py-1 rounded-full hover:bg-border transition-colors font-medium">
                       <Globe size={10} /> {subdomain}.{siteConfig.domain} <ExternalLink size={9} />
                     </a>

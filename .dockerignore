@@ -1,0 +1,13 @@
+.git
+.github
+.next
+.vercel
+node_modules
+npm-debug.log*
+*.tsbuildinfo
+.env*
+!.env.local.example
+supabase/.temp
+supabase/.branches
+docs/superpowers
+docs/reviews

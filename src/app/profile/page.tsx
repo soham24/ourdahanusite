@@ -196,7 +196,7 @@ export default function ProfilePage() {
                 name="address"
                 autoComplete="street-address"
                 defaultValue={profile?.address || ''}
-                placeholder={`${siteConfig.town}, Palghar`}
+                placeholder={siteConfig.town}
                 className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-brand bg-white text-sm text-ink"
               />
             </div>

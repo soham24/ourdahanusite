@@ -27,7 +27,7 @@ export default function AppointmentsLayout({ children }: { children: React.React
             </span>
           </Link>
           <a
-            href="https://ourdahanu.in/listings"
+            href={`https://${siteConfig.domain}/listings`}
             className="text-xs font-bold text-[var(--od-brand)] transition-colors hover:text-[var(--od-brand-strong)]"
           >
             All businesses →

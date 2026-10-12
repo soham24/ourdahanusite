@@ -77,7 +77,7 @@ export default function BusinessPicker({
                 className="flex w-full flex-col items-start px-2 py-1.5 text-left text-sm hover:bg-gray-50"
               >
                 <span className="font-semibold">{r.name}</span>
-                {r.subdomain && <span className="text-xs text-gray-500">{r.subdomain}.ourdahanu.in</span>}
+                {r.subdomain && <span className="text-xs text-gray-500">{r.subdomain}.{siteConfig.domain}</span>}
               </button>
             </li>
           ))}

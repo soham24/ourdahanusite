@@ -2,14 +2,14 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { getCachedPricingConfig } from '@/lib/data/pricing'
-import { siteConfig } from '@/lib/site'
+import { JURISDICTION, siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
   description:
     `The terms for using ${siteConfig.name} — listings, the marketplace, payments, refunds, and your responsibilities as a buyer, seller, or visitor.`,
   alternates: {
-    canonical: 'https://ourdahanu.in/terms',
+    canonical: `https://${siteConfig.domain}/terms`,
   },
 }
 
@@ -47,9 +47,8 @@ export default async function TermsPage() {
         <div className="mt-8 space-y-3 text-[15px] leading-7 text-[#4B4038]">
           <p>
             {ENTITY_NAME} (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) operates the website
-            <span className="whitespace-nowrap"> ourdahanu.in</span> and its subdomains (the
-            &ldquo;Service&rdquo;) — a community platform, local directory, and marketplace for {siteConfig.town}, Bordi,
-            Gholvad and the wider Palghar area. By using the Service, you agree to these Terms. If you don&rsquo;t
+            <span className="whitespace-nowrap"> {siteConfig.domain}</span> and its subdomains (the
+            &ldquo;Service&rdquo;) — a community platform, local directory, and marketplace for {siteConfig.areas}. By using the Service, you agree to these Terms. If you don&rsquo;t
             agree, please don&rsquo;t use the Service.
           </p>
         </div>
@@ -139,7 +138,7 @@ export default async function TermsPage() {
 
         <Section title="Governing law">
           <p>These Terms are governed by the laws of India, and any disputes are subject to the exclusive
-            jurisdiction of the courts of Palghar, Maharashtra.</p>
+            jurisdiction of the courts of {JURISDICTION}.</p>
         </Section>
 
         <Section title="Contact us">

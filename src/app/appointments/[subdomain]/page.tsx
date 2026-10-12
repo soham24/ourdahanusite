@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // near-identical pages is the exact pattern that triggered the AdSense
     // "low value content" rejection.
     robots: { index: false, follow: true },
-    alternates: { canonical: `https://${subdomain}.ourdahanu.in` },
+    alternates: { canonical: `https://${subdomain}.${siteConfig.domain}` },
   }
 }
 
@@ -58,7 +58,7 @@ export default async function AppointmentBookingPage({ params }: Props) {
         <p className="mt-1 text-sm text-[var(--od-muted)]">
           {listing.category ?? 'Appointments'} ·{' '}
           <a
-            href={`https://${subdomain}.ourdahanu.in`}
+            href={`https://${subdomain}.${siteConfig.domain}`}
             className="font-semibold text-[var(--od-brand)]"
           >
             View full profile →
@@ -75,7 +75,7 @@ export default async function AppointmentBookingPage({ params }: Props) {
         userName={viewerName}
         userPhone={viewerPhone}
         userEmail={user?.email ?? ''}
-        signInHref="https://ourdahanu.in/login"
+        signInHref={`https://${siteConfig.domain}/login`}
         apexOrigin={apexOrigin}
       />
     </div>

@@ -44,6 +44,10 @@ Then, to finish:
 4. **Check everything:** clone your copy, `vercel env pull .env.local`, then
    `npm run doctor` — it lists anything still missing, with the fix.
 
+Not on Vercel? `docker compose --env-file .env.local up --build -d` runs it
+anywhere Docker does; [SETUP.md](SETUP.md#hosting-without-vercel) covers the
+scheduled jobs and subdomains that Vercel would otherwise handle.
+
 ## Try it in five minutes
 
 You need **Node.js 24** (`.nvmrc` has it; `nvm use` picks it up) and a free **Supabase** account. Nothing else — no
@@ -66,6 +70,10 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ```
+
+Or skip the account: with Docker running, `npm run db:start` brings up a
+local Supabase with every migration and the sample data applied, and prints
+the three values.
 
 Then:
 
@@ -96,6 +104,7 @@ export const siteConfig = {
   townLocal: 'आपले डहाणू',                // -> 'आपले पुणे', or '' for none
   domain: 'ourdahanu.in',               // -> 'ourpune.in'
   areas: 'Dahanu, Bordi, Gholvad and Palghar',
+  localities: ['Dahanu Road', 'Bordi', ...], // nearby places, as a list
   region: 'Palghar, Maharashtra, India',
   contactEmail: 'you@example.com',
   tagline: 'OurDahanu is the local platform for ...',

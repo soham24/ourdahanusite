@@ -14,6 +14,7 @@ import { OWNER_CATALOG_ITEM_SELECT, toCatalogItem, type OwnerCatalogRow } from '
 import { ProductsManager } from '@/app/my-business/products/[listingId]/ProductsManager'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
+import { siteConfig } from '@/lib/site'
 
 type AdminListing = {
   id: string
@@ -113,7 +114,7 @@ export default async function AdminListingProductsPage({
 
   // Public site URL: prefer the subdomain rewrite if the listing has one.
   const publicHref = listing.subdomain
-    ? `https://${listing.subdomain}.ourdahanu.in`
+    ? `https://${listing.subdomain}.${siteConfig.domain}`
     : `/listings/${listing.id}`
 
   return (

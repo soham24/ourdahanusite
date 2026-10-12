@@ -42,7 +42,7 @@ const DIRECTORY_LISTING_CAP = 200
 
 export const PLAN_FEATURES = [
   `Your own profile page on ${siteConfig.name}`,
-  'Your unique subdomain (yourname.ourdahanu.in)',
+  `Your unique subdomain (yourname.${siteConfig.domain})`,
   'Phone, address & website display',
   'Customer reviews',
   'Photos',

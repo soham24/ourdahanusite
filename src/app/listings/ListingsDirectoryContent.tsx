@@ -155,7 +155,7 @@ export default function ListingsDirectoryContent({
           </Button>
           {activeCategory ? (
             <p className="text-[var(--od-muted)] mt-4 text-xs">
-              Want to rank for {activeCategory.toLowerCase()} in Dahanu? Claim this page with your business listing.
+              Want to rank for {activeCategory.toLowerCase()} in {siteConfig.town}? Claim this page with your business listing.
             </p>
           ) : null}
         </Card>

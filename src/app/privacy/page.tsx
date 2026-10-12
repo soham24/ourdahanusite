@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     `How ${siteConfig.name} collects, uses, and protects your information, including cookies, Google AdSense advertising, and analytics.`,
   alternates: {
-    canonical: 'https://ourdahanu.in/privacy',
+    canonical: `https://${siteConfig.domain}/privacy`,
   },
 }
 
@@ -38,9 +38,8 @@ export default function PrivacyPolicyPage() {
         <div className="mt-8 space-y-3 text-[15px] leading-7 text-[#4B4038]">
           <p>
             {siteConfig.name} (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) operates the website
-            <span className="whitespace-nowrap"> ourdahanu.in</span> and its subdomains (the
-            &ldquo;Service&rdquo;) — a community platform and local directory for {siteConfig.town}, Bordi, Gholvad and the
-            wider Palghar area. This Privacy Policy explains what information we collect, how we use it, and the
+            <span className="whitespace-nowrap"> {siteConfig.domain}</span> and its subdomains (the
+            &ldquo;Service&rdquo;) — a community platform and local directory for {siteConfig.areas}. This Privacy Policy explains what information we collect, how we use it, and the
             choices you have.
           </p>
           <p>By using the Service, you agree to the collection and use of information in accordance with this policy.</p>

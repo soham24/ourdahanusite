@@ -374,7 +374,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
                 <span className="flex items-center gap-1.5"><MapPin size={13} className="text-brand" /> Address</span>
               </label>
               <input type="text" name="address" defaultValue={String(listing.address || '')}
-                placeholder={`e.g. Main Market, ${siteConfig.town} Road, Palghar - 401602`}
+                placeholder={`e.g. Main Market, ${siteConfig.town}`}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm mb-3" />
               <LocationPicker
                 defaultMapUrl={listing.map_url ? String(listing.map_url) : null}
@@ -495,7 +495,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
               <div className="bg-surface-soft border border-border rounded-xl p-4">
                 <p className="text-xs text-ink-2 font-medium mb-1">Your personal link</p>
                 <a
-                  href={`https://${listing.subdomain}.ourdahanu.in`}
+                  href={`https://${listing.subdomain}.${siteConfig.domain}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-brand font-bold text-sm hover:underline"
@@ -724,7 +724,7 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
             </label>
             <input type="text" value={deliveryInfo.areas}
               onChange={e => setDeliveryInfo(d => ({ ...d, areas: e.target.value }))}
-              placeholder={`e.g. ${siteConfig.town}, Palghar, Boisar (within 20km)`}
+              placeholder={`e.g. ${[siteConfig.town, ...siteConfig.localities.slice(0, 2)].join(', ')} (within 20km)`}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm mb-2" />
             <input type="text" value={deliveryInfo.note}
               onChange={e => setDeliveryInfo(d => ({ ...d, note: e.target.value }))}

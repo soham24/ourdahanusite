@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description:
     `The story of ${siteConfig.name}, founded by Soham Railkar and grown with a core community group to connect ${siteConfig.town} through social pages, WhatsApp groups and a local marketplace.`,
   alternates: {
-    canonical: 'https://ourdahanu.in/about',
+    canonical: `https://${siteConfig.domain}/about`,
   },
 }
 
@@ -312,7 +312,7 @@ export default function AboutPage() {
               A digital home for the town we belong to.
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[#F8E9D5]/82 md:text-lg">
-              Not a generic marketplace — a Dahanu-first one. The mission is moving from posts and groups into a
+              Not a generic marketplace — a {siteConfig.town}-first one. The mission is moving from posts and groups into a
               structured platform: listings, services, local products, recommendations and trusted discovery.
             </p>
           </div>

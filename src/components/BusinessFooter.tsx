@@ -4,6 +4,7 @@ import { MapPin, Phone } from 'lucide-react'
 import { getCachedListingDetail } from '@/lib/data/listing-detail'
 import { formatAddressForDisplay, formatPhoneForDisplay, normalizePhoneOrNull } from '@/lib/listing-content'
 import BottomViewportSpacer from '@/components/BottomViewportSpacer'
+import { siteConfig } from '@/lib/site'
 
 /**
  * Footer for business subdomain pages (e.g. organic.ourdahanu.in).
@@ -54,8 +55,8 @@ export default async function BusinessFooter({ subdomain }: { subdomain: string 
           <p className="text-[rgba(251,240,220,0.45)]">© 2026 {name}. All rights reserved.</p>
           <p className="text-[rgba(251,240,220,0.45)]">
             Powered by{' '}
-            <Link href="https://ourdahanu.in" className="hover:text-[#FBF0DC] transition-colors">
-              OurDahanu
+            <Link href={`https://${siteConfig.domain}`} className="hover:text-[#FBF0DC] transition-colors">
+              {siteConfig.name}
             </Link>
           </p>
         </div>

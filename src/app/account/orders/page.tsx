@@ -130,7 +130,7 @@ export default async function MyAccountOrdersPage() {
                         from{' '}
                         <span className="font-medium text-ink-2">{listingName}</span>
                         {subdomain ? (
-                          <span className="text-gray-400"> · {subdomain}.ourdahanu.in</span>
+                          <span className="text-gray-400"> · {subdomain}.{siteConfig.domain}</span>
                         ) : null}
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">

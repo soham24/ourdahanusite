@@ -28,6 +28,7 @@
 .claude/
 *.bak
 supabase/.temp/
+supabase/.branches/
 /tmp/
 
 # debug

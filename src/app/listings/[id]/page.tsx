@@ -64,7 +64,7 @@ export async function generateMetadata({
     : `${String(listing.name)} — ${locationSuffix} Find contact info, reviews & more on ${siteConfig.name}.`
 
   // Build keyword list
-  const nearbyAreas = [`${siteConfig.town}`, 'Bordi', 'Gholvad', 'Palghar', `${siteConfig.town} Road`, 'Maharashtra']
+  const nearbyAreas = [siteConfig.town, ...siteConfig.localities, ...(ADDRESS_REGION ? [ADDRESS_REGION] : [])]
   const serviceNames = (listingDetail?.products ?? []).slice(0, 5).map((item) => item.name)
   const keywords = [
     String(listing.name),
@@ -147,10 +147,13 @@ function getListingSchemaType(category: string): string {
 
 function inferAddressLocality(address: string): string {
   const normalized = address.toLowerCase()
-  if (normalized.includes('bordi')) return 'Bordi'
-  if (normalized.includes('gholvad')) return 'Gholvad'
-  if (normalized.includes('palghar')) return 'Palghar'
-  return `${siteConfig.town}`
+  // Places named after the town ("Dahanu Road") count as the town itself:
+  // plenty of in-town addresses are written that way.
+  const town = siteConfig.town.toLowerCase()
+  const place = siteConfig.localities.find(
+    (name) => !name.toLowerCase().includes(town) && normalized.includes(name.toLowerCase())
+  )
+  return place ?? siteConfig.town
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -248,7 +251,7 @@ async function ListingDetailContent({
 
   // WhatsApp Status Share
   const shareText = encodeURIComponent(
-    `🏪 *${String(listing.name)}*\n${listing.tagline ? `_${String(listing.tagline)}_\n` : ''}📍 ${listing.address || `${siteConfig.town}`}\n\n✅ Find them on OurDahanu:\n${businessUrl}`
+    `🏪 *${String(listing.name)}*\n${listing.tagline ? `_${String(listing.tagline)}_\n` : ''}📍 ${listing.address || `${siteConfig.town}`}\n\n✅ Find them on ${siteConfig.name}:\n${businessUrl}`
   )
   const statusShareLink = `https://wa.me/?text=${shareText}`
 
