@@ -7,6 +7,11 @@ import { Suspense } from 'react'
 import { Loader2 } from 'lucide-react'
 import { buildAbsoluteUrl } from '@/lib/site'
 import { siteConfig } from '@/lib/site'
+import { isLocalSupabaseUrl, LOCAL_INBOX_URL } from '@/lib/local-supabase'
+
+// Email sign-in exists only against the local Supabase stack, for trying the
+// code without setting up Google OAuth first. See src/lib/local-supabase.ts.
+const LOCAL_EMAIL_SIGN_IN = isLocalSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL)
 
 function LoginContent() {
   const searchParams = useSearchParams()
@@ -14,6 +19,8 @@ function LoginContent() {
   const supabase = createClient()
   const [signingIn, setSigningIn] = useState(false)
   const [signInError, setSignInError] = useState(false)
+  const [email, setEmail] = useState('')
+  const [emailState, setEmailState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
   const checkoutMatch = /^\/checkout\/([a-f0-9-]{36})$/i.exec(searchParams.get('next') || '')
 
   const handleGoogleSignIn = async () => {
@@ -57,6 +64,18 @@ function LoginContent() {
     }
   }
 
+  const handleLocalEmailSignIn = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (emailState === 'sending' || !email.trim()) return
+    setEmailState('sending')
+    const next = searchParams.get('next') || '/'
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
+    })
+    setEmailState(otpError ? 'failed' : 'sent')
+  }
+
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
@@ -95,6 +114,40 @@ function LoginContent() {
             )}
             {signingIn ? 'Redirecting to Google…' : 'Continue with Google'}
           </button>
+
+          {LOCAL_EMAIL_SIGN_IN && (
+            <form onSubmit={handleLocalEmailSignIn} className="mt-6 rounded-xl border border-dashed border-gray-300 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Local development only</p>
+              <label htmlFor="local-email" className="mt-2 block text-sm text-gray-700">
+                Sign in by email. The link goes to the local inbox, not a real mailbox.
+              </label>
+              <div className="mt-3 flex gap-2">
+                <input
+                  id="local-email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="admin@example.com"
+                  className="min-w-0 flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                />
+                <button
+                  type="submit"
+                  disabled={emailState === 'sending'}
+                  className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-bg disabled:opacity-60"
+                >
+                  {emailState === 'sending' ? 'Sending…' : 'Send link'}
+                </button>
+              </div>
+              <p role="status" className="mt-2 text-sm text-gray-600">
+                {emailState === 'sent' && (
+                  <>Sent. Open <a href={LOCAL_INBOX_URL} target="_blank" rel="noopener noreferrer" className="text-brand underline">the local inbox</a> and click the link.</>
+                )}
+                {emailState === 'failed' && 'Could not send the link. Is the local database running (npm run db:start)?'}
+              </p>
+            </form>
+          )}
 
           <div className="mt-6 text-center text-sm text-gray-400">
             By signing in, you agree to our{' '}
