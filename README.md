@@ -23,6 +23,27 @@ New to this repository? Read these three, in order:
 3. **[ARCHITECTURE.md](ARCHITECTURE.md)** — how it fits together, once you want
    to change something.
 
+## Deploy it in one click
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsoham24%2Fourdahanusite&project-name=our-town&repository-name=our-town&integration-ids=oac_VqOgBHqhEoFTPzGkPd7L0iH6&env=NEXT_PUBLIC_SITE_URL%2CADMIN_EMAIL%2CCRON_SECRET&envDescription=Your%20site%20address%20%28use%20https%3A%2F%2F%3Cproject%3E.vercel.app%20until%20you%20add%20a%20domain%29%2C%20the%20Google%20email%20that%20becomes%20the%20first%20admin%2C%20and%20any%20long%20random%20string%20for%20the%20scheduled%20jobs.&envLink=https%3A%2F%2Fgithub.com%2Fsoham24%2Fourdahanusite%2Fblob%2Fmain%2FSETUP.md%23step-4-set-environment-variables)
+
+The button copies this repository to your GitHub account, creates a Supabase
+database through Vercel's Supabase integration (which fills in the database
+keys), asks for three values — your site address, the Google email that
+becomes admin, and a random string for the scheduled jobs — and deploys.
+
+Then, to finish:
+
+1. **Make sure the database has its tables.** If the Supabase project is
+   empty, run the files in `supabase/migrations/` in its SQL editor in
+   filename order (SETUP.md step 2).
+2. **Turn on Google sign-in** in Supabase and add your site's
+   `/auth/callback` to its redirect URLs (SETUP.md steps 3 and 6).
+3. **Make it your town** — edit `src/lib/site-config.ts` in your copy and
+   push (SETUP.md step 7).
+4. **Check everything:** clone your copy, `vercel env pull .env.local`, then
+   `npm run doctor` — it lists anything still missing, with the fix.
+
 ## Try it in five minutes
 
 You need **Node.js 24** (`.nvmrc` has it; `nvm use` picks it up) and a free **Supabase** account. Nothing else — no
@@ -54,6 +75,9 @@ npm run dev
 
 Open <http://localhost:3000>. You should get the homepage with an empty
 directory. **If you got that far, everything else is optional.**
+
+At any point, `npm run doctor` checks your setup — database, migrations,
+sign-in, and each optional service — and says what to fix.
 
 Sign-in, payments, email and notifications each need their own account, and
 each is independently skippable — [SETUP.md](SETUP.md) takes them one at a
@@ -132,14 +156,17 @@ for production. `.env.local.example` has the full list with comments.
 
 | Var | Purpose |
 |---|---|
-| `RESEND_API_KEY` | Transactional and newsletter email |
-| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_BOT_USERNAME` / `TELEGRAM_USER_BOT_TOKEN` | Telegram alerts and per-user DMs |
+| `RESEND_API_KEY` | Notification and newsletter email (needs a domain verified in Resend) |
+| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_BOT_USERNAME` | Telegram notifications for people who link their account (`TELEGRAM_USER_BOT_TOKEN` is an older name for the token; leave it empty) |
 | `TELEGRAM_WEBHOOK_SECRET` | **Required if you use Telegram at all** — the webhook fails closed without it |
-| `WHATSAPP_ACCESS_TOKEN` / `WHATSAPP_PHONE_NUMBER_ID` | WhatsApp notifications |
+| `WHATSAPP_ACCESS_TOKEN` / `WHATSAPP_PHONE_NUMBER_ID` | WhatsApp notifications (one Meta-approved template) |
 | `CRON_SECRET` | Authorizes `/api/cron/*`; sent by the host's scheduler as a bearer token |
 | `ADMIN_EMAIL` | Bootstraps the first admin account on sign-in |
 | `NEXT_PUBLIC_GA_ID` / `NEXT_PUBLIC_ADSENSE_CLIENT_ID` | Analytics and ads |
 | `ISR_DEBUG` | Verbose cache logging |
+
+What each notification provider sends, to whom, and how to set it up:
+**[docs/EMAIL-AND-NOTIFICATIONS.md](docs/EMAIL-AND-NOTIFICATIONS.md)**.
 
 ## Scripts
 
@@ -149,6 +176,7 @@ npm run build     # production build — run this before you push
 npm test          # unit, game and security suites
 npm run lint      # eslint
 npx tsc --noEmit  # types
+npm run doctor    # checks your .env.local, database and services; changes nothing
 ```
 
 `npm run build` also runs a check that fails if a server action leaks a

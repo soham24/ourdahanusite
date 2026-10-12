@@ -29,7 +29,8 @@ export async function createClient() {
 
   const client = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    // Newer Supabase projects call this key "publishable".
+    (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)!,
     {
       ...(token ? { global: { headers: { Authorization: `Bearer ${token}` } } } : {}),
       cookieOptions,
