@@ -20,14 +20,16 @@ fix — just send them.
 
 ```bash
 npm install
-cp .env.local.example .env.local   # fill in your own Supabase project
+npm run setup   # local Supabase in Docker, migrations + sample data, writes .env.local
 npm run dev
 ```
 
-You need your own Supabase project. Apply the files in `supabase/migrations/`
-in filename order, then `supabase/seed.sql` for sample data — SETUP.md step 2
-has both the dashboard and the CLI way. Schema changes go in a new migration
-file, never an edit to an existing one. You do not need Razorpay, Telegram or
+Sign in at `/login` with the email form ("Local development only") as
+`admin@example.com`; the link arrives in the local inbox at
+http://127.0.0.1:54324, and that account is the admin. No Docker? Use a
+hosted Supabase project instead (SETUP.md steps 1–5). Schema changes go in a
+new migration file, never an edit to an existing one; `npm run db:reset`
+replays them all from scratch. You do not need Razorpay, Telegram or
 WhatsApp credentials unless you are working on those paths.
 
 ## Before you open a pull request
