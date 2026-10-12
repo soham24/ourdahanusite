@@ -84,6 +84,7 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
         'image_url',
         'image_thumb_url',
         'cover_image',
+        'cover_image_thumb_url',
         'photos',
         'video_url',
         'tags',

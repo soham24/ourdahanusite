@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import {
   Phone,
@@ -14,6 +15,12 @@ import {
   Wind,
 } from 'lucide-react'
 import { siteConfig } from '@/lib/site'
+
+export const metadata: Metadata = {
+  title: `Emergency Contacts — ${siteConfig.town}`,
+  description: `Police, ambulance, fire and local helplines for ${siteConfig.town}, with what to do in a flood, fire or medical emergency.`,
+  alternates: { canonical: `https://${siteConfig.domain}/emergency` },
+}
 
 const emergencyContacts = [
   { name: 'Police Control Room', number: '100', icon: '👮', color: 'bg-blue-50 border-blue-200', badge: 'bg-blue-600' },

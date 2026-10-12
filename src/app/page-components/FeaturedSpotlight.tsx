@@ -42,7 +42,6 @@ export default function FeaturedSpotlight({ listing }: { listing: FeaturedListin
                 fill
                 sizes="(min-width: 768px) 420px, 100vw"
                 className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-                priority
               />
             ) : (
               <div className="flex h-full items-center justify-center font-display text-[56px] text-white/40" aria-hidden>

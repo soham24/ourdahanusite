@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { getApprovedProfessionals, getProfessionCounts, FIND_PAGE_SIZE, type FindSort } from '@/lib/data/find'
 import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
@@ -5,6 +6,12 @@ import { ShieldCheck } from 'lucide-react'
 import FindDirectory from './FindDirectory'
 import type { CategoryTile } from './CategoryGridClient'
 import { siteConfig } from '@/lib/site'
+
+// /find, ?q= searches and find.<domain>/ are one page; search engines get
+// the subdomain. Subpages (c/, p/) set their own canonical.
+export const metadata: Metadata = {
+  alternates: { canonical: `https://find.${siteConfig.domain}` },
+}
 
 interface FindParams { q?: string; profession?: string; sort?: string }
 

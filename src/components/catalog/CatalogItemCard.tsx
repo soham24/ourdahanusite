@@ -109,7 +109,16 @@ export default function CatalogItemCard({
             className={`relative overflow-hidden ${aspect.value === 'portrait' ? 'mx-auto w-3/4' : 'w-full'}`}
             style={{ aspectRatio: aspect.cssAspectRatio }}
           >
-            <img src={imageUrl} alt={item.name} loading="lazy" className="h-full w-full object-cover" />
+            <img
+              src={imageUrl}
+              // Unoptimized images download exactly the URL given; offering
+              // the 400px upload thumbnail lets small cards skip the original.
+              srcSet={item.image_url && item.image_thumb_url ? `${item.image_thumb_url} 400w, ${item.image_url} 1600w` : undefined}
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              alt={item.name}
+              loading="lazy"
+              className="h-full w-full object-cover"
+            />
           </div>
         </div>
       )}

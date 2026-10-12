@@ -61,7 +61,7 @@ export function BusinessAvatar({
   if (!business.image_url) return <Monogram name={name} size={size} />
   return (
     <img
-      src={business.image_url}
+      src={business.image_thumb_url || business.image_url}
       alt=""
       aria-hidden
       className={`${cls} shrink-0 object-cover ring-1 ring-[var(--od-gold)]`}

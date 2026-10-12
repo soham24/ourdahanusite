@@ -7,7 +7,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/admin/', '/dashboard/', '/my-business/', '/api/'],
+      // No trailing slashes: '/admin/' left /admin itself crawlable.
+      disallow: ['/admin', '/dashboard', '/my-business', '/account', '/profile', '/payments', '/checkout', '/api/'],
     },
     sitemap: `https://${ROOT_DOMAIN}/sitemap.xml`,
     host: ROOT_DOMAIN,

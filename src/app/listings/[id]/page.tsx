@@ -1,13 +1,9 @@
-import Link from 'next/link'
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
-import { permanentRedirect } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { Suspense } from 'react'
-import { ArrowLeft } from 'lucide-react'
 import StructuredData from '@/components/StructuredData'
-import Button from '@/components/ui/Button'
 import Skeleton from '@/components/ui/Skeleton'
-import EmptyState from '@/components/ui/EmptyState'
 import { getCategoryUrl } from '@/lib/listing-category'
 import { 
   buildDirectionsUrl, 
@@ -46,7 +42,7 @@ export async function generateMetadata({
   const listing = listingDetail?.listing as Record<string, unknown> | null
 
   if (!listing) {
-    return { title: 'Business Listing' }
+    return { title: 'Listing not found', robots: { index: false, follow: true } }
   }
 
   // Parse tags for keywords
@@ -206,30 +202,7 @@ async function ListingDetailContent({
   const catalogItems = publicData?.products ?? []
   const shopMode = publicData?.shopMode ?? 'off'
 
-  if (!listing) {
-    return (
-      <div className="od-page min-h-screen">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <Link
-            href={buildAbsoluteUrl('/listings')}
-            className="inline-flex items-center gap-1.5 text-sm text-[var(--od-muted)] hover:text-brand mb-6 transition-colors"
-          >
-            <ArrowLeft size={15} /> Back to Listings
-          </Link>
-          <EmptyState
-            icon="🏪"
-            title="Listing not found"
-            description="This business listing may have been removed or the link is incorrect."
-            action={
-              <Button href={buildAbsoluteUrl('/listings')} variant="primary" size="md">
-                Browse all listings
-              </Button>
-            }
-          />
-        </div>
-      </div>
-    )
-  }
+  if (!listing) notFound()
 
   const listingId   = listing.id as string
   const rating      = (listing.rating as number) || 0
