@@ -102,11 +102,12 @@ export default function ImageUpload({
 
         const supabase = createClient()
         const { data: auth, error: authError } = await supabase.auth.getUser()
-        // A lookup that failed is not the same as being signed out; telling
-        // someone mid-edit to sign in again costs them the form.
-        if (authError) throw new Error('Could not check your sign-in just now. Try again in a moment.')
+        // Order matters: getUser() reports a missing session as an error, so
+        // testing authError first would tell a signed-out visitor that
+        // something went wrong rather than that they need to sign in.
         const userId = auth.user?.id
         if (!userId) throw new Error('Please sign in again before uploading.')
+        if (authError) throw new Error('Could not check your sign-in just now. Try again in a moment.')
         const fullPath = storageObjectPath(userId, file.name)
         const thumbPath = `${fullPath.replace(/\.jpg$/, '')}-thumb.jpg`
 

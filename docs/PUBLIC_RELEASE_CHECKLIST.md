@@ -53,6 +53,15 @@ keys, and Postgres connection URLs.
 No `.env` file has ever been committed. `.env.local.example` is tracked, and
 every value in it is a placeholder.
 
+### New in this pass, and worth knowing
+
+Public image URLs now contain the uploader's account id, and
+`get_profile_names` is callable anonymously — so a visitor can resolve that
+id to a display name. Beside a business's own photo that adds nothing; on an
+avatar or a review photo it links the file to an account. Kept because it is
+what lets a storage policy check `auth.uid()`, and the alternative leaves the
+policy nothing to match on.
+
 ### Already public by design, and fine
 
 - **`NEXT_PUBLIC_SUPABASE_ANON_KEY`** ships in the browser bundle. Row level
@@ -194,8 +203,10 @@ Remediation, in this order:
 1. **Done.** Uploads now go to `public/<uploader id>/<name>.jpg`. All three
    upload components used to build that string themselves; they share one
    helper now, which also stopped the file's own name going into the path
-   unsanitised and stopped two uploads in the same millisecond overwriting
-   each other through `upsert: true`. Existing images are unaffected: their
+   unsanitised, and gave each object a random segment so two uploads in the
+   same millisecond no longer collide — which, with no UPDATE policy to
+   permit the overwrite, failed the second upload rather than replacing the
+   first. Existing images are unaffected: their
    URLs live in the database and the read policy has not changed.
 
 2. **Owner action, after step 1 reaches production.** Add the insert policy:

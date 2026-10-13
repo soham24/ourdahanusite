@@ -17,10 +17,15 @@
  * writing flat paths. Existing images are unaffected either way: their URLs
  * are stored in the database and the read policy is unchanged.
  *
- * One thing this does disclose: a public image URL now contains the
- * uploader's account id. That id is already the public key for a row in
- * `profiles`, which is readable only by its owner, so it reveals nothing on
- * its own -- but it is in the page source where it was not before.
+ * One thing this does disclose, and it is more than it first looks:
+ * a public image URL now contains the uploader's account id, and
+ * `get_profile_names(uuid[])` is executable by anonymous callers -- so a
+ * visitor can turn that id into the uploader's display name. For a business
+ * photo shown beside the business's own name that adds nothing. For an
+ * avatar or a review photo it links the file to an account. This is the
+ * standard Supabase pattern and the alternative (an opaque per-user salt)
+ * would leave the policy nothing to check against `auth.uid()`, so it stays
+ * -- recorded rather than hidden.
  *
  * **The file's own name went into the path unsanitised.** A name carrying a
  * slash or a traversal segment would move the object somewhere else in the
