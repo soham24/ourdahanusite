@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from 'react'
 import Cropper from 'react-easy-crop'
 import { createClient } from '@/lib/supabase/client'
+import { storageObjectPath } from '@/lib/upload-path'
 import { Camera, Check, Loader2, RotateCw, X, ZoomIn, ZoomOut } from 'lucide-react'
 import {
   SERVICE_IMAGE_ASPECT_OPTIONS,
@@ -132,7 +133,10 @@ export default function CompactImageUpload({
       setUploading(true)
 
       const supabase = createClient()
-      const path = `public/${Date.now()}-svc.jpg`
+      const { data: auth } = await supabase.auth.getUser()
+      const userId = auth.user?.id
+      if (!userId) throw new Error('Please sign in again before uploading.')
+      const path = storageObjectPath(userId, 'svc.jpg')
       const { error: uploadError } = await supabase.storage
         .from('uploads')
         .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })

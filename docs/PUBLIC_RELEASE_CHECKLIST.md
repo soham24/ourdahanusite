@@ -176,12 +176,13 @@ isolation and impersonation.
   bucket**, not only by the browser, so the client-side checks are not the
   control.
 
-### Open: storage writes are not scoped to the uploader
+### Part done: storage writes are not yet scoped to the uploader
 
 Any signed-in user may write to any path in the single public `uploads`
-bucket; the insert policy checks only the bucket name. Uploads also use a flat
-`public/<timestamp>-<name>.jpg` path with no per-user folder, so there is
-nothing for a tighter policy to key on today.
+bucket; the insert policy checks only the bucket name. Until this pass there
+was also nothing for a tighter policy to key on, because uploads went to a
+flat `public/<timestamp>-<name>.jpg` with no per-user folder. That half is
+fixed; the policy itself is an owner action, and has to follow the deploy.
 
 Overwriting someone else's image is *not* possible — there is no update
 policy, so RLS refuses the overwrite half of an upsert. The practical risk is
@@ -190,16 +191,31 @@ unlimited 2 MB images and have them served from the site's own domain.
 
 Remediation, in this order:
 
-1. Change the upload path to include the uploader: `public/<uid>/<name>.jpg`.
-   Existing images keep working — their URLs are stored in the database, and
-   the read policy is unchanged.
-2. Deploy that, then add an insert policy requiring
-   `(storage.foldername(name))[2] = auth.uid()::text`.
-3. Consider a per-account upload quota or rate limit.
+1. **Done.** Uploads now go to `public/<uploader id>/<name>.jpg`. All three
+   upload components used to build that string themselves; they share one
+   helper now, which also stopped the file's own name going into the path
+   unsanitised and stopped two uploads in the same millisecond overwriting
+   each other through `upsert: true`. Existing images are unaffected: their
+   URLs live in the database and the read policy has not changed.
 
-Deliberately not done in this pass: it changes live upload behaviour, and
-tightening the policy before the new paths are deployed would break uploads
-for every owner.
+2. **Owner action, after step 1 reaches production.** Add the insert policy:
+
+   ```sql
+   drop policy "Authenticated users can upload images" on storage.objects;
+   create policy "Users upload into their own folder" on storage.objects
+     for insert to authenticated
+     with check (
+       bucket_id = 'uploads'
+       and (storage.foldername(name))[2] = auth.uid()::text
+     );
+   ```
+
+   **Order matters.** Applying this before the new paths are live breaks
+   uploads for every owner, because their browser is still writing flat
+   paths. Deploy first, confirm an upload works, then apply it.
+
+3. Still open: a per-account upload quota or rate limit. Nothing caps how
+   many images one account may add.
 
 ---
 

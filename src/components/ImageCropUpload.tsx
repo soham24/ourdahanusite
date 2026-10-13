@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import Cropper from 'react-easy-crop'
 import { createClient } from '@/lib/supabase/client'
+import { storageObjectPath } from '@/lib/upload-path'
 import { Camera, Upload, X, Loader2, ZoomIn, ZoomOut, RotateCw, Check } from 'lucide-react'
 
 interface Props {
@@ -114,7 +115,10 @@ export default function ImageCropUpload({
       // Upload
       setUploading(true)
       const supabase = createClient()
-      const path = `public/${Date.now()}-cropped.jpg`
+      const { data: auth } = await supabase.auth.getUser()
+      const userId = auth.user?.id
+      if (!userId) throw new Error('Please sign in again before uploading.')
+      const path = storageObjectPath(userId, 'cropped.jpg')
       const { error: upErr } = await supabase.storage
         .from(bucket)
         .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
