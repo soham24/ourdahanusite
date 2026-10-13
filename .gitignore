@@ -57,3 +57,6 @@ OurDahanu-Sales-Pitch.pptx
 # Internal working notes (AI plans/specs, review evidence) stay local
 docs/superpowers/
 docs/reviews/
+
+# Lighthouse CI output
+.lighthouseci/
