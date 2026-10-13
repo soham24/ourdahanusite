@@ -48,6 +48,11 @@ yourself, with the local database from `npm run setup`: `npm run build`,
 `npm start`, then `npm run test:e2e` in another terminal (once, first:
 `npx playwright install chromium`).
 
+The same CI job then runs Lighthouse on five pages (`lighthouserc.json`):
+accessibility, best practices and SEO fail the build below 90; performance
+only warns. Each run's reports are attached as the `lighthouse` artifact. To
+run it locally against `npm start`: `npx @lhci/cli@0.15.1 autorun`.
+
 `npm run build` runs `scripts/check-action-boundaries.mjs`, which fails the
 build if a server action leaks a credential into client-reachable code. If it
 complains, it has found something real.

@@ -3,7 +3,10 @@ name: E2E
 # Browser smoke test (e2e/smoke.mjs) against a production build backed by
 # the local Supabase stack, set up exactly the way a contributor does it:
 # `npm run setup`. Covers page crashes, hydration errors, business-subdomain
-# routing and the sign-in round trip.
+# routing and the sign-in round trip. Then Lighthouse on the same server
+# (lighthouserc.json): accessibility, best practices and SEO fail below 90;
+# performance only warns, since shared runners make it noisy. Reports are
+# kept as the `lighthouse` artifact of each run.
 
 on:
   push:
@@ -42,6 +45,17 @@ jobs:
           npm start > server.log 2>&1 &
           for i in $(seq 60); do curl -sf -o /dev/null http://localhost:3000/ && break; sleep 1; done
           npm run test:e2e
+
+      - name: Lighthouse
+        run: npx --yes @lhci/cli@0.15.1 autorun
+
+      - name: Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse
+          path: .lighthouseci/reports
+          if-no-files-found: ignore
 
       - name: Server log
         if: failure()
