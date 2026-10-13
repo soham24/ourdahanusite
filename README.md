@@ -1,280 +1,164 @@
 # OurDahanu
 
-A local platform for one town: a business directory where every business gets
-its own subdomain, plus a jobs board, a professionals directory, appointment
-booking, and online ordering paid straight into each business's own account.
+A website for one town: a directory where every business gets its own
+subdomain, plus a jobs board, a professionals directory, appointment booking,
+and online ordering paid straight into each business's own account.
 
-Running at **[ourdahanu.in](https://ourdahanu.in)** for Dahanu, Maharashtra —
-65 businesses, around 500 residents signed up.
-
-**It is built to be re-pointed at your town.** The name, the place and the
-domain live in one file. Change them and you have OurPune, OurNashik,
-OurWherever.
+It runs **[ourdahanu.in](https://ourdahanu.in)** for Dahanu, Maharashtra
+(65 businesses, around 500 residents signed up), and it is built so you can
+run the same thing for your town: OurPune, OurNashik, OurWherever.
 
 ---
 
-## Start here
+## 1. Try it on your computer
 
-New to this repository? Read these three, in order:
-
-1. **This file** — what it is, how to run it, what each piece does.
-2. **[SETUP.md](SETUP.md)** — the step-by-step: clone → Supabase → your town →
-   deployed.
-3. **[ARCHITECTURE.md](ARCHITECTURE.md)** — how it fits together, once you want
-   to change something.
-
-## Deploy it in one click
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsoham24%2Fourdahanusite&project-name=our-town&repository-name=our-town&integration-ids=oac_VqOgBHqhEoFTPzGkPd7L0iH6&env=NEXT_PUBLIC_SITE_URL%2CADMIN_EMAIL%2CCRON_SECRET&envDescription=Your%20site%20address%20%28use%20https%3A%2F%2F%3Cproject%3E.vercel.app%20until%20you%20add%20a%20domain%29%2C%20the%20Google%20email%20that%20becomes%20the%20first%20admin%2C%20and%20any%20long%20random%20string%20for%20the%20scheduled%20jobs.&envLink=https%3A%2F%2Fgithub.com%2Fsoham24%2Fourdahanusite%2Fblob%2Fmain%2FSETUP.md%23step-4-set-environment-variables)
-
-The button copies this repository to your GitHub account, creates a Supabase
-database through Vercel's Supabase integration (which fills in the database
-keys), asks for three values — your site address, the Google email that
-becomes admin, and a random string for the scheduled jobs — and deploys.
-
-Then, to finish:
-
-1. **Make sure the database has its tables.** If the Supabase project is
-   empty, from a clone of your copy run
-   `npm run db:link -- --project-ref <project id>` then `npm run db:push`, or
-   paste the files in `supabase/migrations/` into its SQL editor in filename
-   order (SETUP.md step 2).
-2. **Turn on Google sign-in** in Supabase and add your site's
-   `/auth/callback` to its redirect URLs (SETUP.md steps 3 and 6).
-3. **Make it your town** — edit `src/lib/site-config.ts` in your copy, run
-   `npm run sync:proxy`, and push (SETUP.md step 7).
-4. **Check everything:** clone your copy, `vercel env pull .env.local`, then
-   `npm run doctor` — it lists anything still missing, with the fix.
-
-Not on Vercel? `docker compose --env-file .env.local up --build -d` runs it
-anywhere Docker does; [SETUP.md](SETUP.md#hosting-without-vercel) covers the
-scheduled jobs and subdomains that Vercel would otherwise handle.
-
-## Try it in five minutes
-
-You need **Node.js 24** (`.nvmrc` has it; `nvm use` picks it up) and
-**Docker**. No accounts at all: no Supabase, no Google, no payment or email
-provider.
+You need **Node.js 24** and **Docker**. No accounts, no keys.
 
 ```bash
-git clone https://github.com/soham24/ourdahanusite.git ourpune
-cd ourpune
+git clone https://github.com/soham24/ourdahanusite.git ourtown
+cd ourtown
 npm install
-npm run setup     # local database with sample data; writes .env.local
+npm run setup     # starts a local database with sample data, writes .env.local
 npm run dev
 ```
 
-Open <http://localhost:3000>: the homepage, with sample businesses, events and
-tradespeople. To sign in, go to `/login`, enter `admin@example.com` under
-"Local development only", and click the link that arrives in the local inbox
-at <http://127.0.0.1:54324>. That account is the admin.
+Open <http://localhost:3000>. You get the full site with sample businesses,
+events and tradespeople.
 
-**If you got that far, everything else is optional.**
+To sign in as admin: go to `/login`, type `admin@example.com` under
+"Local development only", then click the link in the local inbox at
+<http://127.0.0.1:54324>.
 
-No Docker? Create a free Supabase project instead, run the files in
-`supabase/migrations/` in its SQL editor in filename order (then
-`supabase/seed.sql` for sample data), and put its URL, anon key and
-service-role key in `.env.local` (copied from `.env.local.example`).
-Signing in there needs Google set up: [SETUP.md](SETUP.md) steps 1–5.
+Something not working? Run **`npm run doctor`**. It checks your setup and
+tells you what to fix, in plain words.
 
-At any point, `npm run doctor` checks your setup — database, migrations,
-sign-in, and each optional service — and says what to fix.
+<details>
+<summary>No Docker?</summary>
 
-Sign-in, payments, email and notifications each need their own account, and
-each is independently skippable — [SETUP.md](SETUP.md) takes them one at a
-time. Nothing breaks while they are unconfigured; those features just stay
-switched off.
+Use a free [Supabase](https://supabase.com) project instead: paste the files in
+`supabase/migrations/` into its SQL editor in filename order (then
+`supabase/seed.sql` for sample data), copy `.env.local.example` to
+`.env.local`, and fill in the project's URL, anon key and service-role key.
+Signing in that way needs Google set up first: [SETUP.md](SETUP.md), steps 1–5.
+</details>
 
-## Make it your city
+## 2. Make it your town
 
-Open **[`src/lib/site-config.ts`](src/lib/site-config.ts)**. This is the file
-that makes the difference between OurDahanu and OurPune:
+Three files, then one check:
 
-```ts
-export const siteConfig = {
-  name: 'OurDahanu',                    // -> 'OurPune'
-  town: 'Dahanu',                       // -> 'Pune'
-  townLocal: 'आपले डहाणू',                // -> 'आपले पुणे', or '' for none
-  domain: 'ourdahanu.in',               // -> 'ourpune.in'
-  areas: 'Dahanu, Bordi, Gholvad and Palghar',
-  localities: ['Dahanu Road', 'Bordi', ...], // nearby places, as a list
-  region: 'Palghar, Maharashtra, India',
-  contactEmail: 'you@example.com',
-  tagline: 'OurDahanu is the local platform for ...',
-}
-```
+1. **[`src/lib/site-config.ts`](src/lib/site-config.ts)**: the name, town,
+   domain and nearby places. Every page, email and link reads from here.
 
-Change those, reload, and the site is your city's — page titles, navigation,
-emails, structured data and page copy all read from here.
+   ```ts
+   name: 'OurDahanu',        // -> 'OurPune'
+   town: 'Dahanu',           // -> 'Pune'
+   domain: 'ourdahanu.in',   // -> 'ourpune.in'
+   ```
 
-One file cannot read it: **`src/proxy.ts`**, the per-business subdomain
-routing, because Next.js requires its matchers to be inline literals. After
-changing `domain`, run `npm run sync:proxy` and it rewrites them for you;
-`npm test` (and so CI) fails if you forget.
+   Then run **`npm run sync:proxy`**, which copies the new domain into the
+   subdomain routing (Next.js can't read it from the config).
 
-### Then replace what is *about* Dahanu
+2. **[`src/content/local.ts`](src/content/local.ts)**: your town's emergency
+   numbers, flood zones and contact details. **Do this one carefully**: a
+   wrong emergency number is the worst bug this site can have.
 
-Some of this repository is local knowledge, and no config translates it: the
-emergency phone numbers, the guides, the business categories, the homepage
-events, and Chikoo Catcher (a chikoo is Dahanu's fruit, and the game is themed
-on it). Publishing those unchanged means publishing another town's facts as
-your own.
+3. **The rest of the local content**: guides, the homepage team, the about
+   page and a few others. [SETUP.md step 8](SETUP.md) lists every file.
 
-**[SETUP.md step 8](SETUP.md)** lists every one, with the file and why it
-matters. Do the emergency contacts first — wrong numbers there are the worst
-bug this site can have.
+Then run **`npm run doctor`** again. On a copy with its own domain, it lists
+anything still carrying Dahanu's content, and fails while the emergency
+numbers are still Dahanu's.
 
-## Environment variables
+## 3. Put it online
 
-Put these in `.env.local` for development, and in your host's project settings
-for production. `.env.local.example` has the full list with comments.
+**On Vercel** (easiest):
 
-**The three you need to run anything**
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsoham24%2Fourdahanusite&project-name=our-town&repository-name=our-town&integration-ids=oac_VqOgBHqhEoFTPzGkPd7L0iH6&env=NEXT_PUBLIC_SITE_URL%2CADMIN_EMAIL%2CCRON_SECRET&envDescription=Your%20site%20address%20%28use%20https%3A%2F%2F%3Cproject%3E.vercel.app%20until%20you%20add%20a%20domain%29%2C%20the%20Google%20email%20that%20becomes%20the%20first%20admin%2C%20and%20any%20long%20random%20string%20for%20the%20scheduled%20jobs.&envLink=https%3A%2F%2Fgithub.com%2Fsoham24%2Fourdahanusite%2Fblob%2Fmain%2FSETUP.md%23step-4-set-environment-variables)
 
-| Var | Purpose |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key — public by design; row level security is the boundary |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service-role key for privileged server writes. **Never expose this to a browser.** |
+The button copies this repository, creates a Supabase database for it, asks
+for three values and deploys. Then:
 
-**For a real deployment**
+1. **Load the database tables:** `npm run db:link -- --project-ref <id>`,
+   then `npm run db:push` (or paste `supabase/migrations/` into the SQL
+   editor).
+2. **Turn on Google sign-in** in Supabase (SETUP.md steps 3 and 6).
+3. **Check it:** `vercel env pull .env.local`, then `npm run doctor`.
 
-| Var | Purpose |
-|---|---|
-| `NEXT_PUBLIC_SITE_URL` | This deployment's own origin — `http://localhost:3000` locally, your domain in production |
-| `LISTING_PAYMENT_ENCRYPTION_KEY` | AES-256-GCM key encrypting each business's payment secret at rest. Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"` |
-
-**To take payments** — skip until you have a Razorpay account
-
-| Var | Purpose |
-|---|---|
-| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | Order creation and signature verification |
-| `RAZORPAY_WEBHOOK_SECRET` | Safety net so a captured payment is never lost |
-
-**Everything else is optional**
-
-| Var | Purpose |
-|---|---|
-| `RESEND_API_KEY` | Notification and newsletter email (needs a domain verified in Resend) |
-| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_BOT_USERNAME` | Telegram notifications for people who link their account (`TELEGRAM_USER_BOT_TOKEN` is an older name for the token; leave it empty) |
-| `TELEGRAM_WEBHOOK_SECRET` | **Required if you use Telegram at all** — the webhook fails closed without it |
-| `WHATSAPP_ACCESS_TOKEN` / `WHATSAPP_PHONE_NUMBER_ID` | WhatsApp notifications (one Meta-approved template) |
-| `CRON_SECRET` | Authorizes `/api/cron/*`; sent by the host's scheduler as a bearer token |
-| `ADMIN_EMAIL` | Bootstraps the first admin account on sign-in |
-| `NEXT_PUBLIC_GA_ID` / `NEXT_PUBLIC_ADSENSE_CLIENT_ID` | Analytics and ads |
-| `ISR_DEBUG` | Verbose cache logging |
-
-What each notification provider sends, to whom, and how to set it up:
-**[docs/EMAIL-AND-NOTIFICATIONS.md](docs/EMAIL-AND-NOTIFICATIONS.md)**.
-
-## Scripts
+**Anywhere else**, with Docker:
 
 ```bash
-npm run setup       # local database with sample data (Docker), and .env.local to match
-npm run dev         # dev server (Turbopack)
-npm run build       # production build — run this before you push
-npm test            # unit, game and security suites (also checks proxy.ts matches the config)
-npm run lint        # eslint
-npx tsc --noEmit    # types
-npm run doctor      # checks your .env.local, database, services and leftover Dahanu content; changes nothing
-npm run sync:proxy  # rewrites src/proxy.ts's matchers after you change `domain`
-
-npm run db:start    # start the local database   · db:stop   stop it
-npm run db:reset    # wipe it back to migrations + sample data
-npm run db:link -- --project-ref <id>   # point the CLI at a hosted Supabase project
-npm run db:push     # apply any migrations it does not have yet
+docker compose --env-file .env.local up --build -d
 ```
 
-`npm run build` also runs a check that fails if a server action leaks a
-credential into client-reachable code. If it complains, it has found something
-real.
+[SETUP.md → Hosting without Vercel](SETUP.md#hosting-without-vercel) covers
+the scheduled jobs and business subdomains.
 
-## How it is put together
+**Optional services** (payments with Razorpay, email with Resend, Telegram,
+WhatsApp, analytics) each switch on when their keys are set, and nothing
+breaks without them. `.env.local.example` lists every setting with a comment;
+[SETUP.md](SETUP.md) walks through each service.
 
-**Next.js 16** (App Router, Cache Components) · **React 19** · **Tailwind v4**
-· **Supabase** (Postgres, Auth, Storage, RLS) · **Razorpay** · **Vercel**
+---
 
-> ⚠️ This is Next.js 16, with breaking changes from the versions you may know —
-> see [AGENTS.md](AGENTS.md). The one that catches everyone: `export const
-> dynamic` is **not** allowed, because it is incompatible with
-> `cacheComponents`.
+## Reference
 
-```
-src/
-  app/
-    page.tsx, page-components/    # homepage and its sections
-    listings/                     # the directory and each business page
-    find/ jobs/ appointments/     # standalone products, each on its own subdomain
-    guides/ events/ polls/ play/  # community content and the game
-    emergency/                    # local emergency contacts
-    checkout/ p/ s/               # buying an item; shared item and legacy links
-    my-business/ dashboard/ account/ profile/
-    admin/                        # admin and moderation, gated in its layout
-    actions/                      # server actions
-    api/                          # razorpay/ cron/ telegram/ newsletter/
-  components/ ui/                 # shared components and design primitives
-  lib/
-    site-config.ts                # <- the town's identity
-    supabase/                     # server, browser and admin clients
-    data/                         # cached read fetchers
-    database.types.ts             # generated Supabase types
-  proxy.ts                        # subdomain routing (Next 16 "proxy")
+### Commands
+
+```bash
+npm run setup        # local database + sample data, and .env.local to match
+npm run dev          # development server
+npm run doctor       # check your setup and leftover Dahanu content; changes nothing
+npm run sync:proxy   # after changing `domain` in site-config.ts
+
+npm test             # unit and security tests
+npm run test:e2e     # browser smoke test (needs `npm start` running)
+npm run build        # production build
+npm run lint         # eslint
+npx tsc --noEmit     # types
+
+npm run db:reset     # local database back to migrations + sample data
+npm run db:stop      # stop the local database
+npm run db:link -- --project-ref <id>   # point at a hosted Supabase project
+npm run db:push      # apply new migrations to it
 ```
 
-**Business subdomains.** `bakery.ourdahanu.in` serves that business's page
-from the same deployment; `proxy.ts` rewrites the request. `find.`, `jobs.`
-and `appointments.` are standalone products that hide the main site's
-navigation.
+### Docs
 
-**Authentication** is Google OAuth through Supabase (PKCE). The server client
-is dual-auth: it reads the session cookie, and also accepts an
-`Authorization: Bearer <supabase-jwt>`.
+| Read | When |
+|---|---|
+| [SETUP.md](SETUP.md) | Setting up a real deployment, step by step |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Before changing how something works |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Before opening a pull request |
+| [docs/EMAIL-AND-NOTIFICATIONS.md](docs/EMAIL-AND-NOTIFICATIONS.md) | Setting up email, Telegram or WhatsApp |
+| [docs/DATABASE-MIGRATIONS.md](docs/DATABASE-MIGRATIONS.md) | Changing the database, or applying changes automatically |
+| [SECURITY.md](SECURITY.md) | Reporting a vulnerability (privately, please) |
 
-**Data access.** The anon key is public — it ships in the browser. Row level
-security is what actually protects the data, so when something should or
-should not be readable, the thing to change is a policy, not a query.
+### How it is built
 
-## Deploying
+**Next.js 16** · **React 19** · **Tailwind v4** · **Supabase** (Postgres,
+Auth, Storage) · **Razorpay** · **Vercel**
 
-Built for **Vercel**; `vercel.json` carries the cron schedule. Any host that
-runs Next.js 16 will do, but you would have to arrange the cron jobs yourself.
+> ⚠️ Next.js 16 differs from earlier versions in ways that catch people out;
+> read [AGENTS.md](AGENTS.md) first. The most common one: `export const
+> dynamic` is not allowed.
 
-Set the same environment variables in your host's project settings, point your
-domain at it, and add a wildcard `*.yourdomain` DNS record so business
-subdomains resolve.
-
-## Database
-
-The schema — tables, row level security policies, functions, grants, the
-storage bucket — lives in `supabase/migrations/`, applied in filename order.
-`…_baseline.sql` is the whole schema as it stood when the project went open
-source, generated from the production database and checked against it.
-`supabase/seed.sql` is a made-up town to fill an empty database.
-`supabase/legacy/` holds the old hand-applied files; never run them.
-
-To change the schema, add a new `supabase/migrations/<timestamp>_<what>.sql`
-— never edit one that has shipped — then regenerate
-`src/lib/database.types.ts` and run Supabase's security and performance
-advisors. `npm test` builds a database from the migrations and seed
-(`scripts/test-baseline-schema.mjs`), so a migration that does not apply
-cleanly fails CI.
-
-## Contributing
-
-See **[CONTRIBUTING.md](CONTRIBUTING.md)**. Please open an issue before
-starting anything substantial — this runs a live site for real businesses, so
-some things are missing deliberately.
-
-## Security
-
-Found a vulnerability? Please report it privately rather than in an issue —
-**[SECURITY.md](SECURITY.md)** has the details, including the three things
-that look like findings but are deliberate.
+- **Business subdomains.** `bakery.ourdahanu.in` is served by the same app;
+  [`src/proxy.ts`](src/proxy.ts) routes it. `find.`, `jobs.` and
+  `appointments.` are separate products with their own layout.
+- **Sign-in** is Google through Supabase (plus email sign-in against a local
+  database only).
+- **Data access.** The anon key is public by design; row level security
+  policies are what protect the data.
+- **Database.** The schema lives in `supabase/migrations/`, applied in order.
+  Change it by adding a new file, never by editing one that has shipped.
+- **Checks.** CI runs types, lint, tests, a production build, a browser smoke
+  test, Lighthouse (accessibility, best practices and SEO must stay at 90 or
+  above) and a Docker build.
 
 ## Licence
 
 [MIT](LICENSE) © Soham Railkar.
 
-The code is open. The name "OurDahanu", the logo, and the content of the live
-site — business listings, reviews, photos and guides — are not covered by it.
-Build your own town's; don't clone ours.
+The code is open. The name "OurDahanu", the logo, and the live site's content
+(business listings, reviews, photos and guides) are not covered by the licence.
+Build your own town's; don't copy ours.
