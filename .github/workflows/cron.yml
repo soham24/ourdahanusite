@@ -9,6 +9,12 @@ name: Scheduled jobs (self-hosted)
 #
 # The schedules match vercel.json. Keep the two in step if you change either.
 
+# Least privilege: these workflows only read the repository. A public
+# repo hands this token to every fork's pull request build, so it is
+# spelled out rather than left to the repository default.
+permissions:
+  contents: read
+
 on:
   schedule:
     - cron: "0 0 * * 1"   # listing expiry, weekly

@@ -4,6 +4,12 @@ name: Docker
 # so the non-Vercel route cannot break unnoticed. Runs only when something the
 # image depends on changes; ordinary app changes are covered by ci.yml's build.
 
+# Least privilege: these workflows only read the repository. A public
+# repo hands this token to every fork's pull request build, so it is
+# spelled out rather than left to the repository default.
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]

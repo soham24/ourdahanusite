@@ -14,6 +14,12 @@ name: Migrate database
 # Runs in the `production` environment: add yourself as a required reviewer in
 # Settings → Environments → production and every run waits for your approval.
 
+# Least privilege: these workflows only read the repository. A public
+# repo hands this token to every fork's pull request build, so it is
+# spelled out rather than left to the repository default.
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
