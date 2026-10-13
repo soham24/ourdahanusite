@@ -65,17 +65,20 @@ if (siteConfig.domain !== 'ourdahanu.in') {
   const read = (path) => { try { return readFileSync(new URL(`../${path}`, import.meta.url), 'utf8') } catch { return '' } }
   const step8 = 'Replace it with your own (SETUP.md step 8).'
 
-  if (/Dahanu|Palghar/.test(read('src/app/emergency/page.tsx'))) {
-    fail('Content', "The emergency page still lists Dahanu's police, hospital and fire numbers", `Wrong numbers in an emergency are the worst bug this site can have. Edit src/app/emergency/page.tsx. ${step8}`)
+  const local = read('src/content/local.ts')
+  if (/Dahanu|Palghar/.test(local)) {
+    fail('Content', "The emergency page still lists Dahanu's police, hospital and fire numbers", `Wrong numbers in an emergency are the worst bug this site can have. Edit \`emergency\` in src/content/local.ts. ${step8}`)
   }
   if (siteConfig.contactEmail === 'railkarsoham@gmail.com') {
     warn('Content', 'contactEmail in site-config.ts is still the OurDahanu maintainer\'s address', 'Set it to your own; it is shown on the contact, privacy and terms pages.')
   }
   const checks = [
-    ['src/app/contact/page.tsx', /8149314106|'ourdahanu'/, 'The contact page has OurDahanu\'s WhatsApp number and Instagram'],
     ['src/app/page-components/HeritageSection.tsx', /Railkar|Dahanu/, 'The homepage names the OurDahanu team'],
     ['src/app/about/page.tsx', /Railkar|Dahanu/, 'The about page tells OurDahanu\'s story'],
   ]
+  if (/8149314106|'ourdahanu'/.test(local)) {
+    warn('Content', 'The contact page has OurDahanu\'s WhatsApp number and Instagram', 'Edit `contact` in src/content/local.ts.')
+  }
   for (const [path, pattern, msg] of checks) {
     if (pattern.test(read(path))) warn('Content', msg, `Edit ${path}. ${step8}`)
   }

@@ -212,9 +212,9 @@ go through these before you launch:
 
 | What | Where | Why |
 |---|---|---|
-| Emergency contacts | `src/app/emergency/` | Real phone numbers for Dahanu's police, hospitals and fire services. **Wrong numbers in an emergency are the worst bug this site can have.** |
+| Emergency contacts | `src/content/local.ts` (`emergency`) | Real phone numbers for Dahanu's police, hospitals and fire services. **Wrong numbers in an emergency are the worst bug this site can have.** |
 | Guides | `content/guides/*.md`, images in `public/guides/` | Travel, food and local know-how, written about Dahanu. |
-| Contact details | `src/app/contact/page.tsx` | The maintainer's WhatsApp number and Instagram handle. |
+| Contact details | `src/content/local.ts` (`contact`) | The maintainer's WhatsApp number and Instagram handle. |
 | Team on the homepage | `src/app/page-components/HeritageSection.tsx` | Names the people behind OurDahanu. |
 | Logo | `public/logo.png` | Shown in the navbar, share previews and the installed app. (Search Console ownership is the `GOOGLE_SITE_VERIFICATION` setting, not a file.) |
 | Business categories | `src/lib/category-groups.ts` | Tuned to what Dahanu actually has; a bigger town will want more, and different. |
