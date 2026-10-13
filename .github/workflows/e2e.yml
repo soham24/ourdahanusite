@@ -1,0 +1,48 @@
+name: E2E
+
+# Browser smoke test (e2e/smoke.mjs) against a production build backed by
+# the local Supabase stack, set up exactly the way a contributor does it:
+# `npm run setup`. Covers page crashes, hydration errors, business-subdomain
+# routing and the sign-in round trip.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Local database (migrations + sample data)
+        run: npm run setup
+
+      - name: Build
+        run: npm run build
+
+      - name: Smoke test
+        run: |
+          npm start > server.log 2>&1 &
+          for i in $(seq 60); do curl -sf -o /dev/null http://localhost:3000/ && break; sleep 1; done
+          npm run test:e2e
+
+      - name: Server log
+        if: failure()
+        run: tail -100 server.log || true

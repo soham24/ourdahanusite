@@ -43,6 +43,11 @@ npm test             # unit, game and security suites
 npm run build        # also runs the Server Action credential boundary check
 ```
 
+CI also runs a browser smoke test (`.github/workflows/e2e.yml`). To run it
+yourself, with the local database from `npm run setup`: `npm run build`,
+`npm start`, then `npm run test:e2e` in another terminal (once, first:
+`npx playwright install chromium`).
+
 `npm run build` runs `scripts/check-action-boundaries.mjs`, which fails the
 build if a server action leaks a credential into client-reachable code. If it
 complains, it has found something real.
