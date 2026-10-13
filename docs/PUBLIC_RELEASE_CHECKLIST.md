@@ -122,9 +122,12 @@ work without an account anywhere.
 - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, issue forms, a pull request
   template, and Dependabot.
 - Five workflows: CI, e2e, Docker, scheduled cron, and a migration workflow
-  that is `workflow_dispatch` only and declares `environment: production`.
-  Whether that environment actually has a required reviewer is a GitHub
-  setting and could not be checked from here — see owner actions.
+  that declares `environment: production`. Note that it runs on **push to
+  `main`** whenever `supabase/migrations/**` changes, not only on manual
+  dispatch — so merging a pull request that adds a migration applies it to
+  the live database. Whether the `production` environment has a required
+  reviewer holding that back is a GitHub setting and could not be checked
+  from here. See owner actions.
 - **No workflow triggered by a pull request uses any secret.** Only `cron.yml`
   and `migrate.yml` do, and neither runs on pull requests, so a fork cannot
   reach them. No workflow uses `pull_request_target`.
@@ -202,10 +205,14 @@ for every owner.
    service-role key, which bypasses row level security entirely. Check the
    provider's fork-build setting and give previews their own project, or
    disable preview builds for forks. **Treat this as blocking.**
-2. **Confirm the `production` environment has a required reviewer.** The
-   migration workflow runs `supabase db push` against the live database. It
-   is manual-dispatch only, but without a reviewer on that environment
-   anyone who can dispatch it can migrate production unreviewed.
+2. **Confirm the `production` environment has a required reviewer.
+   Treat this as blocking.** The migration workflow runs `supabase db push`
+   against the live database, and it triggers on push to `main` whenever
+   `supabase/migrations/**` changes — merging a pull request that adds a
+   migration is enough. A required reviewer on that environment is the only
+   thing holding it; without one, a merge migrates production unattended,
+   and once the repository is public the pool of people who can open that
+   pull request is everyone. Settings → Environments → production.
 3. **Rotate anything that was ever pasted outside the repository** — chat,
    screenshots, issue comments. The repository is clean; that is not evidence
    about places this review could not see.

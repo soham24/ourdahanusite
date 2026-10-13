@@ -99,7 +99,10 @@ if (missing.length) {
   // setup`, which writes one for them; pointing them at a Supabase dashboard
   // sends them off to make an account they were told they would not need.
   // Someone who already has the file is past that and is filling it in.
-  const starting = missing.length === required.length && !existsSync('.env.local')
+  // Resolved from the repo root like every other read in this script, so
+  // running it from a subdirectory cannot flip the advice.
+  const starting = missing.length === required.length
+    && !existsSync(new URL('../.env.local', import.meta.url))
   fail(
     'Settings',
     `Missing in .env.local: ${missing.join(', ')}`,
