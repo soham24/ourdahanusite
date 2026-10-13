@@ -71,6 +71,9 @@ empty, which makes that address the admin. `npm run db:reset` wipes the
 database back to migrations + seed; `npm run db:stop` shuts it down. With a
 local database you can skip to step 5.
 
+To have new migrations applied automatically when they merge, see
+[docs/DATABASE-MIGRATIONS.md](docs/DATABASE-MIGRATIONS.md).
+
 Either way this creates every table, the row level security policies, the
 `uploads` storage bucket and the trigger that creates a profile on sign-up.
 Do not run anything from `supabase/legacy/` — those are the old hand-applied
