@@ -2,14 +2,15 @@ import type { NextConfig } from "next";
 
 import { ROOT_DOMAIN } from "./src/lib/site-config";
 import { RESERVED_SUBDOMAINS } from "./src/lib/subdomain";
+import { buildContentSecurityPolicy } from "./src/lib/csp";
 
 // A business subdomain (`organic.ourdahanu.in`), not www/jobs/find/... .
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const BUSINESS_HOST = `(?!(?:${[...RESERVED_SUBDOMAINS].map(escapeRegex).join("|")})\\.)[^.]+\\.${escapeRegex(ROOT_DOMAIN)}`;
 
-// Baseline security headers applied to every route. A strict Content-Security-Policy
-// is intentionally omitted for now — it needs per-domain testing against Razorpay,
-// Supabase, Google OAuth and Vercel Analytics before it can be enabled safely.
+// Baseline security headers applied to every route. The Content-Security-Policy
+// is report-only for now: browsers report what it would block to
+// /api/csp-report and block nothing. See src/lib/csp.ts for when to enforce it.
 const securityHeaders = [
   // Force HTTPS for 2 years, including subdomains (all *.ourdahanu.in are HTTPS).
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
@@ -21,6 +22,13 @@ const securityHeaders = [
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   // Lock down powerful APIs we don't use.
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
+  {
+    key: 'Content-Security-Policy-Report-Only',
+    value: buildContentSecurityPolicy({
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      isDev: process.env.NODE_ENV !== 'production',
+    }),
+  },
 ];
 
 const nextConfig: NextConfig = {
