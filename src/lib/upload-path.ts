@@ -17,6 +17,11 @@
  * writing flat paths. Existing images are unaffected either way: their URLs
  * are stored in the database and the read policy is unchanged.
  *
+ * One thing this does disclose: a public image URL now contains the
+ * uploader's account id. That id is already the public key for a row in
+ * `profiles`, which is readable only by its owner, so it reveals nothing on
+ * its own -- but it is in the page source where it was not before.
+ *
  * **The file's own name went into the path unsanitised.** A name carrying a
  * slash or a traversal segment would move the object somewhere else in the
  * bucket. It is now reduced to a short, boring slug.
@@ -38,8 +43,10 @@ function slugify(name: string): string {
  * `public/<uploader id>/<time>-<random>-<name><suffix>.jpg`.
  *
  * The random segment matters: two uploads in the same millisecond used to
- * collide, and because every upload passes `upsert: true`, the second
- * silently replaced the first.
+ * collide. Every upload passes `upsert: true`, but the bucket has no UPDATE
+ * policy, so the overwrite is refused rather than applied -- the second
+ * upload failed in front of the user instead of quietly replacing the first.
+ * Either way it should not happen.
  *
  * @param userId  the uploader, from the session — not a listing or business id
  * @param originalName  the file's own name, used only to keep the object

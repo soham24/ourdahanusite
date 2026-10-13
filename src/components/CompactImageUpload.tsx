@@ -133,7 +133,10 @@ export default function CompactImageUpload({
       setUploading(true)
 
       const supabase = createClient()
-      const { data: auth } = await supabase.auth.getUser()
+      const { data: auth, error: authError } = await supabase.auth.getUser()
+      // A lookup that failed is not the same as being signed out; telling
+      // someone mid-edit to sign in again costs them the form.
+      if (authError) throw new Error('Could not check your sign-in just now. Try again in a moment.')
       const userId = auth.user?.id
       if (!userId) throw new Error('Please sign in again before uploading.')
       const path = storageObjectPath(userId, 'svc.jpg')
@@ -145,8 +148,11 @@ export default function CompactImageUpload({
 
       const { data } = supabase.storage.from('uploads').getPublicUrl(path)
       onUpload(data.publicUrl)
-    } catch {
-      setError('Upload failed')
+    } catch (err) {
+      // Show what actually went wrong. A bare 'Upload failed' hid both the
+      // sign-in message above and any storage policy rejection, which is
+      // exactly what someone debugging a failed upload needs to see.
+      setError(err instanceof Error && err.message ? err.message : 'Upload failed')
     } finally {
       setUploading(false)
     }

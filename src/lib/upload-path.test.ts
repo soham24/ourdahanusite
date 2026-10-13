@@ -38,8 +38,8 @@ test('caps a very long filename', () => {
 })
 
 test('two uploads in the same millisecond do not collide', () => {
-  // Every upload passes upsert: true, so a collision silently replaced the
-  // earlier image rather than erroring.
+  // The bucket has no UPDATE policy, so upsert cannot overwrite: a collision
+  // failed the second upload in front of the user.
   const paths = new Set(Array.from({ length: 200 }, () => storageObjectPath(UID, 'same.jpg')))
   assert.equal(paths.size, 200)
 })

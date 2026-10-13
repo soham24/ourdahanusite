@@ -115,7 +115,10 @@ export default function ImageCropUpload({
       // Upload
       setUploading(true)
       const supabase = createClient()
-      const { data: auth } = await supabase.auth.getUser()
+      const { data: auth, error: authError } = await supabase.auth.getUser()
+      // A lookup that failed is not the same as being signed out; telling
+      // someone mid-edit to sign in again costs them the form.
+      if (authError) throw new Error('Could not check your sign-in just now. Try again in a moment.')
       const userId = auth.user?.id
       if (!userId) throw new Error('Please sign in again before uploading.')
       const path = storageObjectPath(userId, 'cropped.jpg')

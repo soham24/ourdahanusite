@@ -83,7 +83,7 @@ no credentials of any kind), on Node 24.20.0:
 |---|---|
 | `npm ci` | Passed |
 | `npx tsc --noEmit` | Passed |
-| `npm test` | **390 passed, 0 failed** (340 unit + 47 security + 3 game) |
+| `npm test` | **400 passed, 0 failed** (350 unit, 47 game, 3 security) |
 | `npm run doctor` | Ran, reported the missing settings with correct next steps |
 | `npm run setup` with no Docker | Failed cleanly: plain-English message, correct fallback, exit code 1 |
 | `npm run build` with placeholder credentials | Passed, including the Server Action credential boundary check |
@@ -206,9 +206,14 @@ Remediation, in this order:
      for insert to authenticated
      with check (
        bucket_id = 'uploads'
+       and (storage.foldername(name))[1] = 'public'
        and (storage.foldername(name))[2] = auth.uid()::text
      );
    ```
+
+   Both segments are checked on purpose: without the first, an account can
+   still write `uploads/<anything>/<its own id>/x.jpg` and the folder check
+   proves nothing.
 
    **Order matters.** Applying this before the new paths are live breaks
    uploads for every owner, because their browser is still writing flat

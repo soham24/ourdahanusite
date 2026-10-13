@@ -30,11 +30,18 @@ test('every name the directory refuses is also refused by the availability check
   // "appointments" reported available and then failed at submit. Both the
   // route and the listing action now read this set, so the only way to
   // reintroduce the drift is to write out a new copy.
-  const route = await readFile(
-    new URL('../app/api/check-subdomain/route.ts', import.meta.url),
-    'utf8',
-  )
-  assert.match(route, /RESERVED_SUBDOMAINS/, 'the route should use the shared set')
-  assert.doesNotMatch(route, /new Set\(\[[^\]]*'www'/, 'the route should not keep its own copy')
+  const callers = {
+    'the availability endpoint': '../app/api/check-subdomain/route.ts',
+    'the listing action': '../app/actions/listings.ts',
+  }
+  for (const [what, where] of Object.entries(callers)) {
+    const source = await readFile(new URL(where, import.meta.url), 'utf8')
+    assert.match(source, /RESERVED_SUBDOMAINS/, `${what} should use the shared set`)
+    assert.doesNotMatch(
+      source,
+      /new Set\(\[[^\]]*'www'/,
+      `${what} should not keep its own copy of the list`,
+    )
+  }
   assert.ok(RESERVED_SUBDOMAINS.has('appointments'), 'appointments must be reserved')
 })
