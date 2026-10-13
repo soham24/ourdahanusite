@@ -2,13 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { createPublicClient } from '@/lib/supabase/public'
 import { rateLimit, getClientIp, tooManyRequests } from '@/lib/rate-limit'
+import { RESERVED_SUBDOMAINS } from '@/lib/subdomain'
 
-const RESERVED = new Set([
-  'www', 'admin', 'api', 'app', 'mail', 'shop', 'news', 'events',
-  'jobs', 'forum', 'classifieds', 'emergency', 'dashboard', 'login',
-  'profile', 'search', 'about', 'listings', 'my-business', 'offline',
-  'auth', 'static', 'assets', 'media', 'cdn', 'find',
-])
 
 export async function GET(request: NextRequest) {
   // Cheap DB lookup; cap to 60 checks per IP per minute to deter enumeration.
@@ -26,7 +21,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ available: false, reason: 'invalid' })
   }
 
-  if (RESERVED.has(subdomain)) {
+  if (RESERVED_SUBDOMAINS.has(subdomain)) {
     return NextResponse.json({ available: false, reason: 'reserved' })
   }
 

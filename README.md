@@ -114,10 +114,12 @@ guides; emergency contacts; item catalogues with online ordering paid into
 each business's own Razorpay account; owner and admin dashboards; email,
 Telegram and WhatsApp notifications.
 
-**Not built yet:** a basket — one payment covers one item, not several;
-order progress beyond "confirmed", so there is no accepted/ready/completed
-flow and no refund button; delivery fees and pickup options are in the
-database but not in checkout.
+**Not built yet:** a basket — one payment covers one item, not several. An
+owner can mark an order fulfilled or cancelled (cancelling gives the stock
+back), but there are no steps in between — no accepted, ready or
+out-for-delivery — and cancelling does not refund the money, which has to be
+returned through Razorpay by hand. Delivery fees and pickup options exist in
+the database but not in checkout.
 
 **Known limitations.** It is built for one town per deployment, not many
 towns in one. Everything is in English with some Marathi in the branding.

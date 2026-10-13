@@ -51,8 +51,11 @@ every value in it is a placeholder.
 - **`NEXT_PUBLIC_SUPABASE_ANON_KEY`** ships in the browser bundle. Row level
   security is the access boundary, not the key. This is how Supabase is meant
   to work, and `SECURITY.md` says so, so researchers do not report it.
-- **`public_profiles`** exposes id, display name and avatar for every account.
-  That is what puts a name on a review.
+- **`get_profile_names(uuid[])`** is executable by anonymous callers. It
+  returns display names for a list of account ids and nothing else, so a
+  review can show who wrote it. It replaced the `public_profiles` view, which
+  exposed id, name and avatar for *every* account and was dropped in
+  migration `20261011020000`.
 
 ### Owner's own contact details
 
@@ -118,8 +121,10 @@ work without an account anywhere.
   deliberate-looking-but-fine findings.
 - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, issue forms, a pull request
   template, and Dependabot.
-- Five workflows: CI, e2e, Docker, scheduled cron, and a gated migration
-  workflow that runs in a `production` environment with a required reviewer.
+- Five workflows: CI, e2e, Docker, scheduled cron, and a migration workflow
+  that is `workflow_dispatch` only and declares `environment: production`.
+  Whether that environment actually has a required reviewer is a GitHub
+  setting and could not be checked from here — see owner actions.
 - **No workflow triggered by a pull request uses any secret.** Only `cron.yml`
   and `migrate.yml` do, and neither runs on pull requests, so a fork cannot
   reach them. No workflow uses `pull_request_target`.
@@ -140,8 +145,14 @@ isolation and impersonation.
   data. `profiles` is restricted to each user's own row with no anonymous
   policy, so the public anon key cannot enumerate accounts.
 - **Reserved subdomains** are refused at listing creation and ignored by the
-  host resolver, and the two lists are kept in step by a check inside
-  `npm test`. A seller cannot claim `admin`, `login`, `api` and so on.
+  host resolver, and `npm test` checks that `src/proxy.ts`'s inline copy
+  still matches. A seller cannot claim `admin`, `login`, `api` and so on.
+
+  Fixed in this pass: the availability endpoint
+  (`/api/check-subdomain`) kept a *third* hand-written copy of the list, and
+  it had fallen a name behind — `appointments` reported available and then
+  failed at submit. It reads the shared set now, with a test that fails if
+  another copy appears.
 - **Listings are not self-publishing.** A database trigger forces `approved`
   and `payments_enabled` to false for API-role inserts, so an impersonating
   listing cannot reach the public directory without an admin acting.
@@ -191,23 +202,29 @@ for every owner.
    service-role key, which bypasses row level security entirely. Check the
    provider's fork-build setting and give previews their own project, or
    disable preview builds for forks. **Treat this as blocking.**
-2. **Rotate anything that was ever pasted outside the repository** — chat,
+2. **Confirm the `production` environment has a required reviewer.** The
+   migration workflow runs `supabase db push` against the live database. It
+   is manual-dispatch only, but without a reviewer on that environment
+   anyone who can dispatch it can migrate production unreviewed.
+3. **Rotate anything that was ever pasted outside the repository** — chat,
    screenshots, issue comments. The repository is clean; that is not evidence
    about places this review could not see.
-3. **Review existing issues and pull request descriptions** for pasted keys,
+4. **Review existing issues and pull request descriptions** for pasted keys,
    logs or customer details. Not inspectable from here.
-4. **Decide on the personal WhatsApp number and email** in
+5. **Decide on the personal WhatsApp number and email** in
    `src/content/local.ts` and `src/lib/site-config.ts`.
-5. **Run the Docker quick start once from a clean clone**, so the README's
+6. **Run the Docker quick start once from a clean clone**, so the README's
    headline path is known to work and not merely believed to.
-6. **Decide whether to add a screenshot.** The README has no visual. A real
+7. **Decide whether to add a screenshot.** The README has no visual. A real
    one shows real businesses — public already, but more durable in a
    repository. None was invented for this pass.
 
 ### GitHub settings, once public
 
-- Branch protection on `main`: require pull requests, and require the CI, e2e
-  and Docker checks.
+- Branch protection on `main`: require pull requests, and require the CI and
+  e2e checks. **Not the Docker check** — it is path-filtered to Dockerfile and
+  dependency changes, so on any other pull request it never reports, and a
+  required check that never reports blocks the merge forever.
 - Enable private vulnerability reporting, so `SECURITY.md`'s link works.
 - Enable Dependabot alerts and secret scanning with push protection.
 - Set "Require approval for all outside collaborators" on workflow runs, so a
