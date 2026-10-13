@@ -26,14 +26,21 @@ settings that only the repository owner can make.
 | Full local Git history | Yes | Every reachable object: 2,508 blobs across 718 commits |
 | Local branches | Yes | 98 branches, included in the object scan |
 | Tags | N/A | None exist |
-| GitHub release assets | **No** | None published; nothing to inspect |
+| GitHub release assets | Yes | None published; nothing to inspect |
+| Pull request text and comments | Yes | All 125, titles + bodies + comments, ~565 KB |
+| Issues | Yes | None have ever been opened |
 | GitHub Actions logs and artifacts | **No** | Not retrievable from this environment |
-| Issue and pull request text | **No** | Not inspected; see owner actions |
 
-The object scan covers everything reachable from any ref, so a secret that was
-committed and later removed would still have been caught. It cannot see
-content that only ever existed in GitHub's web UI — Actions logs, issue
-comments, PR descriptions.
+The object scan covers everything reachable from any ref, so a secret that
+was committed and later removed would still have been caught. Pull request
+text was scanned separately, for credentials and for personal data: the only
+address that appears is the maintainer's own, which is already published on
+the live site, and no customer phone numbers or emails appear at all.
+
+The one surface still unexamined is **Actions logs and artifacts**, which are
+not retrievable from here. Workflow runs echo no secrets by construction, but
+a failed run can print environment state, so it is worth a glance at the
+newest failed run before publishing.
 
 ### Result
 
@@ -126,8 +133,9 @@ work without an account anywhere.
   `main`** whenever `supabase/migrations/**` changes, not only on manual
   dispatch — so merging a pull request that adds a migration applies it to
   the live database. Whether the `production` environment has a required
-  reviewer holding that back is a GitHub setting and could not be checked
-  from here. See owner actions.
+  reviewer should be holding that back — but **there is none**. The
+  `Production` environment exists with no protection rules at all, checked
+  through the GitHub API. See owner actions.
 - **No workflow triggered by a pull request uses any secret.** Only `cron.yml`
   and `migrate.yml` do, and neither runs on pull requests, so a fork cannot
   reach them. No workflow uses `pull_request_target`.
@@ -205,19 +213,20 @@ for every owner.
    service-role key, which bypasses row level security entirely. Check the
    provider's fork-build setting and give previews their own project, or
    disable preview builds for forks. **Treat this as blocking.**
-2. **Confirm the `production` environment has a required reviewer.
-   Treat this as blocking.** The migration workflow runs `supabase db push`
-   against the live database, and it triggers on push to `main` whenever
-   `supabase/migrations/**` changes — merging a pull request that adds a
-   migration is enough. A required reviewer on that environment is the only
-   thing holding it; without one, a merge migrates production unattended,
-   and once the repository is public the pool of people who can open that
-   pull request is everyone. Settings → Environments → production.
+2. **Add a required reviewer to the `Production` environment. Blocking,
+   and already true today.** Checked through the API: the environment exists
+   with **no protection rules**. The migration workflow runs
+   `supabase db push` against the live database and triggers on push to
+   `main` whenever `supabase/migrations/**` changes, so merging a pull
+   request that adds a migration already applies it unattended. Public, the
+   set of people who can open that pull request becomes everyone.
+   Settings → Environments → Production → Required reviewers.
 3. **Rotate anything that was ever pasted outside the repository** — chat,
    screenshots, issue comments. The repository is clean; that is not evidence
    about places this review could not see.
-4. **Review existing issues and pull request descriptions** for pasted keys,
-   logs or customer details. Not inspectable from here.
+4. **Glance at the most recent failed Actions run** for printed environment
+   state. Pull requests and issues have been scanned and are clean; run logs
+   are the one surface this review could not reach.
 5. **Decide on the personal WhatsApp number and email** in
    `src/content/local.ts` and `src/lib/site-config.ts`.
 6. **Run the Docker quick start once from a clean clone**, so the README's
