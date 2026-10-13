@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import Cropper from 'react-easy-crop'
 import { createClient } from '@/lib/supabase/client'
+import { storageObjectPath } from '@/lib/upload-path'
 import { Camera, Upload, X, Loader2, ZoomIn, ZoomOut, RotateCw, Check } from 'lucide-react'
 
 interface Props {
@@ -114,7 +115,14 @@ export default function ImageCropUpload({
       // Upload
       setUploading(true)
       const supabase = createClient()
-      const path = `public/${Date.now()}-cropped.jpg`
+      const { data: auth, error: authError } = await supabase.auth.getUser()
+      // Order matters: getUser() reports a missing session as an error, so
+      // testing authError first would tell a signed-out visitor that
+      // something went wrong rather than that they need to sign in.
+      const userId = auth.user?.id
+      if (!userId) throw new Error('Please sign in again before uploading.')
+      if (authError) throw new Error('Could not check your sign-in just now. Try again in a moment.')
+      const path = storageObjectPath(userId, 'cropped.jpg')
       const { error: upErr } = await supabase.storage
         .from(bucket)
         .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })

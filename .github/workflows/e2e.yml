@@ -8,6 +8,12 @@ name: E2E
 # performance only warns, since shared runners make it noisy. Reports are
 # kept as the `lighthouse` artifact of each run.
 
+# Least privilege: these workflows only read the repository. A public
+# repo hands this token to every fork's pull request build, so it is
+# spelled out rather than left to the repository default.
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]

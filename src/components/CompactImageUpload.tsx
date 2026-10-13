@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from 'react'
 import Cropper from 'react-easy-crop'
 import { createClient } from '@/lib/supabase/client'
+import { storageObjectPath } from '@/lib/upload-path'
 import { Camera, Check, Loader2, RotateCw, X, ZoomIn, ZoomOut } from 'lucide-react'
 import {
   SERVICE_IMAGE_ASPECT_OPTIONS,
@@ -132,7 +133,14 @@ export default function CompactImageUpload({
       setUploading(true)
 
       const supabase = createClient()
-      const path = `public/${Date.now()}-svc.jpg`
+      const { data: auth, error: authError } = await supabase.auth.getUser()
+      // Order matters: getUser() reports a missing session as an error, so
+      // testing authError first would tell a signed-out visitor that
+      // something went wrong rather than that they need to sign in.
+      const userId = auth.user?.id
+      if (!userId) throw new Error('Please sign in again before uploading.')
+      if (authError) throw new Error('Could not check your sign-in just now. Try again in a moment.')
+      const path = storageObjectPath(userId, 'svc.jpg')
       const { error: uploadError } = await supabase.storage
         .from('uploads')
         .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
@@ -141,8 +149,11 @@ export default function CompactImageUpload({
 
       const { data } = supabase.storage.from('uploads').getPublicUrl(path)
       onUpload(data.publicUrl)
-    } catch {
-      setError('Upload failed')
+    } catch (err) {
+      // Show what actually went wrong. A bare 'Upload failed' hid both the
+      // sign-in message above and any storage policy rejection, which is
+      // exactly what someone debugging a failed upload needs to see.
+      setError(err instanceof Error && err.message ? err.message : 'Upload failed')
     } finally {
       setUploading(false)
     }

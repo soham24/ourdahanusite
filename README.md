@@ -1,5 +1,8 @@
 # OurDahanu
 
+[![CI](https://github.com/soham24/ourdahanusite/actions/workflows/ci.yml/badge.svg)](https://github.com/soham24/ourdahanusite/actions/workflows/ci.yml)
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+
 A website for one town: a directory where every business gets its own
 subdomain, plus a jobs board, a professionals directory, appointment booking,
 and online ordering paid straight into each business's own account.
@@ -97,6 +100,36 @@ the scheduled jobs and business subdomains.
 WhatsApp, analytics) each switch on when their keys are set, and nothing
 breaks without them. `.env.local.example` lists every setting with a comment;
 [SETUP.md](SETUP.md) walks through each service.
+
+---
+
+## Where the project is
+
+Running in production for one town since March 2026, so the parts below
+marked working are working with real businesses and real money — not demos.
+
+**Working:** the business directory and per-business subdomains; reviews and
+owner replies; a professionals directory; appointment booking; a jobs board;
+guides; emergency contacts; item catalogues with online ordering paid into
+each business's own Razorpay account; owner and admin dashboards; email,
+Telegram and WhatsApp notifications.
+
+**Not built yet:** a basket — one payment covers one item, not several. An
+owner can mark an order fulfilled or cancelled (cancelling gives the stock
+back), but there are no steps in between — no accepted, ready or
+out-for-delivery — and cancelling does not refund the money, which has to be
+returned through Razorpay by hand. Delivery fees and pickup options exist in
+the database but not in checkout.
+
+**Known limitations.** It is built for one town per deployment, not many
+towns in one. Everything is in English with some Marathi in the branding.
+Payments and the phone-number handling assume India. Adoption is uneven —
+most businesses use the directory, far fewer have switched on payments — so
+the commerce paths have had much less real-world traffic than the rest.
+
+**Using it for your town** means running your own copy: your domain, your
+Supabase project, your Razorpay account. There is no hosted multi-town
+service. Section 2 above and [SETUP.md](SETUP.md) cover it.
 
 ---
 

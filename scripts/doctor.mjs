@@ -7,7 +7,7 @@
 //
 // Exit code 1 when something required is broken; warnings alone exit 0.
 
-import { readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
 
 const results = []
@@ -93,8 +93,24 @@ if (siteConfig.domain !== 'ourdahanu.in') {
 // ── Required settings ─────────────────────────────────────────────────────
 const required = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'NEXT_PUBLIC_SITE_URL']
 const missing = required.filter((name) => !isSet(name))
-if (missing.length) fail('Settings', `Missing in .env.local: ${missing.join(', ')}`, 'Copy them from Supabase → Project Settings → API (SETUP.md step 4).')
-else pass('Settings', 'All four required values are set')
+if (missing.length) {
+  // Which advice depends on how far along they are. Someone following the
+  // README's first section has no .env.local at all and wants `npm run
+  // setup`, which writes one for them; pointing them at a Supabase dashboard
+  // sends them off to make an account they were told they would not need.
+  // Someone who already has the file is past that and is filling it in.
+  // Resolved from the repo root like every other read in this script, so
+  // running it from a subdirectory cannot flip the advice.
+  const starting = missing.length === required.length
+    && !existsSync(new URL('../.env.local', import.meta.url))
+  fail(
+    'Settings',
+    `Missing in .env.local: ${missing.join(', ')}`,
+    starting
+      ? 'Run `npm run setup` to start a local database and write .env.local for you (needs Docker). No Docker? Use a hosted Supabase project instead: SETUP.md steps 1-4.'
+      : 'Copy them from Supabase → Project Settings → API (SETUP.md step 4).',
+  )
+} else pass('Settings', 'All four required values are set')
 
 // ── Supabase ──────────────────────────────────────────────────────────────
 const supabaseUrl = env('NEXT_PUBLIC_SUPABASE_URL').replace(/\/$/, '')

@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { storageObjectPath } from '@/lib/upload-path'
 import { Camera, Upload, X, Loader2 } from 'lucide-react'
 
 interface ImageUploadProps {
@@ -100,10 +101,15 @@ export default function ImageUpload({
         ])
 
         const supabase = createClient()
-        const baseName = file.name.replace(/\.[^.]+$/, '')
-        const stamp = Date.now()
-        const fullPath = `public/${stamp}-${baseName}.jpg`
-        const thumbPath = `public/${stamp}-${baseName}-thumb.jpg`
+        const { data: auth, error: authError } = await supabase.auth.getUser()
+        // Order matters: getUser() reports a missing session as an error, so
+        // testing authError first would tell a signed-out visitor that
+        // something went wrong rather than that they need to sign in.
+        const userId = auth.user?.id
+        if (!userId) throw new Error('Please sign in again before uploading.')
+        if (authError) throw new Error('Could not check your sign-in just now. Try again in a moment.')
+        const fullPath = storageObjectPath(userId, file.name)
+        const thumbPath = `${fullPath.replace(/\.jpg$/, '')}-thumb.jpg`
 
         const [fullRes, thumbRes] = await Promise.all([
           supabase.storage
