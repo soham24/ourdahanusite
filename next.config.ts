@@ -43,6 +43,11 @@ const nextConfig: NextConfig = {
     '/**': ['./content/**/*'],
   },
   cacheComponents: true,
+  // Links prefetch each route's shared App Shell rather than a render per
+  // link. No link here asks for a full prefetch (`prefetch={true}`), so
+  // nothing loses prefetched content. Becomes the default, and the option
+  // goes away, in the next major Next.js release.
+  partialPrefetching: true,
   async rewrites() {
     return [
       // Search Console's ownership file; see src/app/api/google-site-verification.
