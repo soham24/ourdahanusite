@@ -16,6 +16,8 @@ export const CACHE_TAGS = {
   appointments: 'appointments',
   listing: (listingId: string) => `listing:${listingId}`,
   product: (productId: string) => `product:${productId}`,
+  // The home page's recently updated items, across every business.
+  recentProducts: 'recent-products',
   find: 'find-directory',
   jobs: 'jobs',
 } as const
@@ -51,6 +53,11 @@ export function revalidatePublicListingCollections() {
 
 export function revalidatePublicListingDetail(listingId: string) {
   updatePublicTag('public-listing-detail', CACHE_TAGS.listing(listingId))
+}
+
+/** Any catalog item was added, edited, hidden or deleted. */
+export function revalidateRecentProducts() {
+  updatePublicTag('recent-products', CACHE_TAGS.recentProducts)
 }
 
 /** A catalog item's own page, including its cached "not found". */
