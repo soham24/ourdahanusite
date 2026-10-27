@@ -5,6 +5,7 @@ import TelegramNotificationPrompt from '@/components/TelegramNotificationPrompt'
 import {
   getHomeNewListings,
   getHomePopularListings,
+  getHomeRecentProducts,
   getHomeRecentReviews,
   getHomeStats,
 } from '@/lib/data/home'
@@ -16,6 +17,7 @@ import FeaturedSpotlight from './page-components/FeaturedSpotlight'
 import CategoryGrid from './page-components/CategoryGrid'
 import FindProfessionalsSection from './page-components/FindProfessionalsSection'
 import NewListingsSection from './page-components/NewListingsSection'
+import RecentProductsSection from './page-components/RecentProductsSection'
 import PopularBusinesses from './page-components/PopularBusinesses'
 import BusinessOwnerCTA from './page-components/BusinessOwnerCTA'
 import RecentReviewsSection from './page-components/RecentReviewsSection'
@@ -85,6 +87,10 @@ export default function HomePage() {
         <NewListingsAsync />
       </Suspense>
 
+      <Suspense fallback={<HomeSectionSkeleton variant="row" label="Just updated" />}>
+        <RecentProductsAsync />
+      </Suspense>
+
       <Suspense fallback={<HomeSectionSkeleton variant="row" label="What people are saying" />}>
         <RecentReviewsAsync />
       </Suspense>
@@ -117,6 +123,12 @@ async function NewListingsAsync() {
   const newListings = await getHomeNewListings()
   if (newListings.length === 0) return null
   return <NewListingsSection newListings={newListings} />
+}
+
+async function RecentProductsAsync() {
+  const products = await getHomeRecentProducts()
+  if (products.length === 0) return null
+  return <RecentProductsSection products={products} />
 }
 
 async function PopularBusinessesAsync() {

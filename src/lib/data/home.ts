@@ -3,6 +3,9 @@ import 'server-only'
 import { cacheLife, cacheTag } from 'next/cache'
 
 import { CACHE_TAGS } from '@/lib/cache-tags'
+import { CATALOG_ITEM_SELECT, toCatalogItem, type CatalogRow } from '@/lib/catalog/catalog'
+import { latestPerBusiness } from '@/lib/catalog/recent'
+import type { CatalogItem } from '@/lib/catalog/types'
 import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
 import {
   buildCategoryGroups,
@@ -52,6 +55,13 @@ export interface HomeReview {
   comment: string | null
   reviewer_name: string | null
   created_at: string
+}
+
+export interface HomeProduct extends CatalogItem {
+  listing_id: string
+  listing_name: string
+  listing_subdomain: string | null
+  updated_at: string
 }
 
 export interface HomeStats {
@@ -275,3 +285,44 @@ export async function getHomeRecentReviews(): Promise<HomeReview[]> {
   }
 }
 
+/**
+ * The 5 most recently updated catalog items, each from a different business.
+ * Reads the latest 60 and keeps the newest per business, like the reviews
+ * above. RLS already limits this to visible items on approved listings.
+ */
+export async function getHomeRecentProducts(): Promise<HomeProduct[]> {
+  'use cache'
+
+  cacheLife(PUBLIC_CONTENT_CACHE)
+  cacheTag(CACHE_TAGS.home)
+  cacheTag(CACHE_TAGS.listings)
+  cacheTag(CACHE_TAGS.recentProducts)
+  logCacheRegeneration({
+    scope: 'home:recent-products',
+    tags: [CACHE_TAGS.home, CACHE_TAGS.listings, CACHE_TAGS.recentProducts],
+  })
+
+  try {
+    const supabase = createPublicClient()
+    const { data } = await supabase
+      .from('listing_products')
+      .select(`listing_id, updated_at, ${CATALOG_ITEM_SELECT}, listings!listing_products_listing_id_fkey(name, subdomain)`)
+      .eq('is_active', true)
+      .order('updated_at', { ascending: false })
+      .order('id', { ascending: true })
+      .limit(60)
+
+    type Row = CatalogRow & {
+      listing_id: string
+      updated_at: string
+      listings: { name: string; subdomain: string | null } | null
+    }
+    return latestPerBusiness((data ?? []) as unknown as Row[], 5).map(({ listings, ...row }) => ({
+      ...toCatalogItem(row),
+      listing_name: listings?.name ?? '',
+      listing_subdomain: listings?.subdomain ?? null,
+    }))
+  } catch {
+    return []
+  }
+}
