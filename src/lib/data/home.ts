@@ -286,8 +286,8 @@ export async function getHomeRecentReviews(): Promise<HomeReview[]> {
 }
 
 /**
- * The 5 most recently updated catalog items, each from a different business.
- * Reads the latest 60 and keeps the newest per business, like the reviews
+ * The 10 most recently updated catalog items, each from a different business.
+ * Reads the latest 150 and keeps the newest per business, like the reviews
  * above. RLS already limits this to visible items on approved listings.
  */
 export async function getHomeRecentProducts(): Promise<HomeProduct[]> {
@@ -310,14 +310,14 @@ export async function getHomeRecentProducts(): Promise<HomeProduct[]> {
       .eq('is_active', true)
       .order('updated_at', { ascending: false })
       .order('id', { ascending: true })
-      .limit(60)
+      .limit(150)
 
     type Row = CatalogRow & {
       listing_id: string
       updated_at: string
       listings: { name: string; subdomain: string | null } | null
     }
-    return latestPerBusiness((data ?? []) as unknown as Row[], 5).map(({ listings, ...row }) => ({
+    return latestPerBusiness((data ?? []) as unknown as Row[], 10).map(({ listings, ...row }) => ({
       ...toCatalogItem(row),
       listing_name: listings?.name ?? '',
       listing_subdomain: listings?.subdomain ?? null,

@@ -21,7 +21,7 @@ export default function RecentProductsSection({ products }: RecentProductsSectio
           sub="The latest products and services from local businesses"
         />
 
-        <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-5">
+        <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:mx-0 lg:grid lg:grid-cols-5 lg:overflow-visible lg:px-0 lg:pb-0">
           {products.map((product) => {
             const imageUrl = product.image_thumb_url || product.image_url
             const isService = product.type === 'service'
@@ -32,7 +32,7 @@ export default function RecentProductsSection({ products }: RecentProductsSectio
                 // The item page works on the main domain too and points
                 // search engines at its home under the business.
                 href={`/p/${product.id}`}
-                className="group flex w-[62vw] max-w-[240px] shrink-0 snap-start flex-col overflow-hidden rounded-xl border border-[var(--od-border)] bg-white shadow-[0_10px_30px_rgba(46,18,5,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(192,88,46,0.35)] hover:shadow-[0_18px_44px_rgba(46,18,5,0.10)] active:scale-[0.99] sm:w-auto sm:max-w-none"
+                className="group flex w-[62vw] max-w-[220px] shrink-0 snap-start flex-col overflow-hidden rounded-xl border border-[var(--od-border)] bg-white shadow-[0_10px_30px_rgba(46,18,5,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(192,88,46,0.35)] hover:shadow-[0_18px_44px_rgba(46,18,5,0.10)] active:scale-[0.99] lg:w-auto lg:max-w-none"
               >
                 <div className="relative aspect-square overflow-hidden bg-[var(--od-surface-soft)]">
                   {imageUrl ? (
