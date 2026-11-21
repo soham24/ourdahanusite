@@ -11,6 +11,7 @@ import CompetitionCard from './CompetitionCard'
 import {
   browserStorage,
   clearCompetitionCode,
+  indiaTodayInBrowser,
   loadCompetitionCode,
   saveCompetitionCode,
 } from './competition-storage'
@@ -101,6 +102,13 @@ export default function PlayArea({
 
   const competitionCode = competition && isSignedIn ? code : null
 
+  // Read when a round is saved: a tab left open past India midnight must not
+  // send yesterday's code (the server would log it as a wrong guess).
+  const getCompetitionCode = useCallback(
+    () => (competitionCode !== null && day === indiaTodayInBrowser() ? competitionCode : null),
+    [competitionCode, day],
+  )
+
   return (
     <>
       {competition && (
@@ -118,7 +126,7 @@ export default function PlayArea({
       <ChikooCatcherGame
         isSignedIn={isSignedIn}
         initialBestScore={initialBestScore}
-        competitionCode={competitionCode}
+        competitionCode={getCompetitionCode}
         onCompetitionRejected={onCompetitionRejected}
         onCompetitionCounted={onCompetitionCounted}
       />

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { clearCompetitionCode, loadCompetitionCode, saveCompetitionCode } from './competition-storage'
+import { clearCompetitionCode, indiaTodayInBrowser, loadCompetitionCode, saveCompetitionCode } from './competition-storage'
 
 function memoryStorage() {
   const values = new Map<string, string>()
@@ -56,4 +56,9 @@ test('clearing removes the saved code, and throwing writes are swallowed', () =>
   }
   assert.doesNotThrow(() => saveCompetitionCode(broken, '2026-11-21', 'SAPOTA21'))
   assert.doesNotThrow(() => clearCompetitionCode(broken, '2026-11-21'))
+})
+
+test('indiaTodayInBrowser rolls over at India midnight', () => {
+  assert.equal(indiaTodayInBrowser(new Date('2026-11-21T18:31:00Z')), '2026-11-22')
+  assert.equal(indiaTodayInBrowser(new Date('2026-11-21T18:29:00Z')), '2026-11-21')
 })

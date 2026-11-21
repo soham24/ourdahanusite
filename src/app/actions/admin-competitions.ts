@@ -33,6 +33,17 @@ function revalidateCompetitionPages() {
   revalidatePath('/admin/competitions')
 }
 
+type AdminClient = NonNullable<ReturnType<typeof createAdminClient>>
+
+/** How many saved rounds are tagged with this competition. */
+async function countCompetitionEntries(admin: AdminClient, id: string) {
+  const { count, error } = await admin
+    .from('game_scores')
+    .select('id', { count: 'exact', head: true })
+    .eq('competition_id', id)
+  return { count: count ?? 0, error }
+}
+
 /**
  * Admin: create a competition, or update one when `id` is present.
  */
@@ -74,6 +85,13 @@ export async function saveCompetition(
     if (loadError) return { error: loadError.message, fields }
     if (!existing) return { error: 'Competition not found.', fields }
     if (existing.day === fields.day && fields.day < today) validationToday = fields.day
+    if (existing.day !== fields.day) {
+      const { count, error: countError } = await countCompetitionEntries(admin, id)
+      if (countError) return { error: countError.message, fields }
+      if (count > 0) {
+        return { error: "This competition already has entries, so its date can't change.", fields }
+      }
+    }
   }
 
   const result = validateCompetitionInput(fields, validationToday)
@@ -147,12 +165,9 @@ export async function deleteCompetition(id: string): Promise<{ error?: string }>
   const admin = createAdminClient()
   if (!admin) return { error: 'Server configuration error' }
 
-  const { count, error: countError } = await admin
-    .from('game_scores')
-    .select('id', { count: 'exact', head: true })
-    .eq('competition_id', id)
+  const { count, error: countError } = await countCompetitionEntries(admin, id)
   if (countError) return { error: countError.message }
-  if ((count ?? 0) > 0) return { error: 'This competition has scores. Switch it off instead.' }
+  if (count > 0) return { error: 'This competition has scores. Switch it off instead.' }
 
   const { error } = await admin.from('game_competitions').delete().eq('id', id)
   if (error) return { error: error.message }

@@ -38,8 +38,12 @@ type PointerRect = Pick<DOMRect, 'left' | 'width'>
 interface ChikooCatcherGameProps {
   isSignedIn: boolean
   initialBestScore: number | null
-  /** Today's competition code the player joined with, or null to play normally. */
-  competitionCode?: string | null
+  /**
+   * Today's competition code the player joined with, or null to play normally.
+   * A function is called when the round is saved, so the answer can depend on
+   * the moment of submission (for example the India day having rolled over).
+   */
+  competitionCode?: string | null | (() => string | null)
   onCompetitionRejected?: (message: string) => void
   onCompetitionCounted?: () => void
 }
@@ -270,7 +274,8 @@ export default function ChikooCatcherGame({
       setSubmitState('saving')
       setSubmitError('')
       // The code is read when the round is saved, so joining mid-round counts it.
-      const { code, onRejected, onCounted } = competitionRef.current
+      const { code: codeSource, onRejected, onCounted } = competitionRef.current
+      const code = typeof codeSource === 'function' ? codeSource() : codeSource
       const submit = async (value: number) => {
         const result = await submitGameScore(value, code ?? undefined)
         // Report the competition outcome even if a new round has started, so a

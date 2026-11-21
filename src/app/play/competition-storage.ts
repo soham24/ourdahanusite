@@ -43,3 +43,8 @@ export function clearCompetitionCode(storage: Pick<Storage, 'removeItem'> | null
     // Nothing to do.
   }
 }
+
+/** Today's date in India (YYYY-MM-DD), computed in the browser. */
+export function indiaTodayInBrowser(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(now)
+}
