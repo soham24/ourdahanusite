@@ -15,6 +15,7 @@ import {
 } from '@/lib/listing-content'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
@@ -56,7 +57,7 @@ export async function getMyAppointmentListings(): Promise<{
   listings: OwnerAppointmentListing[]
 }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return { error: 'Please sign in first.', listings: [] }
 
   const reader = createAdminClient() ?? supabase

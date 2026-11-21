@@ -9,6 +9,7 @@ import {
 } from '@/lib/listing-stats'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 
 /** Matches PostgREST's default "Max Rows"; see the paging loop below. */
 const EVENT_PAGE_SIZE = 1000
@@ -26,7 +27,7 @@ export async function getMyListingStats(
   if (listingIds.length === 0) return {}
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return {}
 
   const adminClient = createAdminClient()

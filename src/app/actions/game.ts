@@ -6,6 +6,7 @@ import { getIndiaToday } from '@/lib/india-time'
 import { isBlocked, recordWrong } from '@/lib/game/wrong-attempts'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import {
   checkCode,
   CODE_ATTEMPT_LIMIT,
@@ -46,7 +47,7 @@ export async function checkCompetitionCode(
   code: string,
 ): Promise<{ ok: boolean; message?: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return { ok: false, message: 'Please sign in to take part.' }
 
   const admin = createAdminClient()
@@ -67,7 +68,7 @@ export async function submitGameScore(
   competitionMessage?: string
 }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return { error: 'Please sign in to save your score.' }
 
   if (!Number.isInteger(score) || score < 0 || score > MAX_SCORE) {

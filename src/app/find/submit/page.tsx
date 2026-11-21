@@ -1,5 +1,6 @@
 import { BadgeCheck, LogIn, PencilLine, ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import SubmitProfessionalForm from './SubmitProfessionalForm'
 import { findLoginHref } from '../find-server'
 
@@ -11,7 +12,7 @@ const STEPS = [
 
 export default async function SubmitPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   const loginHref = user ? null : await findLoginHref('/submit')
 
   return (

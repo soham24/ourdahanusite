@@ -7,6 +7,7 @@ import { LISTING_NOT_LIVE_MESSAGE, sellingPausedMessage } from '@/lib/selling/sh
 import { loadShopState } from '@/lib/selling/shop-state'
 import { loadSuspensionReason } from '@/lib/selling/suspension-reasons'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 
 import { ProductsManager } from './ProductsManager'
 
@@ -18,7 +19,7 @@ export default async function ListingProductsPage({
   const { listingId } = await params
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) redirect('/login')
 
   const { data: listing } = await supabase

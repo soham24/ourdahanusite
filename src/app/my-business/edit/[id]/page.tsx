@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import { redirect, notFound } from 'next/navigation'
 import EditListingForm from './EditListingForm'
 
@@ -9,7 +10,7 @@ export default async function EditListingPage({
 }) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) redirect('/login')
 
   const { data: listing } = await supabase

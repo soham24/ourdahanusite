@@ -3,6 +3,7 @@ import { BadgeCheck, LogIn, PencilLine, ShieldCheck } from 'lucide-react'
 
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import { jobsLoginHref } from '../jobs-server'
 import JobPostForm, { type OwnedBusiness } from './JobPostForm'
 import { siteConfig } from '@/lib/site'
@@ -27,9 +28,7 @@ export default async function PostJobPage({
   const initialKind = kind === 'seeking' ? 'seeking' : 'hiring'
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
 
   if (!user) {
     const query = new URLSearchParams()

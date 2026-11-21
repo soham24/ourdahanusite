@@ -17,8 +17,9 @@ function bearerToken(headerValue: string | null): string | null {
  *   <jwt>`, the client runs as that user — the token is sent on every PostgREST
  *   request (so RLS resolves the mobile user) and `auth.getUser()` (called with
  *   no argument throughout `src/app/actions/*`) defaults to validating that
- *   token. This lets every existing action and API route serve both clients
- *   from one code path.
+ *   token; `auth.getClaims()` (see ./auth-claims) defaults to it the same way.
+ *   This lets every existing action and API route serve both clients from one
+ *   code path.
  */
 export async function createClient() {
   const cookieStore = await cookies()
@@ -65,6 +66,16 @@ export async function createClient() {
     // are passed through unchanged.
     const originalGetUser = client.auth.getUser.bind(client.auth)
     client.auth.getUser = (jwt?: string) => originalGetUser(jwt ?? token)
+
+    // Same for `getClaims()` (used by getAuthIdentity): with no argument it
+    // reads the cookie session, which a bearer request doesn't have. Passing
+    // the token makes auth-js verify it — expiry, then the signature against
+    // the project's JWKS, or `getUser(token)` with legacy HS256 keys.
+    const originalGetClaims = client.auth.getClaims.bind(client.auth)
+    client.auth.getClaims = (
+      jwt?: string,
+      options?: Parameters<typeof originalGetClaims>[1],
+    ) => originalGetClaims(jwt ?? token, options)
   }
 
   return client

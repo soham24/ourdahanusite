@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { getUserRole } from '@/app/actions/admin'
 import { revalidatePollsCache } from '@/lib/cache-tags'
@@ -30,7 +31,7 @@ export async function castVote(
   total_votes?: number
 }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return { error: 'Sign in to vote.' }
 
   // Fetch poll to validate it exists, is active, and not ended

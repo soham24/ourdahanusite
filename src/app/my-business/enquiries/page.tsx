@@ -4,6 +4,7 @@ import { ArrowLeft, Inbox, MessageCircle, Phone } from 'lucide-react'
 
 import { getMyBusinessEnquiries } from '@/app/actions/enquiries'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import { formatWhatsAppPhone } from '@/lib/whatsapp'
 
 function formatWhen(iso: string): string {
@@ -19,7 +20,7 @@ function formatWhen(iso: string): string {
 
 export default async function EnquiriesPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) redirect('/login?next=' + encodeURIComponent('/my-business/enquiries'))
 
   const { enquiries, error } = await getMyBusinessEnquiries()

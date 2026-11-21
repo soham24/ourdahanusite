@@ -104,13 +104,13 @@ function itemColumns(values: CatalogItemValues) {
 
 export async function listOwnerCatalogItems(listingId: string): Promise<OwnerCatalogItem[]> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // getUserRole does the full auth.getUser() check and returns the user.
+  const { user, role } = await getUserRole(supabase)
   if (!user) return []
 
   const { data: listing } = await supabase.from('listings').select('id, owner_id').eq('id', listingId).maybeSingle()
   if (!listing) return []
 
-  const { role } = await getUserRole(supabase)
   if (listing.owner_id !== user.id && role !== 'admin') return []
 
   // Admins manage items on any listing, including unapproved ones or items

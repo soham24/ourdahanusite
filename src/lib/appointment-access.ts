@@ -13,10 +13,9 @@ export async function requireListingAccess(
   listingId: string,
 ): Promise<{ error: string } | { userId: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // getUserRole does the full auth.getUser() check and returns the user.
+  const { user, role } = await getUserRole(supabase)
   if (!user) return { error: 'Please sign in first.' }
-
-  const { role } = await getUserRole(supabase)
   const isAdmin = role === 'admin' || role === 'moderator'
 
   const reader = createAdminClient() ?? supabase
