@@ -88,15 +88,15 @@ function toPollWithResults(
 }
 
 /**
- * Get the most recent active poll (for the homepage).
+ * Get the most recent active poll. (Not shown on the homepage today, so it
+ * carries only the polls tag; a vote refreshes polls, not the homepage.)
  * Returns null if no active poll exists.
  */
 export async function getActivePoll(): Promise<PollWithResults | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.polls)
-  cacheTag(CACHE_TAGS.home)
-  logCacheRegeneration({ scope: 'polls:active', tags: [CACHE_TAGS.polls, CACHE_TAGS.home] })
+  logCacheRegeneration({ scope: 'polls:active', tags: [CACHE_TAGS.polls] })
 
   const supabase = createPublicClient()
 
@@ -117,7 +117,7 @@ export async function getActivePoll(): Promise<PollWithResults | null> {
 }
 
 export async function getPollById(id: string): Promise<PollWithResults | null> {
-  'use cache'
+  'use cache: remote'
   if (!isUuid(id)) return null
   cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.polls)
@@ -148,7 +148,7 @@ export async function getPollById(id: string): Promise<PollWithResults | null> {
  * Includes ended polls that are still active (not soft-deleted).
  */
 export async function getAllPolls(): Promise<PollWithResults[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.polls)
   logCacheRegeneration({ scope: 'polls:list', tags: [CACHE_TAGS.polls] })

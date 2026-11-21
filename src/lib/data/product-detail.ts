@@ -30,7 +30,7 @@ export async function fetchProductAndListing(productId: string): Promise<{
   listing: StandaloneProductListing | null
   shopMode: ShopMode
 } | null> {
-  'use cache'
+  'use cache: remote'
 
   if (!isUuid(productId)) return null
   cacheLife(PUBLIC_CONTENT_CACHE)
@@ -114,7 +114,7 @@ export async function fetchLegacyServiceTarget(
   subdomain: string,
   index: number,
 ): Promise<{ listingId: string; productId: string | null } | null> {
-  'use cache'
+  'use cache: remote'
 
   cacheLife(PUBLIC_CONTENT_CACHE)
 

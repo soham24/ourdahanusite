@@ -55,7 +55,7 @@ export interface ListingDetailData {
 }
 
 export async function getCachedListingDetail(idOrSubdomain: string): Promise<ListingDetailData | null> {
-  'use cache'
+  'use cache: remote'
 
   cacheLife(PUBLIC_CONTENT_CACHE)
 
@@ -155,11 +155,11 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
       .order('id', { ascending: true }),
     supabase
       .from('listing_recommendations')
-      .select('listing_id', { count: 'exact', head: true })
+      .select('listing_id', { count: 'estimated', head: true })
       .eq('listing_id', listingId),
     supabase
       .from('listing_favourites')
-      .select('listing_id', { count: 'exact', head: true })
+      .select('listing_id', { count: 'estimated', head: true })
       .eq('listing_id', listingId),
     listingCategory
       ? supabase

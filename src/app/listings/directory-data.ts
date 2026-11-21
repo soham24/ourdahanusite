@@ -63,7 +63,7 @@ function buildCategoryCounts(rows: Array<{ category?: string | null }>): Record<
 }
 
 export async function getListingCategories() {
-  'use cache'
+  'use cache: remote'
 
   cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.listings)
@@ -92,7 +92,7 @@ export async function getListingCategories() {
 }
 
 export async function getListingsDirectoryData(activeCategory: string | null = null) {
-  'use cache'
+  'use cache: remote'
 
   cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.listings)

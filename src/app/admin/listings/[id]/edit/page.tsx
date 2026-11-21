@@ -32,7 +32,7 @@ export default async function AdminEditListingPage({
 
   const { count: catalogItemCount } = await adminClient
     .from('listing_products')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'estimated', head: true })
     .eq('listing_id', id)
 
   // Fetch current owner email from auth.users

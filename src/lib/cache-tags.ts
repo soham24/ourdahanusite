@@ -88,8 +88,10 @@ export function revalidateSettingsCache() {
   updatePublicTags('settings', [CACHE_TAGS.settings, CACHE_TAGS.home])
 }
 
+// Polls are not on the homepage, and this runs on every vote: tagging `home`
+// here threw away the whole cached homepage each time someone voted.
 export function revalidatePollsCache() {
-  updatePublicTags('polls', [CACHE_TAGS.polls, CACHE_TAGS.home])
+  updatePublicTag('polls', CACHE_TAGS.polls)
 }
 
 export function revalidateAppointmentsCache(listingId: string) {
@@ -111,7 +113,8 @@ export function revalidateJobsCache() {
   updatePublicTag('jobs', CACHE_TAGS.jobs)
 }
 
-// The public /play bundle is cached for 30 seconds and shared by every visitor.
+// The public /play bundle is cached for 30 seconds in the remote cache, so it
+// is shared by every visitor and every server instance.
 // Admin competition changes refresh it at once; scores just wait for the next
 // 30-second refresh, so a busy competition does not turn into one database
 // read per round.

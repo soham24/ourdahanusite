@@ -23,7 +23,7 @@ export default async function EditListingPage({
 
   const { count: catalogItemCount } = await supabase
     .from('listing_products')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'estimated', head: true })
     .eq('listing_id', id)
 
   return (

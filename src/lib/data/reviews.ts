@@ -75,12 +75,12 @@ export async function fetchListingReviewsPage(
   return { reviews, hasMore }
 }
 
-/** Exact number of reviews on a listing. */
+/** Number of reviews on a listing, for display. 'estimated' is exact below PostgREST's max-rows (1,000). */
 export async function fetchListingReviewCount(listingId: string): Promise<number> {
   const supabase = createPublicClient()
   const { count } = await supabase
     .from('reviews')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'estimated', head: true })
     .eq('listing_id', listingId)
   return count ?? 0
 }
