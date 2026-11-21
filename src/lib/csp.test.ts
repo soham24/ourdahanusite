@@ -29,6 +29,10 @@ test('covers Razorpay checkout, blocks plugins and framing, and reports', () => 
   const policy = buildContentSecurityPolicy({ supabaseUrl: undefined, isDev: false })
   assert.ok(directive(policy, 'script-src').includes('https://checkout.razorpay.com'))
   assert.ok(directive(policy, 'frame-src').includes('https://api.razorpay.com'))
+  // Each of these was reported by the live site's report-only policy.
+  assert.ok(directive(policy, 'frame-src').includes('https://www.youtube.com'), 'listing videos')
+  assert.ok(directive(policy, 'frame-src').includes('https://*.adtrafficquality.google'), 'AdSense')
+  assert.ok(directive(policy, 'connect-src').includes('https://www.google.com'), 'Analytics collect')
   assert.deepEqual(directive(policy, 'object-src'), ["'none'"])
   assert.deepEqual(directive(policy, 'frame-ancestors'), ["'self'"])
   assert.deepEqual(directive(policy, 'report-uri'), ['/api/csp-report'])
