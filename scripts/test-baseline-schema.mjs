@@ -226,6 +226,14 @@ await db.exec(await readFile(new URL('../supabase/seed.sql', import.meta.url), '
 await db.exec('SET ROLE anon')
 assert.equal(await count(`SELECT count(*) n FROM public.listings`), 6, 'seeded approved listings visible to visitors')
 assert.equal(await count(`SELECT count(*) n FROM public.events`), 2, 'seeded events')
+// Search tolerates a typo, and like the directory never returns what is unapproved.
+const searchNames = async (q) => (await db.query(`SELECT listing_name FROM public.search_directory($1)`, [q])).rows.map((r) => r.listing_name)
+assert.ok((await searchNames('seaside thaali')).includes('Seaside Thali House'), 'typo-tolerant search')
+assert.deepEqual(await searchNames(''), [], 'empty query returns nothing')
+await db.exec('RESET ROLE')
+await db.exec(`INSERT INTO public.listings (name, category, approved) VALUES ('Hidden Thali Kitchen', 'Restaurants', false)`)
+await db.exec('SET ROLE anon')
+assert.ok(!(await searchNames('thali kitchen')).includes('Hidden Thali Kitchen'), 'unapproved listings stay hidden')
 await db.exec('RESET ROLE')
 
 await db.close()

@@ -1740,6 +1740,22 @@ export type Database = {
         Args: { p_listing_id: string }
         Returns: undefined
       }
+      search_directory: {
+        Args: { p_query: string; p_limit?: number }
+        Returns: {
+          kind: string
+          listing_id: string
+          listing_name: string
+          category: string | null
+          address: string | null
+          rating: number | null
+          subdomain: string | null
+          item_id: string | null
+          item_name: string | null
+          price_paise: number | null
+          score: number
+        }[]
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
