@@ -7,6 +7,7 @@ import { canRenew, daysLeft, isLive } from '@/lib/jobs/lifecycle'
 import type { JobStatus } from '@/lib/jobs/rules'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import { jobsLoginHref } from '../jobs-server'
 import { kindLabel, shortDate } from '../jobs-ui'
 import MyPostActions from './MyPostActions'
@@ -59,9 +60,7 @@ function statusLine(post: MyPost, now: Date): { label: string; tone: Tone } {
 
 export default async function MyPostsPage() {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
 
   if (!user) {
     const loginHref = await jobsLoginHref('/my-posts')

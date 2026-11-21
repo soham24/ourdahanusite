@@ -48,15 +48,13 @@ export default async function EditJobPostPage({ params }: { params: Promise<{ id
   if (!UUID.test(id)) notFound()
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // getUserRole does the full auth.getUser() check and returns the user.
+  const { user, role } = await getUserRole(supabase)
   if (!user) redirect(await jobsLoginHref(`/my-posts/${id}/edit`))
 
   const db = createAdminClient()
   if (!db) notFound()
 
-  const { role } = await getUserRole(supabase)
   const staff = role === 'admin' || role === 'moderator'
 
   const { data } = await db

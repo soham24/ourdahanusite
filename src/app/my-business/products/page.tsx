@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Package } from 'lucide-react'
 
 import { LISTING_NOT_LIVE_MESSAGE } from '@/lib/selling/shop-mode'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 
 type Listing = {
   id: string
@@ -14,7 +15,7 @@ type Listing = {
 
 export default async function MyBusinessProductsIndex() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) redirect('/login')
 
   const { data: listingsData } = await supabase

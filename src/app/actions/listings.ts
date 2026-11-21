@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import {
   revalidateAppointmentsCache,
@@ -233,13 +234,12 @@ export async function updateListing(
   formData: FormData,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Please sign in.' }
-
-  // Admins can edit any listing; others must own it
+  // Admins can edit any listing; others must own it. getUserRole does the
+  // full auth.getUser() check and returns the user.
   const { createAdminClient } = await import('@/lib/supabase/admin-client')
   const { getUserRole } = await import('@/app/actions/admin')
-  const { role } = await getUserRole(supabase)
+  const { user, role } = await getUserRole(supabase)
+  if (!user) return { error: 'Please sign in.' }
   const isAdmin = role === 'admin' || role === 'moderator'
 
   const adminClient = createAdminClient()
@@ -371,7 +371,7 @@ export async function updateListing(
 
 export async function submitReview(formData: FormData): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) redirect('/login')
 
   const listingId = formData.get('listing_id') as string
@@ -422,7 +422,7 @@ export async function submitReview(formData: FormData): Promise<{ error?: string
     .eq('id', listingId)
     .single()
   const reviewer =
-    (user.user_metadata?.full_name as string | undefined)?.trim() ||
+    (user.userMetadata.full_name as string | undefined)?.trim() ||
     user.email ||
     'Anonymous'
 
@@ -473,9 +473,7 @@ export async function replyToReview(
   formData: FormData,
 ): Promise<{ error?: string; ok?: true }> {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return { error: 'Please sign in first.' }
 
   const raw = (formData.get('reply') as string | null) ?? ''
@@ -549,7 +547,7 @@ export async function replyToReview(
 
   // 4. Fire notifications (awaited delivery; never break the UX).
   const ownerName =
-    (user.user_metadata?.full_name as string | undefined)?.trim() ||
+    (user.userMetadata.full_name as string | undefined)?.trim() ||
     (listing.name as string | undefined)?.trim() ||
     null
 

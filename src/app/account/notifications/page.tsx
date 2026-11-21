@@ -7,6 +7,7 @@ import {
   getRecentNotifications,
 } from '@/app/actions/notifications'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 
 import NotificationsInbox from './NotificationsInbox'
 import PreferencesForm from './PreferencesForm'
@@ -14,9 +15,7 @@ import TelegramConnect from './TelegramConnect'
 
 export default async function NotificationsPage() {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
 
   if (!user) {
     redirect('/login?next=' + encodeURIComponent('/account/notifications'))

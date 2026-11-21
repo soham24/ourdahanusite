@@ -6,6 +6,7 @@ import { sendNotification } from '@/lib/notifications'
 import { rateLimit } from '@/lib/rate-limit'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 
 const DAY_MS = 86_400_000
 
@@ -17,7 +18,7 @@ export async function sendEnquiry(listingId: string, input: EnquiryInput): Promi
   if (!isUuid(listingId)) return { error: 'This business could not be found.' }
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return { error: 'Please sign in to send an enquiry.' }
 
   const validation = validateEnquiry(input)

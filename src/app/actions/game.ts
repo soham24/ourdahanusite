@@ -46,6 +46,8 @@ export async function checkCompetitionCode(
   code: string,
 ): Promise<{ ok: boolean; message?: string }> {
   const supabase = await createClient()
+  // Full session check (not the lighter token check): competition entries win
+  // real prizes, so a banned or signed-out account must be refused at once.
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, message: 'Please sign in to take part.' }
 
@@ -67,6 +69,8 @@ export async function submitGameScore(
   competitionMessage?: string
 }> {
   const supabase = await createClient()
+  // Full session check (not the lighter token check): competition entries win
+  // real prizes, so a banned or signed-out account must be refused at once.
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Please sign in to save your score.' }
 

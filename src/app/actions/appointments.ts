@@ -26,6 +26,7 @@ import {
 import { normalizeInlineText, normalizePhoneOrNull } from '@/lib/listing-content'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 
 export type AppointmentStatus = 'confirmed' | 'completed' | 'cancelled' | 'no_show'
 
@@ -137,10 +138,10 @@ async function resolveLiveSlots(
 
 async function getAppointmentAccess(appointmentId: string) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // getUserRole does the full auth.getUser() check and returns the user.
+  const { user, role } = await getUserRole(supabase)
   if (!user) return { supabase, user: null, role: 'user' as const, appointment: null }
 
-  const { role } = await getUserRole(supabase)
   const reader = createAdminClient() ?? supabase
   const { data: appointment } = await reader
     .from('appointments')
@@ -543,7 +544,7 @@ export async function cancelAppointment(
 
 export async function getMyAppointments(): Promise<AppointmentRecord[]> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return []
 
   const { data } = await supabase
