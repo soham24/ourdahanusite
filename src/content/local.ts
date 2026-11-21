@@ -56,3 +56,17 @@ export const contact = {
   /** Instagram handle, without the @. */
   instagram: 'ourdahanu',
 } as const
+
+/**
+ * The people running the site, shown on the home page and /about. The first
+ * entry is the founder. `photo` is optional: a square image path under
+ * public/ (e.g. '/team/soham.jpg'); without one, initials are shown.
+ */
+export const team: ReadonlyArray<{ name: string; role: string; detail: string; photo?: string }> = [
+  { name: 'Soham Railkar', role: 'Founder', detail: 'Started OurDahanu as a local Facebook, Instagram and WhatsApp community.' },
+  { name: 'Ankit Thakkar', role: 'Core group', detail: 'Helps manage community conversations and local coordination.' },
+  { name: 'Khushboo Kapadia', role: 'Core group', detail: 'Part of the team shaping useful community spaces for Dahanu.' },
+  { name: 'Ajay Bari', role: 'Core group', detail: 'Supports group management and day-to-day community operations.' },
+  { name: 'Nupur Mestry', role: 'Core group', detail: 'Helps keep OurDahanu active, helpful and locally relevant.' },
+  { name: 'Khushbu Bari', role: 'Content & media', detail: 'Supports the community with content, media and storytelling.' },
+]
