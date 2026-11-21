@@ -43,12 +43,13 @@ function OrderStatusBadge({ status }: { status: string }) {
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
-    getAllOrders().then((data) => {
-      setOrders(data)
-      setLoading(false)
-    })
+    getAllOrders()
+      .then(setOrders)
+      .catch(() => setLoadError('Could not load orders. Check your connection and refresh the page.'))
+      .finally(() => setLoading(false))
   }, [])
 
   const totalRevenue = orders
@@ -65,6 +66,12 @@ export default function AdminOrdersPage() {
           <p className="text-sm text-gray-500">All marketplace orders</p>
         </div>
       </div>
+
+      {loadError && (
+        <p role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {loadError}
+        </p>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-20 text-gray-400">

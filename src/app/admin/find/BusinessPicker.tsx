@@ -26,8 +26,12 @@ export default function BusinessPicker({
     if (timer.current) clearTimeout(timer.current)
     if (query.trim().length < 2) return
     timer.current = setTimeout(async () => {
-      setResults(await searchBusinessListings(query))
-      setOpen(true)
+      try {
+        setResults(await searchBusinessListings(query))
+        setOpen(true)
+      } catch {
+        // Offline: leave the list as it was; typing again retries.
+      }
     }, 250)
     return () => { if (timer.current) clearTimeout(timer.current) }
   }, [query])

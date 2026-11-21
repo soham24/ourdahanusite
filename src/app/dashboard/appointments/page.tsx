@@ -165,10 +165,10 @@ export default function DashboardAppointmentsPage() {
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
-    getMyAppointments().then((data) => {
-      setAppointments(data)
-      setLoading(false)
-    })
+    getMyAppointments()
+      .then(setAppointments)
+      .catch(() => setErrorMessage('Could not load your appointments. Check your connection and refresh the page.'))
+      .finally(() => setLoading(false))
   }, [])
 
   const upcoming = useMemo(

@@ -26,9 +26,14 @@ export default function AdminNewListingForm() {
   async function searchUsers() {
     if (!userQuery.trim()) return
     setSearching(true)
-    const { users } = await adminSearchUsers(userQuery)
-    setUserResults(users)
-    setSearching(false)
+    try {
+      const { users } = await adminSearchUsers(userQuery)
+      setUserResults(users)
+    } catch {
+      setError('Could not search users. Check your connection and try again.')
+    } finally {
+      setSearching(false)
+    }
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
