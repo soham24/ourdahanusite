@@ -5,6 +5,8 @@
  * about what is missing. Every step names the page that fixes it.
  */
 
+import { normalizeOpeningHours } from './opening-hours'
+
 export type CompletenessInput = {
   id: string
   image_url: string | null
@@ -15,6 +17,7 @@ export type CompletenessInput = {
   address: string | null
   map_url: string | null
   photos: unknown
+  opening_hours: unknown
   appointments_enabled: boolean | null
   appointment_settings: unknown
   /** Visible catalog items (products or services). */
@@ -84,6 +87,13 @@ export function listingCompleteness(listing: CompletenessInput): Completeness {
       label: 'Add your address or map link',
       why: 'So customers can find you',
       done: filled(listing.address) || filled(listing.map_url),
+      href: edit,
+    },
+    {
+      key: 'hours',
+      label: 'Set your opening hours',
+      why: 'Shows customers you are open now',
+      done: normalizeOpeningHours(listing.opening_hours) !== null,
       href: edit,
     },
     {

@@ -38,6 +38,7 @@ type SummaryListing = {
   address: string | null
   map_url: string | null
   photos: unknown
+  opening_hours: unknown
   appointments_enabled: boolean | null
   appointment_settings: unknown
 }
@@ -62,7 +63,7 @@ export async function GET(request: Request) {
 
   const { data: listingData, error: listingError } = await db
     .from('listings')
-    .select('id, name, subdomain, owner_id, last_summary_month, image_url, cover_image, description, phone, whatsapp, address, map_url, photos, appointments_enabled, appointment_settings')
+    .select('id, name, subdomain, owner_id, last_summary_month, image_url, cover_image, description, phone, whatsapp, address, map_url, photos, opening_hours, appointments_enabled, appointment_settings')
     .eq('approved', true)
     .not('owner_id', 'is', null)
   if (listingError) {

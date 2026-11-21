@@ -41,6 +41,7 @@ import { RESERVED_SUBDOMAINS } from '@/lib/subdomain'
 import { redirect } from 'next/navigation'
 import { siteConfig } from '@/lib/site'
 import { fetchProfileNames } from '@/lib/data/profile-names'
+import { normalizeOpeningHours, type OpeningHours } from '@/lib/opening-hours'
 import { recomputeListingRating } from '@/lib/listing-rating'
 
 export async function submitPaidListing(formData: FormData): Promise<{ error?: string }> {
@@ -318,6 +319,16 @@ export async function updateListing(
   delivery_info = normalizeDeliveryInfo(delivery_info)
   before_after = normalizeBeforeAfter(before_after)
 
+  // Only forms that carry the hours editor send this field; leave the column
+  // alone otherwise. An empty or all-closed week clears it.
+  const openingHoursField = formData.get('opening_hours')
+  const openingHoursUpdate: { opening_hours?: OpeningHours | null } = {}
+  if (typeof openingHoursField === 'string') {
+    let parsed: unknown = null
+    try { parsed = JSON.parse(openingHoursField) } catch { /* treated as not set */ }
+    openingHoursUpdate.opening_hours = normalizeOpeningHours(parsed)
+  }
+
   // Only overwrite images if a new file was actually uploaded
   // (empty string means no new upload - keep existing DB value)
   const imageFields: Record<string, string> = {}
@@ -339,6 +350,7 @@ export async function updateListing(
     offer_text, offer_expires_at, pinned_announcement, established_year,
     response_time, video_url, photos, highlights, certifications,
     payment_methods, delivery_info, before_after,
+    ...openingHoursUpdate,
     updated_at: new Date().toISOString(),
   }).eq('id', id)
 

@@ -1,13 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { useDeferredValue } from 'react'
+import { useDeferredValue, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Plus, Search } from 'lucide-react'
+import { Clock, Plus, Search } from 'lucide-react'
 
 import CategoryFilter from './CategoryFilter'
 import ListingCard from './ListingCard'
 import type { DirectoryListing } from './directory-data'
+import { useCurrentMinute } from '@/components/OpenNowBadge'
+import { indiaMoment, normalizeOpeningHours, openStatus } from '@/lib/opening-hours'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -73,8 +75,23 @@ export default function ListingsDirectoryResults({
   const setSearchQuery = (value: string) => updateParam('q', value)
   const setSortKey = (value: SortKey) => updateParam('sort', value === 'recommended' ? '' : value)
   const deferredQuery = useDeferredValue(searchQuery.trim().toLowerCase())
+  const openOnly = searchParams.get('open') === '1'
+  const minute = useCurrentMinute()
+
+  // Only businesses that have set their hours can be shown as open; the
+  // filter is offered once any of them have.
+  const hoursById = useMemo(
+    () => new Map(listings.map((listing) => [listing.id, normalizeOpeningHours(listing.opening_hours)])),
+    [listings],
+  )
+  const withHours = [...hoursById.values()].filter(Boolean).length
+  const isOpen = (id: string) => {
+    const hours = hoursById.get(id)
+    return minute !== null && !!hours && openStatus(hours, indiaMoment(new Date(minute * 60_000))).open
+  }
 
   const matchingListings = listings.filter((listing) => {
+    if (openOnly && !isOpen(listing.id)) return false
     if (!deferredQuery) return true
 
     const haystack = [
@@ -156,7 +173,22 @@ export default function ListingsDirectoryResults({
         <p role="status" className="text-sm text-[var(--od-muted)]">
           <span className="font-bold text-[var(--od-ink)]">{countLabel}</span>
           {deferredQuery ? <> for &quot;{searchQuery.trim()}&quot;</> : null}
+          {openOnly ? <> open now</> : null}
         </p>
+        {withHours > 0 && (
+          <button
+            type="button"
+            aria-pressed={openOnly}
+            onClick={() => updateParam('open', openOnly ? '' : '1')}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${
+              openOnly
+                ? 'border-green-700 bg-green-700 text-white'
+                : 'border-[var(--od-border)] bg-white text-[var(--od-ink-2)] hover:border-green-700'
+            }`}
+          >
+            <Clock size={14} aria-hidden /> Open now
+          </button>
+        )}
         {deferredQuery ? (
           <button
             type="button"

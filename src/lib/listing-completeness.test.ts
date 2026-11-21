@@ -13,6 +13,7 @@ const empty: CompletenessInput = {
   address: null,
   map_url: null,
   photos: null,
+  opening_hours: null,
   appointments_enabled: false,
   appointment_settings: null,
   itemCount: 0,
@@ -26,6 +27,7 @@ const complete: CompletenessInput = {
   whatsapp: '9876543210',
   map_url: 'https://maps.app.goo.gl/x',
   photos: ['a', 'b', 'c'],
+  opening_hours: { mon: [{ start: '09:00', end: '18:00' }] },
   itemCount: 2,
 }
 

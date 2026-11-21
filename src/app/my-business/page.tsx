@@ -109,6 +109,7 @@ type Listing = {
   address:                   string | null
   map_url:                   string | null
   photos:                    unknown
+  opening_hours:             unknown
   appointments_enabled:      boolean | null
   appointment_settings:      unknown
 }
@@ -183,7 +184,7 @@ export default async function MyBusinessPage({
   try {
     const { data: listingsData } = await supabase
       .from('listings')
-      .select('id, name, category, subdomain, plan, approved, rating, review_count, views, expires_at, payments_enabled, payments_suspended_at, image_url, cover_image, description, phone, whatsapp, address, map_url, photos, appointments_enabled, appointment_settings')
+      .select('id, name, category, subdomain, plan, approved, rating, review_count, views, expires_at, payments_enabled, payments_suspended_at, image_url, cover_image, description, phone, whatsapp, address, map_url, photos, opening_hours, appointments_enabled, appointment_settings')
       .eq('owner_id', user.id)
       .order('created_at', { ascending: false })
 

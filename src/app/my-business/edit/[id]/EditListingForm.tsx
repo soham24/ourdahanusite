@@ -17,6 +17,7 @@ import { normalizeOptionalUrl } from '@/lib/url'
 import { getListingHref } from '@/lib/listing-url'
 import { LISTING_CATEGORY_GROUPS, LISTING_CATEGORY_EMOJIS } from '@/lib/listing-category'
 import { siteConfig } from '@/lib/site'
+import OpeningHoursEditor from './OpeningHoursEditor'
 
 const SUGGESTED_TAGS: Record<string, string[]> = {
   'Restaurants': ['delivery', 'dine-in', 'veg', 'non-veg', 'seafood', 'open-sunday', 'AC', 'outdoor'],
@@ -345,10 +346,14 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                 <span className="flex items-center gap-1.5"><Clock size={14} className="text-brand" /> Opening Hours</span>
               </label>
-              <textarea name="hours" rows={3} defaultValue={String(listing.hours || '')}
-                placeholder={'Mon–Sat: 9am – 8pm\nSun: 10am – 6pm\nHolidays: Closed'}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none font-mono text-xs" />
-              <p className="text-xs text-gray-400 mt-1">Format: Day: Open – Close. One line per day/group.</p>
+              <p className="text-xs text-gray-400 mb-2">
+                Shows customers whether you are open now, and puts you in the directory&apos;s &ldquo;Open now&rdquo; filter.
+              </p>
+              <OpeningHoursEditor initial={listing.opening_hours} />
+              <label className="mt-4 block text-xs font-semibold text-gray-600 mb-1.5">Notes about your hours (optional)</label>
+              <textarea name="hours" rows={2} defaultValue={String(listing.hours || '')}
+                placeholder={'Closed on public holidays\nHome delivery till 10pm'}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand text-sm resize-none" />
             </div>
         </div>
 
