@@ -191,11 +191,16 @@ export default function CompetitionCard({
             You&apos;re in today&apos;s competition
           </p>
           <p className="mt-1 text-xs text-[var(--od-muted)]">Every round you finish today counts. Your best one is on the board.</p>
-          <div className="mt-3">
-            <StandingsList entries={board} />
-          </div>
         </>
       )}
+
+      {/* Anyone can follow today's standings; the code is only needed to take part. */}
+      <div className="mt-4 border-t border-[var(--od-border)] pt-3">
+        <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--od-muted)]">
+          Today&apos;s top 10
+        </h3>
+        <StandingsList entries={board} />
+      </div>
     </section>
   )
 }
