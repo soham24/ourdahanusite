@@ -1,40 +1,37 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import {
   ArrowRight,
+  AtSign,
   BriefcaseBusiness,
   Camera,
   HeartHandshake,
+  MessageCircle,
   MessagesSquare,
   Radio,
   ShoppingBag,
   Sparkles,
   Store,
 } from 'lucide-react'
-import { team } from '@/content/local'
+
+import TeamAvatar from '@/components/TeamAvatar'
+import { advisors, contact, team } from '@/content/local'
+import { getHomeHeroData } from '@/lib/data/home'
 import { siteConfig } from '@/lib/site'
+
+// The team lives with the other town-specific content (src/content/local.ts),
+// so the home page and this page read one list.
+const [founder, ...teamMembers] = team
 
 export const metadata: Metadata = {
   title: `About ${siteConfig.name}`,
   description:
-    `The story of ${siteConfig.name}, founded by Soham Railkar and grown with a core community group to connect ${siteConfig.town} through social pages, WhatsApp groups and a local marketplace.`,
+    `The story of ${siteConfig.name}, founded by ${founder?.name} and grown with a core community group to connect ${siteConfig.town} through social pages, WhatsApp groups and a local marketplace.`,
   alternates: {
     canonical: `https://${siteConfig.domain}/about`,
   },
 }
-
-// Kept with the other town-specific content, so the home page and this page agree.
-const coreGroup = team
-
-const founder = coreGroup[0]
-const teamMembers = coreGroup.slice(1)
-
-const advisors = [
-  { name: 'Mayur Vayeda', focus: 'Community guidance' },
-  { name: 'Mayuresh Patil', focus: 'Local network' },
-  { name: 'Ketan Patil', focus: 'Strategic support' },
-  { name: 'Tanvi Nayak', focus: 'Community perspective' },
-]
 
 const communitySpaces = [
   {
@@ -59,11 +56,14 @@ const communitySpaces = [
   },
 ]
 
+const listOfNames = (names: string[]) =>
+  names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
+
 const timeline = [
   {
     year: 'The beginning',
     title: `A page for ${siteConfig.town}`,
-    text: `${siteConfig.name} began as a simple idea by Soham Railkar: create a place where ${siteConfig.town} people could see, share and support what is happening locally.`,
+    text: `${siteConfig.name} began as a simple idea by ${founder?.name}: create a place where ${siteConfig.town} people could see, share and support what is happening locally.`,
   },
   {
     year: 'The community grows',
@@ -73,7 +73,7 @@ const timeline = [
   {
     year: 'The core group forms',
     title: 'A team starts carrying the work',
-    text: 'Ankit Thakkar, Khushboo Kapadia, Ajay Bari, Nupur Mestry and Khushbu Bari joined Soham, forming a core group that manages multiple spaces with care.',
+    text: `${listOfNames(teamMembers.map((m) => m.name))} joined ${founder?.name.split(' ')[0]}, forming a core group that manages multiple spaces with care.`,
   },
   {
     year: 'Now',
@@ -89,14 +89,37 @@ const nextLevelPillars = [
   { icon: Camera, title: 'Social to platform', text: 'Carry the existing social community into a stronger digital home.' },
 ]
 
-function initials(name: string): string {
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
+const number = (n: number) => n.toLocaleString('en-IN')
+
+/** Real totals from the directory, beside the community's reach. */
+async function AboutStats() {
+  const { counts } = await getHomeHeroData()
+  const stats = [
+    { value: '30,000+', label: 'People reached' },
+    { value: number(counts.businesses), label: 'Businesses listed' },
+    { value: number(counts.reviews), label: 'Reviews written' },
+    { value: number(counts.professionals), label: 'Local professionals' },
+  ]
+  return <StatsRow stats={stats} />
+}
+
+function StatsRow({ stats }: { stats: { value: string; label: string }[] }) {
+  return (
+    <div className="mx-auto grid max-w-[1080px] grid-cols-2 gap-y-6 px-5 py-8 md:grid-cols-4 md:divide-x md:divide-[#EFE5D8] md:px-6">
+      {stats.map((stat) => (
+        <div key={stat.label} className="flex flex-col items-center justify-center px-4 text-center">
+          <p className="font-display text-[36px] leading-none tabular-nums text-[#2E1205] md:text-[44px]">{stat.value}</p>
+          <p className="mt-2 text-xs font-medium text-[#7B6658]">{stat.label}</p>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 export default function AboutPage() {
+  const whatsappHref = `https://wa.me/${contact.whatsappCountryCode}${contact.whatsapp}`
+  const instagramHref = `https://instagram.com/${contact.instagram}`
+
   return (
     <main className="overflow-hidden bg-[#FAFAF7]">
       {/* ─── Hero ─────────────────────────────────────────────────────────── */}
@@ -107,32 +130,32 @@ export default function AboutPage() {
         />
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#1c0a02] to-transparent" />
 
-        <div className="relative mx-auto max-w-[1080px] px-5 pt-24 pb-32 text-center md:px-6 md:pt-32 md:pb-40">
-          <div className="about-reveal">
-            <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-[#F0C87A] backdrop-blur-sm">
-              <Sparkles size={13} />
+        <div className="relative mx-auto max-w-[1080px] px-5 pb-24 pt-20 md:px-6 md:pb-32 md:pt-28">
+          <div className="about-reveal max-w-[760px]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-medium text-[#F0C87A]">
+              <Sparkles size={13} aria-hidden />
               Built by {siteConfig.town}, for {siteConfig.town}
             </div>
-            <h1 className="mx-auto mt-7 max-w-[820px] font-display text-[44px] leading-[0.98] tracking-normal md:text-[80px]">
+            <h1 className="mt-6 text-balance font-display text-[44px] leading-[0.98] tracking-[-0.02em] md:text-[76px]">
               From a community page to a <em className="italic text-[#F0C87A]">local marketplace.</em>
             </h1>
-            <p className="mx-auto mt-7 max-w-[640px] text-base leading-8 text-[#F8E9D5]/80 md:text-lg">
-              Founded by <strong className="font-semibold text-white">Soham Railkar</strong> as a Facebook, Instagram
-              and WhatsApp community — now becoming the digital home for {siteConfig.town}&apos;s businesses, services and
-              everyday discoveries.
+            <p className="mt-6 max-w-[580px] text-pretty text-base leading-8 text-[#F8E9D5]/80 md:text-lg">
+              Started by <strong className="font-semibold text-white">{founder?.name}</strong> as a Facebook, Instagram and
+              WhatsApp community, and now the digital home for {siteConfig.town}&apos;s businesses, services and everyday
+              discoveries.
             </p>
-            <div className="mt-10 flex flex-wrap justify-center gap-3">
+            <div className="mt-9 flex flex-wrap gap-3">
               <Link
-                href="/listings"
-                className="inline-flex items-center gap-2 rounded-xl bg-[#F0C87A] px-5 py-3 text-sm font-bold text-[#2E1205] shadow-[0_16px_36px_rgba(240,200,122,0.22)] transition-transform hover:-translate-y-0.5"
+                href="#team"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#F0C87A] px-5 py-3 text-sm font-semibold text-[#2E1205] shadow-[0_16px_36px_rgba(240,200,122,0.22)] transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
               >
-                Explore {siteConfig.name} <ArrowRight size={15} />
+                Meet the team <ArrowRight size={15} aria-hidden />
               </Link>
               <Link
-                href="#core"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/10"
+                href="/listings"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
               >
-                Meet the team
+                Explore {siteConfig.name}
               </Link>
             </div>
           </div>
@@ -141,62 +164,87 @@ export default function AboutPage() {
 
       {/* ─── Stats strip ──────────────────────────────────────────────────── */}
       <section className="border-y border-[#EFE5D8] bg-white">
-        <div className="mx-auto grid max-w-[1080px] grid-cols-2 divide-x divide-[#EFE5D8] px-5 py-8 md:grid-cols-4 md:px-6">
-          {[
-            { value: '30,000+', label: 'Local reach' },
-            { value: '6', label: 'Core members' },
-            { value: '4', label: 'Advisors' },
-            { value: 'Many', label: 'WhatsApp groups' },
-          ].map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center justify-center px-4 py-2 text-center">
-              <p className="font-display text-[36px] leading-none text-[#2E1205] md:text-[44px]">{stat.value}</p>
-              <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#C0582E]">{stat.label}</p>
+        <Suspense
+          fallback={<StatsRow stats={[{ value: '30,000+', label: 'People reached' }, { value: '–', label: 'Businesses listed' }, { value: '–', label: 'Reviews written' }, { value: '–', label: 'Local professionals' }]} />}
+        >
+          <AboutStats />
+        </Suspense>
+      </section>
+
+      {/* ─── Founder ──────────────────────────────────────────────────────── */}
+      {founder && (
+        <section id="team" className="scroll-mt-20 py-20 md:py-28">
+          <div className="mx-auto grid max-w-[1080px] items-center gap-10 px-5 md:grid-cols-[auto_minmax(0,1fr)] md:gap-14 md:px-6">
+            <div className="about-reveal relative mx-auto md:mx-0">
+              <div className="absolute -inset-3 rounded-[48px] bg-[radial-gradient(circle_at_30%_20%,rgba(240,200,122,0.45),transparent_70%)]" aria-hidden />
+              <div className="relative">
+                <TeamAvatar name={founder.name} photo={founder.photo} index={0} size="xl" />
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ─── Founder spotlight ────────────────────────────────────────────── */}
-      <section id="core" className="scroll-mt-20 bg-[#FAFAF7] py-20 md:py-28">
-        <div className="mx-auto max-w-[1080px] px-5 md:px-6">
-          <div className="mx-auto max-w-3xl text-center">
-            <p className="od-eyebrow">Founder</p>
-            <h2 className="mt-3 font-display text-[40px] leading-[1.05] text-[#2E1205] md:text-[56px]">
-              {founder.name}
-            </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-[#7B6658] md:text-lg">
-              {founder.detail}
-            </p>
-            <div className="mx-auto mt-10 h-px w-16 bg-[#D7B16A]" />
+            <div className="about-reveal text-center md:text-left">
+              <p className="od-eyebrow">{founder.role}</p>
+              <h2 className="mt-2 font-display text-[40px] leading-[1.02] tracking-[-0.02em] text-[#2E1205] md:text-[56px]">
+                {founder.name}
+              </h2>
+              <p className="mx-auto mt-5 max-w-[560px] text-pretty text-base leading-8 text-[#5E4A3D] md:mx-0 md:text-lg">
+                {founder.detail} What began as a page for sharing what was happening in {siteConfig.town} grew into
+                WhatsApp communities, a core team, and now this directory.
+              </p>
+              <div className="mt-7 flex flex-wrap justify-center gap-x-5 gap-y-2 md:justify-start">
+                <a
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-10 items-center gap-1.5 text-sm font-semibold text-[#C0582E] hover:text-[#8A3618]"
+                >
+                  <MessageCircle size={15} aria-hidden /> Message on WhatsApp
+                </a>
+                <a
+                  href={instagramHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-10 items-center gap-1.5 text-sm font-semibold text-[#C0582E] hover:text-[#8A3618]"
+                >
+                  <AtSign size={15} aria-hidden /> {contact.instagram} on Instagram
+                </a>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* ─── Core team grid ───────────────────────────────────────────────── */}
-      <section className="bg-[#FAFAF7] pb-20 md:pb-28">
+      {/* ─── Core team ────────────────────────────────────────────────────── */}
+      <section className="pb-20 md:pb-28">
         <div className="mx-auto max-w-[1080px] px-5 md:px-6">
-          <div className="mb-12 text-center">
+          <div className="mb-10 max-w-2xl">
             <p className="od-eyebrow">Core group</p>
-            <h2 className="mt-3 font-display text-[32px] leading-tight text-[#2E1205] md:text-[44px]">
+            <h2 className="mt-2 font-display text-[32px] leading-tight text-[#2E1205] md:text-[44px]">
               The people carrying the work.
             </h2>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
-            {teamMembers.map((member, index) => (
-              <article
-                key={member.name}
-                className="about-reveal flex flex-col items-center rounded-2xl bg-white px-5 py-7 text-center shadow-[0_10px_30px_rgba(46,18,5,0.04)] ring-1 ring-[#EFE5D8] transition-transform hover:-translate-y-1"
-                style={{ animationDelay: `${index * 80}ms` }}
-              >
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2E1205] font-display text-lg text-[#F0C87A]">
-                  {initials(member.name)}
-                </div>
-                <h3 className="mt-4 font-display text-lg leading-tight text-[#2E1205]">{member.name}</h3>
-                <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#C0582E]">{member.role}</p>
-                <p className="mt-3 text-xs leading-6 text-[#7B6658]">{member.detail}</p>
-              </article>
-            ))}
+          {/* Six columns so any count balances: rows of three, and a last
+              row of two (or one) that stretches instead of leaving a gap. */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+            {teamMembers.map((member, index) => {
+              const remainder = teamMembers.length % 3
+              const inLastRow = index >= teamMembers.length - remainder
+              const span = remainder === 0 || !inLastRow ? 'lg:col-span-2' : remainder === 2 ? 'lg:col-span-3' : 'lg:col-span-6'
+              return (
+                <article
+                  key={member.name}
+                  className={`about-reveal flex gap-4 rounded-2xl bg-white p-5 ring-1 ring-[#EFE5D8] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-20px_rgba(110,43,19,0.3)] ${span}`}
+                  style={{ animationDelay: `${index * 70}ms` }}
+                >
+                  <TeamAvatar name={member.name} photo={member.photo} index={index + 1} size="md" />
+                  <div className="min-w-0">
+                    <h3 className="font-display text-xl leading-tight text-[#2E1205]">{member.name}</h3>
+                    <p className="mt-1 text-xs font-semibold text-[#C0582E]">{member.role}</p>
+                    <p className="mt-2 text-sm leading-6 text-[#7B6658]">{member.detail}</p>
+                  </div>
+                </article>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -258,41 +306,53 @@ export default function AboutPage() {
               )
             })}
           </div>
+
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-8 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#2E1205] px-5 text-sm font-semibold text-white transition-[background-color,transform] hover:bg-[#8A3618] active:scale-[0.98]"
+          >
+            <MessageCircle size={15} aria-hidden /> Ask to join a group
+          </a>
         </div>
       </section>
 
       {/* ─── Advisors ─────────────────────────────────────────────────────── */}
-      <section className="bg-[#FFFCF6] py-20 md:py-28">
-        <div className="mx-auto max-w-[1080px] px-5 md:px-6">
-          <div className="mb-12 mx-auto max-w-2xl text-center">
-            <p className="od-eyebrow">Advisors</p>
-            <h2 className="mt-3 font-display text-[32px] leading-tight text-[#2E1205] md:text-[44px]">
-              Guided by people who understand the local pulse.
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[#7B6658] md:text-[15px]">
-              Alongside the core group, {siteConfig.name} is supported by advisors who bring local context, perspective and
-              steady guidance as the community grows into a marketplace.
-            </p>
-          </div>
+      {advisors.length > 0 && (
+        <section className="bg-[#FFFCF6] py-20 md:py-28">
+          <div className="mx-auto max-w-[1080px] px-5 md:px-6">
+            <div className="mb-10 grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-end">
+              <div>
+                <p className="od-eyebrow">Advisors</p>
+                <h2 className="mt-2 font-display text-[32px] leading-tight text-[#2E1205] md:text-[44px]">
+                  Guided by people who understand the local pulse.
+                </h2>
+              </div>
+              <p className="max-w-md text-sm leading-7 text-[#7B6658] md:text-[15px]">
+                Alongside the core group, {siteConfig.name} is supported by advisors who bring local context, perspective
+                and steady guidance as the community grows into a marketplace.
+              </p>
+            </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {advisors.map((advisor, index) => (
-              <article
-                key={advisor.name}
-                className="about-reveal flex flex-col items-center rounded-2xl bg-white px-5 py-7 text-center ring-1 ring-[#EFE5D8]"
-                style={{ animationDelay: `${index * 90}ms` }}
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#FBF0DC] text-sm font-bold text-[#C0582E]">
-                  {initials(advisor.name)}
-                </div>
-                <h3 className="mt-4 font-display text-lg leading-tight text-[#2E1205]">{advisor.name}</h3>
-                <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#C0582E]">Advisor</p>
-                <p className="mt-2 text-xs leading-5 text-[#7B6658]">{advisor.focus}</p>
-              </article>
-            ))}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {advisors.map((advisor, index) => (
+                <article
+                  key={advisor.name}
+                  className="about-reveal flex items-center gap-3 rounded-2xl bg-white p-4 ring-1 ring-[#EFE5D8]"
+                  style={{ animationDelay: `${index * 70}ms` }}
+                >
+                  <TeamAvatar name={advisor.name} photo={advisor.photo} index={index + team.length} size="sm" />
+                  <div className="min-w-0">
+                    <h3 className="truncate text-[15px] font-semibold text-[#2E1205]">{advisor.name}</h3>
+                    <p className="truncate text-xs text-[#7B6658]">{advisor.focus}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ─── Closer (mission + CTA, single elegant block) ─────────────────── */}
       <section className="relative overflow-hidden bg-[#2E1205] py-24 text-white md:py-32">
@@ -307,8 +367,8 @@ export default function AboutPage() {
               A digital home for the town we belong to.
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[#F8E9D5]/82 md:text-lg">
-              Not a generic marketplace — a {siteConfig.town}-first one. The mission is moving from posts and groups into a
-              structured platform: listings, services, local products, recommendations and trusted discovery.
+              A {siteConfig.town}-first marketplace, not a generic one. The mission is moving from posts and groups into
+              a structured platform: listings, services, local products, recommendations and trusted discovery.
             </p>
           </div>
 
@@ -318,7 +378,7 @@ export default function AboutPage() {
               return (
                 <div
                   key={item.title}
-                  className="about-reveal rounded-2xl border border-white/8 bg-white/[0.04] p-5 backdrop-blur-sm"
+                  className="about-reveal rounded-2xl border border-white/8 bg-white/[0.04] p-5"
                   style={{ animationDelay: `${index * 80}ms` }}
                 >
                   <Icon size={20} className="text-[#F0C87A]" />
@@ -332,13 +392,13 @@ export default function AboutPage() {
           <div className="mt-14 flex flex-wrap justify-center gap-3">
             <Link
               href="/listings"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#F0C87A] px-6 py-3 text-sm font-bold text-[#2E1205] transition-transform hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#F0C87A] px-6 py-3 text-sm font-semibold text-[#2E1205] transition-transform hover:-translate-y-0.5"
             >
               Explore the marketplace <ArrowRight size={15} />
             </Link>
             <Link
               href="/listings/submit"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/5 px-6 py-3 text-sm font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
             >
               List your business
             </Link>
