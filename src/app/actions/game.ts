@@ -1,6 +1,7 @@
 'use server'
 
 import { GAME_CONFIG } from '@/app/play/game/config'
+import { readPlayMe } from '@/lib/data/play'
 import { getIndiaToday } from '@/lib/india-time'
 import { isBlocked, recordWrong } from '@/lib/game/wrong-attempts'
 import { createAdminClient } from '@/lib/supabase/admin-client'
@@ -16,13 +17,12 @@ const GAME_ID = 'chikoo_catcher'
 const MAX_SCORE = GAME_CONFIG.maxScore
 const COOLDOWN_MS = 20_000
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
-
 const COMPETITION_UNAVAILABLE = 'Competition entries are unavailable right now.'
 
+/** `hasName` comes from the player's stats read, so the check costs no extra query. */
 function competitionDeps(
-  supabase: SupabaseServerClient,
   admin: NonNullable<ReturnType<typeof createAdminClient>>,
+  hasName: boolean,
 ): CompetitionDeps {
   return {
     today: getIndiaToday,
@@ -36,15 +36,7 @@ function competitionDeps(
         .maybeSingle()
       return (data as { id: string; code: string } | null) ?? null
     },
-    async hasDisplayName(userId) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', userId)
-        .maybeSingle()
-      const name = (data as { full_name: string | null } | null)?.full_name
-      return typeof name === 'string' && name.trim().length > 0
-    },
+    hasDisplayName: async () => hasName,
     attemptsBlocked: (userId) => isBlocked(`competition-code:${userId}`, CODE_ATTEMPT_LIMIT),
     recordWrongAttempt: (userId) => recordWrong(`competition-code:${userId}`, CODE_ATTEMPT_WINDOW_MS),
   }
@@ -60,7 +52,8 @@ export async function checkCompetitionCode(
   const admin = createAdminClient()
   if (!admin) return { ok: false, message: COMPETITION_UNAVAILABLE }
 
-  const result = await checkCode(user.id, String(code ?? ''), competitionDeps(supabase, admin))
+  const me = await readPlayMe(supabase).catch(() => null)
+  const result = await checkCode(user.id, String(code ?? ''), competitionDeps(admin, me?.hasName ?? false))
   return result.ok ? { ok: true } : { ok: false, message: result.message }
 }
 
@@ -81,32 +74,22 @@ export async function submitGameScore(
     return { error: 'Invalid score.' }
   }
 
-  const { data: recent } = await supabase
-    .from('game_scores')
-    .select('played_at')
-    .eq('user_id', user.id)
-    .eq('game', GAME_ID)
-    .order('played_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  // One read gives the cooldown, the previous best and the display-name check.
+  let me
+  try {
+    me = await readPlayMe(supabase)
+  } catch {
+    return { error: 'Could not save your score. Please try again.' }
+  }
 
-  if (recent?.played_at) {
-    const elapsed = Date.now() - new Date(recent.played_at as string).getTime()
+  if (me?.lastPlayedAt) {
+    const elapsed = Date.now() - new Date(me.lastPlayedAt).getTime()
     if (elapsed < COOLDOWN_MS) {
       return { error: 'Please wait a moment before submitting again.' }
     }
   }
 
-  const { data: best } = await supabase
-    .from('game_scores')
-    .select('score')
-    .eq('user_id', user.id)
-    .eq('game', GAME_ID)
-    .order('score', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  const previousBest = (best as { score: number } | null)?.score ?? 0
+  const previousBest = me?.bestAll ?? 0
 
   const plainInsert = () =>
     supabase.from('game_scores').insert({ user_id: user.id, game: GAME_ID, score })
@@ -125,7 +108,7 @@ export async function submitGameScore(
     return { isNewBest, competition: 'not_counted', competitionMessage: COMPETITION_UNAVAILABLE }
   }
 
-  const check = await checkCode(user.id, String(competitionCode), competitionDeps(supabase, admin))
+  const check = await checkCode(user.id, String(competitionCode), competitionDeps(admin, me?.hasName ?? false))
   if (!check.ok) {
     const { error } = await plainInsert()
     if (error) return { error: 'Could not save your score. Please try again.' }

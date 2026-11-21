@@ -339,5 +339,25 @@ await assert.rejects(db.query(`SELECT * FROM public.game_competitions`), /permis
 await assert.rejects(db.query(`SELECT * FROM public.game_competition_exclusions`), /permission denied/)
 await db.exec('RESET ROLE')
 
+// /play bundles: everything public in one call, the player's own numbers in another.
+const indiaToday = (await db.query(`SELECT ((now() AT TIME ZONE 'Asia/Kolkata')::date)::text AS d`)).rows[0].d
+for (const role of ['anon', 'authenticated']) {
+  await asUser(role === 'anon' ? null : compA)
+  const bundle = (await db.query(`SELECT public.get_play_public('chikoo_catcher') AS r`)).rows[0].r
+  assert.ok(Array.isArray(bundle.weekly) && Array.isArray(bundle.all_time) && Array.isArray(bundle.past), `${role}: bundle has every list`)
+  assert.ok(bundle.all_time.some((row) => row.full_name === 'Player A'), `${role}: all-time board is filled`)
+  const direct = (await db.query(`SELECT public.get_today_competition('chikoo_catcher', $1::date) AS r`, [indiaToday])).rows[0].r
+  assert.equal(bundle.today?.id ?? null, direct?.id ?? null, `${role}: "today" is the India date, decided by the database`)
+  assert.ok(!JSON.stringify(bundle).includes('SAPOTA21'), `${role}: the code never leaves the database`)
+}
+await asUser(null)
+await assert.rejects(db.query(`SELECT public.get_play_me('chikoo_catcher') AS r`), /permission denied/, 'signed-out visitors have no personal numbers to ask for')
+await asUser(compA)
+const me = (await db.query(`SELECT public.get_play_me('chikoo_catcher') AS r`)).rows[0].r
+assert.equal(me.best_all, 50, 'best ever counts competition rounds too')
+assert.equal(me.has_name, true)
+assert.ok(me.last_played_at, 'last play time is there for the cooldown')
+await db.exec('RESET ROLE')
+
 await db.close()
 console.log(`Baseline schema builds from ${files.length} migration file(s) and passed its checks`)

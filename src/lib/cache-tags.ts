@@ -20,6 +20,8 @@ export const CACHE_TAGS = {
   recentProducts: 'recent-products',
   find: 'find-directory',
   jobs: 'jobs',
+  // Everything public on /play: leaderboards, today's competition, past winners.
+  game: 'game',
 } as const
 
 // All helpers below use `updateTag`, not `revalidateTag(..., 'max')`.
@@ -107,4 +109,12 @@ export function revalidateFindCache() {
 // all read the same cached set of live posts.
 export function revalidateJobsCache() {
   updatePublicTag('jobs', CACHE_TAGS.jobs)
+}
+
+// The public /play bundle is cached for 30 seconds and shared by every visitor.
+// Admin competition changes refresh it at once; scores just wait for the next
+// 30-second refresh, so a busy competition does not turn into one database
+// read per round.
+export function revalidateGameCache() {
+  updatePublicTag('game', CACHE_TAGS.game)
 }
