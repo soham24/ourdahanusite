@@ -48,7 +48,21 @@ for (const file of files) {
 
 const count = async (sql) => Number((await db.query(sql)).rows[0].n)
 assert.equal(await count(`SELECT count(*) n FROM pg_tables WHERE schemaname = 'public'`), 37, 'public tables')
-assert.equal(await count(`SELECT count(*) n FROM pg_policies WHERE schemaname = 'public'`), 57, 'public RLS policies (a change here should be deliberate)')
+// 61 = 57 before 20261121100000, which dropped 18 policies on 9 tables and
+// created 22: one SELECT per table (two on job_posts: anon and authenticated)
+// plus INSERT/UPDATE/DELETE for each of the 4 split FOR ALL policies.
+assert.equal(await count(`SELECT count(*) n FROM pg_policies WHERE schemaname = 'public'`), 61, 'public RLS policies (a change here should be deliberate)')
+// What Supabase's advisor calls "multiple permissive policies": one role with
+// two permissive policies that both apply to SELECT on the same table.
+const overlappingSelects = (await db.query(`
+  SELECT a.tablename, a.policyname AS a, b.policyname AS b
+  FROM pg_policies a JOIN pg_policies b
+    ON a.schemaname = b.schemaname AND a.tablename = b.tablename AND a.policyname < b.policyname
+  WHERE a.schemaname = 'public' AND a.permissive = 'PERMISSIVE' AND b.permissive = 'PERMISSIVE'
+    AND a.cmd IN ('SELECT', 'ALL') AND b.cmd IN ('SELECT', 'ALL')
+    AND (a.roles && b.roles OR 'public' = ANY (a.roles) OR 'public' = ANY (b.roles))
+`)).rows
+assert.deepEqual(overlappingSelects, [], 'no role has two permissive SELECT policies on one table')
 assert.equal(
   await count(`SELECT count(*) n FROM pg_tables WHERE schemaname = 'public' AND NOT rowsecurity`),
   0,
@@ -357,6 +371,189 @@ const me = (await db.query(`SELECT public.get_play_me('chikoo_catcher') AS r`)).
 assert.equal(me.best_all, 50, 'best ever counts competition rounds too')
 assert.equal(me.has_name, true)
 assert.ok(me.last_played_at, 'last play time is there for the cooldown')
+await db.exec('RESET ROLE')
+
+// ── Who reads and writes what (merged SELECT policies) ───────────────────
+// 20261121100000 folded each table's overlapping permissive SELECT policies
+// into one and split "manage own" FOR ALL policies into INSERT / UPDATE /
+// DELETE. These were written against the schema before that migration and
+// must pass unchanged after it: same rows for every viewer, same writes.
+await db.exec('RESET ROLE')
+await db.query(`UPDATE public.profiles SET is_admin = true WHERE id = $1`, [staffId])
+const insertId = async (sql, params = []) => (await db.query(`${sql} RETURNING id::text AS id`, params)).rows[0].id
+const viewers = { anon: null, owner: ownerId, stranger: strangerId, admin: staffId }
+// Which of the labelled rows the current role can SELECT.
+const visibleOf = async (table, labelled) => {
+  const byId = new Map(Object.entries(labelled).map(([label, id]) => [id, label]))
+  const rows = (await db.query(`SELECT id::text AS id FROM public.${table} WHERE id = ANY($1::uuid[])`, [[...byId.keys()]])).rows
+  return rows.map((r) => byId.get(r.id)).sort()
+}
+const expectVisible = async (table, labelled, expected) => {
+  for (const [viewer, id] of Object.entries(viewers)) {
+    await asUser(id)
+    assert.deepEqual(await visibleOf(table, labelled), expected[viewer], `${table}: what ${viewer} can read`)
+  }
+  await db.exec('RESET ROLE')
+}
+const affected = async (sql, params = []) => (await db.query(sql, params)).affectedRows
+const rlsRefused = /row-level security|permission denied/
+
+// Listings: L1 approved (owner's), L2 unapproved (owner's), L3 unapproved (stranger's), L4 unapproved, no owner.
+const L = {
+  L1: await insertId(`INSERT INTO public.listings (name, category, approved, owner_id) VALUES ('RLS L1', 'shop', true, $1)`, [ownerId]),
+  L2: await insertId(`INSERT INTO public.listings (name, category, approved, owner_id) VALUES ('RLS L2', 'shop', false, $1)`, [ownerId]),
+  L3: await insertId(`INSERT INTO public.listings (name, category, approved, owner_id) VALUES ('RLS L3', 'shop', false, $1)`, [strangerId]),
+  L4: await insertId(`INSERT INTO public.listings (name, category, approved) VALUES ('RLS L4', 'shop', false)`),
+}
+await expectVisible('listings', L, { anon: ['L1'], owner: ['L1', 'L2'], stranger: ['L1', 'L3'], admin: ['L1'] })
+await asUser(ownerId)
+const ownNewListing = await insertId(`INSERT INTO public.listings (name, category, owner_id) VALUES ('RLS mine', 'shop', $1)`, [ownerId])
+await assert.rejects(db.query(`INSERT INTO public.listings (name, category, owner_id) VALUES ('x', 'shop', $1)`, [strangerId]), rlsRefused, 'listing for someone else')
+await assert.rejects(db.query(`INSERT INTO public.listings (name, category) VALUES ('x', 'shop')`), rlsRefused, 'listing with no owner')
+assert.equal(await affected(`UPDATE public.listings SET description = 'own' WHERE id = $1`, [L.L2]), 1, 'owner updates own unapproved listing')
+assert.equal(await affected(`UPDATE public.listings SET description = 'x' WHERE id = ANY($1::uuid[])`, [[L.L3, L.L4]]), 0, 'owner cannot update others')
+assert.equal(await affected(`DELETE FROM public.listings WHERE id = ANY($1::uuid[])`, [[L.L3, L.L4]]), 0, 'owner cannot delete others')
+assert.equal(await affected(`DELETE FROM public.listings WHERE id = $1`, [ownNewListing]), 1, 'owner deletes own listing')
+await asUser(strangerId)
+assert.equal(await affected(`UPDATE public.listings SET description = 'x' WHERE id = $1`, [L.L1]), 0, 'a visible listing is still not editable by others')
+assert.equal(await affected(`DELETE FROM public.listings WHERE id = $1`, [L.L1]), 0)
+await asUser(null)
+await assert.rejects(db.query(`INSERT INTO public.listings (name, category) VALUES ('x', 'shop')`), rlsRefused, 'signed out cannot create listings')
+assert.equal(await affected(`UPDATE public.listings SET description = 'x' WHERE id = $1`, [L.L1]), 0)
+assert.equal(await affected(`DELETE FROM public.listings WHERE id = $1`, [L.L1]), 0)
+await db.exec('RESET ROLE')
+
+// Products and options: public when active on an approved listing; owners see all of their own.
+const P = {
+  P1: await insertId(`INSERT INTO public.listing_products (listing_id, type, name, is_active) VALUES ($1, 'product', 'p1', true)`, [L.L1]),
+  P2: await insertId(`INSERT INTO public.listing_products (listing_id, type, name, is_active) VALUES ($1, 'product', 'p2', false)`, [L.L1]),
+  P3: await insertId(`INSERT INTO public.listing_products (listing_id, type, name, is_active) VALUES ($1, 'product', 'p3', true)`, [L.L2]),
+  P4: await insertId(`INSERT INTO public.listing_products (listing_id, type, name, is_active) VALUES ($1, 'product', 'p4', true)`, [L.L4]),
+  P5: await insertId(`INSERT INTO public.listing_products (listing_id, type, name, is_active) VALUES ($1, 'product', 'p5', true)`, [L.L3]),
+}
+await expectVisible('listing_products', P, { anon: ['P1'], owner: ['P1', 'P2', 'P3'], stranger: ['P1', 'P5'], admin: ['P1'] })
+const O = {}
+for (const [i, key] of Object.keys(P).entries()) {
+  O[`O${i + 1}`] = await insertId(`INSERT INTO public.listing_product_options (product_id, label, price_paise) VALUES ($1, 'opt', 1000)`, [P[key]])
+}
+await expectVisible('listing_product_options', O, { anon: ['O1'], owner: ['O1', 'O2', 'O3'], stranger: ['O1', 'O5'], admin: ['O1'] })
+await asUser(ownerId)
+await assert.rejects(db.query(`INSERT INTO public.listing_products (listing_id, type, name) VALUES ($1, 'product', 'x')`, [L.L1]), rlsRefused, 'products are written by the site only')
+assert.equal(await affected(`UPDATE public.listing_products SET name = 'x' WHERE id = $1`, [P.P2]), 0)
+assert.equal(await affected(`DELETE FROM public.listing_products WHERE id = $1`, [P.P2]), 0)
+await assert.rejects(db.query(`INSERT INTO public.listing_product_options (product_id, label, price_paise) VALUES ($1, 'x', 1000)`, [P.P1]), rlsRefused)
+await assert.rejects(db.query(`UPDATE public.listing_product_options SET label = 'x' WHERE id = $1`, [O.O1]), rlsRefused)
+await db.exec('RESET ROLE')
+
+// Orders: the buyer and the listing's owner, nobody else.
+const R = {
+  R1: await insertId(`INSERT INTO public.orders (listing_id, buyer_id, buyer_name, buyer_phone, service_name, service_price, amount_total) VALUES ($1, $2, 'b', '9', 's', 1, 1)`, [L.L1, strangerId]),
+  R2: await insertId(`INSERT INTO public.orders (listing_id, buyer_id, buyer_name, buyer_phone, service_name, service_price, amount_total) VALUES ($1, NULL, 'b', '9', 's', 1, 1)`, [L.L1]),
+  R3: await insertId(`INSERT INTO public.orders (listing_id, buyer_id, buyer_name, buyer_phone, service_name, service_price, amount_total) VALUES ($1, $2, 'b', '9', 's', 1, 1)`, [L.L4, strangerId]),
+  R4: await insertId(`INSERT INTO public.orders (listing_id, buyer_id, buyer_name, buyer_phone, service_name, service_price, amount_total) VALUES ($1, NULL, 'b', '9', 's', 1, 1)`, [L.L4]),
+  R5: await insertId(`INSERT INTO public.orders (listing_id, buyer_id, buyer_name, buyer_phone, service_name, service_price, amount_total) VALUES ($1, $2, 'b', '9', 's', 1, 1)`, [L.L3, ownerId]),
+}
+await expectVisible('orders', R, { anon: [], owner: ['R1', 'R2', 'R5'], stranger: ['R1', 'R3', 'R5'], admin: [] })
+await asUser(strangerId)
+await assert.rejects(db.query(`UPDATE public.orders SET status = 'cancelled' WHERE id = $1`, [R.R1]), rlsRefused, 'orders are written by the site only')
+await db.exec('RESET ROLE')
+
+// Appointments: the person who booked and the listing's owner.
+const appt = (listing, user) => insertId(
+  `INSERT INTO public.appointments (listing_id, user_id, booking_date, slot_start, slot_end, user_name, user_phone) VALUES ($1, $2, '2026-12-01', '10:00', '10:30', 'n', '9')`,
+  [listing, user],
+)
+const A = { A1: await appt(L.L1, strangerId), A2: await appt(L.L4, strangerId), A3: await appt(L.L1, staffId), A4: await appt(L.L4, staffId) }
+await expectVisible('appointments', A, { anon: [], owner: ['A1', 'A3'], stranger: ['A1', 'A2'], admin: ['A3', 'A4'] })
+await asUser(strangerId)
+await assert.rejects(
+  db.query(`INSERT INTO public.appointments (listing_id, user_id, booking_date, slot_start, slot_end, user_name, user_phone) VALUES ($1, $2, '2026-12-02', '10:00', '10:30', 'n', '9')`, [L.L1, strangerId]),
+  rlsRefused,
+  'appointments are booked by the site only',
+)
+assert.equal(await affected(`UPDATE public.appointments SET notes = 'x' WHERE id = $1`, [A.A1]), 0)
+assert.equal(await affected(`DELETE FROM public.appointments WHERE id = $1`, [A.A1]), 0)
+await db.exec('RESET ROLE')
+
+// Emergency alerts: active ones for everyone; admins see and manage all.
+const E = {
+  E1: await insertId(`INSERT INTO public.emergency_alerts (title, severity, active) VALUES ('e1', 'critical', true)`),
+  E2: await insertId(`INSERT INTO public.emergency_alerts (title, severity, active) VALUES ('e2', 'critical', false)`),
+  E3: await insertId(`INSERT INTO public.emergency_alerts (title, severity, active) VALUES ('e3', 'critical', NULL)`),
+}
+await expectVisible('emergency_alerts', E, { anon: ['E1'], owner: ['E1'], stranger: ['E1'], admin: ['E1', 'E2', 'E3'] })
+await asUser(staffId)
+const adminAlert = await insertId(`INSERT INTO public.emergency_alerts (title, severity, active) VALUES ('new', 'info', false)`)
+assert.equal(await affected(`UPDATE public.emergency_alerts SET title = 'edited' WHERE id = $1`, [E.E2]), 1, 'admin updates an alert')
+assert.equal(await affected(`DELETE FROM public.emergency_alerts WHERE id = $1`, [adminAlert]), 1, 'admin deletes an alert')
+for (const id of [ownerId, null]) {
+  await asUser(id)
+  await assert.rejects(db.query(`INSERT INTO public.emergency_alerts (title, severity) VALUES ('fake', 'critical')`), rlsRefused, 'only admins post alerts')
+  assert.equal(await affected(`UPDATE public.emergency_alerts SET title = 'x' WHERE id = $1`, [E.E1]), 0)
+  assert.equal(await affected(`DELETE FROM public.emergency_alerts WHERE id = $1`, [E.E1]), 0)
+}
+await db.exec('RESET ROLE')
+
+// Events: approved ones for everyone; organizers see and manage their own.
+const V = {
+  V1: await insertId(`INSERT INTO public.events (title, date, location, category, approved, organizer_id) VALUES ('v1', '2026-12-01', 'x', 'c', true, $1)`, [ownerId]),
+  V2: await insertId(`INSERT INTO public.events (title, date, location, category, approved, organizer_id) VALUES ('v2', '2026-12-01', 'x', 'c', false, $1)`, [ownerId]),
+  V3: await insertId(`INSERT INTO public.events (title, date, location, category, approved, organizer_id) VALUES ('v3', '2026-12-01', 'x', 'c', false, $1)`, [strangerId]),
+  V4: await insertId(`INSERT INTO public.events (title, date, location, category, approved) VALUES ('v4', '2026-12-01', 'x', 'c', NULL)`),
+}
+await expectVisible('events', V, { anon: ['V1'], owner: ['V1', 'V2'], stranger: ['V1', 'V3'], admin: ['V1'] })
+await asUser(ownerId)
+const ownEvent = await insertId(`INSERT INTO public.events (title, date, location, category, organizer_id) VALUES ('mine', '2026-12-01', 'x', 'c', $1)`, [ownerId])
+await assert.rejects(db.query(`INSERT INTO public.events (title, date, location, category, organizer_id) VALUES ('x', '2026-12-01', 'x', 'c', $1)`, [strangerId]), rlsRefused)
+await assert.rejects(db.query(`INSERT INTO public.events (title, date, location, category) VALUES ('x', '2026-12-01', 'x', 'c')`), rlsRefused)
+assert.equal(await affected(`UPDATE public.events SET title = 'edited' WHERE id = $1`, [V.V2]), 1, 'organizer edits own event')
+await assert.rejects(db.query(`UPDATE public.events SET organizer_id = $2 WHERE id = $1`, [V.V2, strangerId]), rlsRefused, 'cannot hand an event to someone else')
+assert.equal(await affected(`UPDATE public.events SET title = 'x' WHERE id = ANY($1::uuid[])`, [[V.V3, V.V4]]), 0)
+assert.equal(await affected(`DELETE FROM public.events WHERE id = ANY($1::uuid[])`, [[V.V3, V.V4]]), 0)
+assert.equal(await affected(`DELETE FROM public.events WHERE id = $1`, [ownEvent]), 1, 'organizer deletes own event')
+await asUser(strangerId)
+assert.equal(await affected(`UPDATE public.events SET title = 'x' WHERE id = $1`, [V.V1]), 0, 'a visible event is still not editable by others')
+assert.equal(await affected(`DELETE FROM public.events WHERE id = $1`, [V.V1]), 0)
+await asUser(null)
+await assert.rejects(db.query(`INSERT INTO public.events (title, date, location, category) VALUES ('x', '2026-12-01', 'x', 'c')`), rlsRefused)
+await db.exec('RESET ROLE')
+
+// Job posts: live ones for anon and signed-in users; posters (signed in) also see their own.
+const job = (status, by, expires) => insertId(
+  `INSERT INTO public.job_posts (kind, status, posted_by, title, category, work_types, area, employer_name, published_at, expires_at)
+   VALUES ('hiring', $1, $2, 't', 'c', '{full_time}', 'a', 'e', now() - interval '1 day', now() + $3::interval)`,
+  [status, by, expires],
+)
+const J = { J1: await job('approved', strangerId, '10 days'), J2: await job('pending', ownerId, '10 days'), J3: await job('approved', ownerId, '-1 day'), J4: await job('approved', ownerId, '10 days') }
+await expectVisible('job_posts', J, { anon: ['J1', 'J4'], owner: ['J1', 'J2', 'J3', 'J4'], stranger: ['J1', 'J4'], admin: ['J1', 'J4'] })
+// The poster rule is for signed-in users only: even an anon request carrying the owner's id sees live posts alone.
+await db.query(`SELECT set_config('request.jwt.claim.sub', $1, false)`, [ownerId])
+await db.exec('SET ROLE anon')
+assert.deepEqual(await visibleOf('job_posts', J), ['J1', 'J4'], 'job_posts: anon role never gets the poster rule')
+await db.exec('RESET ROLE')
+
+// Favourites: everyone reads every row (for counts); people manage only their own.
+await db.query(`INSERT INTO public.listing_favourites (user_id, listing_id) VALUES ($1, $3), ($2, $3), ($2, $4)`, [ownerId, strangerId, L.L1, L.L4])
+const favs = async () => (await db.query(
+  `SELECT user_id::text || '/' || listing_id::text AS k FROM public.listing_favourites WHERE listing_id = ANY($1::uuid[]) ORDER BY 1`,
+  [Object.values(L)],
+)).rows.map((r) => r.k)
+const allFavs = [`${ownerId}/${L.L1}`, `${strangerId}/${L.L1}`, `${strangerId}/${L.L4}`].sort()
+for (const id of Object.values(viewers)) {
+  await asUser(id)
+  assert.deepEqual(await favs(), allFavs, `listing_favourites: everyone reads every favourite (${id ?? 'anon'})`)
+}
+await asUser(ownerId)
+await db.query(`INSERT INTO public.listing_favourites (user_id, listing_id) VALUES ($1, $2)`, [ownerId, L.L2])
+await assert.rejects(db.query(`INSERT INTO public.listing_favourites (user_id, listing_id) VALUES ($1, $2)`, [strangerId, L.L2]), rlsRefused, 'cannot favourite as someone else')
+assert.equal(await affected(`UPDATE public.listing_favourites SET listing_id = $3 WHERE user_id = $1 AND listing_id = $2`, [ownerId, L.L2, L.L3]), 1, 'own favourite is editable')
+await assert.rejects(db.query(`UPDATE public.listing_favourites SET user_id = $2 WHERE user_id = $1 AND listing_id = $3`, [ownerId, strangerId, L.L3]), rlsRefused, 'cannot hand a favourite to someone else')
+assert.equal(await affected(`UPDATE public.listing_favourites SET created_at = now() WHERE user_id = $1`, [strangerId]), 0)
+assert.equal(await affected(`DELETE FROM public.listing_favourites WHERE user_id = $1`, [strangerId]), 0, 'cannot remove others\' favourites')
+assert.equal(await affected(`DELETE FROM public.listing_favourites WHERE user_id = $1 AND listing_id = $2`, [ownerId, L.L3]), 1, 'removes own favourite')
+await asUser(null)
+await assert.rejects(db.query(`INSERT INTO public.listing_favourites (user_id, listing_id) VALUES ($1, $2)`, [ownerId, L.L2]), rlsRefused)
+assert.equal(await affected(`DELETE FROM public.listing_favourites`), 0, 'signed out deletes nothing')
 await db.exec('RESET ROLE')
 
 await db.close()
