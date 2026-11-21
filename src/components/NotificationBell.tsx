@@ -22,7 +22,7 @@ import {
   markNotificationRead,
   type NotificationRow,
 } from '@/app/actions/notifications'
-import { createClient } from '@/lib/supabase/client'
+import { createPollScheduler } from '@/lib/notifications/poll-schedule'
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Bell,
@@ -60,7 +60,6 @@ export default function NotificationBell({ userId }: { userId: string }) {
   const [unread, setUnread] = useState(0)
   const [items, setItems] = useState<NotificationRow[]>([])
   const [loading, setLoading] = useState(false)
-  const [supabase] = useState(() => createClient())
   const containerRef = useRef<HTMLDivElement | null>(null)
   const buttonRef = useRef<HTMLButtonElement | null>(null)
   const panelId = useId()
@@ -81,36 +80,41 @@ export default function NotificationBell({ userId }: { userId: string }) {
     }
   }, [])
 
-  // Initial unread count
+  // Poll (instead of Supabase Realtime, whose WAL polling was our top database
+  // cost): every 60s while the tab is visible, immediately on becoming visible.
+  // While the panel is open the list is refreshed along with the count.
+  const openRef = useRef(open)
   useEffect(() => {
-    void getUnreadCount().then(setUnread).catch(() => {})
-  }, [])
+    openRef.current = open
+  }, [open])
 
-  // Realtime subscribe to INSERTs on this user's notifications
   useEffect(() => {
     if (!userId) return
-    const channel = supabase
-      .channel(`notifications:${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload: { new: unknown }) => {
-          const row = payload.new as NotificationRow
-          setItems((prev) => [row, ...prev].slice(0, 15))
-          setUnread((c) => c + 1)
-        },
-      )
-      .subscribe()
-
+    const scheduler = createPollScheduler({
+      run: async () => {
+        if (openRef.current) {
+          const [list, count] = await Promise.all([
+            getRecentNotifications(15),
+            getUnreadCount(),
+          ])
+          setItems(list)
+          setUnread(count)
+        } else {
+          setUnread(await getUnreadCount())
+        }
+      },
+      isVisible: () => document.visibilityState === 'visible',
+      setTimer: (fn, ms) => window.setTimeout(fn, ms),
+      clearTimer: (handle) => window.clearTimeout(handle as number),
+    })
+    const onVisibility = () => scheduler.visibilityChanged()
+    document.addEventListener('visibilitychange', onVisibility)
+    scheduler.start()
     return () => {
-      void supabase.removeChannel(channel)
+      document.removeEventListener('visibilitychange', onVisibility)
+      scheduler.stop()
     }
-  }, [supabase, userId])
+  }, [userId])
 
   // Close on outside click
   useEffect(() => {

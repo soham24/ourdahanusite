@@ -6,8 +6,8 @@ import type { NotificationType, RenderedNotification } from '../types'
 
 /**
  * Inserts a notification row into the `notifications` table so it shows up
- * in the bell dropdown / inbox. Supabase Realtime will broadcast this row
- * to the bell for the given user.
+ * in the bell dropdown / inbox. The bell picks this row up by polling
+ * (see poll-schedule.ts).
  */
 export async function deliverInApp(params: {
   userId: string
