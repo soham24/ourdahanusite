@@ -47,8 +47,8 @@ for (const file of files) {
 }
 
 const count = async (sql) => Number((await db.query(sql)).rows[0].n)
-assert.equal(await count(`SELECT count(*) n FROM pg_tables WHERE schemaname = 'public'`), 34, 'public tables')
-assert.equal(await count(`SELECT count(*) n FROM pg_policies WHERE schemaname = 'public'`), 55, 'public RLS policies (a change here should be deliberate)')
+assert.equal(await count(`SELECT count(*) n FROM pg_tables WHERE schemaname = 'public'`), 35, 'public tables')
+assert.equal(await count(`SELECT count(*) n FROM pg_policies WHERE schemaname = 'public'`), 57, 'public RLS policies (a change here should be deliberate)')
 assert.equal(
   await count(`SELECT count(*) n FROM pg_tables WHERE schemaname = 'public' AND NOT rowsecurity`),
   0,
@@ -121,6 +121,25 @@ await db.query(`UPDATE public.listing_questions SET answer = 'Yes, 9 to 5', answ
 await assert.rejects(db.query(`UPDATE public.listing_questions SET question = 'edited' WHERE id = $1`, [questionId]), /permission denied/)
 await db.exec('RESET ROLE')
 assert.equal(await answerOf(), 'Yes, 9 to 5', 'the owner can answer')
+
+// Enquiries: only the sender and the listing's owner can read one; nobody
+// signed out can send or read, and nothing can be edited.
+await asUser(strangerId)
+await db.query(`INSERT INTO public.listing_enquiries (listing_id, user_id, name, phone, message) VALUES ($1, $2, 'Ravi', '9876543210', 'Open Sunday?')`, [listingId, strangerId])
+await assert.rejects(
+  db.query(`INSERT INTO public.listing_enquiries (listing_id, user_id, name, phone, message) VALUES ($1, $2, 'Fake', '9876543210', 'x')`, [listingId, ownerId]),
+  /row-level security/,
+  'cannot send as someone else',
+)
+assert.equal(await count(`SELECT count(*) n FROM public.listing_enquiries`), 1, 'the sender sees their enquiry')
+await assert.rejects(db.query(`UPDATE public.listing_enquiries SET message = 'edited'`), /permission denied/)
+await asUser(ownerId)
+assert.equal(await count(`SELECT count(*) n FROM public.listing_enquiries`), 1, 'the owner sees it')
+await asUser(staffId)
+assert.equal(await count(`SELECT count(*) n FROM public.listing_enquiries`), 0, 'nobody else does')
+await asUser(null)
+await assert.rejects(db.query(`SELECT count(*) n FROM public.listing_enquiries`), /permission denied/, 'signed out: nothing')
+await db.exec('RESET ROLE')
 
 // Coupons: invisible to visitors and ordinary users, listed for staff.
 await asUser(null)

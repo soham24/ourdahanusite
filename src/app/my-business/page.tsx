@@ -551,6 +551,25 @@ export default async function MyBusinessPage({
       <div className="od-card mb-4 flex items-center justify-between gap-4 p-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-surface-soft rounded-xl flex items-center justify-center">
+            <MessageCircle size={18} className="text-brand" />
+          </div>
+          <div>
+            <p className="font-semibold text-gray-900 text-sm">Enquiries</p>
+            <p className="text-xs text-gray-400">Private messages from customers, with call and WhatsApp replies</p>
+          </div>
+        </div>
+        <Link
+          href="/my-business/enquiries"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-strong border border-border hover:border-brand px-3 py-2 rounded-xl transition-colors"
+        >
+          <ArrowUpRight size={14} />
+          View Enquiries
+        </Link>
+      </div>
+
+      <div className="od-card mb-4 flex items-center justify-between gap-4 p-5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-surface-soft rounded-xl flex items-center justify-center">
             <Calendar size={18} className="text-brand" />
           </div>
           <div>

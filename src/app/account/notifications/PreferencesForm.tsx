@@ -49,6 +49,8 @@ const TYPE_LABELS: Record<NotificationType, { label: string; hint: string }> = {
   'selling.paused': { label: 'Selling paused', hint: 'When online payments stop for your business' },
   'selling.resumed': { label: 'Selling resumed', hint: 'When a pause on selling is lifted' },
   'review.new': { label: 'New reviews', hint: 'When someone reviews your listing' },
+  'enquiry.new': { label: 'Enquiries', hint: 'When a customer sends your business a message' },
+  'question.new': { label: 'Questions', hint: 'When someone asks a public question on your listing' },
   'review.reply_posted': { label: 'Review replies', hint: 'When an owner replies to your review (or, for admins, any reply)' },
   'admin.new_submission': { label: 'New admin submissions', hint: 'Admins only — new pending items' },
 }

@@ -30,6 +30,9 @@ export const NOTIFICATION_TYPES = [
   'selling.resumed',
   // Reviews
   'review.new',
+  // Customers getting in touch
+  'enquiry.new',
+  'question.new',
   'review.reply_posted',
   // Admin
   'admin.new_submission',
@@ -175,6 +178,22 @@ interface ReviewNewPayload {
   recipient: 'owner' | 'admin'
 }
 
+interface EnquiryNewPayload {
+  enquiryId: string
+  listingId: string
+  listingName: string
+  customerName: string
+  customerPhone: string
+  message: string
+}
+
+interface QuestionNewPayload {
+  listingId: string
+  listingName: string
+  subdomain?: string | null
+  question: string
+}
+
 interface ReviewReplyPostedPayload {
   reviewId: string
   listingId: string
@@ -219,6 +238,8 @@ export interface NotificationPayloadMap {
   'selling.paused': SellingPausedPayload
   'selling.resumed': SellingResumedPayload
   'review.new': ReviewNewPayload
+  'enquiry.new': EnquiryNewPayload
+  'question.new': QuestionNewPayload
   'review.reply_posted': ReviewReplyPostedPayload
   'admin.new_submission': AdminSubmissionPayload
 }

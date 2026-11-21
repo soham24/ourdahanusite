@@ -15,6 +15,7 @@ import type { CatalogItem } from '@/lib/catalog/types'
 import type { ShopMode } from '@/lib/selling/shop-mode'
 import type { AppointmentSettings } from '@/lib/listing-content'
 import CatalogSection from './CatalogSection'
+import EnquiryCard from './EnquiryCard'
 
 interface ListingContentProps {
   listing: ListingRecord
@@ -146,6 +147,8 @@ export default function ListingContent({
           userEmail={viewer.email}
         />
       )}
+
+      <EnquiryCard listingId={listingId} listingName={String(listing.name)} />
     </div>
   )
 }
