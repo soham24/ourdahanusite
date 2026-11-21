@@ -19,6 +19,7 @@ import {
   ShoppingBag,
   Sparkles,
   Star,
+  Trophy,
   Users,
 } from 'lucide-react'
 
@@ -42,6 +43,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/jobs', label: 'Jobs', icon: BriefcaseBusiness, roles: MOD_ROLES },
   { href: '/admin/featured', label: 'Featured', icon: Sparkles, roles: ADMIN_ONLY },
   { href: '/admin/polls', label: 'Polls', icon: BarChart3, roles: ADMIN_ONLY },
+  { href: '/admin/competitions', label: 'Competitions', icon: Trophy, roles: ADMIN_ONLY },
   { href: '/admin/appointments', label: 'Appointments', icon: Calendar, roles: ADMIN_ONLY },
   { href: '/admin/payments', label: 'Payments', icon: CreditCard, roles: ADMIN_ONLY },
   { href: '/admin/payment-intents', label: 'Payment Intents', icon: ShieldAlert, roles: ADMIN_ONLY },
