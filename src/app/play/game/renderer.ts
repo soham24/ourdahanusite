@@ -1,8 +1,10 @@
 import { GAME_CONFIG } from './config'
-import type { GameEvent, GameSettings, GameSnapshot, QualityLevel } from './types'
+import type { GameEvent, GamePhase, GameSettings, GameSnapshot, QualityLevel } from './types'
 
 const MAX_PARTICLES = 96
 const MAX_BURSTS = 12
+const BOUNCE_MS = 220
+const BANNER_MS = 1_400
 const SHAKE_DURATION_MS = 110
 const DANGER_PULSE_MS = 420
 const TAU = Math.PI * 2
@@ -25,6 +27,17 @@ interface ScoreBurst {
   y: number
   ageMs: number
   durationMs: number
+  text: string
+  color: string
+  /** An expanding ring as well as the text: combo bonuses and golden catches. */
+  ring: boolean
+  size: number
+}
+
+interface Banner {
+  text: string
+  color: string
+  ageMs: number
 }
 
 export interface QualityController {
@@ -36,6 +49,8 @@ export interface GameRenderer {
   resize(cssWidth: number, cssHeight: number, devicePixelRatio: number): void
   setPointerX(logicalX: number | null): void
   emit(events: readonly GameEvent[]): void
+  /** A short message across the middle of the play area, e.g. "New best!". */
+  announce(text: string, color?: string): void
   render(snapshot: GameSnapshot, settings: GameSettings, frameMs: number): void
   clear(): void
   destroy(): void
@@ -308,10 +323,39 @@ function drawRottenFruit(context: CanvasRenderingContext2D, x: number, y: number
   context.restore()
 }
 
-function drawBasket(context: CanvasRenderingContext2D, x: number, velocity: number) {
+interface BasketLook {
+  /** 1, or wider while the big-basket power-up lasts. */
+  widthScale: number
+  /** 1 just after a catch, easing to 0. */
+  bounce: number
+  /** 0 none, 1 warm (10+ in a row), 2 hot (20+). */
+  glow: 0 | 1 | 2
+  /** Fraction of the power-up left, 0 when none. */
+  powerLeft: number
+}
+
+function drawBasket(context: CanvasRenderingContext2D, x: number, velocity: number, look: BasketLook) {
+  if (look.glow > 0) {
+    const glow = context.createRadialGradient(x, GAME_CONFIG.basketY + 14, 8, x, GAME_CONFIG.basketY + 14, 70 * look.widthScale)
+    glow.addColorStop(0, look.glow === 2 ? 'rgba(255, 140, 60, 0.55)' : 'rgba(255, 214, 110, 0.45)')
+    glow.addColorStop(1, 'rgba(255, 180, 80, 0)')
+    context.fillStyle = glow
+    context.fillRect(x - 80 * look.widthScale, GAME_CONFIG.basketY - 50, 160 * look.widthScale, 110)
+  }
+  if (look.powerLeft > 0) {
+    const barWidth = GAME_CONFIG.basketWidth * look.widthScale
+    context.fillStyle = 'rgba(46, 18, 5, 0.25)'
+    roundedRect(context, x - barWidth / 2, GAME_CONFIG.basketY - 30, barWidth, 5, 2.5)
+    context.fill()
+    context.fillStyle = '#8EAD56'
+    roundedRect(context, x - barWidth / 2, GAME_CONFIG.basketY - 30, barWidth * look.powerLeft, 5, 2.5)
+    context.fill()
+  }
   context.save()
   context.translate(x, GAME_CONFIG.basketY + 3)
   context.rotate(clamp(velocity / 900, -0.12, 0.12))
+  // Squash on a catch, stretch wide for the power-up.
+  context.scale(look.widthScale * (1 + look.bounce * 0.07), 1 - look.bounce * 0.13)
 
   context.fillStyle = 'rgba(33, 21, 13, 0.28)'
   context.beginPath()
@@ -399,6 +443,127 @@ function drawDangerPulse(context: CanvasRenderingContext2D, ageMs: number, x: nu
   context.stroke()
 }
 
+function drawGoldenFruit(context: CanvasRenderingContext2D, x: number, y: number, rotation: number, clockMs: number) {
+  // A slow pulse and four twinkling points, so it reads as special at a glance.
+  const pulse = 0.5 + 0.5 * Math.sin(clockMs / 160)
+  const halo = context.createRadialGradient(x, y, 4, x, y, GAME_CONFIG.itemRadius * 2.4)
+  halo.addColorStop(0, `rgba(255, 226, 120, ${0.55 + pulse * 0.25})`)
+  halo.addColorStop(1, 'rgba(255, 226, 120, 0)')
+  context.fillStyle = halo
+  context.fillRect(x - 44, y - 44, 88, 88)
+
+  context.save()
+  context.translate(x, y)
+  context.rotate(rotation)
+  const fruit = context.createRadialGradient(-6, -7, 2, 1, 2, GAME_CONFIG.itemRadius + 2)
+  fruit.addColorStop(0, '#FFF1B3')
+  fruit.addColorStop(0.5, '#F2C14E')
+  fruit.addColorStop(1, '#B07A12')
+  context.fillStyle = fruit
+  context.beginPath()
+  context.arc(0, 0, GAME_CONFIG.itemRadius, 0, TAU)
+  context.fill()
+  context.strokeStyle = '#8A5B0B'
+  context.lineWidth = 1.5
+  context.stroke()
+
+  context.strokeStyle = '#4C3320'
+  context.lineWidth = 2.3
+  context.lineCap = 'round'
+  context.beginPath()
+  context.moveTo(1, -15)
+  context.quadraticCurveTo(3, -21, 7, -23)
+  context.stroke()
+  context.fillStyle = '#6E8F3E'
+  context.beginPath()
+  context.ellipse(10, -19, 7, 3.3, 0.38, 0, TAU)
+  context.fill()
+  context.restore()
+
+  context.strokeStyle = `rgba(255, 250, 220, ${0.45 + pulse * 0.55})`
+  context.lineWidth = 1.6
+  context.lineCap = 'round'
+  for (let index = 0; index < 4; index += 1) {
+    const angle = clockMs / 700 + (index * TAU) / 4
+    const sx = x + Math.cos(angle) * 25
+    const sy = y + Math.sin(angle) * 25
+    const size = 2.5 + pulse * 2
+    context.beginPath()
+    context.moveTo(sx - size, sy)
+    context.lineTo(sx + size, sy)
+    context.moveTo(sx, sy - size)
+    context.lineTo(sx, sy + size)
+    context.stroke()
+  }
+}
+
+function drawBigBasketPowerUp(context: CanvasRenderingContext2D, x: number, y: number, clockMs: number) {
+  const pulse = 0.5 + 0.5 * Math.sin(clockMs / 130)
+  const halo = context.createRadialGradient(x, y, 6, x, y, 40)
+  halo.addColorStop(0, `rgba(142, 173, 86, ${0.5 + pulse * 0.3})`)
+  halo.addColorStop(1, 'rgba(142, 173, 86, 0)')
+  context.fillStyle = halo
+  context.fillRect(x - 40, y - 40, 80, 80)
+
+  context.save()
+  context.translate(x, y)
+  context.fillStyle = '#FFF8E8'
+  context.strokeStyle = '#5E7F2E'
+  context.lineWidth = 3
+  context.beginPath()
+  context.arc(0, 0, GAME_CONFIG.itemRadius + 2, 0, TAU)
+  context.fill()
+  context.stroke()
+
+  // A small basket with arrows either side: "wider".
+  context.fillStyle = '#B77A3E'
+  roundedRect(context, -8, -1, 16, 9, 3)
+  context.fill()
+  context.strokeStyle = '#6E4227'
+  context.lineWidth = 1.6
+  context.beginPath()
+  context.ellipse(0, 0, 6, 6, 0, Math.PI, TAU)
+  context.stroke()
+  context.strokeStyle = '#5E7F2E'
+  context.lineWidth = 2
+  context.lineCap = 'round'
+  for (const side of [-1, 1]) {
+    context.beginPath()
+    context.moveTo(side * 11, 3)
+    context.lineTo(side * 16, 3)
+    context.moveTo(side * 14, 0)
+    context.lineTo(side * 16, 3)
+    context.lineTo(side * 14, 6)
+    context.stroke()
+  }
+  context.restore()
+}
+
+/** Pulsing red edges when one more mistake ends the game. */
+function drawLastChance(context: CanvasRenderingContext2D, clockMs: number) {
+  const alpha = 0.16 + 0.12 * (0.5 + 0.5 * Math.sin(clockMs / 220))
+  const edge = 46
+  const sides: Array<[number, number, number, number, number, number, number, number]> = [
+    [0, 0, GAME_CONFIG.width, edge, 0, 0, 0, edge],
+    [0, GAME_CONFIG.height - edge, GAME_CONFIG.width, edge, 0, GAME_CONFIG.height, 0, GAME_CONFIG.height - edge],
+    [0, 0, edge, GAME_CONFIG.height, 0, 0, edge, 0],
+    [GAME_CONFIG.width - edge, 0, edge, GAME_CONFIG.height, GAME_CONFIG.width, 0, GAME_CONFIG.width - edge, 0],
+  ]
+  for (const [rx, ry, rw, rh, x0, y0, x1, y1] of sides) {
+    const gradient = context.createLinearGradient(x0, y0, x1, y1)
+    gradient.addColorStop(0, `rgba(190, 40, 30, ${alpha})`)
+    gradient.addColorStop(1, 'rgba(190, 40, 30, 0)')
+    context.fillStyle = gradient
+    context.fillRect(rx, ry, rw, rh)
+  }
+}
+
+const PHASE_BANNERS: Partial<Record<GamePhase, string>> = {
+  flow: 'Picking up pace',
+  rush: 'Rush!',
+  harvestRush: 'Harvest rush!',
+}
+
 export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
   const context = canvas.getContext('2d', { alpha: false })
   if (!context) throw new Error('Canvas 2D rendering is unavailable')
@@ -412,6 +577,9 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
   let dangerAgeMs = DANGER_PULSE_MS
   let dangerX = GAME_CONFIG.width / 2
   let destroyed = false
+  let clockMs = 0
+  let bounceMs = 0
+  let banner: Banner | null = null
   const particles: Particle[] = []
   const bursts: ScoreBurst[] = []
 
@@ -438,13 +606,13 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
     const available = bursts.find((burst) => !burst.active)
     if (available) return available
     if (bursts.length >= MAX_BURSTS) return null
-    const burst: ScoreBurst = { active: false, x: 0, y: 0, ageMs: 0, durationMs: 0 }
+    const burst: ScoreBurst = { active: false, x: 0, y: 0, ageMs: 0, durationMs: 0, text: '', color: '', ring: false, size: 12 }
     bursts.push(burst)
     return burst
   }
 
-  const addCatchParticles = (x: number, y: number) => {
-    const count = reducedEffects ? 2 : renderedQuality === 'high' ? 10 : 4
+  const addCatchParticles = (x: number, y: number, golden = false) => {
+    const count = reducedEffects ? 2 : renderedQuality === 'high' ? (golden ? 16 : 10) : 4
     for (let index = 0; index < count; index += 1) {
       const particle = allocateParticle()
       if (!particle) break
@@ -458,8 +626,32 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
       particle.ageMs = 0
       particle.durationMs = 390 + Math.random() * 190
       particle.radius = 1.7 + Math.random() * 1.8
-      particle.color = index % 3 === 0 ? '#F7D46A' : index % 2 === 0 ? '#8EAD56' : '#D9964A'
+      particle.color = golden
+        ? index % 2 === 0 ? '#FFE38A' : '#F2C14E'
+        : index % 3 === 0 ? '#F7D46A' : index % 2 === 0 ? '#8EAD56' : '#D9964A'
     }
+  }
+
+  // Every point earned floats up from where it was caught; the pool is
+  // capped, so a flurry of catches never piles up text.
+  const popScore = (x: number, y: number, text: string, color: string, ring: boolean, size: number) => {
+    if (reducedEffects) return
+    const burst = allocateBurst()
+    if (!burst) return
+    burst.active = true
+    burst.x = x
+    burst.y = y
+    burst.ageMs = 0
+    burst.durationMs = ring ? 760 : 620
+    burst.text = text
+    burst.color = color
+    burst.ring = ring
+    burst.size = size
+  }
+
+  const announce = (text: string, color = '#FFF4D6') => {
+    if (destroyed) return
+    banner = { text, color, ageMs: 0 }
   }
 
   const emit = (events: readonly GameEvent[]) => {
@@ -467,18 +659,25 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
     for (const event of events) {
       if (event.type === 'ripeCaught') {
         addCatchParticles(event.x, event.y)
-        if (event.bonusAwarded > 0 && !reducedEffects) {
-          const burst = allocateBurst()
-          if (burst) {
-            burst.active = true
-            burst.x = event.x
-            burst.y = event.y
-            burst.ageMs = 0
-            burst.durationMs = 720
-          }
-        }
+        bounceMs = BOUNCE_MS
+        const bonus = event.bonusAwarded > 0
+        popScore(event.x, event.y, '+' + (1 + event.bonusAwarded), bonus ? '255, 236, 153' : '255, 255, 255', bonus, bonus ? 15 : 13)
+        if ((GAME_CONFIG.streakMilestones as readonly number[]).includes(event.combo)) announce(event.combo + ' in a row!', '#FFD86A')
+      } else if (event.type === 'goldenCaught') {
+        addCatchParticles(event.x, event.y, true)
+        bounceMs = BOUNCE_MS
+        popScore(event.x, event.y, '+' + event.points, '255, 226, 120', true, 20)
+        if ((GAME_CONFIG.streakMilestones as readonly number[]).includes(event.combo)) announce(event.combo + ' in a row!', '#FFD86A')
+      } else if (event.type === 'powerUp') {
+        addCatchParticles(event.x, event.y)
+        bounceMs = BOUNCE_MS
+        announce('Big basket!', '#D8F0B0')
+      } else if (event.type === 'phaseChanged') {
+        const text = PHASE_BANNERS[event.phase]
+        if (text) announce(text)
       } else if (event.type === 'rottenCaught') {
         shakeRemainingMs = reducedEffects ? 0 : SHAKE_DURATION_MS
+        popScore(event.x, event.y, 'Rotten!', '255, 150, 120', false, 13)
       } else if (event.type === 'ripeMissed') {
         dangerAgeMs = 0
         dangerX = event.x
@@ -491,6 +690,12 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
     const motionMs = Math.min(50, elapsedMs)
     const motionSeconds = motionMs / 1000
     shakeRemainingMs = advanceEffectDuration(shakeRemainingMs, elapsedMs)
+    clockMs += elapsedMs
+    bounceMs = Math.max(0, bounceMs - elapsedMs)
+    if (banner) {
+      banner.ageMs += elapsedMs
+      if (banner.ageMs >= BANNER_MS) banner = null
+    }
     dangerAgeMs = Math.min(DANGER_PULSE_MS, dangerAgeMs + elapsedMs)
     for (const particle of particles) {
       if (!particle.active) continue
@@ -530,18 +735,49 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
     for (const burst of bursts) {
       if (!burst.active) continue
       const progress = burst.ageMs / burst.durationMs
-      const opacity = Math.sin(progress * Math.PI)
-      context.strokeStyle = `rgba(255, 216, 106, ${opacity * 0.9})`
-      context.lineWidth = 2.5 - progress
-      context.beginPath()
-      context.arc(burst.x, burst.y, 17 + progress * 25, 0, TAU)
-      context.stroke()
-      context.fillStyle = `rgba(255, 236, 153, ${opacity})`
-      context.font = '700 12px ui-sans-serif, system-ui, sans-serif'
+      // In fast, hold, then fade over the last 40%.
+      const opacity = Math.min(1, progress / 0.12) * (1 - Math.max(0, progress - 0.6) / 0.4)
+      if (burst.ring) {
+        context.strokeStyle = 'rgba(' + burst.color + ', ' + opacity * 0.9 + ')'
+        context.lineWidth = 2.5 - progress
+        context.beginPath()
+        context.arc(burst.x, burst.y, 17 + progress * 25, 0, TAU)
+        context.stroke()
+      }
+      const rise = 22 + (1 - Math.pow(1 - progress, 3)) * 26
+      context.font = '800 ' + burst.size + 'px ui-sans-serif, system-ui, sans-serif'
       context.textAlign = 'center'
       context.textBaseline = 'middle'
-      context.fillText('+1 COMBO', burst.x, burst.y - 24 - progress * 13)
+      context.lineWidth = 3
+      context.strokeStyle = 'rgba(46, 18, 5, ' + opacity * 0.55 + ')'
+      context.strokeText(burst.text, burst.x, burst.y - rise)
+      context.fillStyle = 'rgba(' + burst.color + ', ' + opacity + ')'
+      context.fillText(burst.text, burst.x, burst.y - rise)
     }
+  }
+
+  const drawBanner = () => {
+    if (!banner) return
+    const progress = banner.ageMs / BANNER_MS
+    const fadeIn = Math.min(1, progress / 0.12)
+    const fadeOut = 1 - Math.max(0, progress - 0.7) / 0.3
+    // Overshoots slightly on the way in; holds still when effects are reduced.
+    const scale = reducedEffects ? 1 : 0.8 + 0.2 * fadeIn + 0.06 * Math.sin(Math.min(1, progress / 0.2) * Math.PI)
+    context.save()
+    context.translate(GAME_CONFIG.width / 2, 236)
+    context.scale(scale, scale)
+    context.globalAlpha = fadeIn * fadeOut
+    context.font = '800 30px ui-serif, Georgia, serif'
+    context.textAlign = 'center'
+    context.textBaseline = 'middle'
+    context.lineJoin = 'round'
+    context.lineWidth = 6
+    context.strokeStyle = 'rgba(46, 18, 5, 0.65)'
+    context.strokeText(banner.text, 0, 0)
+    context.fillStyle = banner.color
+    context.fillText(banner.text, 0, 0)
+    context.restore()
+    context.globalAlpha = 1
   }
 
   const resize = (cssWidth: number, cssHeight: number, devicePixelRatio: number) => {
@@ -585,11 +821,24 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
     drawDangerPulse(context, dangerAgeMs, dangerX)
     for (const item of snapshot.items) {
       if (item.kind === 'ripe') drawRipeFruit(context, item.x, item.y, item.rotation)
+      else if (item.kind === 'golden') drawGoldenFruit(context, item.x, item.y, item.rotation, clockMs)
+      else if (item.kind === 'bigBasket') drawBigBasketPowerUp(context, item.x, item.y, clockMs)
       else drawRottenFruit(context, item.x, item.y, item.rotation)
     }
-    drawBasket(context, snapshot.basketX, snapshot.basketVelocity)
+    drawBasket(context, snapshot.basketX, snapshot.basketVelocity, {
+      widthScale: snapshot.bigBasketMs > 0 ? GAME_CONFIG.bigBasketScale : 1,
+      bounce: reducedEffects ? 0 : Math.sin((bounceMs / BOUNCE_MS) * Math.PI),
+      glow: snapshot.combo >= 20 ? 2 : snapshot.combo >= 10 ? 1 : 0,
+      powerLeft: snapshot.bigBasketMs / GAME_CONFIG.bigBasketMs,
+    })
     drawEffects()
     context.restore()
+
+    // One more mistake ends the game: say so at the edges.
+    const oneMistakeLeft =
+      snapshot.misses >= GAME_CONFIG.maxMisses - 1 || snapshot.badCatches >= GAME_CONFIG.maxBadCatches - 1
+    if (oneMistakeLeft && !snapshot.gameOver && !reducedEffects) drawLastChance(context, clockMs)
+    drawBanner()
   }
 
   const clear = () => {
@@ -599,6 +848,9 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
     shakeRemainingMs = 0
     dangerAgeMs = DANGER_PULSE_MS
     dangerX = GAME_CONFIG.width / 2
+    clockMs = 0
+    bounceMs = 0
+    banner = null
     pointerX = null
     parallaxX = 0
     reducedEffects = false
@@ -614,5 +866,5 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
     destroyed = true
   }
 
-  return { resize, setPointerX, emit, render, clear, destroy }
+  return { resize, setPointerX, emit, announce, render, clear, destroy }
 }

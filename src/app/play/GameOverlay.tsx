@@ -146,7 +146,7 @@ export default function GameOverlay(props: OverlayProps) {
         <section className="chikoo-overlay__card" aria-labelledby="chikoo-ready-title">
           <p className="chikoo-overlay__eyebrow">Sunlit orchard</p>
           <h2 id="chikoo-ready-title">Chikoo Catcher</h2>
-          <p className="chikoo-overlay__intro">Catch ripe chikoos. Dodge the rotten ones.</p>
+          <p className="chikoo-overlay__intro">Catch ripe chikoos. Dodge the rotten ones. Grab the gold.</p>
 
           <div className="chikoo-overlay__legend" aria-label="Fruit guide">
             <div>
@@ -156,6 +156,14 @@ export default function GameOverlay(props: OverlayProps) {
             <div>
               <span className="chikoo-fruit chikoo-fruit--rotten" aria-hidden="true" />
               <span><strong>Rotten</strong><small>Dodge</small></span>
+            </div>
+            <div>
+              <span className="chikoo-fruit chikoo-fruit--ripe chikoo-fruit--golden" aria-hidden="true" />
+              <span><strong>Golden</strong><small>+3 points</small></span>
+            </div>
+            <div>
+              <span className="chikoo-powerup" aria-hidden="true" />
+              <span><strong>Big basket</strong><small>Wider</small></span>
             </div>
           </div>
 

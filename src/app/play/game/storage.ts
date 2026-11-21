@@ -42,3 +42,30 @@ export function saveSettings(
     // Storage is optional; private browsing and quotas may reject writes.
   }
 }
+
+export const BEST_KEY = 'ourdahanu:chikoo-catcher:best'
+
+/** This device's best score, so a run can celebrate passing it. 0 when none. */
+export function loadBest(
+  storage: StorageLike | null = typeof localStorage === 'undefined' ? null : localStorage,
+): number {
+  if (!storage) return 0
+  try {
+    const value = Number(storage.getItem(BEST_KEY))
+    return Number.isInteger(value) && value > 0 ? value : 0
+  } catch {
+    return 0
+  }
+}
+
+export function saveBest(
+  score: number,
+  storage: StorageLike | null = typeof localStorage === 'undefined' ? null : localStorage,
+): void {
+  if (!storage || !Number.isInteger(score) || score <= loadBest(storage)) return
+  try {
+    storage.setItem(BEST_KEY, String(score))
+  } catch {
+    // Storage is optional.
+  }
+}

@@ -1,7 +1,8 @@
 export type GamePhase = 'warmup' | 'flow' | 'rush' | 'harvestRush'
 export type PlayState = 'ready' | 'countdown' | 'playing' | 'paused' | 'gameOver'
 export type SubmitState = 'idle' | 'saving' | 'saved' | 'best' | 'error'
-export type ItemKind = 'ripe' | 'rotten'
+/** golden: rare, worth more. bigBasket: a power-up that widens the basket for a while. */
+export type ItemKind = 'ripe' | 'rotten' | 'golden' | 'bigBasket'
 export type QualityLevel = 'high' | 'reduced'
 
 export interface FallingItem {
@@ -42,6 +43,10 @@ export interface GameEngineState {
   score: number
   misses: number
   badCatches: number
+  /** Golden chikoos caught; each is a catch plus extra points. */
+  goldens: number
+  /** Time left on the big-basket power-up, 0 when inactive. */
+  bigBasketMs: number
   phase: GamePhase
   nextItemId: number
   gameOver: boolean
@@ -53,6 +58,9 @@ export interface GameSnapshot extends Readonly<GameEngineState> {}
 
 export type GameEvent =
   | { type: 'ripeCaught'; x: number; y: number; combo: number; bonusAwarded: number }
+  | { type: 'goldenCaught'; x: number; y: number; combo: number; points: number }
+  | { type: 'powerUp'; x: number; y: number; durationMs: number }
+  | { type: 'powerUpEnded' }
   | { type: 'rottenCaught'; x: number; y: number }
   | { type: 'ripeMissed'; x: number }
   | { type: 'phaseChanged'; phase: GamePhase }
