@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { revalidateGameCache } from '@/lib/cache-tags'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { getUserRole } from '@/app/actions/admin'
@@ -29,6 +30,8 @@ async function requireAdminRole() {
 }
 
 function revalidateCompetitionPages() {
+  // The public /play bundle is cached; refresh it now so admin changes show at once.
+  revalidateGameCache()
   revalidatePath('/play')
   revalidatePath('/admin/competitions')
 }

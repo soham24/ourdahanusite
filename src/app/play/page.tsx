@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
-import { connection } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { getCompetitionLeaderboard, getPastCompetitions, getTodayCompetition } from '@/lib/data/competition'
-import { getGameLeaderboard, getUserBestScore } from '@/lib/data/game'
+import { Suspense } from 'react'
+import { getPlayMe, getPlayPublic } from '@/lib/data/play'
 import Leaderboard from './Leaderboard'
 import PastCompetitions from './PastCompetitions'
 import PlayArea from './PlayArea'
@@ -27,41 +25,7 @@ export const metadata: Metadata = {
   },
 }
 
-type ServerClient = Awaited<ReturnType<typeof createClient>>
-
-async function userHasDisplayName(supabase: ServerClient, userId: string): Promise<boolean> {
-  try {
-    const { data } = await supabase.from('profiles').select('full_name').eq('id', userId).maybeSingle()
-    const name = (data as { full_name: string | null } | null)?.full_name
-    return typeof name === 'string' && name.trim().length > 0
-  } catch {
-    return false
-  }
-}
-
-async function getTodayWithBoard() {
-  const competition = await getTodayCompetition()
-  const board = competition ? await getCompetitionLeaderboard(competition.id, 10) : []
-  return { competition, board }
-}
-
-export default async function PlayPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // Today's competition depends on the current India date, so render per request.
-  await connection()
-
-  const [weekly, allTime, yourBestWeek, yourBestAllTime, today, past, hasDisplayName] = await Promise.all([
-    getGameLeaderboard('this_week'),
-    getGameLeaderboard('all_time'),
-    user ? getUserBestScore(user.id, 'this_week') : Promise.resolve(null),
-    user ? getUserBestScore(user.id, 'all_time') : Promise.resolve(null),
-    getTodayWithBoard(),
-    getPastCompetitions(5),
-    user ? userHasDisplayName(supabase, user.id) : Promise.resolve(false),
-  ])
-
+export default function PlayPage() {
   return (
     <div className="od-page min-h-screen">
       <div className="od-shell flex flex-col items-center gap-10 py-8 sm:py-12">
@@ -74,29 +38,55 @@ export default async function PlayPage() {
             Race through a sunlit {siteConfig.town} orchard. Catch the ripe harvest, avoid rotten fruit, and keep your combo alive.
           </p>
         </header>
-        <PlayArea
-          isSignedIn={Boolean(user)}
-          initialBestScore={Math.max(yourBestWeek ?? 0, yourBestAllTime ?? 0) || null}
-          competition={today.competition}
-          board={today.board}
-          hasDisplayName={hasDisplayName}
-        />
-        <section className="w-full max-w-4xl" aria-labelledby="leaderboard-title">
-          <div className="mb-4 text-center">
-            <p className="od-eyebrow">Community challenge</p>
-            <h2 id="leaderboard-title" className="font-display mt-2 text-3xl text-[var(--od-ink)]">
-              Orchard champions
-            </h2>
-          </div>
-          <Leaderboard
-            weekly={weekly}
-            allTime={allTime}
-            yourBestWeek={yourBestWeek}
-            yourBestAllTime={yourBestAllTime}
-          />
-        </section>
-        <PastCompetitions competitions={past} />
+        <Suspense fallback={<PlaySkeleton />}>
+          <PlayContent />
+        </Suspense>
       </div>
     </div>
+  )
+}
+
+/** Holds the game's place while its data arrives, so the page does not jump. */
+function PlaySkeleton() {
+  return (
+    <div className="flex w-full flex-col items-center gap-10" aria-busy="true" aria-label="Loading the game">
+      <div className="aspect-[9/16] w-full max-w-[420px] animate-pulse rounded-[2rem] bg-[#2E5A35]/15" />
+      <div className="h-64 w-full max-w-4xl animate-pulse rounded-3xl bg-[#F7F2EB]" />
+    </div>
+  )
+}
+
+async function PlayContent() {
+  // Two reads at most: the public bundle (cached, shared by every visitor) and,
+  // only with a sign-in cookie, the player's own numbers.
+  const [pub, me] = await Promise.all([getPlayPublic(), getPlayMe()])
+  const yourBestWeek = me?.bestWeek ?? null
+  const yourBestAllTime = me?.bestAll ?? null
+
+  return (
+    <>
+      <PlayArea
+        isSignedIn={me !== null}
+        initialBestScore={Math.max(yourBestWeek ?? 0, yourBestAllTime ?? 0) || null}
+        competition={pub.today}
+        board={pub.today?.board ?? []}
+        hasDisplayName={me?.hasName ?? false}
+      />
+      <section className="w-full max-w-4xl" aria-labelledby="leaderboard-title">
+        <div className="mb-4 text-center">
+          <p className="od-eyebrow">Community challenge</p>
+          <h2 id="leaderboard-title" className="font-display mt-2 text-3xl text-[var(--od-ink)]">
+            Orchard champions
+          </h2>
+        </div>
+        <Leaderboard
+          weekly={pub.weekly}
+          allTime={pub.allTime}
+          yourBestWeek={yourBestWeek}
+          yourBestAllTime={yourBestAllTime}
+        />
+      </section>
+      <PastCompetitions competitions={pub.past} />
+    </>
   )
 }
