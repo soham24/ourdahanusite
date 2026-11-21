@@ -32,6 +32,9 @@ export type AppointmentDirectoryEntry = {
   bookingFee: number
   nextSlots: AppointmentDirectorySlot[]
   hasAvailability: boolean
+  /** False when the owner switched booking on but never set opening hours:
+   *  there is no booking page to send anyone to yet. */
+  hoursSet: boolean
 }
 
 type BookableRow = {
@@ -137,6 +140,7 @@ export async function getAppointmentDirectory(): Promise<AppointmentDirectoryEnt
       bookingFee: toNumber(row.appointment_booking_fee),
       nextSlots,
       hasAvailability: nextSlots.length > 0,
+      hoursSet: settings !== null,
     }
   })
 
