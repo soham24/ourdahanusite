@@ -1,6 +1,14 @@
 import { timingSafeEqual } from 'node:crypto'
 
 const CODE_PATTERN = /^[A-Z0-9]{3,24}$/
+/**
+ * New codes need at least this many characters. Players can make 10 wrong
+ * guesses per 10 minutes per account and accounts are free, so a short code
+ * can be guessed; 6 letters or digits is about two billion possibilities.
+ * Entering a code still accepts 3+, so a competition saved before this rule
+ * keeps working.
+ */
+export const MIN_NEW_CODE_LENGTH = 6
 const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
 export function normalizeCompetitionCode(raw: string): string | null {
@@ -36,7 +44,9 @@ export function validateCompetitionInput(
   const prize = input.prize.trim()
   if (prize.length < 1 || prize.length > 200) return { ok: false, error: 'Prize must be 1 to 200 characters.' }
   const code = normalizeCompetitionCode(input.code)
-  if (code === null) return { ok: false, error: 'Code must be 3 to 24 letters or digits.' }
+  if (code === null || code.length < MIN_NEW_CODE_LENGTH) {
+    return { ok: false, error: `Code must be ${MIN_NEW_CODE_LENGTH} to 24 letters or digits.` }
+  }
   return { ok: true, value: { day: input.day, title, prize, code, active: input.active } }
 }
 

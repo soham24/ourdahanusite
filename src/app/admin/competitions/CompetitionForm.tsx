@@ -102,6 +102,7 @@ export default function CompetitionForm({ initial }: { initial: CompetitionFormV
           id="code"
           name="code"
           required
+          minLength={6}
           maxLength={24}
           autoCapitalize="characters"
           autoComplete="off"
@@ -110,7 +111,7 @@ export default function CompetitionForm({ initial }: { initial: CompetitionFormV
           placeholder="CHIKOO21"
           className={`${inputClass} font-mono uppercase`}
         />
-        <p className="text-xs text-gray-400 mt-1">3 to 24 letters or digits. Share it with players.</p>
+        <p className="text-xs text-gray-400 mt-1">6 to 24 letters or digits. Share it with players.</p>
       </div>
 
       <label className="flex items-center gap-2 text-sm font-medium text-gray-700">

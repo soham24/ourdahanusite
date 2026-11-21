@@ -12,6 +12,7 @@ test('normalizeCompetitionCode trims, upper-cases and enforces the DB pattern', 
 })
 
 test('codesMatch normalizes the entered code and rejects other lengths', () => {
+  assert.equal(codesMatch('abc', 'ABC'), true, 'a short code saved before the 6-character rule still works')
   assert.equal(codesMatch(' sapota21', 'SAPOTA21'), true)
   assert.equal(codesMatch('SAPOTA2', 'SAPOTA21'), false)
   assert.equal(codesMatch('SAPOTA22', 'SAPOTA21'), false)
@@ -19,13 +20,13 @@ test('codesMatch normalizes the entered code and rejects other lengths', () => {
 })
 
 const TODAY = '2026-11-21'
-const base = { day: '2026-11-21', title: 'Daily', prize: 'Sapota box', code: ' abc ', active: true }
+const base = { day: '2026-11-21', title: 'Daily', prize: 'Sapota box', code: ' abc123 ', active: true }
 
 test('validateCompetitionInput accepts a valid input and returns trimmed, normalized values', () => {
   const r = validateCompetitionInput({ ...base, title: '  Daily  ', prize: ' Sapota box ' }, TODAY)
   assert.deepEqual(r, {
     ok: true,
-    value: { day: '2026-11-21', title: 'Daily', prize: 'Sapota box', code: 'ABC', active: true },
+    value: { day: '2026-11-21', title: 'Daily', prize: 'Sapota box', code: 'ABC123', active: true },
   })
 })
 
@@ -39,6 +40,9 @@ test('validateCompetitionInput rejects bad days, titles, prizes and codes', () =
   assert.equal(validateCompetitionInput({ ...base, prize: 'y'.repeat(201) }, TODAY).ok, false)
   assert.equal(validateCompetitionInput({ ...base, prize: '' }, TODAY).ok, false)
   assert.equal(validateCompetitionInput({ ...base, code: 'A-1' }, TODAY).ok, false)
+  assert.equal(validateCompetitionInput({ ...base, code: 'ABCDE' }, TODAY).ok, false, 'new codes need 6+ characters')
+  assert.equal(validateCompetitionInput({ ...base, code: 'ABCDEF' }, TODAY).ok, true)
+  assert.equal(validateCompetitionInput({ ...base, code: 'A'.repeat(25) }, TODAY).ok, false)
   assert.equal(validateCompetitionInput({ ...base, day: '2026-12-01' }, TODAY).ok, true)
 })
 

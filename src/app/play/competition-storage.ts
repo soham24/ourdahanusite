@@ -44,6 +44,16 @@ export function clearCompetitionCode(storage: Pick<Storage, 'removeItem'> | null
   }
 }
 
+/**
+ * Whether a saved code should be forgotten after re-checking it. Only a code
+ * the server says is wrong for today (the owner changed it) or a competition
+ * that is no longer running; a missing display name, a rate limit or a
+ * network problem keeps the code so the player does not have to type it again.
+ */
+export function savedCodeNoLongerValid(reason: string | undefined): boolean {
+  return reason === 'wrong_code' || reason === 'no_competition'
+}
+
 /** Today's date in India (YYYY-MM-DD), computed in the browser. */
 export function indiaTodayInBrowser(now: Date = new Date()): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(now)
