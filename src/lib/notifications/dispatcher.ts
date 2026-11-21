@@ -58,7 +58,7 @@ export async function sendNotification<T extends NotificationType>(
       else void p
     }
 
-    // In-app is always awaited so the Realtime INSERT fires before we return.
+    // In-app is always awaited so the row exists before we return.
     if (useInApp) {
       await deliverInApp({ userId, type, rendered })
     }
