@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/navigation'
 import { checkCompetitionCode } from '@/app/actions/game'
 import { setDisplayName } from '@/app/actions/profile'
@@ -14,12 +14,19 @@ import {
   indiaTodayInBrowser,
   loadCompetitionCode,
   saveCompetitionCode,
+  savedCodeNoLongerValid,
 } from './competition-storage'
 
 function subscribeToStorage(onChange: () => void): () => void {
   window.addEventListener('storage', onChange)
   return () => window.removeEventListener('storage', onChange)
 }
+
+/**
+ * Saved codes already re-checked during this page load ("day:code"), so a
+ * router refresh after each round does not ask the server again.
+ */
+const recheckedCodes = new Set<string>()
 
 /**
  * Owns the competition code for today and hands it to the game. Without a
@@ -101,6 +108,27 @@ export default function PlayArea({
   const onCompetitionCounted = useCallback(() => setMessage(''), [])
 
   const competitionCode = competition && isSignedIn ? code : null
+
+  // A code saved on an earlier visit is checked once when the page loads, so a
+  // player whose code the owner has since changed finds out before playing a
+  // round, not after it. One call, and only for players with a saved code.
+  useEffect(() => {
+    if (!day || override || !isSignedIn || storedCode === null) return
+    const key = `${day}:${storedCode}`
+    if (recheckedCodes.has(key)) return
+    recheckedCodes.add(key)
+    checkCompetitionCode(storedCode)
+      .then((result) => {
+        // Skip if the player has joined with another code in the meantime.
+        if (loadCompetitionCode(browserStorage(), day) !== storedCode) return
+        if (!result.ok && savedCodeNoLongerValid(result.reason)) {
+          onCompetitionRejected(result.message ?? 'Your saved code no longer works. Enter today’s code again.')
+        }
+      })
+      .catch(() => {
+        // Offline or a server hiccup: keep the code; the round check still runs.
+      })
+  }, [day, override, isSignedIn, storedCode, onCompetitionRejected])
 
   // Read when a round is saved: a tab left open past India midnight must not
   // send yesterday's code (the server would log it as a wrong guess).

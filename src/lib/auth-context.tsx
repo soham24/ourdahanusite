@@ -41,7 +41,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = createClient()
     supabaseRef.current = supabase
 
-    void loadInitialAuthUser<User>(() => supabase.auth.getUser()).then((initialUser) => {
+    // getSession reads the session already in the browser's cookies (and
+    // refreshes it first if it has expired), so a page load no longer makes a
+    // round trip to the auth server just to show the header. This value only
+    // decides what the UI shows: every server action and server page checks
+    // the session again itself before doing anything on the user's behalf.
+    const readSessionUser = async () => {
+      const { data } = await supabase.auth.getSession()
+      return { data: { user: data.session?.user ?? null } }
+    }
+
+    void loadInitialAuthUser<User>(readSessionUser).then((initialUser) => {
       if (!mounted) return
       setUser(initialUser)
       setLoading(false)

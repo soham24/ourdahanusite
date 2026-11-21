@@ -10,8 +10,11 @@ import {
   checkCode,
   CODE_ATTEMPT_LIMIT,
   CODE_ATTEMPT_WINDOW_MS,
+  type CodeCheck,
   type CompetitionDeps,
 } from './game-competition-core'
+
+type CodeRejection = Extract<CodeCheck, { ok: false }>['reason'] | 'signed_out' | 'unavailable'
 
 const GAME_ID = 'chikoo_catcher'
 const MAX_SCORE = GAME_CONFIG.maxScore
@@ -44,19 +47,19 @@ function competitionDeps(
 
 export async function checkCompetitionCode(
   code: string,
-): Promise<{ ok: boolean; message?: string }> {
+): Promise<{ ok: boolean; message?: string; reason?: CodeRejection }> {
   const supabase = await createClient()
   // Full session check (not the lighter token check): competition entries win
   // real prizes, so a banned or signed-out account must be refused at once.
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { ok: false, message: 'Please sign in to take part.' }
+  if (!user) return { ok: false, message: 'Please sign in to take part.', reason: 'signed_out' }
 
   const admin = createAdminClient()
-  if (!admin) return { ok: false, message: COMPETITION_UNAVAILABLE }
+  if (!admin) return { ok: false, message: COMPETITION_UNAVAILABLE, reason: 'unavailable' }
 
   const me = await readPlayMe(supabase).catch(() => null)
   const result = await checkCode(user.id, String(code ?? ''), competitionDeps(admin, me?.hasName ?? false))
-  return result.ok ? { ok: true } : { ok: false, message: result.message }
+  return result.ok ? { ok: true } : { ok: false, message: result.message, reason: result.reason }
 }
 
 export async function submitGameScore(

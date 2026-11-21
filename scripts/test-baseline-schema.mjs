@@ -322,6 +322,14 @@ for (const role of ['anon', 'authenticated']) {
     `${role}: excluded player is hidden; ties go to whoever reached the score first, not who played first`,
   )
   assert.equal((await db.query(`SELECT public.get_competition_leaderboard($1, 1) AS r`, [competitionId])).rows[0].r.length, 1, 'limit applies')
+  assert.ok(!JSON.stringify(board).includes('SAPOTA21'), `${role}: the code must never leave the database`)
+  // The date-taking functions are for get_play_public only: a caller picking
+  // the day could read a future competition's title and prize early.
+  await assert.rejects(db.query(`SELECT public.get_today_competition('chikoo_catcher', '2026-11-21')`), /permission denied/, `${role}: cannot pick the day for today's competition`)
+  await assert.rejects(db.query(`SELECT public.get_past_competitions('chikoo_catcher', '2026-11-22', 5)`), /permission denied/, `${role}: cannot pick the day for past winners`)
+}
+await db.exec('RESET ROLE')
+{
   const today = (await db.query(`SELECT public.get_today_competition('chikoo_catcher', '2026-11-21') AS r`)).rows[0].r
   assert.equal(today.title, 'Chikoo Cup')
   assert.equal(today.prize, 'A box of chikoos')
@@ -330,16 +338,13 @@ for (const role of ['anon', 'authenticated']) {
   assert.equal(past.length, 1)
   assert.deepEqual(past[0].top.map((r) => r.full_name), ['Player B', 'Player E', 'Player A'], 'podium matches the live board order and omits the excluded player')
   assert.equal((await db.query(`SELECT public.get_past_competitions('chikoo_catcher', '2026-11-21', 5) AS r`)).rows[0].r.length, 0, 'today is not past')
-  for (const text of [JSON.stringify(today), JSON.stringify(past), JSON.stringify(board)]) {
-    assert.ok(!text.includes('SAPOTA21'), `${role}: the code must never leave the database`)
+  for (const text of [JSON.stringify(today), JSON.stringify(past)]) {
+    assert.ok(!text.includes('SAPOTA21'), 'the code must never leave the database')
   }
 }
-await db.exec('RESET ROLE')
 await db.query(`UPDATE public.game_competitions SET active = false WHERE id = $1`, [competitionId])
-await db.exec('SET ROLE anon')
 assert.equal((await db.query(`SELECT public.get_today_competition('chikoo_catcher', '2026-11-21') AS r`)).rows[0].r, null, 'inactive competitions are hidden')
 assert.equal((await db.query(`SELECT public.get_past_competitions('chikoo_catcher', '2026-11-22', 5) AS r`)).rows[0].r.length, 0)
-await db.exec('RESET ROLE')
 await db.query(`UPDATE public.game_competitions SET active = true WHERE id = $1`, [competitionId])
 
 await asUser(compA)
@@ -355,12 +360,12 @@ await db.exec('RESET ROLE')
 
 // /play bundles: everything public in one call, the player's own numbers in another.
 const indiaToday = (await db.query(`SELECT ((now() AT TIME ZONE 'Asia/Kolkata')::date)::text AS d`)).rows[0].d
+const direct = (await db.query(`SELECT public.get_today_competition('chikoo_catcher', $1::date) AS r`, [indiaToday])).rows[0].r
 for (const role of ['anon', 'authenticated']) {
   await asUser(role === 'anon' ? null : compA)
   const bundle = (await db.query(`SELECT public.get_play_public('chikoo_catcher') AS r`)).rows[0].r
   assert.ok(Array.isArray(bundle.weekly) && Array.isArray(bundle.all_time) && Array.isArray(bundle.past), `${role}: bundle has every list`)
   assert.ok(bundle.all_time.some((row) => row.full_name === 'Player A'), `${role}: all-time board is filled`)
-  const direct = (await db.query(`SELECT public.get_today_competition('chikoo_catcher', $1::date) AS r`, [indiaToday])).rows[0].r
   assert.equal(bundle.today?.id ?? null, direct?.id ?? null, `${role}: "today" is the India date, decided by the database`)
   assert.ok(!JSON.stringify(bundle).includes('SAPOTA21'), `${role}: the code never leaves the database`)
 }
@@ -556,5 +561,7 @@ await assert.rejects(db.query(`INSERT INTO public.listing_favourites (user_id, l
 assert.equal(await affected(`DELETE FROM public.listing_favourites`), 0, 'signed out deletes nothing')
 await db.exec('RESET ROLE')
 
+await db.exec('RESET ROLE')
+assert.equal((await db.query("SELECT count(*)::int AS n FROM pg_publication_tables WHERE pubname = 'supabase_realtime'")).rows[0].n, 0, 'nothing is streamed over Realtime: the notification bell polls')
 await db.close()
 console.log(`Baseline schema builds from ${files.length} migration file(s) and passed its checks`)
