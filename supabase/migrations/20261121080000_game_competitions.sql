@@ -57,17 +57,22 @@ as $function$
   )
 $function$;
 
-create or replace function public.get_competition_leaderboard(p_competition uuid, p_limit int)
- returns jsonb
+-- One ranking for the live board and the past podium, so they cannot drift:
+-- best score first, then whoever reached that best score earliest, then user id.
+-- Internal: not granted to anyone but the functions below (which run as owner).
+create or replace function public.competition_standings(p_competition uuid)
+ returns table (user_id uuid, full_name text, best_score int, reached_at timestamptz, rank bigint)
  language sql
- stable security definer
+ stable
  set search_path to 'public'
 as $function$
-  select coalesce(jsonb_agg(row_to_json(t)), '[]'::jsonb)
+  select s.user_id, s.full_name, s.best_score, s.reached_at,
+         row_number() over (order by s.best_score desc, s.reached_at asc, s.user_id) as rank
   from (
     select
+      gs.user_id,
       p.full_name,
-      max(gs.score) as best_score,
+      max(gs.score)::int as best_score,
       min(gs.played_at) filter (where gs.score = (
         select max(g2.score) from game_scores g2
         where g2.competition_id = p_competition and g2.user_id = gs.user_id
@@ -80,7 +85,20 @@ as $function$
         where e.competition_id = p_competition and e.user_id = gs.user_id
       )
     group by gs.user_id, p.full_name
-    order by best_score desc, reached_at asc
+  ) s
+$function$;
+
+create or replace function public.get_competition_leaderboard(p_competition uuid, p_limit int)
+ returns jsonb
+ language sql
+ stable security definer
+ set search_path to 'public'
+as $function$
+  select coalesce(jsonb_agg(row_to_json(t) order by t.rank), '[]'::jsonb)
+  from (
+    select st.full_name, st.best_score, st.reached_at, st.rank
+    from competition_standings(p_competition) st
+    order by st.rank
     limit least(greatest(coalesce(p_limit, 10), 0), 50)
   ) t
 $function$;
@@ -96,18 +114,11 @@ as $function$
     select
       gc.id, gc.title, gc.prize, gc.day,
       (
-        select coalesce(jsonb_agg(row_to_json(t)), '[]'::jsonb)
+        select coalesce(jsonb_agg(row_to_json(t) order by t.rank), '[]'::jsonb)
         from (
-          select p.full_name, max(gs.score) as best_score
-          from game_scores gs
-          join profiles p on p.id = gs.user_id
-          where gs.competition_id = gc.id
-            and not exists (
-              select 1 from game_competition_exclusions e
-              where e.competition_id = gc.id and e.user_id = gs.user_id
-            )
-          group by gs.user_id, p.full_name
-          order by best_score desc, min(gs.played_at) asc
+          select st.full_name, st.best_score, st.rank
+          from competition_standings(gc.id) st
+          order by st.rank
           limit 3
         ) t
       ) as top
@@ -117,6 +128,8 @@ as $function$
     limit least(greatest(coalesce(p_limit, 10), 0), 20)
   ) c
 $function$;
+
+revoke all on function public.competition_standings(uuid) from public, anon, authenticated;
 
 revoke all on function public.get_today_competition(text, date) from public, anon, authenticated;
 revoke all on function public.get_competition_leaderboard(uuid, int) from public, anon, authenticated;

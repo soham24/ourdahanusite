@@ -275,6 +275,18 @@ await db.query(
      ($1, 50, '2026-11-21 10:00+00', $4), ($2, 50, '2026-11-21 09:00+00', $4), ($3, 70, '2026-11-21 11:00+00', $4)`,
   [compA, compB, compC, competitionId],
 )
+// D scores 10 early, then ties with E on 50 AFTER E got there: E must rank above D
+// even though D's first round of the day is the earliest of all.
+const compD = '00000000-0000-0000-0000-0000000000b4'
+const compE = '00000000-0000-0000-0000-0000000000b5'
+for (const [id, name] of [[compD, 'Player D'], [compE, 'Player E']]) {
+  await db.query(`INSERT INTO auth.users (id, email, raw_user_meta_data) VALUES ($1, $2, $3)`, [id, `${name.replace(' ', '').toLowerCase()}@example.test`, JSON.stringify({ full_name: name })])
+}
+await db.query(
+  `INSERT INTO public.game_scores (user_id, score, played_at, competition_id) VALUES
+     ($1, 10, '2026-11-21 08:00+00', $3), ($1, 50, '2026-11-21 12:00+00', $3), ($2, 50, '2026-11-21 09:30+00', $3)`,
+  [compD, compE, competitionId],
+)
 await db.query(`INSERT INTO public.game_competition_exclusions (competition_id, user_id, reason) VALUES ($1, $2, 'cheating')`, [competitionId, compC])
 await assert.rejects(
   db.query(`INSERT INTO public.game_competitions (day, title, prize, code) VALUES ('2026-11-22', 'Bad', 'x', 'lower')`),
@@ -292,8 +304,8 @@ for (const role of ['anon', 'authenticated']) {
   const board = (await db.query(`SELECT public.get_competition_leaderboard($1, 10) AS r`, [competitionId])).rows[0].r
   assert.deepEqual(
     board.map((r) => [r.full_name, r.best_score]),
-    [['Player B', 50], ['Player A', 50]],
-    `${role}: excluded player is hidden and the earlier tie wins`,
+    [['Player B', 50], ['Player E', 50], ['Player A', 50], ['Player D', 50]],
+    `${role}: excluded player is hidden; ties go to whoever reached the score first, not who played first`,
   )
   assert.equal((await db.query(`SELECT public.get_competition_leaderboard($1, 1) AS r`, [competitionId])).rows[0].r.length, 1, 'limit applies')
   const today = (await db.query(`SELECT public.get_today_competition('chikoo_catcher', '2026-11-21') AS r`)).rows[0].r
@@ -302,8 +314,7 @@ for (const role of ['anon', 'authenticated']) {
   assert.equal((await db.query(`SELECT public.get_today_competition('chikoo_catcher', '2026-11-23') AS r`)).rows[0].r, null, 'no competition that day')
   const past = (await db.query(`SELECT public.get_past_competitions('chikoo_catcher', '2026-11-22', 5) AS r`)).rows[0].r
   assert.equal(past.length, 1)
-  assert.equal(past[0].top.length, 2, 'excluded player is not on the podium')
-  assert.equal(past[0].top[0].full_name, 'Player B')
+  assert.deepEqual(past[0].top.map((r) => r.full_name), ['Player B', 'Player E', 'Player A'], 'podium matches the live board order and omits the excluded player')
   assert.equal((await db.query(`SELECT public.get_past_competitions('chikoo_catcher', '2026-11-21', 5) AS r`)).rows[0].r.length, 0, 'today is not past')
   for (const text of [JSON.stringify(today), JSON.stringify(past), JSON.stringify(board)]) {
     assert.ok(!text.includes('SAPOTA21'), `${role}: the code must never leave the database`)
