@@ -54,14 +54,16 @@ function OrderRow({
   onStatusChange,
 }: {
   order: Order
-  onStatusChange: (order: Order, status: 'fulfilled' | 'cancelled') => void
+  onStatusChange: (order: Order, status: 'fulfilled' | 'cancelled') => Promise<void>
 }) {
   const [isPending, startTransition] = useTransition()
   const isActive = order.status === 'confirmed'
 
   const handleAction = (status: 'fulfilled' | 'cancelled') => {
-    startTransition(() => {
-      onStatusChange(order, status)
+    // Awaited inside the transition so the buttons stay busy until the
+    // server answers, rather than clearing at once.
+    startTransition(async () => {
+      await onStatusChange(order, status)
     })
   }
 
@@ -154,19 +156,29 @@ export default function MyOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [showTest, setShowTest] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    getMyListingOrders().then(({ orders, hideTestByDefault }) => {
-      setOrders(orders)
-      setShowTest(!hideTestByDefault)
-      setLoading(false)
-    })
+    getMyListingOrders()
+      .then(({ orders, hideTestByDefault }) => {
+        setOrders(orders)
+        setShowTest(!hideTestByDefault)
+      })
+      .catch(() => setError('Could not load your orders. Check your connection and refresh the page.'))
+      .finally(() => setLoading(false))
   }, [])
 
   const handleStatusChange = async (order: Order, status: 'fulfilled' | 'cancelled') => {
-    const result = await updateMarketplaceOrderStatus(order.id, status)
-    if (!result.error) {
+    setError('')
+    try {
+      const result = await updateMarketplaceOrderStatus(order.id, status)
+      if (result.error) {
+        setError(result.error)
+        return
+      }
       setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status } : o)))
+    } catch {
+      setError('Could not update the order. Check your connection and try again.')
     }
   }
 
@@ -205,6 +217,12 @@ export default function MyOrdersPage() {
           <p className="text-sm text-gray-500">Orders placed by customers on your listings</p>
         </div>
       </div>
+
+      {error && (
+        <p role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </p>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-20 text-gray-400">

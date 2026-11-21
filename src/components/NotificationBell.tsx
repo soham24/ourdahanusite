@@ -67,13 +67,18 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
   const refresh = useCallback(async () => {
     setLoading(true)
-    const [list, count] = await Promise.all([
-      getRecentNotifications(15),
-      getUnreadCount(),
-    ])
-    setItems(list)
-    setUnread(count)
-    setLoading(false)
+    try {
+      const [list, count] = await Promise.all([
+        getRecentNotifications(15),
+        getUnreadCount(),
+      ])
+      setItems(list)
+      setUnread(count)
+    } catch {
+      // Offline: keep the last list rather than spin forever.
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   // Initial unread count

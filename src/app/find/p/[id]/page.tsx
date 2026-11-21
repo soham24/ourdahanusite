@@ -6,9 +6,9 @@ import { getProfessionalById, getApprovedRatings, getApprovedProfessionals } fro
 import { truncateAtWord } from '@/lib/text'
 import { isProfileIndexable } from '@/lib/seo-thresholds'
 import { createClient } from '@/lib/supabase/server'
-import { professionSlug } from '@/lib/find/professions'
+import { professionFromSlug, professionSlug } from '@/lib/find/professions'
 import StructuredData from '@/components/StructuredData'
-import { BusinessAvatar, GoldStars, Monogram, Mr, premiumSurfaceClass, PremiumBadge, professionLabels, telHref, timeAgo, VisitBusinessLink, waHref } from '../../find-ui'
+import { BusinessAvatar, GoldStars, Monogram, Mr, premiumSurfaceClass, PremiumBadge, professionLabels, telHref, ratingDate, VisitBusinessLink, waHref } from '../../find-ui'
 import { findLoginHref } from '../../find-server'
 import TrackedContactLink from '../../TrackedContactLink'
 import FindCard from '../../FindCard'
@@ -82,6 +82,9 @@ export default async function ProfessionalDetailPage({
   const primaryProfession = proLabels[0] ?? 'Professional'
   const primarySlug = professionSlug(primaryProfession)
   const categoryUrl = `${FIND_URL}/c/${primarySlug}`
+  // Only the fixed categories have a page. A free-text "Other" title such as
+  // "Yoga Instructor" would link to a 404.
+  const hasCategoryPage = primaryProfession !== 'Other' && professionFromSlug(primarySlug) !== null
   const primaryProfessionLower = primaryProfession.toLowerCase()
   // Avoid "systemss" for categories that already end in 's' (e.g. "CCTV & Security Systems").
   const primaryProfessionPlural = primaryProfessionLower.endsWith('s')
@@ -143,10 +146,10 @@ export default async function ProfessionalDetailPage({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: FIND_NAME, item: `${FIND_URL}/` },
-      { '@type': 'ListItem', position: 2, name: primaryProfession, item: categoryUrl },
-      { '@type': 'ListItem', position: 3, name: pro.name, item: profileUrl },
-    ],
+      { name: FIND_NAME, item: `${FIND_URL}/` },
+      ...(hasCategoryPage ? [{ name: primaryProfession, item: categoryUrl }] : []),
+      { name: pro.name, item: profileUrl },
+    ].map((crumb, index) => ({ '@type': 'ListItem', position: index + 1, ...crumb })),
   }
 
   return (
@@ -161,12 +164,18 @@ export default async function ProfessionalDetailPage({
           <ArrowLeft size={13} aria-hidden /> {FIND_NAME}
         </Link>
         <span className="text-[var(--od-muted)]" aria-hidden>/</span>
-        <Link
-          href={`/find/c/${primarySlug}`}
-          className="rounded-full border border-[var(--od-border)] bg-white/70 px-3 py-1.5 text-[13px] font-semibold text-[var(--od-ink-2)] transition-colors hover:border-[rgba(192,88,46,0.4)] hover:text-[var(--od-brand-strong)]"
-        >
-          {primaryProfession}
-        </Link>
+        {hasCategoryPage ? (
+          <Link
+            href={`/find/c/${primarySlug}`}
+            className="rounded-full border border-[var(--od-border)] bg-white/70 px-3 py-1.5 text-[13px] font-semibold text-[var(--od-ink-2)] transition-colors hover:border-[rgba(192,88,46,0.4)] hover:text-[var(--od-brand-strong)]"
+          >
+            {primaryProfession}
+          </Link>
+        ) : (
+          <span className="rounded-full border border-[var(--od-border)] bg-white/70 px-3 py-1.5 text-[13px] font-semibold text-[var(--od-ink-2)]">
+            {primaryProfession}
+          </span>
+        )}
       </nav>
 
       <div className={`relative p-5 sm:p-6 ${pro.business ? premiumSurfaceClass : 'od-card'}`}>
@@ -304,7 +313,7 @@ export default async function ProfessionalDetailPage({
                 <span className="flex items-center justify-between gap-2">
                   <GoldStars value={r.rating} size={13} />
                   <span className="text-[11px] text-[var(--od-muted)]">
-                    {timeAgo(r.created_at)}
+                    {ratingDate(r.created_at)}
                   </span>
                 </span>
                 <span className="sr-only">Rated {r.rating} out of 5</span>
@@ -331,12 +340,14 @@ export default async function ProfessionalDetailPage({
               <FindCard key={p.id} p={p} />
             ))}
           </div>
-          <Link
-            href={`/find/c/${primarySlug}`}
-            className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-bold text-[var(--od-brand)] hover:text-[var(--od-brand-strong)]"
-          >
-            View all {primaryProfessionPlural} in {siteConfig.town} →
-          </Link>
+          {hasCategoryPage && (
+            <Link
+              href={`/find/c/${primarySlug}`}
+              className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-bold text-[var(--od-brand)] hover:text-[var(--od-brand-strong)]"
+            >
+              View all {primaryProfessionPlural} in {siteConfig.town} →
+            </Link>
+          )}
         </section>
       )}
     </div>

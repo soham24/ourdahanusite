@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
+import { safelySubmit } from '@/lib/find/safe-submission'
 import { updateProfessional, setProfessionalStatus, deleteProfessional, type AdminProfessionalFields } from '@/app/actions/admin-find'
 import type { FindProfessional } from '@/lib/find/types'
 import BusinessPicker from './BusinessPicker'
@@ -28,7 +29,7 @@ export default function EditProfessionalForm({
   async function remove() {
     if (!window.confirm(`Permanently delete "${pro.name}" and all their ratings? This cannot be undone.`)) return
     setError(null); setMsg(null); setPending(true)
-    const res = await deleteProfessional(pro.id)
+    const res = await safelySubmit(() => deleteProfessional(pro.id))
     setPending(false)
     if (res.error) { setError(res.error); return }
     router.refresh()
@@ -54,7 +55,7 @@ export default function EditProfessionalForm({
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null); setMsg(null); setPending(true)
-    const res = await updateProfessional(pro.id, fields(new FormData(e.currentTarget)))
+    const res = await safelySubmit(() => updateProfessional(pro.id, fields(new FormData(e.currentTarget))))
     setPending(false)
     if (res.error) { setError(res.error); return }
     setMsg('Saved.')
@@ -64,9 +65,9 @@ export default function EditProfessionalForm({
 
   async function saveAndApprove(formEl: HTMLFormElement) {
     setError(null); setMsg(null); setPending(true)
-    const upd = await updateProfessional(pro.id, fields(new FormData(formEl)))
+    const upd = await safelySubmit(() => updateProfessional(pro.id, fields(new FormData(formEl))))
     if (upd.error) { setPending(false); setError(upd.error); return }
-    const res = await setProfessionalStatus(pro.id, 'approved')
+    const res = await safelySubmit(() => setProfessionalStatus(pro.id, 'approved'))
     setPending(false)
     if (res.error) { setError(res.error); return }
     setMsg('Approved and live.')
@@ -137,7 +138,7 @@ export default function EditProfessionalForm({
           <button type="button" disabled={pending}
             onClick={async () => {
               setPending(true)
-              const r = await setProfessionalStatus(pro.id, 'rejected')
+              const r = await safelySubmit(() => setProfessionalStatus(pro.id, 'rejected'))
               setPending(false)
               if (r.error) { setError(r.error); return }
               setMsg('Rejected.')

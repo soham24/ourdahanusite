@@ -13,8 +13,15 @@ export default function ExtendListingButton({ id, name }: { id: string; name: st
     if (!confirm(`Extend "${name}" by 1 year and re-activate it?`)) return
     setLoading(true)
     setError('')
-    const result = await adminExtendListing(id)
-    setLoading(false)
+    let result: Awaited<ReturnType<typeof adminExtendListing>>
+    try {
+      result = await adminExtendListing(id)
+    } catch {
+      setError('Could not reach the server. Check your connection and try again.')
+      return
+    } finally {
+      setLoading(false)
+    }
     if (result?.error) {
       setError(result.error)
     } else {

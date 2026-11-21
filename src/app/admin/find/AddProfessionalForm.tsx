@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { PROFESSIONS, professionMarathi } from '@/lib/find/professions'
+import { safelySubmit } from '@/lib/find/safe-submission'
 import { createProfessionalAsAdmin, type AdminProfessionalFields } from '@/app/actions/admin-find'
 import BusinessPicker from './BusinessPicker'
 import { siteConfig } from '@/lib/site'
@@ -34,7 +35,7 @@ export default function AddProfessionalForm({ onDone }: { onDone: () => void }) 
       note: String(fd.get('note') || ''),
       businessListingId: hasBusiness ? businessId : null,
     }
-    const res = await createProfessionalAsAdmin(fields)
+    const res = await safelySubmit(() => createProfessionalAsAdmin(fields))
     setPending(false)
     if (res.error) { setError(res.error); return }
     setMsg('Added.')

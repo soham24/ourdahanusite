@@ -53,13 +53,17 @@ export function ProductsManager({
         : [...previous, item],
     )
 
+  // A dropped connection rejects the action. Treated as an error so the
+  // change made on screen is undone rather than left looking saved.
+  const OFFLINE = { error: 'Could not reach the server. Check your connection and try again.' } as const
+
   const handleMove = (itemId: string, direction: 'up' | 'down') => {
     const nextIds = moveId(items.map((item) => item.id), itemId, direction)
     const byId = new Map(items.map((item) => [item.id, item]))
     setItems(nextIds.flatMap((id) => byId.get(id) ?? []))
     setRowError(itemId, null)
     startTransition(async () => {
-      const result = await moveCatalogItems(listingId, nextIds)
+      const result = await moveCatalogItems(listingId, nextIds).catch(() => OFFLINE)
       if (result.error) {
         // Undo only this item's move on whatever the list looks like now —
         // another row's action may have landed while this one was in flight.
@@ -79,8 +83,8 @@ export function ProductsManager({
     upsertItem({ ...item, is_active: visible })
     setRowError(item.id, null)
     startTransition(async () => {
-      const result = await setCatalogItemVisible(item.id, visible)
-      if (result.item) upsertItem(result.item)
+      const result = await setCatalogItemVisible(item.id, visible).catch(() => OFFLINE)
+      if ('item' in result && result.item) upsertItem(result.item)
       if (result.error) {
         upsertItem(item)
         setRowError(item.id, result.error)
@@ -93,7 +97,7 @@ export function ProductsManager({
     const index = items.findIndex((existing) => existing.id === item.id)
     setItems((current) => current.filter((existing) => existing.id !== item.id))
     startTransition(async () => {
-      const result = await deleteCatalogItem(item.id)
+      const result = await deleteCatalogItem(item.id).catch(() => OFFLINE)
       if (result.error) {
         // Re-insert just this item at its old spot — don't clobber any other
         // row change that may have landed on the list while this was in flight.

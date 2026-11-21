@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { safelySubmit } from '@/lib/find/safe-submission'
 import { setRatingStatus, deleteRating } from '@/app/actions/admin-find'
 
 export default function RatingModerationButtons({
@@ -17,7 +18,7 @@ export default function RatingModerationButtons({
 
   async function act(status: 'approved' | 'rejected') {
     setPending(true); setError(null)
-    const res = await setRatingStatus(ratingId, status)
+    const res = await safelySubmit(() => setRatingStatus(ratingId, status))
     setPending(false)
     if (res.error) { setError(res.error); return }
     onActed?.(status)
@@ -26,7 +27,7 @@ export default function RatingModerationButtons({
   async function remove() {
     if (!window.confirm('Permanently delete this rating? This cannot be undone.')) return
     setPending(true); setError(null)
-    const res = await deleteRating(ratingId)
+    const res = await safelySubmit(() => deleteRating(ratingId))
     setPending(false)
     if (res.error) { setError(res.error); return }
     router.refresh()

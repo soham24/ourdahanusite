@@ -10,6 +10,7 @@ import { addIndiaDays, getIndiaToday } from '@/lib/india-time'
 import { logCacheRegeneration } from '@/lib/isr-debug'
 import { normalizeAppointmentSettings, type AppointmentSettings } from '@/lib/listing-content'
 import { createPublicClient } from '@/lib/supabase/public'
+import { readOrThrow } from '@/lib/data/read'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 
 /**
@@ -31,6 +32,9 @@ export type AppointmentDirectoryEntry = {
   bookingFee: number
   nextSlots: AppointmentDirectorySlot[]
   hasAvailability: boolean
+  /** False when the owner switched booking on but never set opening hours:
+   *  there is no booking page to send anyone to yet. */
+  hoursSet: boolean
 }
 
 type BookableRow = {
@@ -51,14 +55,14 @@ function toNumber(value: number | string | null | undefined): number {
 
 async function fetchBookableRows(): Promise<BookableRow[]> {
   const supabase = createPublicClient()
-  const { data } = await supabase
+  const data = readOrThrow(await supabase
     .from('listings')
     .select(
       'id, name, subdomain, category, image_thumb_url, image_url, appointment_booking_fee, appointment_settings',
     )
     .eq('approved', true)
     .eq('appointments_enabled', true)
-    .order('name', { ascending: true })
+    .order('name', { ascending: true }), 'bookable listings')
 
   return (data ?? []) as BookableRow[]
 }
@@ -136,6 +140,7 @@ export async function getAppointmentDirectory(): Promise<AppointmentDirectoryEnt
       bookingFee: toNumber(row.appointment_booking_fee),
       nextSlots,
       hasAvailability: nextSlots.length > 0,
+      hoursSet: settings !== null,
     }
   })
 
@@ -165,13 +170,13 @@ export async function getBookableListingBySubdomain(
   cacheTag(CACHE_TAGS.appointments)
 
   const supabase = createPublicClient()
-  const { data } = await supabase
+  const data = readOrThrow(await supabase
     .from('listings')
     .select('id, name, subdomain, category, appointment_booking_fee, appointment_settings')
     .eq('subdomain', subdomain)
     .eq('approved', true)
     .eq('appointments_enabled', true)
-    .maybeSingle()
+    .maybeSingle(), 'listings')
 
   const row = data as BookableRow | null
   if (!row) return null

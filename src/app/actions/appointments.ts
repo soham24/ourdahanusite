@@ -173,18 +173,23 @@ export async function getAvailableSlotsForDate(
     return { error: 'Please choose a valid date.', slots: [] }
   }
 
-  const settings = await getCachedAppointmentSettings(listingId)
-  if (!settings || !settings.appointments_enabled || !settings.appointment_settings) {
-    return { slots: [] }
-  }
+  try {
+    const settings = await getCachedAppointmentSettings(listingId)
+    if (!settings || !settings.appointments_enabled || !settings.appointment_settings) {
+      return { slots: [] }
+    }
 
-  const dateError = validateBookingDateRange(normalizedDate, settings.appointment_settings.advance_days)
-  if (dateError) {
-    return { error: dateError, slots: [] }
-  }
+    const dateError = validateBookingDateRange(normalizedDate, settings.appointment_settings.advance_days)
+    if (dateError) {
+      return { error: dateError, slots: [] }
+    }
 
-  return {
-    slots: await getSlotsForDate(listingId, settings.appointment_settings, normalizedDate),
+    return {
+      slots: await getSlotsForDate(listingId, settings.appointment_settings, normalizedDate),
+    }
+  } catch (err) {
+    console.error('[appointments] could not load slots:', err)
+    return { error: 'Could not load available times right now. Please try again in a moment.', slots: [] }
   }
 }
 

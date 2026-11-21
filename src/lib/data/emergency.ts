@@ -6,6 +6,7 @@ import { CACHE_TAGS } from '@/lib/cache-tags'
 import { URGENT_PUBLIC_CACHE } from '@/lib/cache-policy'
 import { logCacheRegeneration } from '@/lib/isr-debug'
 import { createPublicClient } from '@/lib/supabase/public'
+import { readOrThrow } from '@/lib/data/read'
 
 export interface EmergencyAlert {
   id: string
@@ -22,19 +23,15 @@ export async function getActiveEmergencyAlert(): Promise<EmergencyAlert | null> 
   cacheTag(CACHE_TAGS.emergency)
   logCacheRegeneration({ scope: 'layout:emergency-ribbon', tags: [CACHE_TAGS.emergency] })
 
-  try {
-    const supabase = createPublicClient()
-    const { data } = await supabase
-      .from('emergency_alerts')
-      .select('id, title, severity, active, expires_at')
-      .eq('active', true)
-      .order('severity', { ascending: true })
-      .order('created_at', { ascending: false })
-      .order('id', { ascending: true })
-      .limit(1)
+  const supabase = createPublicClient()
+  const data = readOrThrow(await supabase
+    .from('emergency_alerts')
+    .select('id, title, severity, active, expires_at')
+    .eq('active', true)
+    .order('severity', { ascending: true })
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: true })
+    .limit(1), 'emergency alerts')
 
-    return (data?.[0] as EmergencyAlert | undefined) ?? null
-  } catch {
-    return null
-  }
+  return (data?.[0] as EmergencyAlert | undefined) ?? null
 }

@@ -10,6 +10,7 @@ import { logCacheRegeneration } from '@/lib/isr-debug'
 import { deriveShopMode, type ShopMode } from '@/lib/selling/shop-mode'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createPublicClient } from '@/lib/supabase/public'
+import { isUuid, readOrThrow } from '@/lib/data/read'
 
 export interface StandaloneProduct extends CatalogItem {
   listing_id: string
@@ -31,18 +32,19 @@ export async function fetchProductAndListing(productId: string): Promise<{
 } | null> {
   'use cache'
 
+  if (!isUuid(productId)) return null
   cacheLife(PUBLIC_CONTENT_CACHE)
   // Tagged before the fetch so a not-found result (a hidden item) is tagged
   // too: making the item visible again clears it.
   cacheTag(CACHE_TAGS.product(productId))
 
   const supabase = createPublicClient()
-  const { data: productData } = await supabase
+  const productData = readOrThrow(await supabase
     .from('listing_products')
     .select(`listing_id, ${CATALOG_ITEM_SELECT}`)
     .eq('id', productId)
     .eq('is_active', true)
-    .maybeSingle()
+    .maybeSingle(), 'product')
   if (!productData) return null
   const product = toCatalogItem(productData as unknown as CatalogRow & { listing_id: string })
 
@@ -63,12 +65,12 @@ export async function fetchProductAndListing(productId: string): Promise<{
     detail: { productId },
   })
 
-  const { data: listingData } = await supabase
+  const listingData = readOrThrow(await supabase
     .from('listings')
     .select('id, name, subdomain, whatsapp, phone, approved, payments_enabled, payments_suspended_at')
     .eq('id', product.listing_id)
     .eq('approved', true)
-    .maybeSingle()
+    .maybeSingle(), 'product listing')
   const listingRow = (listingData ?? null) as
     | (StandaloneProductListing & { payments_enabled: boolean | null; payments_suspended_at: string | null })
     | null
@@ -76,13 +78,13 @@ export async function fetchProductAndListing(productId: string): Promise<{
   // Payment configs have no public read policy; the key id is read only to
   // tell test keys from live keys and never leaves this function.
   const adminClient = listingRow?.payments_enabled ? createAdminClient() : null
-  const { data: configData } = adminClient
+  const configData = readOrThrow(adminClient
     ? await adminClient
         .from('listing_payment_configs')
         .select('verified_at, razorpay_key_id')
         .eq('listing_id', product.listing_id)
         .maybeSingle()
-    : { data: null }
+    : { data: null, error: null }, 'payment config')
   const config = (configData ?? null) as { verified_at: string | null; razorpay_key_id: string } | null
 
   const shopMode = deriveShopMode({
@@ -117,24 +119,24 @@ export async function fetchLegacyServiceTarget(
   cacheLife(PUBLIC_CONTENT_CACHE)
 
   const supabase = createPublicClient()
-  const { data: listingData } = await supabase
+  const listingData = readOrThrow(await supabase
     .from('listings')
     .select('id')
     .eq('subdomain', subdomain)
     .eq('approved', true)
-    .maybeSingle()
+    .maybeSingle(), 'listing by subdomain')
   const listingId = (listingData as { id: string } | null)?.id
   if (!listingId) return null
 
   cacheTag(CACHE_TAGS.listing(listingId))
 
-  const { data: productData } = await supabase
+  const productData = readOrThrow(await supabase
     .from('listing_products')
     .select('id')
     .eq('listing_id', listingId)
     .eq('legacy_service_index', index)
     .eq('is_active', true)
-    .maybeSingle()
+    .maybeSingle(), 'legacy service')
 
   return { listingId, productId: (productData as { id: string } | null)?.id ?? null }
 }

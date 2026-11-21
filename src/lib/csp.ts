@@ -61,6 +61,8 @@ export function buildContentSecurityPolicy({
       'https://pagead2.googlesyndication.com',
       'https://*.adtrafficquality.google',
       'https://va.vercel-scripts.com',
+      // Google Analytics 4 also beacons to www.google.com/g/collect.
+      'https://www.google.com',
     ],
     'frame-src': [
       'https://api.razorpay.com',
@@ -68,6 +70,10 @@ export function buildContentSecurityPolicy({
       'https://googleads.g.doubleclick.net',
       'https://tpc.googlesyndication.com',
       'https://www.google.com',
+      // AdSense's ad-quality check runs in a frame of its own.
+      'https://*.adtrafficquality.google',
+      // A business's video, embedded on its page.
+      'https://www.youtube.com',
     ],
     'form-action': ["'self'", 'https://api.razorpay.com'],
     'frame-ancestors': ["'self'"],

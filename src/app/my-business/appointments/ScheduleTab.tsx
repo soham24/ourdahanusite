@@ -42,17 +42,23 @@ export default function ScheduleTab({ listingId, listingName }: Props) {
 
   useEffect(() => {
     if (!listingId) return
-    getUpcomingOverrides(listingId).then((result) => {
-      if (result.error) setError(result.error)
-      else setOverrides(result.overrides)
-      setLoading(false)
-    })
+    getUpcomingOverrides(listingId)
+      .then((result) => {
+        if (result.error) setError(result.error)
+        else setOverrides(result.overrides)
+      })
+      .catch(() => setError('Could not load your closed days. Check your connection and refresh the page.'))
+      .finally(() => setLoading(false))
   }, [listingId])
 
   const reload = async () => {
     if (!listingId) return
-    const result = await getUpcomingOverrides(listingId)
-    if (!result.error) setOverrides(result.overrides)
+    try {
+      const result = await getUpcomingOverrides(listingId)
+      if (!result.error) setOverrides(result.overrides)
+    } catch {
+      // The change was saved; the list refreshes on the next visit.
+    }
   }
 
   const submit = (resolution?: 'cancel_conflicts' | 'keep_conflicts') => {

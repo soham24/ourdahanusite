@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { FindProfessional } from '@/lib/find/types'
+import { safelySubmit } from '@/lib/find/safe-submission'
 import { setProfessionalStatus } from '@/app/actions/admin-find'
 import EditProfessionalForm from './EditProfessionalForm'
 import { siteConfig } from '@/lib/site'
@@ -38,7 +39,7 @@ export default function ProfessionalList({
   async function quickAction(id: string, status: 'approved' | 'rejected') {
     setPendingId(id)
     setErrorById((cur) => ({ ...cur, [id]: '' }))
-    const res = await setProfessionalStatus(id, status)
+    const res = await safelySubmit(() => setProfessionalStatus(id, status))
     setPendingId(null)
     if (res.error) {
       setErrorById((cur) => ({ ...cur, [id]: res.error! }))

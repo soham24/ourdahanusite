@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { CalendarClock } from 'lucide-react'
 
 import type { AppointmentDirectoryEntry } from '@/lib/data/appointment-directory'
+import { getListingHref } from '@/lib/listing-url'
 
 function formatSlotDate(value: string): string {
   return new Date(`${value}T12:00:00+05:30`).toLocaleDateString('en-IN', {
@@ -106,19 +107,32 @@ export default function DirectoryList({ entries }: { entries: AppointmentDirecto
                     </span>
                   ))}
                 </div>
-              ) : (
+              ) : entry.hoursSet ? (
                 <p className="text-xs text-[var(--od-muted)]">
                   No slots available in the next two weeks.
+                </p>
+              ) : (
+                <p className="text-xs text-[var(--od-muted)]">
+                  Online booking isn&apos;t set up yet. Contact the business to book.
                 </p>
               )}
             </div>
 
-            {entry.subdomain && (
+            {/* Without hours there is no booking page, only "not available";
+                the business page has their phone and WhatsApp instead. */}
+            {entry.subdomain && entry.hoursSet ? (
               <Link
                 href={`/appointments/${entry.subdomain}`}
                 className="od-button-primary mt-4 flex w-full items-center justify-center py-2.5 text-sm"
               >
                 {entry.hasAvailability ? 'Book a slot' : 'See schedule'}
+              </Link>
+            ) : (
+              <Link
+                href={getListingHref(entry.listingId, entry.subdomain)}
+                className="od-button-secondary mt-4 flex w-full items-center justify-center py-2.5 text-sm"
+              >
+                Contact the business
               </Link>
             )}
           </li>

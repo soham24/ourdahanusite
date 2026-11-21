@@ -23,9 +23,14 @@ export default function AssignOwner({ listingId, currentOwnerEmail }: Props) {
   async function search() {
     if (!query.trim()) return
     setSearching(true)
-    const { users } = await adminSearchUsers(query)
-    setResults(users)
-    setSearching(false)
+    try {
+      const { users } = await adminSearchUsers(query)
+      setResults(users)
+    } catch {
+      setError('Could not search users. Check your connection and try again.')
+    } finally {
+      setSearching(false)
+    }
   }
 
   function assign() {

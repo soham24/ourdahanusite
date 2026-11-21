@@ -221,11 +221,13 @@ export default function MyBusinessAppointmentsPage() {
   const [listingId, setListingId] = useState('')
 
   useEffect(() => {
-    getMyAppointmentListings().then((result) => {
-      setListings(result.listings)
-      if (result.listings.length > 0) setListingId(result.listings[0].id)
-      setListingsLoading(false)
-    })
+    getMyAppointmentListings()
+      .then((result) => {
+        setListings(result.listings)
+        if (result.listings.length > 0) setListingId(result.listings[0].id)
+      })
+      .catch(() => setErrorMessage('Could not load your businesses. Check your connection and refresh the page.'))
+      .finally(() => setListingsLoading(false))
   }, [])
 
   const selectedListing = listings.find((listing) => listing.id === listingId) ?? null
@@ -234,17 +236,21 @@ export default function MyBusinessAppointmentsPage() {
   // do not go stale. Without it, switching business away and back would show
   // the owner their pre-save hours.
   const refreshListings = async () => {
-    const result = await getMyAppointmentListings()
-    setListings(result.listings)
+    try {
+      const result = await getMyAppointmentListings()
+      setListings(result.listings)
+    } catch {
+      // The save itself succeeded; the next page load shows fresh hours.
+    }
   }
 
   const today = useMemo(() => getIndiaToday(), [])
 
   useEffect(() => {
-    getMyBusinessAppointments().then((data) => {
-      setAppointments(data)
-      setLoading(false)
-    })
+    getMyBusinessAppointments()
+      .then(setAppointments)
+      .catch(() => setErrorMessage('Could not load your bookings. Check your connection and refresh the page.'))
+      .finally(() => setLoading(false))
   }, [])
 
   const applyPatch = (id: string, patch: Partial<AppointmentRecord>) => {

@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies, headers } from 'next/headers'
 import { getAuthCookieOptions } from './auth-cookie'
+import { fetchWithTimeout } from './fetch-timeout'
 
 function bearerToken(headerValue: string | null): string | null {
   if (!headerValue) return null
@@ -32,7 +33,10 @@ export async function createClient() {
     // Newer Supabase projects call this key "publishable".
     (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)!,
     {
-      ...(token ? { global: { headers: { Authorization: `Bearer ${token}` } } } : {}),
+      global: {
+        fetch: fetchWithTimeout(),
+        ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+      },
       cookieOptions,
       cookies: {
         getAll() {

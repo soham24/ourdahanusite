@@ -171,8 +171,15 @@ export default function EditListingForm({ listing, catalogItemCount, manageHref 
     fd.set('payment_methods', JSON.stringify(paymentMethods))
     fd.set('delivery_info', JSON.stringify(deliveryInfo.areas || deliveryInfo.note ? deliveryInfo : null))
     fd.set('before_after', JSON.stringify(beforeAfter.before && beforeAfter.after ? beforeAfter : null))
-    const result = await updateListing(listing.id as string, fd)
-    setSaving(false)
+    let result: Awaited<ReturnType<typeof updateListing>>
+    try {
+      result = await updateListing(listing.id as string, fd)
+    } catch {
+      setError('Could not save. Check your connection and try again. Your changes are still here.')
+      return
+    } finally {
+      setSaving(false)
+    }
     if (result?.error) {
       setError(result.error)
     } else {

@@ -2,6 +2,8 @@ import 'server-only'
 
 import { createClient } from '@supabase/supabase-js'
 
+import { fetchWithTimeout } from './fetch-timeout'
+
 /**
  * Creates a Supabase client with the service-role key.
  * Only use this in server actions / API routes — NEVER expose to the browser.
@@ -14,5 +16,6 @@ export function createAdminClient() {
   if (!url || !key) return null
   return createClient(url, key, {
     auth: { autoRefreshToken: false, persistSession: false },
+    global: { fetch: fetchWithTimeout() },
   })
 }

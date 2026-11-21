@@ -3,6 +3,8 @@ import test from 'node:test'
 import { readFileSync } from 'node:fs'
 import { transformSync } from 'esbuild'
 
+import * as read from '../data/read'
+
 // CommonJS so each import becomes a require() answered from deps. esbuild,
 // because TypeScript 7 dropped ts.transpileModule.
 function load(path: string, deps: Record<string, unknown>) {
@@ -49,6 +51,7 @@ test('appointment directory reads occupancy with the trusted client and rejects 
       '@/lib/appointment-slots': {generateAvailableSlots:()=>[]},
       '@/lib/cache-tags': {CACHE_TAGS:{}}, '@/lib/cache-policy': {PUBLIC_CONTENT_CACHE:{}},
       '@/lib/data/appointment-overrides': {getOverridesForListings:async()=>({})},
+      '@/lib/data/read': read,
       '@/lib/india-time': {getIndiaToday:()=> '2026-09-16',addIndiaDays:()=> '2026-09-30'},
       '@/lib/isr-debug': {logCacheRegeneration:()=>{}},
       '@/lib/listing-content': {normalizeAppointmentSettings:()=>null},

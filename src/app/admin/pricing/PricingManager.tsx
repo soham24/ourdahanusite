@@ -81,21 +81,29 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
 
   async function handleToggle(coupon: Coupon) {
     setTogglingId(coupon.id)
-    const res = await toggleCoupon(coupon.id, !coupon.enabled)
-    if (!res.error) {
-      setCoupons(prev => prev.map(c => c.id === coupon.id ? { ...c, enabled: !c.enabled } : c))
+    try {
+      const res = await toggleCoupon(coupon.id, !coupon.enabled)
+      if (res.error) window.alert(res.error)
+      else setCoupons(prev => prev.map(c => c.id === coupon.id ? { ...c, enabled: !c.enabled } : c))
+    } catch {
+      window.alert('Could not reach the server. Check your connection and try again.')
+    } finally {
+      setTogglingId(null)
     }
-    setTogglingId(null)
   }
 
   async function handleDelete(coupon: Coupon) {
     if (!confirm(`Delete coupon "${coupon.code}"? This cannot be undone.`)) return
     setDeletingId(coupon.id)
-    const res = await deleteCoupon(coupon.id)
-    if (!res.error) {
-      setCoupons(prev => prev.filter(c => c.id !== coupon.id))
+    try {
+      const res = await deleteCoupon(coupon.id)
+      if (res.error) window.alert(res.error)
+      else setCoupons(prev => prev.filter(c => c.id !== coupon.id))
+    } catch {
+      window.alert('Could not reach the server. Check your connection and try again.')
+    } finally {
+      setDeletingId(null)
     }
-    setDeletingId(null)
   }
 
   function clearAssignedRowError(id: string) {
@@ -125,7 +133,12 @@ export default function PricingManager({ pricing, coupons: initialCoupons }: Pro
     clearAssignedRowError(coupon.id)
     setSavingAssignedId(coupon.id)
     const draft = assignedDraft
-    const res = await setCouponAssignedTo(coupon.id, draft)
+    let res: Awaited<ReturnType<typeof setCouponAssignedTo>>
+    try {
+      res = await setCouponAssignedTo(coupon.id, draft)
+    } catch {
+      res = { error: 'Could not reach the server. Check your connection and try again.' }
+    }
     if (res.error) {
       const message = res.error
       // Keyed by coupon.id, so this can never land on a different row's

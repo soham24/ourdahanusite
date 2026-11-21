@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js'
 
 import type { Database } from '@/lib/database.types'
 
+import { fetchWithTimeout } from './fetch-timeout'
+
 let publicClient: ReturnType<typeof createClient<Database>> | null = null
 
 export function createPublicClient() {
@@ -25,6 +27,7 @@ export function createPublicClient() {
       persistSession: false,
     },
     global: {
+      fetch: fetchWithTimeout(),
       headers: {
         'X-Client-Info': 'ourdahanu-public-server',
       },

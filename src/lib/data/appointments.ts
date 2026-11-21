@@ -11,6 +11,7 @@ import {
 } from '@/lib/listing-content'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createPublicClient } from '@/lib/supabase/public'
+import { readOrThrow } from '@/lib/data/read'
 import { generateAvailableSlots, type AppointmentSlot } from '@/lib/appointment-slots'
 import { getOverrideMap } from '@/lib/data/appointment-overrides'
 
@@ -56,26 +57,22 @@ export async function getCachedAppointmentSettings(
     detail: { listingId },
   })
 
-  try {
-    const supabase = createPublicClient()
-    const { data } = await supabase
-      .from('listings')
-      .select('id, appointments_enabled, appointment_booking_fee, appointment_settings')
-      .eq('id', listingId)
-      .eq('approved', true)
-      .maybeSingle()
+  const supabase = createPublicClient()
+  const data = readOrThrow(await supabase
+    .from('listings')
+    .select('id, appointments_enabled, appointment_booking_fee, appointment_settings')
+    .eq('id', listingId)
+    .eq('approved', true)
+    .maybeSingle(), 'appointment settings')
 
-    const row = data as AppointmentSettingsRow | null
-    if (!row) return null
+  const row = data as AppointmentSettingsRow | null
+  if (!row) return null
 
-    return {
-      listingId: row.id,
-      appointments_enabled: row.appointments_enabled === true,
-      appointment_booking_fee: toNumber(row.appointment_booking_fee),
-      appointment_settings: normalizeAppointmentSettings(row.appointment_settings),
-    }
-  } catch {
-    return null
+  return {
+    listingId: row.id,
+    appointments_enabled: row.appointments_enabled === true,
+    appointment_booking_fee: toNumber(row.appointment_booking_fee),
+    appointment_settings: normalizeAppointmentSettings(row.appointment_settings),
   }
 }
 
@@ -83,25 +80,23 @@ export async function getAppointmentCountsForDate(
   listingId: string,
   bookingDate: string,
 ): Promise<Record<string, number>> {
-  try {
-    const supabase = getAppointmentReader()
-    const { data } = await supabase
-      .from('appointments')
-      .select('slot_start')
-      .eq('listing_id', listingId)
-      .eq('booking_date', bookingDate)
-      .eq('status', 'confirmed')
+  // Throws rather than reporting no bookings: an empty answer would offer
+  // full slots as free. Booking itself re-checks capacity under a lock.
+  const supabase = getAppointmentReader()
+  const data = readOrThrow(await supabase
+    .from('appointments')
+    .select('slot_start')
+    .eq('listing_id', listingId)
+    .eq('booking_date', bookingDate)
+    .eq('status', 'confirmed'), 'appointments')
 
-    const counts: Record<string, number> = {}
-    for (const row of data ?? []) {
-      const slotStart = typeof row.slot_start === 'string' ? row.slot_start.slice(0, 5) : ''
-      if (!slotStart) continue
-      counts[slotStart] = (counts[slotStart] ?? 0) + 1
-    }
-    return counts
-  } catch {
-    return {}
+  const counts: Record<string, number> = {}
+  for (const row of data ?? []) {
+    const slotStart = typeof row.slot_start === 'string' ? row.slot_start.slice(0, 5) : ''
+    if (!slotStart) continue
+    counts[slotStart] = (counts[slotStart] ?? 0) + 1
   }
+  return counts
 }
 
 export async function getLiveAppointmentBookingConfig(

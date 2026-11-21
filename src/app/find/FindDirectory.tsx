@@ -85,12 +85,23 @@ export default function FindDirectory({
     busy.current = true
     if (offset > 0) setAppending(true)
     else setLoading(true)
-    const res = await fetchFindPage({
-      q: f.q,
-      profession: f.profession ?? undefined,
-      sort: f.sort,
-      offset,
-    })
+    let res: Awaited<ReturnType<typeof fetchFindPage>>
+    try {
+      res = await fetchFindPage({
+        q: f.q,
+        profession: f.profession ?? undefined,
+        sort: f.sort,
+        offset,
+      })
+    } catch {
+      // A dropped connection: keep what is on screen and stop the spinner,
+      // and free `busy` so scrolling can retry the load.
+      if (id !== reqId.current) return
+      busy.current = false
+      setLoading(false)
+      setAppending(false)
+      return
+    }
     if (id !== reqId.current) return // a newer request superseded this one; it owns `busy`
     busy.current = false
     // Append that came back empty = end-of-list race or an error fallback

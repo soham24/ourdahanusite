@@ -26,6 +26,12 @@ await db.exec(`
   CREATE TABLE storage.buckets (id text PRIMARY KEY, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
   CREATE TABLE storage.objects (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), bucket_id text, name text, owner uuid);
   ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+  -- Supabase's own helper: the folder segments of an object name, without the file.
+  CREATE FUNCTION storage.foldername(name text) RETURNS text[] LANGUAGE sql IMMUTABLE AS $$
+    SELECT (string_to_array(name, '/'))[1:array_length(string_to_array(name, '/'), 1) - 1]
+  $$;
+  GRANT USAGE ON SCHEMA storage TO anon, authenticated, service_role;
+  GRANT SELECT, INSERT ON storage.objects TO authenticated;
   CREATE PUBLICATION supabase_realtime;
 `)
 
@@ -199,6 +205,20 @@ await db.exec('RESET ROLE')
 await db.exec(`DELETE FROM public.orders; DELETE FROM public.listing_products;`)
 
 await db.exec(`DELETE FROM public.reviews; DELETE FROM public.listing_questions; DELETE FROM public.coupons; DELETE FROM public.listings;`)
+
+// Uploads: a signed-in user writes only into public/<their own id>/.
+await asUser(ownerId)
+for (const name of [`public/${ownerId}/1-a-photo.jpg`, `public/${ownerId}/1-a-photo-thumb.jpg`]) {
+  await db.query(`INSERT INTO storage.objects (bucket_id, name, owner) VALUES ('uploads', $1, $2)`, [name, ownerId])
+}
+for (const name of ['public/1700000000-flat.jpg', `public/${strangerId}/x.jpg`, `other/${ownerId}/x.jpg`, `public/x/${ownerId}/y.jpg`]) {
+  await assert.rejects(
+    db.query(`INSERT INTO storage.objects (bucket_id, name, owner) VALUES ('uploads', $1, $2)`, [name, ownerId]),
+    /row-level security/,
+    name,
+  )
+}
+await db.exec('RESET ROLE')
 
 // The sample data loads on top, and moderation still hides what is unapproved.
 await db.exec(`DELETE FROM public.listings`)

@@ -184,7 +184,14 @@ export default function BookingWidget({
       setError('')
       setSelectedSlot(null)
 
-      const result = await getAvailableSlotsForDate(listingId, selectedDate)
+      let result: Awaited<ReturnType<typeof getAvailableSlotsForDate>>
+      try {
+        result = await getAvailableSlotsForDate(listingId, selectedDate)
+      } catch {
+        // A dropped connection rejects the action; without this the
+        // spinner never stopped.
+        result = { error: 'Could not load available times. Check your connection and try again.', slots: [] }
+      }
       if (!active) return
 
       setSlots(result.slots)
@@ -351,17 +358,33 @@ export default function BookingWidget({
     setStatus('processing')
     setError('')
 
-    const response = await fetch('/api/razorpay/create-appointment-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        listingId,
-        bookingDate: selectedDate,
-        slotStart: selectedSlot.start,
-      }),
-    })
-
-    const orderData = await response.json()
+    let response: Response
+    let orderData: {
+      error?: string
+      isFree?: boolean
+      orderId: string
+      amount: number
+      currency: string
+      keyId: string
+    }
+    try {
+      response = await fetch('/api/razorpay/create-appointment-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          listingId,
+          bookingDate: selectedDate,
+          slotStart: selectedSlot.start,
+        }),
+      })
+      // A gateway error page is HTML, not JSON.
+      orderData = await response.json().catch(() => ({}))
+    } catch {
+      // No money has moved yet: the order is created before checkout opens.
+      setStatus('error')
+      setError('Could not reach the server. Check your connection and try again.')
+      return
+    }
     if (!response.ok || orderData.error) {
       setStatus('error')
       setError(orderData.error || 'Unable to start payment right now.')
