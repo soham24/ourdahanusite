@@ -40,7 +40,7 @@ function toPublicPost(row: RawPost): PublicJobPost {
  * when nothing writes; every mutation refreshes it at once via the `jobs` tag.
  */
 async function getLiveJobPosts(): Promise<PublicJobPost[]> {
-  'use cache'
+  'use cache: remote'
 
   cacheLife('hours')
   cacheTag(CACHE_TAGS.jobs)

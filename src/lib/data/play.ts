@@ -19,7 +19,7 @@ type RpcClient = {
 }
 
 async function loadPlayPublic(): Promise<PlayPublic> {
-  'use cache'
+  'use cache: remote'
 
   // Serve for 30 s, then refresh in the background while visitors keep getting
   // the last good copy. A failed read throws, so it is never cached as "empty".

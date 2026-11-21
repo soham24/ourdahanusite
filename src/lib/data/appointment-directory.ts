@@ -68,7 +68,7 @@ async function fetchBookableRows(): Promise<BookableRow[]> {
 }
 
 export async function getAppointmentDirectory(): Promise<AppointmentDirectoryEntry[]> {
-  'use cache'
+  'use cache: remote'
 
   cacheLife({ stale: 0, revalidate: 60, expire: 120 })
   cacheTag(CACHE_TAGS.appointments)
@@ -164,7 +164,7 @@ export type BookableListing = {
 export async function getBookableListingBySubdomain(
   subdomain: string,
 ): Promise<BookableListing | null> {
-  'use cache'
+  'use cache: remote'
 
   cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.appointments)

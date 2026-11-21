@@ -45,7 +45,7 @@ const RATING_COLUMNS =
  * admin moderation actions.
  */
 async function getFindDirectory(): Promise<ProfessionalWithStats[]> {
-  'use cache'
+  'use cache: remote'
 
   cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.find)
@@ -157,7 +157,7 @@ export async function getProfessionCounts(): Promise<{ counts: Map<string, numbe
 export async function getProfessionalById(
   id: string,
 ): Promise<ProfessionalWithStats | null> {
-  'use cache'
+  'use cache: remote'
 
   if (!isUuid(id)) return null
 
@@ -193,7 +193,7 @@ export async function getProfessionalById(
 export async function getApprovedRatings(
   professionalId: string,
 ): Promise<FindRating[]> {
-  'use cache'
+  'use cache: remote'
 
   if (!isUuid(professionalId)) return []
 

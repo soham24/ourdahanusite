@@ -36,7 +36,7 @@ const FALLBACK_PRICING: PricingConfig = {
 }
 
 export async function getCachedPricingConfig(): Promise<PricingConfig> {
-  'use cache'
+  'use cache: remote'
 
   cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.pricing)

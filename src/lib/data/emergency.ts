@@ -17,7 +17,7 @@ export interface EmergencyAlert {
 }
 
 export async function getActiveEmergencyAlert(): Promise<EmergencyAlert | null> {
-  'use cache'
+  'use cache: remote'
 
   cacheLife(URGENT_PUBLIC_CACHE)
   cacheTag(CACHE_TAGS.emergency)

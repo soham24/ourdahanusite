@@ -46,7 +46,7 @@ function toNumber(value: number | string | null | undefined): number {
 export async function getCachedAppointmentSettings(
   listingId: string,
 ): Promise<CachedAppointmentSettings | null> {
-  'use cache'
+  'use cache: remote'
 
   cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.appointments)
