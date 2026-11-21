@@ -56,6 +56,7 @@ export default function CategoryGrid({ groups }: CategoryGridProps) {
                 </span>
                 <span>
                   <span className="block text-sm font-bold leading-tight text-[var(--od-ink)]">{group.label}</span>
+                  <span lang="mr" className="mt-0.5 block font-[family-name:var(--font-devanagari)] text-xs leading-tight text-[var(--od-muted)]">{group.mr}</span>
                   <span className="mt-1 flex items-center justify-between gap-2 text-xs text-[var(--od-muted)]">
                     {group.count} places
                     <ArrowRight size={13} className="text-[var(--od-brand)]" aria-hidden />

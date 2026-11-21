@@ -47,8 +47,8 @@ for (const file of files) {
 }
 
 const count = async (sql) => Number((await db.query(sql)).rows[0].n)
-assert.equal(await count(`SELECT count(*) n FROM pg_tables WHERE schemaname = 'public'`), 34, 'public tables')
-assert.equal(await count(`SELECT count(*) n FROM pg_policies WHERE schemaname = 'public'`), 55, 'public RLS policies (a change here should be deliberate)')
+assert.equal(await count(`SELECT count(*) n FROM pg_tables WHERE schemaname = 'public'`), 35, 'public tables')
+assert.equal(await count(`SELECT count(*) n FROM pg_policies WHERE schemaname = 'public'`), 57, 'public RLS policies (a change here should be deliberate)')
 assert.equal(
   await count(`SELECT count(*) n FROM pg_tables WHERE schemaname = 'public' AND NOT rowsecurity`),
   0,
@@ -121,6 +121,25 @@ await db.query(`UPDATE public.listing_questions SET answer = 'Yes, 9 to 5', answ
 await assert.rejects(db.query(`UPDATE public.listing_questions SET question = 'edited' WHERE id = $1`, [questionId]), /permission denied/)
 await db.exec('RESET ROLE')
 assert.equal(await answerOf(), 'Yes, 9 to 5', 'the owner can answer')
+
+// Enquiries: only the sender and the listing's owner can read one; nobody
+// signed out can send or read, and nothing can be edited.
+await asUser(strangerId)
+await db.query(`INSERT INTO public.listing_enquiries (listing_id, user_id, name, phone, message) VALUES ($1, $2, 'Ravi', '9876543210', 'Open Sunday?')`, [listingId, strangerId])
+await assert.rejects(
+  db.query(`INSERT INTO public.listing_enquiries (listing_id, user_id, name, phone, message) VALUES ($1, $2, 'Fake', '9876543210', 'x')`, [listingId, ownerId]),
+  /row-level security/,
+  'cannot send as someone else',
+)
+assert.equal(await count(`SELECT count(*) n FROM public.listing_enquiries`), 1, 'the sender sees their enquiry')
+await assert.rejects(db.query(`UPDATE public.listing_enquiries SET message = 'edited'`), /permission denied/)
+await asUser(ownerId)
+assert.equal(await count(`SELECT count(*) n FROM public.listing_enquiries`), 1, 'the owner sees it')
+await asUser(staffId)
+assert.equal(await count(`SELECT count(*) n FROM public.listing_enquiries`), 0, 'nobody else does')
+await asUser(null)
+await assert.rejects(db.query(`SELECT count(*) n FROM public.listing_enquiries`), /permission denied/, 'signed out: nothing')
+await db.exec('RESET ROLE')
 
 // Coupons: invisible to visitors and ordinary users, listed for staff.
 await asUser(null)
@@ -226,6 +245,14 @@ await db.exec(await readFile(new URL('../supabase/seed.sql', import.meta.url), '
 await db.exec('SET ROLE anon')
 assert.equal(await count(`SELECT count(*) n FROM public.listings`), 6, 'seeded approved listings visible to visitors')
 assert.equal(await count(`SELECT count(*) n FROM public.events`), 2, 'seeded events')
+// Search tolerates a typo, and like the directory never returns what is unapproved.
+const searchNames = async (q) => (await db.query(`SELECT listing_name FROM public.search_directory($1)`, [q])).rows.map((r) => r.listing_name)
+assert.ok((await searchNames('seaside thaali')).includes('Seaside Thali House'), 'typo-tolerant search')
+assert.deepEqual(await searchNames(''), [], 'empty query returns nothing')
+await db.exec('RESET ROLE')
+await db.exec(`INSERT INTO public.listings (name, category, approved) VALUES ('Hidden Thali Kitchen', 'Restaurants', false)`)
+await db.exec('SET ROLE anon')
+assert.ok(!(await searchNames('thali kitchen')).includes('Hidden Thali Kitchen'), 'unapproved listings stay hidden')
 await db.exec('RESET ROLE')
 
 await db.close()

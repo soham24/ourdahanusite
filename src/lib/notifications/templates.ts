@@ -10,6 +10,7 @@ import type {
   RenderedNotification,
 } from './types'
 import { siteConfig } from '@/lib/site'
+import { formatWhatsAppPhone } from '@/lib/whatsapp'
 
 // The production domain, not the current deployment's: a link inside an
 // email outlives the preview that sent it.
@@ -417,6 +418,67 @@ function renderListingExpiring(
   }
 }
 
+function plural(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? '' : 's'}`
+}
+
+function renderListingMonthlySummary(
+  p: NotificationPayload<'listing.monthly_summary'>,
+): RenderedNotification {
+  const listingUrl = getListingUrl(p.listingId, p.subdomain)
+  const change =
+    p.priorViews > 0
+      ? ` (${p.views >= p.priorViews ? 'up' : 'down'} from ${p.priorViews})`
+      : ''
+  const taps = p.phone + p.whatsapp
+  const body =
+    `${plural(p.views, 'view')}${change}, ${plural(taps, 'call or WhatsApp tap')}` +
+    (p.newReviews > 0 ? `, ${plural(p.newReviews, 'new review')}` : '') +
+    (p.todo.length > 0 ? `. Next: ${p.todo[0].label.toLowerCase()}.` : '.')
+
+  // The layout wraps the intro in a <p>, so the list is line breaks, not <ul>.
+  const todoHtml = p.todo.length
+    ? `<br/><br/><strong style="color:#1a1a1a;">Finish your listing to get more customers:</strong>${p.todo
+        .slice(0, 4)
+        .map((step) => `<br/>&bull; <a href="${SITE_URL}${step.href}" style="color:#C4663A;">${escapeHtml(step.label)}</a>`)
+        .join('')}`
+    : ''
+
+  return {
+    title: `${p.monthLabel} · ${p.listingName}`,
+    body,
+    link: '/my-business',
+    icon: 'Star',
+    metadata: { listingId: p.listingId, month: p.monthLabel },
+    email: {
+      subject: `${p.listingName} in ${p.monthLabel}: ${plural(p.views, 'view')}`,
+      html: renderEmailLayout({
+        eyebrow: `Your ${p.monthLabel} summary`,
+        headline: p.listingName,
+        introHtml:
+          `Here is how <a href="${listingUrl}" style="color:#C4663A;">${escapeHtml(p.listingName)}</a> did on ${siteConfig.name} last month.` +
+          todoHtml,
+        detailRows:
+          buildDetailRow('Page views', `${p.views}${escapeHtml(change)}`, false) +
+          buildDetailRow('Calls', String(p.phone)) +
+          buildDetailRow('WhatsApp taps', String(p.whatsapp)) +
+          buildDetailRow('New reviews', String(p.newReviews)),
+        ctaUrl: `${SITE_URL}/my-business`,
+        ctaText: 'Open My Business',
+        footerNote: `Sent on the 1st of each month. Turn it off in your notification settings on ${siteConfig.name}.`,
+      }),
+    },
+    telegram: {
+      text: [
+        `📊 <b>${escapeHtml(p.listingName)} · ${escapeHtml(p.monthLabel)}</b>`,
+        escapeHtml(body),
+        '',
+        `<a href="${SITE_URL}/my-business">Open My Business</a>`,
+      ].join('\n'),
+    },
+  }
+}
+
 function jobNoun(kind: 'hiring' | 'seeking'): string {
   return kind === 'hiring' ? 'job post' : 'profile'
 }
@@ -554,6 +616,73 @@ function renderSellingResumed(p: NotificationPayload<'selling.resumed'>): Render
     },
     telegram: {
       text: `▶️ <b>Selling resumed</b>\n${escapeHtml(p.listingName)}: ${escapeHtml(body)}`,
+    },
+  }
+}
+
+function renderEnquiryNew(p: NotificationPayload<'enquiry.new'>): RenderedNotification {
+  const wa = formatWhatsAppPhone(p.customerPhone)
+  const snippet = p.message.length > 160 ? `${p.message.slice(0, 157)}…` : p.message
+  const replyLinks = [
+    `<a href="tel:${escapeHtml(p.customerPhone.replace(/[^\d+]/g, ''))}" style="color:#C4663A;">Call ${escapeHtml(p.customerPhone)}</a>`,
+    wa ? `<a href="https://wa.me/${wa}" style="color:#C4663A;">Reply on WhatsApp</a>` : null,
+  ]
+    .filter(Boolean)
+    .join(' &nbsp;·&nbsp; ')
+  return {
+    title: `New enquiry · ${p.listingName}`,
+    body: `${p.customerName} (${p.customerPhone}): "${snippet}"`,
+    link: '/my-business/enquiries',
+    icon: 'Bell',
+    metadata: { listingId: p.listingId, enquiryId: p.enquiryId },
+    email: {
+      subject: `New enquiry for ${p.listingName} from ${p.customerName}`,
+      html: renderEmailLayout({
+        eyebrow: 'New enquiry',
+        headline: `${p.customerName} wants to hear from you`,
+        introHtml: `They sent this to <strong>${escapeHtml(p.listingName)}</strong> on ${siteConfig.name}. Reply to them directly:<br/><br/>${replyLinks}`,
+        detailRows:
+          buildDetailRow('From', `${escapeHtml(p.customerName)} · ${escapeHtml(p.customerPhone)}`, false) +
+          buildDetailRow('Message', escapeHtml(p.message).replace(/\n/g, '<br/>')),
+        ctaUrl: `${SITE_URL}/my-business/enquiries`,
+        ctaText: 'See all enquiries',
+      }),
+    },
+    telegram: {
+      text: [
+        '📩 <b>New enquiry</b>',
+        '',
+        `<b>For:</b> ${escapeHtml(p.listingName)}`,
+        `<b>From:</b> ${escapeHtml(p.customerName)} · ${escapeHtml(p.customerPhone)}`,
+        `<b>Message:</b> ${escapeHtml(snippet)}`,
+        wa ? `\n<a href="https://wa.me/${wa}">Reply on WhatsApp</a>` : null,
+      ]
+        .filter((line) => line !== null)
+        .join('\n'),
+    },
+  }
+}
+
+function renderQuestionNew(p: NotificationPayload<'question.new'>): RenderedNotification {
+  const listingUrl = getListingUrl(p.listingId, p.subdomain)
+  return {
+    title: `New question · ${p.listingName}`,
+    body: `"${p.question}" Answer it on your listing so everyone can see.`,
+    link: '/my-business',
+    icon: 'Bell',
+    metadata: { listingId: p.listingId },
+    email: {
+      subject: `Someone asked about ${p.listingName}`,
+      html: renderEmailLayout({
+        eyebrow: 'New question',
+        headline: 'A customer has a question',
+        introHtml: `Someone asked on <strong>${escapeHtml(p.listingName)}</strong>:<br/><br/>&ldquo;${escapeHtml(p.question)}&rdquo;<br/><br/>Your answer shows on your page for everyone with the same question.`,
+        ctaUrl: `${listingUrl}#qa`,
+        ctaText: 'Answer it',
+      }),
+    },
+    telegram: {
+      text: `❓ <b>New question</b> on ${escapeHtml(p.listingName)}\n"${escapeHtml(p.question)}"\n\n<a href="${listingUrl}">Answer it</a>`,
     },
   }
 }
@@ -774,6 +903,8 @@ export function renderNotification<T extends NotificationType>(
       return renderListingRejected(payload as NotificationPayload<'listing.rejected'>)
     case 'listing.expiring':
       return renderListingExpiring(payload as NotificationPayload<'listing.expiring'>)
+    case 'listing.monthly_summary':
+      return renderListingMonthlySummary(payload as NotificationPayload<'listing.monthly_summary'>)
     case 'job.approved':
       return renderJobApproved(payload as NotificationPayload<'job.approved'>)
     case 'job.rejected':
@@ -786,6 +917,10 @@ export function renderNotification<T extends NotificationType>(
       return renderSellingResumed(payload as NotificationPayload<'selling.resumed'>)
     case 'review.new':
       return renderReviewNew(payload as NotificationPayload<'review.new'>)
+    case 'enquiry.new':
+      return renderEnquiryNew(payload as NotificationPayload<'enquiry.new'>)
+    case 'question.new':
+      return renderQuestionNew(payload as NotificationPayload<'question.new'>)
     case 'review.reply_posted':
       return renderReviewReplyPosted(
         payload as NotificationPayload<'review.reply_posted'>,

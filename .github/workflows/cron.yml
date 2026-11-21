@@ -20,12 +20,13 @@ on:
   schedule:
     - cron: "0 0 * * 1"   # listing expiry, weekly
     - cron: "30 3 * * *"  # job and appointment reminders, daily
+    - cron: "30 3 1 * *"  # owners' monthly summary, on the 1st
   workflow_dispatch:
     inputs:
       job:
         description: Which job to run now
         type: choice
-        options: [listing-expiry, job-reminders]
+        options: [listing-expiry, job-reminders, monthly-summary]
 
 jobs:
   run:
@@ -37,7 +38,7 @@ jobs:
         env:
           SITE: ${{ vars.CRON_SITE_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          JOB: ${{ inputs.job || (github.event.schedule == '0 0 * * 1' && 'listing-expiry' || 'job-reminders') }}
+          JOB: ${{ inputs.job || (github.event.schedule == '0 0 * * 1' && 'listing-expiry' || github.event.schedule == '30 3 1 * *' && 'monthly-summary' || 'job-reminders') }}
         run: |
           curl --fail-with-body --silent --show-error --max-time 240 \
             -H "Authorization: Bearer $CRON_SECRET" \

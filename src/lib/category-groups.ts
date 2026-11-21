@@ -30,6 +30,8 @@ export interface CategoryGroupMember {
 
 export interface CategoryGroupSummary {
   label: string
+  /** The group's name in Marathi, shown under the English one. */
+  mr: string
   icon: string
   slug: string
   count: number
@@ -92,6 +94,7 @@ export function buildCategoryGroups(
 
     summaries.push({
       label: group.label,
+      mr: group.mr,
       icon: group.icon,
       slug: toCategorySlug(group.label),
       count,

@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
 import { normalizeInlineText, normalizeMultilineText } from '@/lib/listing-content'
+import { sendNotification } from '@/lib/notifications'
+import { createAdminClient } from '@/lib/supabase/admin-client'
 
 function revalidateListing(listingId: string) {
   revalidatePublicListingDetail(listingId)
@@ -88,6 +90,20 @@ export async function askQuestion(
 
   if (error) return { error: error.message }
   revalidateListing(listingId)
+
+  // Owners were never told about questions, so many sat unanswered.
+  const admin = createAdminClient()
+  const { data: listing } = admin
+    ? await admin.from('listings').select('name, subdomain, owner_id').eq('id', listingId).maybeSingle()
+    : { data: null }
+  if (listing?.owner_id && listing.owner_id !== user.id) {
+    await sendNotification(
+      listing.owner_id,
+      'question.new',
+      { listingId, listingName: listing.name, subdomain: listing.subdomain, question: normalizedQuestion },
+      { awaitDelivery: true },
+    )
+  }
   return {}
 }
 

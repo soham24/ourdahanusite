@@ -25,6 +25,8 @@ import { EMPTY_LISTING_STATS } from '@/lib/listing-stats'
 import { deriveSellingChecklist } from '@/lib/selling/checklist'
 import { loadSuspensionReasons } from '@/lib/selling/suspension-reasons'
 import SellOnlineCard, { type SellOnlineRow } from './SellOnlineCard'
+import ListingSetupChecklist from './ListingSetupChecklist'
+import { listingCompleteness } from '@/lib/listing-completeness'
 import { siteConfig } from '@/lib/site'
 import { fetchProfileNames } from '@/lib/data/profile-names'
 
@@ -99,6 +101,17 @@ type Listing = {
   expires_at:   string | null
   payments_enabled:          boolean | null
   payments_suspended_at:     string | null
+  image_url:                 string | null
+  cover_image:               string | null
+  description:               string | null
+  phone:                     string | null
+  whatsapp:                  string | null
+  address:                   string | null
+  map_url:                   string | null
+  photos:                    unknown
+  opening_hours:             unknown
+  appointments_enabled:      boolean | null
+  appointment_settings:      unknown
 }
 
 function getListingStatus(listing: Listing): string {
@@ -171,7 +184,7 @@ export default async function MyBusinessPage({
   try {
     const { data: listingsData } = await supabase
       .from('listings')
-      .select('id, name, category, subdomain, plan, approved, rating, review_count, views, expires_at, payments_enabled, payments_suspended_at')
+      .select('id, name, category, subdomain, plan, approved, rating, review_count, views, expires_at, payments_enabled, payments_suspended_at, image_url, cover_image, description, phone, whatsapp, address, map_url, photos, opening_hours, appointments_enabled, appointment_settings')
       .eq('owner_id', user.id)
       .order('created_at', { ascending: false })
 
@@ -214,6 +227,8 @@ export default async function MyBusinessPage({
   // One batched set of reads for the "Sell online" card. Owners can read
   // their own configs, products and orders through RLS.
   let sellRows: SellOnlineRow[] = []
+  // Visible catalog items per listing, for the Sell online card and the setup checklist.
+  const visibleItems = new Map<string, number>()
   if (listings.length > 0) {
     const ids = listings.map((l) => l.id)
     const [{ data: configData }, { data: productData }, { data: orderData }, reasons] = await Promise.all([
@@ -238,7 +253,6 @@ export default async function MyBusinessPage({
         .map((config) => [config.listing_id, config]),
     )
     const activeItems = new Map<string, number>()
-    const visibleItems = new Map<string, number>()
     type ItemRow = { listing_id: string; price_paise: number | null; options: { id: string }[] | null }
     for (const row of (productData ?? []) as unknown as ItemRow[]) {
       visibleItems.set(row.listing_id, (visibleItems.get(row.listing_id) ?? 0) + 1)
@@ -485,6 +499,15 @@ export default async function MyBusinessPage({
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                      {listing.approved === true && (
+                        <Link
+                          href={`/my-business/review-kit/${listing.id}`}
+                          className="od-button-secondary px-3 py-2 text-sm"
+                        >
+                          <Star size={14} />
+                          Get reviews
+                        </Link>
+                      )}
                       <Link
                         href={getListingHref(listing.id, listing.subdomain)}
                         className="od-button-secondary px-3 py-2 text-sm"
@@ -514,6 +537,9 @@ export default async function MyBusinessPage({
                       )}
                     </div>
                   </div>
+                  <ListingSetupChecklist
+                    completeness={listingCompleteness({ ...listing, itemCount: visibleItems.get(listing.id) ?? 0 })}
+                  />
                 </div>
               )
             })}
@@ -522,6 +548,25 @@ export default async function MyBusinessPage({
       </div>
 
       <SellOnlineCard rows={sellRows} />
+
+      <div className="od-card mb-4 flex items-center justify-between gap-4 p-5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-surface-soft rounded-xl flex items-center justify-center">
+            <MessageCircle size={18} className="text-brand" />
+          </div>
+          <div>
+            <p className="font-semibold text-gray-900 text-sm">Enquiries</p>
+            <p className="text-xs text-gray-400">Private messages from customers, with call and WhatsApp replies</p>
+          </div>
+        </div>
+        <Link
+          href="/my-business/enquiries"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-strong border border-border hover:border-brand px-3 py-2 rounded-xl transition-colors"
+        >
+          <ArrowUpRight size={14} />
+          View Enquiries
+        </Link>
+      </div>
 
       <div className="od-card mb-4 flex items-center justify-between gap-4 p-5">
         <div className="flex items-center gap-3">

@@ -17,15 +17,15 @@ const NAV_LINKS = [
 ]
 
 const MOBILE_NAV = [
-  { href: buildAbsoluteUrl('/listings'), label: 'Explore Businesses', icon: Store },
-  { href: buildAbsoluteUrl('/guides'), label: `${siteConfig.town} Guides`, icon: BookOpen },
-  { href: buildAbsoluteUrl('/search'), label: 'Search Businesses', icon: Search },
-  { href: buildStandaloneUrl('appointments'), label: 'Book an Appointment', icon: CalendarDays },
-  { href: buildStandaloneUrl('jobs'), label: 'Local Jobs', icon: BriefcaseBusiness },
-  { href: buildStandaloneUrl('find'), label: 'Find Professionals', icon: UsersRound },
+  { href: buildAbsoluteUrl('/listings'), label: 'Explore Businesses', icon: Store, mr: 'व्यवसाय' },
+  { href: buildAbsoluteUrl('/guides'), label: `${siteConfig.town} Guides`, icon: BookOpen, mr: 'मार्गदर्शिका' },
+  { href: buildAbsoluteUrl('/search'), label: 'Search Businesses', icon: Search, mr: 'शोधा' },
+  { href: buildStandaloneUrl('appointments'), label: 'Book an Appointment', icon: CalendarDays, mr: 'भेटीची वेळ' },
+  { href: buildStandaloneUrl('jobs'), label: 'Local Jobs', icon: BriefcaseBusiness, mr: 'नोकऱ्या' },
+  { href: buildStandaloneUrl('find'), label: 'Find Professionals', icon: UsersRound, mr: 'कारागीर व व्यावसायिक' },
   { href: buildAbsoluteUrl('/play'), label: 'Chikoo Catcher Game', icon: Gamepad2 },
   { href: buildAbsoluteUrl('/about'), label: `About ${siteConfig.name}`, icon: UsersRound },
-  { href: buildAbsoluteUrl('/listings/submit'), label: 'Add Business', icon: Plus },
+  { href: buildAbsoluteUrl('/listings/submit'), label: 'Add Business', icon: Plus, mr: 'व्यवसाय जोडा' },
 ]
 
 function Brand() {
@@ -117,8 +117,13 @@ export default function Navbar() {
                 href={link.href}
                 className="flex items-center gap-2 text-[var(--od-ink-2)] hover:text-[var(--od-brand-strong)] hover:bg-[#F4EDE3] font-semibold py-2.5 px-3 rounded-xl transition-colors text-sm"
               >
-                <Icon size={15} />
-                {link.label}
+                <Icon size={15} className="shrink-0" />
+                <span className="min-w-0">
+                  <span className="block">{link.label}</span>
+                  {'mr' in link && link.mr ? (
+                    <span lang="mr" className="block font-[family-name:var(--font-devanagari)] text-[11px] font-normal text-[var(--od-muted)]">{link.mr}</span>
+                  ) : null}
+                </span>
               </SafeAppLink>
             ))}
           </div>

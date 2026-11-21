@@ -7,6 +7,7 @@ import { getListingHref } from '@/lib/listing-url'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
+import OpenNowBadge from '@/components/OpenNowBadge'
 
 interface Listing {
   id: string | number
@@ -27,6 +28,7 @@ interface Listing {
   image_thumb_url?: string | null
   plan?: string | null
   verified?: boolean | null
+  opening_hours?: unknown
 }
 
 export default function ListingCard({ listing }: { listing: Listing }) {
@@ -95,6 +97,7 @@ export default function ListingCard({ listing }: { listing: Listing }) {
       ) : null}
 
       <div className="relative z-10 flex flex-col gap-2 text-[13px] text-[var(--od-muted)]">
+        <OpenNowBadge hours={listing.opening_hours} className="w-fit" />
         {listing.address ? (
           <div className="flex items-center gap-2">
             <MapPin size={13} className="flex-shrink-0 text-[var(--od-brand)]" />

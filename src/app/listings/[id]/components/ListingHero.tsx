@@ -10,6 +10,7 @@ import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import FavouriteButton from '../FavouriteButton'
+import OpenNowBadge from '@/components/OpenNowBadge'
 import { useListingViewer } from '../ListingViewerContext'
 import type { ListingRecord } from '@/lib/data/listing-detail'
 import { siteConfig } from '@/lib/site'
@@ -151,8 +152,9 @@ export default function ListingHero({
                     {Boolean(listing.tagline) && (
                       <p className="text-ink-2/60 mt-1 text-sm">{String(listing.tagline)}</p>
                     )}
-                    {/* Established + Response Time */}
+                    {/* Open now, established, response time */}
                     <div className="flex flex-wrap items-center gap-3 mt-1">
+                      <OpenNowBadge hours={listing.opening_hours} />
                       {Boolean(listing.established_year) && (
                         <span className="inline-flex items-center gap-1 text-xs text-gray-500">
                           <CalendarDays size={11} /> Est. {String(listing.established_year)}

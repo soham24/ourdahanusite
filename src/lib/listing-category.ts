@@ -12,16 +12,19 @@ import { buildAbsoluteUrl } from '@/lib/site'
 export const LISTING_CATEGORY_GROUPS = [
   {
     label: 'Food & Dining',
+    mr: 'खाद्य आणि भोजन',
     icon: '🍽️',
     categories: ['Restaurants', 'Cafe', 'Homemade Food', 'Bakers & Sweets', 'Dairy & Milk', 'Farms & Organic'],
   },
   {
     label: 'Hospitality & Stay',
+    mr: 'निवास आणि आदरातिथ्य',
     icon: '🏨',
     categories: ['Hotels & Stay'],
   },
   {
     label: 'Health & Wellness',
+    mr: 'आरोग्य आणि निरामयता',
     icon: '🏥',
     categories: [
       'Healthcare & Clinics',
@@ -34,16 +37,19 @@ export const LISTING_CATEGORY_GROUPS = [
   },
   {
     label: 'Shopping & Retail',
+    mr: 'खरेदी',
     icon: '🛒',
     categories: ['Grocery & Shops', 'Hardware', 'Fashion & Clothing', 'Home-based Sellers'],
   },
   {
     label: 'Education & Sports',
+    mr: 'शिक्षण आणि क्रीडा',
     icon: '📚',
     categories: ['Education & Coaching', 'Books & Literature', 'Sports Academy'],
   },
   {
     label: 'Events & Entertainment',
+    mr: 'कार्यक्रम आणि मनोरंजन',
     icon: '🎉',
     categories: [
       'Event Services',
@@ -59,11 +65,13 @@ export const LISTING_CATEGORY_GROUPS = [
   },
   {
     label: 'Arts & Crafts',
+    mr: 'कला आणि हस्तकला',
     icon: '🎨',
     categories: ['Warli Art', 'Warli Arts & Crafts', 'Arts & Crafts'],
   },
   {
     label: 'Home Services',
+    mr: 'घरगुती सेवा',
     icon: '🛠️',
     categories: [
       'Repair Services',
@@ -76,6 +84,7 @@ export const LISTING_CATEGORY_GROUPS = [
   },
   {
     label: 'Digital & Creative',
+    mr: 'डिजिटल आणि सर्जनशील',
     icon: '💻',
     categories: [
       'Content Creators',
@@ -87,16 +96,19 @@ export const LISTING_CATEGORY_GROUPS = [
   },
   {
     label: 'Transport & Connectivity',
+    mr: 'वाहतूक आणि दळणवळण',
     icon: '🚕',
     categories: ['Transport & Taxi', 'Internet & Telecom'],
   },
   {
     label: 'Money & Community',
+    mr: 'आर्थिक आणि सामाजिक',
     icon: '💰',
     categories: ['Financial Services', 'NGOs & Social Causes'],
   },
   {
     label: 'Other',
+    mr: 'इतर',
     icon: '🏪',
     categories: ['Other'],
   },

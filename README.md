@@ -101,6 +101,9 @@ WhatsApp, analytics) each switch on when their keys are set, and nothing
 breaks without them. `.env.local.example` lists every setting with a comment;
 [SETUP.md](SETUP.md) walks through each service.
 
+**Keeping it running:** [SETUP.md → Keeping it running](SETUP.md#keeping-it-running)
+covers uptime alerts, backups and switching on the security policy.
+
 ---
 
 ## Where the project is
@@ -141,6 +144,7 @@ service. Section 2 above and [SETUP.md](SETUP.md) cover it.
 npm run setup        # local database + sample data, and .env.local to match
 npm run dev          # development server
 npm run doctor       # check your setup and leftover Dahanu content; changes nothing
+npm run backup       # copy every table to backups/<date>/ (needs the service-role key)
 npm run sync:proxy   # after changing `domain` in site-config.ts
 
 npm test             # unit and security tests

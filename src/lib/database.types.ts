@@ -1006,6 +1006,8 @@ export type Database = {
           plan: string | null
           rating: number | null
           reminders_sent: number[] | null
+          last_summary_month: string | null
+          opening_hours: Json | null
           response_time: string | null
           review_count: number | null
           subdomain: string | null
@@ -1063,6 +1065,8 @@ export type Database = {
           plan?: string | null
           rating?: number | null
           reminders_sent?: number[] | null
+          last_summary_month?: string | null
+          opening_hours?: Json | null
           response_time?: string | null
           review_count?: number | null
           subdomain?: string | null
@@ -1120,6 +1124,8 @@ export type Database = {
           plan?: string | null
           rating?: number | null
           reminders_sent?: number[] | null
+          last_summary_month?: string | null
+          opening_hours?: Json | null
           response_time?: string | null
           review_count?: number | null
           subdomain?: string | null
@@ -1736,6 +1742,22 @@ export type Database = {
       increment_listing_views: {
         Args: { p_listing_id: string }
         Returns: undefined
+      }
+      search_directory: {
+        Args: { p_query: string; p_limit?: number }
+        Returns: {
+          kind: string
+          listing_id: string
+          listing_name: string
+          category: string | null
+          address: string | null
+          rating: number | null
+          subdomain: string | null
+          item_id: string | null
+          item_name: string | null
+          price_paise: number | null
+          score: number
+        }[]
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }

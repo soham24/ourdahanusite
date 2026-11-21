@@ -94,6 +94,7 @@ export async function getCachedListingDetail(idOrSubdomain: string): Promise<Lis
       'delivery_info',
       'before_after',
       'hours',
+      'opening_hours',
       'rating',
       'verified',
       'established_year',

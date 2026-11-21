@@ -304,6 +304,27 @@ If you ever rotate the secret, set the new value **and** re-run `setWebhook`
 with it. Changing only one of the two leaves Telegram posting to a URL the app
 now rejects, and account linking stops working with no error visible to users.
 
+## Keeping it running
+
+**Uptime alerts.** `/api/health` answers 200 when the app can reach the
+database and 503 when it cannot. The `Uptime` GitHub workflow checks it,
+the home page, the directory and the sitemap every hour; when they keep
+failing it opens an issue labelled `outage` (GitHub emails you) and closes
+it on recovery. Switch it on by adding the repository **variable**
+`UPTIME_SITE_URL` (Settings → Secrets and variables → Actions → Variables),
+e.g. `https://ourpune.in`. Any external monitor can watch `/api/health` too.
+
+**Backups.** Supabase's free plan keeps no backups you can download. Run
+`npm run backup` now and then (weekly is plenty for a town directory): it
+writes every table to `backups/<date>/` as JSON, plus a list of uploaded
+image paths. The folder is git-ignored and holds everyone's data — keep it
+private, and copy it off your computer.
+
+**Security policy.** The site sends a Content-Security-Policy in report-only
+mode: browsers log what it would block to `/api/csp-report`, visible in
+your hosting logs. When a week of real traffic shows no reports, set
+`CSP_ENFORCE=true` and redeploy to enforce it; unset it to roll back.
+
 ## Troubleshooting
 
 Run `npm run doctor` first — it catches most of these. To check the deployed

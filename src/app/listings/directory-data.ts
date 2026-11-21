@@ -30,6 +30,8 @@ export interface DirectoryListing {
   verified?: boolean | null
   updated_at?: string | null
   created_at?: string | null
+  /** Weekly hours; see src/lib/opening-hours.ts. */
+  opening_hours?: unknown
 }
 
 // Upper bound on rows the directory renders in one pass. This is a safety cap
@@ -111,7 +113,7 @@ export async function getListingsDirectoryData(activeCategory: string | null = n
   const supabase = createPublicClient()
   let query = supabase
     .from('listings')
-    .select('id, name, category, subdomain, phone, address, rating, review_count, image_url, image_thumb_url, tagline, description, plan, verified, updated_at, created_at')
+    .select('id, name, category, subdomain, phone, address, rating, review_count, image_url, image_thumb_url, tagline, description, plan, verified, updated_at, created_at, opening_hours')
     .eq('approved', true)
     .order('plan', { ascending: false })
     .order('created_at', { ascending: false })
