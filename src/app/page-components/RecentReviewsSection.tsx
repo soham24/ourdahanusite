@@ -36,19 +36,20 @@ export default function RecentReviewsSection({ reviews }: RecentReviewsSectionPr
       <div className="mx-auto max-w-[1160px] px-4 md:px-6">
         <SectionHeader
           label="Community voices"
-          title="What People Are Saying"
+          title="What people are saying"
           sub={`Recent reviews from across ${siteConfig.town} businesses`}
           viewAllHref="/listings"
         />
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* A staggered wall: reviews differ in length, so equal boxes left gaps. */}
+        <div className="gap-4 sm:columns-2 lg:columns-3">
           {reviews.map((review, index) => {
             const href = getListingHref(review.listing_id, review.listing_subdomain)
             return (
               <Link
                 key={review.id}
                 href={href}
-                className={`${index > 0 ? 'hidden sm:flex' : 'flex'} group flex-col rounded-2xl border border-[var(--od-border)] bg-white p-5 shadow-[0_6px_20px_rgba(46,18,5,0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[rgba(192,88,46,0.30)] hover:shadow-[0_12px_32px_rgba(46,18,5,0.10)] active:scale-[0.99]`}
+                className={`${index > 0 ? 'hidden sm:flex' : 'flex'} group mb-4 break-inside-avoid flex-col rounded-2xl border border-[var(--od-border)] bg-white p-5 shadow-[0_6px_20px_rgba(46,18,5,0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[rgba(192,88,46,0.30)] hover:shadow-[0_12px_32px_rgba(46,18,5,0.10)] active:scale-[0.99]`}
               >
                 {/* Quote icon */}
                 <Quote size={18} className="mb-3 text-[var(--od-brand)]/30" />
@@ -57,7 +58,7 @@ export default function RecentReviewsSection({ reviews }: RecentReviewsSectionPr
                 <StarRow rating={review.rating} />
 
                 {/* Comment */}
-                <p className="mt-3 flex-1 line-clamp-4 text-sm leading-relaxed text-[var(--od-muted)]">
+                <p className="mt-3 flex-1 line-clamp-6 text-[15px] leading-relaxed text-[var(--od-ink-2)]">
                   {review.comment}
                 </p>
 

@@ -51,9 +51,25 @@ export default function CategoryGrid({ groups }: CategoryGridProps) {
                 aria-label={`${group.label}, ${group.count} places`}
                 className="group flex min-h-[132px] flex-col justify-between rounded-2xl border border-[var(--od-border)] bg-white p-4 shadow-[0_6px_20px_rgba(46,18,5,0.04)] transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-[rgba(192,88,46,0.4)] hover:shadow-[0_12px_28px_rgba(46,18,5,0.08)] active:scale-[0.98]"
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--od-surface-soft)] text-[var(--od-brand)]">
-                  <Icon size={20} strokeWidth={1.8} aria-hidden />
-                </span>
+                {group.thumbs.length > 0 ? (
+                  // Real businesses in the group, so the tile shows what is there.
+                  <span className="flex -space-x-2.5" aria-hidden>
+                    {group.thumbs.map((thumb) => (
+                      <img
+                        key={thumb.id}
+                        src={thumb.imageUrl}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        className="h-10 w-10 rounded-full object-cover ring-2 ring-white transition-transform duration-300 group-hover:-translate-y-0.5"
+                      />
+                    ))}
+                  </span>
+                ) : (
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--od-surface-soft)] text-[var(--od-brand)]">
+                    <Icon size={20} strokeWidth={1.8} aria-hidden />
+                  </span>
+                )}
                 <span>
                   <span className="block text-sm font-bold leading-tight text-[var(--od-ink)]">{group.label}</span>
                   <span lang="mr" className="mt-0.5 block font-[family-name:var(--font-devanagari)] text-xs leading-tight text-[var(--od-muted)]">{group.mr}</span>

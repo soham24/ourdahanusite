@@ -12,7 +12,6 @@ import {
 import { getCachedPricingConfig } from '@/lib/data/pricing'
 
 import HeroSection from './page-components/HeroSection'
-import StatsBar from './page-components/StatsBar'
 import FeaturedSpotlight from './page-components/FeaturedSpotlight'
 import CategoryGrid from './page-components/CategoryGrid'
 import FindProfessionalsSection from './page-components/FindProfessionalsSection'
@@ -108,10 +107,6 @@ async function StatsAndCategoriesAsync() {
   const stats = await getHomeStats()
   return (
     <>
-      <StatsBar
-        totalListings={stats.totalListings}
-        topCategoryLabelsLength={stats.topCategoryLabels.length}
-      />
       <CategoryGrid groups={stats.categoryGroups} />
       <FindProfessionalsSection />
       {stats.featuredListing && <FeaturedSpotlight listing={stats.featuredListing} />}
@@ -120,7 +115,10 @@ async function StatsAndCategoriesAsync() {
 }
 
 async function NewListingsAsync() {
-  const newListings = await getHomeNewListings()
+  // The featured business already has a whole section above; showing it
+  // again among the newest read as a mistake.
+  const [listings, stats] = await Promise.all([getHomeNewListings(), getHomeStats()])
+  const newListings = listings.filter((listing) => listing.id !== stats.featuredListing?.id)
   if (newListings.length === 0) return null
   return <NewListingsSection newListings={newListings} />
 }

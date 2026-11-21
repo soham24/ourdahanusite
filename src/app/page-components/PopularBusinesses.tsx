@@ -22,7 +22,7 @@ export default function PopularBusinesses({ listings }: PopularBusinessesProps) 
       <div className="mx-auto max-w-[1160px] px-4 md:px-6">
         <SectionHeader
           label="Most trusted"
-          title={`Popular Around ${siteConfig.town}`}
+          title={`Popular around ${siteConfig.town}`}
           sub="Highly rated local businesses people return to"
           viewAllHref="/listings"
         />

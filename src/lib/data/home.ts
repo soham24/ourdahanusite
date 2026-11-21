@@ -191,7 +191,7 @@ export async function getHomePopularListings(): Promise<HomeListing[]> {
   return (data ?? []) as HomeListing[]
 }
 
-/** Newest 6 listings for the NewListingsSection carousel. */
+/** Newest 7 listings: six for the NewListingsSection, one spare in case the featured business is among them. */
 export async function getHomeNewListings(): Promise<HomeListing[]> {
   'use cache'
 
@@ -207,14 +207,17 @@ export async function getHomeNewListings(): Promise<HomeListing[]> {
     .eq('approved', true)
     .order('created_at', { ascending: false })
     .order('id', { ascending: true })
-    .limit(6), 'listings')
+    .limit(7), 'listings')
   return (data ?? []) as HomeListing[]
 }
 
+/** Shorter reviews ("Nice", "Good") are not featured on the home page. */
+const MIN_HOME_REVIEW_LENGTH = 40
+
 /**
- * 5 most recent reviews each from a different listing.
+ * 6 most recent reviews each from a different listing.
  * Fetches the latest 60 reviews then dedupes by listing_id in JS,
- * keeping the single most-recent review per listing, up to 5 results.
+ * keeping the single most-recent review per listing, up to 6 results.
  */
 export async function getHomeRecentReviews(): Promise<HomeReview[]> {
   'use cache'
@@ -229,7 +232,7 @@ export async function getHomeRecentReviews(): Promise<HomeReview[]> {
     .from('reviews')
     .select(`
       id, listing_id, user_id, rating, comment, created_at,
-      listings!reviews_listing_id_fkey(name, subdomain)
+      listings!reviews_listing_id_fkey(name, subdomain, owner_id)
     `)
     .not('comment', 'is', null)
     .order('created_at', { ascending: false })
@@ -245,8 +248,11 @@ export async function getHomeRecentReviews(): Promise<HomeReview[]> {
   for (const r of data as Record<string, unknown>[]) {
     const lid = r.listing_id as string
     if (seen.has(lid)) continue
+    const listing = r.listings as { name?: string; subdomain?: string | null; owner_id?: string | null } | null
+    // Only a handful are featured, so each should say something: one-word
+    // reviews and owners reviewing their own business stay on the listing.
+    if (String(r.comment ?? '').trim().length < MIN_HOME_REVIEW_LENGTH || r.user_id === listing?.owner_id) continue
     seen.add(lid)
-    const listing = r.listings as { name?: string; subdomain?: string | null } | null
     result.push({
       id: r.id as string,
       listing_id: lid,
@@ -257,7 +263,7 @@ export async function getHomeRecentReviews(): Promise<HomeReview[]> {
       reviewer_name: nameById.get(r.user_id as string) ?? null,
       created_at: r.created_at as string,
     })
-    if (result.length === 5) break
+    if (result.length === 6) break
   }
   return result
 }
@@ -298,4 +304,76 @@ export async function getHomeRecentProducts(): Promise<HomeProduct[]> {
     listing_name: listings?.name ?? '',
     listing_subdomain: listings?.subdomain ?? null,
   }))
+}
+
+export interface HomeHeroPhoto {
+  id: string
+  name: string
+  category: string
+  subdomain: string | null
+  imageUrl: string
+}
+
+export interface HomeHeroData {
+  photos: HomeHeroPhoto[]
+  counts: { businesses: number; reviews: number; items: number; professionals: number }
+}
+
+/**
+ * The hero's collage and proof line: photos from the best-rated businesses
+ * that have one, and real totals rather than rounded marketing numbers.
+ */
+export async function getHomeHeroData(): Promise<HomeHeroData> {
+  'use cache'
+
+  cacheLife(PUBLIC_CONTENT_CACHE)
+  cacheTag(CACHE_TAGS.home)
+  cacheTag(CACHE_TAGS.listings)
+  cacheTag(CACHE_TAGS.recentProducts)
+  cacheTag(CACHE_TAGS.find)
+  logCacheRegeneration({
+    scope: 'home:hero',
+    tags: [CACHE_TAGS.home, CACHE_TAGS.listings, CACHE_TAGS.recentProducts, CACHE_TAGS.find],
+  })
+
+  const supabase = createPublicClient()
+  const count = { count: 'exact' as const, head: true }
+  const [photoRows, businesses, reviews, items, professionals] = await Promise.all([
+    supabase
+      .from('listings')
+      .select('id, name, category, subdomain, image_url, image_thumb_url')
+      .eq('approved', true)
+      .not('image_url', 'is', null)
+      .order('rating', { ascending: false, nullsFirst: false })
+      .order('review_count', { ascending: false })
+      .order('id', { ascending: true })
+      .limit(5),
+    supabase.from('listings').select('id', count).eq('approved', true),
+    supabase.from('reviews').select('id', count),
+    supabase.from('listing_products').select('id', count).eq('is_active', true),
+    supabase.from('find_professionals').select('id', count).eq('status', 'approved').eq('is_active', true),
+  ])
+  for (const [what, result] of [['hero photos', photoRows], ['businesses', businesses], ['reviews', reviews], ['items', items], ['professionals', professionals]] as const) {
+    readOrThrow(result, what)
+  }
+
+  type PhotoRow = { id: string; name: string; category: string; subdomain: string | null; image_url: string | null; image_thumb_url: string | null }
+  return {
+    photos: ((photoRows.data ?? []) as PhotoRow[])
+      .filter((row) => row.image_url || row.image_thumb_url)
+      .map((row) => ({
+        id: row.id,
+        name: row.name,
+        category: row.category,
+        subdomain: row.subdomain,
+        // The full image: these are shown large, unlike the directory thumbnails.
+        imageUrl: (row.image_url || row.image_thumb_url)!,
+      })),
+    counts: {
+      businesses: businesses.count ?? 0,
+      reviews: reviews.count ?? 0,
+      items: items.count ?? 0,
+      professionals: professionals.count ?? 0,
+    },
+  }
 }

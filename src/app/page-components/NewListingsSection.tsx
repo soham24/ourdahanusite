@@ -6,7 +6,6 @@ import SectionHeader from '@/components/ui/SectionHeader'
 import { summarizeAddress } from '@/lib/listing-content'
 import type { HomeListing } from '@/lib/data/home'
 import { getListingHref } from '@/lib/listing-url'
-import { siteConfig } from '@/lib/site'
 
 interface NewListingsSectionProps {
   newListings: HomeListing[]
@@ -20,7 +19,7 @@ export default function NewListingsSection({ newListings }: NewListingsSectionPr
       <div className="mx-auto max-w-[1160px] px-4 md:px-6">
         <SectionHeader
           label="New arrivals"
-          title="Recently Listed"
+          title="Recently listed"
           sub="Fresh businesses and services added to the directory"
           viewAllHref="/listings"
         />
@@ -47,11 +46,15 @@ export default function NewListingsSection({ newListings }: NewListingsSectionPr
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center font-display text-4xl text-[var(--od-brand)]/25">
-                      OD
+                    // No photo yet: the business's initial on the brand
+                    // gradient, so the card looks designed rather than broken.
+                    <div className="flex h-full items-center justify-center bg-[linear-gradient(140deg,#F7E7CF_0%,#E9B98F_55%,#C0582E_100%)]">
+                      <span className="font-display text-[72px] leading-none text-white/90 drop-shadow-[0_4px_18px_rgba(110,43,19,0.35)]">
+                        {listing.name.trim().charAt(0).toUpperCase()}
+                      </span>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+                  {imageUrl && <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />}
                   <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/92 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--od-ink)]">
                     <Sparkles size={11} className="text-[#C8881E]" />
                     New
@@ -76,9 +79,8 @@ export default function NewListingsSection({ newListings }: NewListingsSectionPr
                       {listing.tagline}
                     </p>
                   ) : (
-                    <p className="mt-2 min-h-[40px] text-sm leading-5 text-[var(--od-muted)]">
-                      Newly added to {siteConfig.name}.
-                    </p>
+                    // Keeps the card rows aligned without filler copy.
+                    <div className="mt-2 min-h-[40px]" aria-hidden />
                   )}
 
                   <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--od-border)] pt-3 text-xs text-[var(--od-muted)]">
