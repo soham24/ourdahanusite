@@ -1,5 +1,5 @@
 import { GAME_CONFIG } from './config'
-import type { GameEvent, GamePhase, GameSettings, GameSnapshot, QualityLevel } from './types'
+import type { GameEvent, GamePhase, GameSettings, PowerUpKind, GameSnapshot, QualityLevel } from './types'
 
 const MAX_PARTICLES = 96
 const MAX_BURSTS = 12
@@ -38,6 +38,8 @@ interface Banner {
   text: string
   color: string
   ageMs: number
+  /** A smaller second line, e.g. "+1 life" under a milestone. */
+  sub?: string
 }
 
 export interface QualityController {
@@ -330,8 +332,10 @@ interface BasketLook {
   bounce: number
   /** 0 none, 1 warm (10+ in a row), 2 hot (20+). */
   glow: 0 | 1 | 2
-  /** Fraction of the power-up left, 0 when none. */
-  powerLeft: number
+  /** One timer bar per running top-up: how much is left, in its colour. */
+  bars: { fraction: number; color: string }[]
+  /** Double harvest: the basket shines gold. */
+  golden: boolean
 }
 
 function drawBasket(context: CanvasRenderingContext2D, x: number, velocity: number, look: BasketLook) {
@@ -342,15 +346,23 @@ function drawBasket(context: CanvasRenderingContext2D, x: number, velocity: numb
     context.fillStyle = glow
     context.fillRect(x - 80 * look.widthScale, GAME_CONFIG.basketY - 50, 160 * look.widthScale, 110)
   }
-  if (look.powerLeft > 0) {
-    const barWidth = GAME_CONFIG.basketWidth * look.widthScale
-    context.fillStyle = 'rgba(46, 18, 5, 0.25)'
-    roundedRect(context, x - barWidth / 2, GAME_CONFIG.basketY - 30, barWidth, 5, 2.5)
-    context.fill()
-    context.fillStyle = '#8EAD56'
-    roundedRect(context, x - barWidth / 2, GAME_CONFIG.basketY - 30, barWidth * look.powerLeft, 5, 2.5)
-    context.fill()
+  if (look.golden) {
+    const shine = context.createRadialGradient(x, GAME_CONFIG.basketY + 14, 6, x, GAME_CONFIG.basketY + 14, 64 * look.widthScale)
+    shine.addColorStop(0, 'rgba(255, 216, 106, 0.5)')
+    shine.addColorStop(1, 'rgba(255, 216, 106, 0)')
+    context.fillStyle = shine
+    context.fillRect(x - 72 * look.widthScale, GAME_CONFIG.basketY - 44, 144 * look.widthScale, 100)
   }
+  const barWidth = GAME_CONFIG.basketWidth * look.widthScale
+  look.bars.forEach((bar, index) => {
+    const y = GAME_CONFIG.basketY - 30 - index * 7
+    context.fillStyle = 'rgba(46, 18, 5, 0.25)'
+    roundedRect(context, x - barWidth / 2, y, barWidth, 5, 2.5)
+    context.fill()
+    context.fillStyle = bar.color
+    roundedRect(context, x - barWidth / 2, y, barWidth * bar.fraction, 5, 2.5)
+    context.fill()
+  })
   context.save()
   context.translate(x, GAME_CONFIG.basketY + 3)
   context.rotate(clamp(velocity / 900, -0.12, 0.12))
@@ -497,6 +509,105 @@ function drawGoldenFruit(context: CanvasRenderingContext2D, x: number, y: number
   }
 }
 
+/** A ringed token with a soft pulsing halo; `drawSymbol` adds what it does. */
+function drawToken(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  clockMs: number,
+  colors: { halo: string; fill: string; ring: string },
+  drawSymbol: () => void,
+) {
+  const pulse = 0.5 + 0.5 * Math.sin(clockMs / 130)
+  const halo = context.createRadialGradient(x, y, 6, x, y, 40)
+  halo.addColorStop(0, `rgba(${colors.halo}, ${0.5 + pulse * 0.3})`)
+  halo.addColorStop(1, `rgba(${colors.halo}, 0)`)
+  context.fillStyle = halo
+  context.fillRect(x - 40, y - 40, 80, 80)
+  context.save()
+  context.translate(x, y)
+  context.fillStyle = colors.fill
+  context.strokeStyle = colors.ring
+  context.lineWidth = 3
+  context.beginPath()
+  context.arc(0, 0, GAME_CONFIG.itemRadius + 2, 0, TAU)
+  context.fill()
+  context.stroke()
+  drawSymbol()
+  context.restore()
+}
+
+/** Monsoon breeze: a rain cloud. Everything falls slower for a while. */
+function drawSlowFallToken(context: CanvasRenderingContext2D, x: number, y: number, clockMs: number) {
+  drawToken(context, x, y, clockMs, { halo: '110, 170, 220', fill: '#EEF6FC', ring: '#3F7FB5' }, () => {
+    context.fillStyle = '#7FA9CC'
+    context.beginPath()
+    context.ellipse(-4, -3, 7, 5.5, 0, 0, TAU)
+    context.ellipse(4, -4, 6.5, 6, 0, 0, TAU)
+    context.ellipse(0, -1, 10, 4.5, 0, 0, TAU)
+    context.fill()
+    context.strokeStyle = '#3F7FB5'
+    context.lineWidth = 1.8
+    context.lineCap = 'round'
+    for (const dx of [-5, 0, 5]) {
+      context.beginPath()
+      context.moveTo(dx, 6)
+      context.lineTo(dx - 1.5, 10)
+      context.stroke()
+    }
+  })
+}
+
+/** Double harvest: a gold coin marked x2. */
+function drawDoubleHarvestToken(context: CanvasRenderingContext2D, x: number, y: number, clockMs: number) {
+  drawToken(context, x, y, clockMs, { halo: '255, 200, 80', fill: '#FFD86A', ring: '#B07A12' }, () => {
+    context.strokeStyle = '#7A4F08'
+    context.lineWidth = 2.6
+    context.lineCap = 'round'
+    context.lineJoin = 'round'
+    // "x"
+    context.beginPath()
+    context.moveTo(-10, -4)
+    context.lineTo(-3, 4)
+    context.moveTo(-3, -4)
+    context.lineTo(-10, 4)
+    // "2"
+    context.moveTo(1, -4)
+    context.quadraticCurveTo(5, -9, 9, -4)
+    context.quadraticCurveTo(10, -1, 1, 6)
+    context.lineTo(10, 6)
+    context.stroke()
+  })
+}
+
+/** The heart: one lost life back. Only falls once a life is lost. */
+function drawHeartToken(context: CanvasRenderingContext2D, x: number, y: number, clockMs: number) {
+  const beat = 1 + 0.08 * Math.max(0, Math.sin(clockMs / 110))
+  const halo = context.createRadialGradient(x, y, 6, x, y, 40)
+  halo.addColorStop(0, 'rgba(240, 90, 90, 0.6)')
+  halo.addColorStop(1, 'rgba(240, 90, 90, 0)')
+  context.fillStyle = halo
+  context.fillRect(x - 40, y - 40, 80, 80)
+  context.save()
+  context.translate(x, y)
+  context.scale(beat, beat)
+  context.fillStyle = '#E0474C'
+  context.strokeStyle = '#8E1F25'
+  context.lineWidth = 2.5
+  context.beginPath()
+  context.moveTo(0, 13)
+  context.bezierCurveTo(-22, -1, -13, -20, 0, -8)
+  context.bezierCurveTo(13, -20, 22, -1, 0, 13)
+  context.closePath()
+  context.fill()
+  context.stroke()
+  context.fillStyle = 'rgba(255, 255, 255, 0.55)'
+  context.beginPath()
+  context.ellipse(-7, -7, 3.5, 2.2, -0.6, 0, TAU)
+  context.fill()
+  context.restore()
+}
+
 function drawBigBasketPowerUp(context: CanvasRenderingContext2D, x: number, y: number, clockMs: number) {
   const pulse = 0.5 + 0.5 * Math.sin(clockMs / 130)
   const halo = context.createRadialGradient(x, y, 6, x, y, 40)
@@ -557,6 +668,26 @@ function drawLastChance(context: CanvasRenderingContext2D, clockMs: number) {
     context.fillRect(rx, ry, rw, rh)
   }
 }
+
+const POWER_UP_BANNERS: Record<PowerUpKind, [string, string]> = {
+  bigBasket: ['Big basket!', '#D8F0B0'],
+  slowFall: ['Monsoon breeze', '#CFE6F7'],
+  doubleHarvest: ['Double harvest \u00d72', '#FFD86A'],
+  extraLife: ['Extra life!', '#FFB3B3'],
+}
+
+const TIMER_BARS: { field: 'bigBasketMs' | 'slowFallMs' | 'doubleHarvestMs'; total: number; color: string }[] = [
+  { field: 'bigBasketMs', total: GAME_CONFIG.bigBasketMs, color: '#8EAD56' },
+  { field: 'slowFallMs', total: GAME_CONFIG.slowFallMs, color: '#5B9BD0' },
+  { field: 'doubleHarvestMs', total: GAME_CONFIG.doubleHarvestMs, color: '#F2C14E' },
+]
+
+/** One bar per running top-up, in a fixed order so they never jump around. */
+export const timerBars = (snapshot: Pick<GameSnapshot, 'bigBasketMs' | 'slowFallMs' | 'doubleHarvestMs'>) =>
+  TIMER_BARS.filter((bar) => snapshot[bar.field] > 0).map((bar) => ({
+    fraction: Math.min(1, snapshot[bar.field] / bar.total),
+    color: bar.color,
+  }))
 
 const PHASE_BANNERS: Partial<Record<GamePhase, string>> = {
   flow: 'Picking up pace',
@@ -649,9 +780,9 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
     burst.size = size
   }
 
-  const announce = (text: string, color = '#FFF4D6') => {
+  const announce = (text: string, color = '#FFF4D6', sub?: string) => {
     if (destroyed) return
-    banner = { text, color, ageMs: 0 }
+    banner = { text, color, ageMs: 0, sub }
   }
 
   const emit = (events: readonly GameEvent[]) => {
@@ -661,7 +792,7 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
         addCatchParticles(event.x, event.y)
         bounceMs = BOUNCE_MS
         const bonus = event.bonusAwarded > 0
-        popScore(event.x, event.y, '+' + (1 + event.bonusAwarded), bonus ? '255, 236, 153' : '255, 255, 255', bonus, bonus ? 15 : 13)
+        popScore(event.x, event.y, '+' + (event.points ?? 1 + event.bonusAwarded), bonus ? '255, 236, 153' : '255, 255, 255', bonus, bonus ? 15 : 13)
         if ((GAME_CONFIG.streakMilestones as readonly number[]).includes(event.combo)) announce(event.combo + ' in a row!', '#FFD86A')
       } else if (event.type === 'goldenCaught') {
         addCatchParticles(event.x, event.y, true)
@@ -671,7 +802,13 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
       } else if (event.type === 'powerUp') {
         addCatchParticles(event.x, event.y)
         bounceMs = BOUNCE_MS
-        announce('Big basket!', '#D8F0B0')
+        const [text, color] = POWER_UP_BANNERS[event.kind]
+        announce(text, color)
+      } else if (event.type === 'milestone') {
+        announce(event.score.toLocaleString('en-IN') + ' points!', '#FFD86A')
+      } else if (event.type === 'lifeRestored') {
+        // A milestone's banner gains a second line; the heart already announced itself.
+        if (event.source === 'milestone' && banner) banner.sub = '+1 life'
       } else if (event.type === 'phaseChanged') {
         const text = PHASE_BANNERS[event.phase]
         if (text) announce(text)
@@ -776,6 +913,13 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
     context.strokeText(banner.text, 0, 0)
     context.fillStyle = banner.color
     context.fillText(banner.text, 0, 0)
+    if (banner.sub) {
+      context.font = '800 18px ui-serif, Georgia, serif'
+      context.lineWidth = 5
+      context.strokeText(banner.sub, 0, 30)
+      context.fillStyle = '#FFB3B3'
+      context.fillText(banner.sub, 0, 30)
+    }
     context.restore()
     context.globalAlpha = 1
   }
@@ -823,13 +967,17 @@ export function createRenderer(canvas: HTMLCanvasElement): GameRenderer {
       if (item.kind === 'ripe') drawRipeFruit(context, item.x, item.y, item.rotation)
       else if (item.kind === 'golden') drawGoldenFruit(context, item.x, item.y, item.rotation, clockMs)
       else if (item.kind === 'bigBasket') drawBigBasketPowerUp(context, item.x, item.y, clockMs)
+      else if (item.kind === 'slowFall') drawSlowFallToken(context, item.x, item.y, clockMs)
+      else if (item.kind === 'doubleHarvest') drawDoubleHarvestToken(context, item.x, item.y, clockMs)
+      else if (item.kind === 'extraLife') drawHeartToken(context, item.x, item.y, clockMs)
       else drawRottenFruit(context, item.x, item.y, item.rotation)
     }
     drawBasket(context, snapshot.basketX, snapshot.basketVelocity, {
       widthScale: snapshot.bigBasketMs > 0 ? GAME_CONFIG.bigBasketScale : 1,
       bounce: reducedEffects ? 0 : Math.sin((bounceMs / BOUNCE_MS) * Math.PI),
       glow: snapshot.combo >= 20 ? 2 : snapshot.combo >= 10 ? 1 : 0,
-      powerLeft: snapshot.bigBasketMs / GAME_CONFIG.bigBasketMs,
+      bars: timerBars(snapshot),
+      golden: snapshot.doubleHarvestMs > 0,
     })
     drawEffects()
     context.restore()

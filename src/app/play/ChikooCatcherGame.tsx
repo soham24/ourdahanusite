@@ -23,7 +23,9 @@ import type {
   GameSnapshot,
   InputState,
   PlayState,
+  PowerUpKind,
   SubmitState,
+  TimedPowerUpKind,
 } from './game/types'
 import './game.css'
 
@@ -138,6 +140,19 @@ const phaseAnnouncement = (snapshot: GameSnapshot) => {
     case 'harvestRush':
       return 'Harvest rush'
   }
+}
+
+const POWER_UP_ANNOUNCEMENTS: Record<PowerUpKind, string> = {
+  bigBasket: 'Big basket for a few seconds',
+  slowFall: 'Monsoon breeze: everything falls slower for a few seconds',
+  doubleHarvest: 'Double harvest: every catch counts twice for a few seconds',
+  extraLife: 'Extra life',
+}
+
+const POWER_UP_ENDED_ANNOUNCEMENTS: Record<TimedPowerUpKind, string> = {
+  bigBasket: 'Basket back to normal size',
+  slowFall: 'The breeze has passed',
+  doubleHarvest: 'Double harvest over',
 }
 
 export default function ChikooCatcherGame({
@@ -290,10 +305,18 @@ export default function ChikooCatcherGame({
           case 'powerUp':
             audioRef.current?.play('powerUp')
             hapticsRef.current?.play('combo', settingsRef.current.haptics)
-            setAnnouncement('Big basket for a few seconds')
+            setAnnouncement(POWER_UP_ANNOUNCEMENTS[event.kind])
             break
           case 'powerUpEnded':
-            setAnnouncement('Basket back to normal size')
+            setAnnouncement(POWER_UP_ENDED_ANNOUNCEMENTS[event.kind])
+            break
+          case 'milestone':
+            audioRef.current?.play('milestone')
+            hapticsRef.current?.play('golden', settingsRef.current.haptics)
+            setAnnouncement(`${event.score} points reached`)
+            break
+          case 'lifeRestored':
+            setAnnouncement(event.source === 'milestone' ? 'Milestone bonus: one life back' : 'Extra life: one life back')
             break
           case 'rottenCaught':
             audioRef.current?.play('damage')

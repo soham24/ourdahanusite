@@ -157,15 +157,31 @@ export default function GameOverlay(props: OverlayProps) {
               <span className="chikoo-fruit chikoo-fruit--rotten" aria-hidden="true" />
               <span><strong>Rotten</strong><small>Dodge</small></span>
             </div>
-            <div>
+            <div className="chikoo-overlay__legend-wide">
               <span className="chikoo-fruit chikoo-fruit--ripe chikoo-fruit--golden" aria-hidden="true" />
               <span><strong>Golden</strong><small>+3 points</small></span>
             </div>
-            <div>
+          </div>
+
+          <ul className="chikoo-overlay__topups" aria-label="Top-ups">
+            <li>
               <span className="chikoo-powerup" aria-hidden="true" />
               <span><strong>Big basket</strong><small>Wider</small></span>
-            </div>
-          </div>
+            </li>
+            <li>
+              <span className="chikoo-powerup chikoo-powerup--slow" aria-hidden="true" />
+              <span><strong>Monsoon</strong><small>Slower</small></span>
+            </li>
+            <li>
+              <span className="chikoo-powerup chikoo-powerup--double" aria-hidden="true" />
+              <span><strong>Double</strong><small>×2 points</small></span>
+            </li>
+            <li>
+              <span className="chikoo-powerup chikoo-powerup--heart" aria-hidden="true" />
+              <span><strong>Heart</strong><small>+1 life</small></span>
+            </li>
+          </ul>
+          <p className="chikoo-overlay__milestones">From 100 points, each milestone gives back a lost life.</p>
 
           <div className="chikoo-overlay__actions chikoo-overlay__actions--ready">
             <button type="button" className="chikoo-action chikoo-action--primary" onClick={props.onPlay}>

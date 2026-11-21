@@ -26,7 +26,8 @@ function run(engine: GameEngine, ms: number, keepBasketAt?: number): GameEvent[]
 const columnFor = (value: number) => GAME_CONFIG.itemRadius + value * (GAME_CONFIG.width - GAME_CONFIG.itemRadius * 2)
 
 test('a golden chikoo counts as a catch and is worth goldenPoints in all', () => {
-  assert.equal(scoreFor(3, 0, 1).score, 3 + GAME_CONFIG.goldenPoints - 1)
+  // The third argument is points beyond one per catch.
+  assert.equal(scoreFor(3, 0, GAME_CONFIG.goldenPoints - 1).score, 3 + GAME_CONFIG.goldenPoints - 1)
   assert.equal(scoreFor(0, 0, 0).score, 0)
 })
 
@@ -83,8 +84,8 @@ test('letting a golden chikoo or a power-up fall costs nothing', () => {
   assert.equal(engine.snapshot().gameOver, false)
 })
 
-test('the score still stops at the leaderboard cap', () => {
-  assert.ok(scoreFor(480, 96, 40).score > GAME_CONFIG.maxScore)
-  // The engine clamps; the database check also refuses anything above it.
-  assert.equal(GAME_CONFIG.maxScore, 500)
+test('scores go well past 500, up to a ceiling no real run reaches', () => {
+  assert.ok(GAME_CONFIG.maxScore > 5_000)
+  // The engine clamps; the score action and the database check refuse anything above it.
+  assert.ok(scoreFor(9_000, 1_800, 2_000).score > GAME_CONFIG.maxScore)
 })
