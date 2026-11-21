@@ -56,7 +56,7 @@ export const metadata: Metadata = {
 // The Hero forms a static shell so this route can prefetch
 // instantly on client navigation; data-driven sections sit behind their
 // own Suspense boundaries below. Validation is disabled because the root
-// layout's auth-aware Navbar/EmergencyRibbon trip the static-shell check
+// layout's auth-aware Navbar trips the static-shell check
 // even though they're properly wrapped in Suspense.
 export const unstable_instant = {
   prefetch: 'static',
