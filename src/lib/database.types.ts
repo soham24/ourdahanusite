@@ -1006,6 +1006,7 @@ export type Database = {
           plan: string | null
           rating: number | null
           reminders_sent: number[] | null
+          last_summary_month: string | null
           response_time: string | null
           review_count: number | null
           subdomain: string | null
@@ -1063,6 +1064,7 @@ export type Database = {
           plan?: string | null
           rating?: number | null
           reminders_sent?: number[] | null
+          last_summary_month?: string | null
           response_time?: string | null
           review_count?: number | null
           subdomain?: string | null
@@ -1120,6 +1122,7 @@ export type Database = {
           plan?: string | null
           rating?: number | null
           reminders_sent?: number[] | null
+          last_summary_month?: string | null
           response_time?: string | null
           review_count?: number | null
           subdomain?: string | null

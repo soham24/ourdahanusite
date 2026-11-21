@@ -417,6 +417,67 @@ function renderListingExpiring(
   }
 }
 
+function plural(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? '' : 's'}`
+}
+
+function renderListingMonthlySummary(
+  p: NotificationPayload<'listing.monthly_summary'>,
+): RenderedNotification {
+  const listingUrl = getListingUrl(p.listingId, p.subdomain)
+  const change =
+    p.priorViews > 0
+      ? ` (${p.views >= p.priorViews ? 'up' : 'down'} from ${p.priorViews})`
+      : ''
+  const taps = p.phone + p.whatsapp
+  const body =
+    `${plural(p.views, 'view')}${change}, ${plural(taps, 'call or WhatsApp tap')}` +
+    (p.newReviews > 0 ? `, ${plural(p.newReviews, 'new review')}` : '') +
+    (p.todo.length > 0 ? `. Next: ${p.todo[0].label.toLowerCase()}.` : '.')
+
+  // The layout wraps the intro in a <p>, so the list is line breaks, not <ul>.
+  const todoHtml = p.todo.length
+    ? `<br/><br/><strong style="color:#1a1a1a;">Finish your listing to get more customers:</strong>${p.todo
+        .slice(0, 4)
+        .map((step) => `<br/>&bull; <a href="${SITE_URL}${step.href}" style="color:#C4663A;">${escapeHtml(step.label)}</a>`)
+        .join('')}`
+    : ''
+
+  return {
+    title: `${p.monthLabel} · ${p.listingName}`,
+    body,
+    link: '/my-business',
+    icon: 'Star',
+    metadata: { listingId: p.listingId, month: p.monthLabel },
+    email: {
+      subject: `${p.listingName} in ${p.monthLabel}: ${plural(p.views, 'view')}`,
+      html: renderEmailLayout({
+        eyebrow: `Your ${p.monthLabel} summary`,
+        headline: p.listingName,
+        introHtml:
+          `Here is how <a href="${listingUrl}" style="color:#C4663A;">${escapeHtml(p.listingName)}</a> did on ${siteConfig.name} last month.` +
+          todoHtml,
+        detailRows:
+          buildDetailRow('Page views', `${p.views}${escapeHtml(change)}`, false) +
+          buildDetailRow('Calls', String(p.phone)) +
+          buildDetailRow('WhatsApp taps', String(p.whatsapp)) +
+          buildDetailRow('New reviews', String(p.newReviews)),
+        ctaUrl: `${SITE_URL}/my-business`,
+        ctaText: 'Open My Business',
+        footerNote: `Sent on the 1st of each month. Turn it off in your notification settings on ${siteConfig.name}.`,
+      }),
+    },
+    telegram: {
+      text: [
+        `📊 <b>${escapeHtml(p.listingName)} · ${escapeHtml(p.monthLabel)}</b>`,
+        escapeHtml(body),
+        '',
+        `<a href="${SITE_URL}/my-business">Open My Business</a>`,
+      ].join('\n'),
+    },
+  }
+}
+
 function jobNoun(kind: 'hiring' | 'seeking'): string {
   return kind === 'hiring' ? 'job post' : 'profile'
 }
@@ -774,6 +835,8 @@ export function renderNotification<T extends NotificationType>(
       return renderListingRejected(payload as NotificationPayload<'listing.rejected'>)
     case 'listing.expiring':
       return renderListingExpiring(payload as NotificationPayload<'listing.expiring'>)
+    case 'listing.monthly_summary':
+      return renderListingMonthlySummary(payload as NotificationPayload<'listing.monthly_summary'>)
     case 'job.approved':
       return renderJobApproved(payload as NotificationPayload<'job.approved'>)
     case 'job.rejected':

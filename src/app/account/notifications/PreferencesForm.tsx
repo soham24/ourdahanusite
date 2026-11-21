@@ -42,6 +42,7 @@ const TYPE_LABELS: Record<NotificationType, { label: string; hint: string }> = {
   'listing.approved': { label: 'Listing approved', hint: 'When your listing goes live' },
   'listing.rejected': { label: 'Listing rejected', hint: 'When a submission needs edits' },
   'listing.expiring': { label: 'Listing expiring', hint: 'Renewal reminders' },
+  'listing.monthly_summary': { label: 'Monthly summary', hint: 'Views, calls and reviews for your listing, on the 1st' },
   'job.approved': { label: 'Job post approved', hint: 'When your job post goes live' },
   'job.rejected': { label: 'Job post rejected', hint: 'When a job submission needs edits' },
   'job.expiring': { label: 'Job post expiring', hint: 'When your job post is about to expire' },

@@ -20,6 +20,7 @@ export const NOTIFICATION_TYPES = [
   'listing.approved',
   'listing.rejected',
   'listing.expiring',
+  'listing.monthly_summary',
   // Jobs board
   'job.approved',
   'job.rejected',
@@ -115,6 +116,21 @@ interface ListingExpiringPayload {
   daysLeft: number
 }
 
+interface ListingMonthlySummaryPayload {
+  listingId: string
+  listingName: string
+  subdomain?: string | null
+  /** "October 2026". */
+  monthLabel: string
+  views: number
+  priorViews: number
+  phone: number
+  whatsapp: number
+  newReviews: number
+  /** Setup steps still to do, most useful first; empty when the listing is complete. */
+  todo: { label: string; href: string }[]
+}
+
 interface JobApprovedPayload {
   postId: string
   title: string
@@ -196,6 +212,7 @@ export interface NotificationPayloadMap {
   'listing.approved': ListingApprovedPayload
   'listing.rejected': ListingRejectedPayload
   'listing.expiring': ListingExpiringPayload
+  'listing.monthly_summary': ListingMonthlySummaryPayload
   'job.approved': JobApprovedPayload
   'job.rejected': JobRejectedPayload
   'job.expiring': JobExpiringPayload
