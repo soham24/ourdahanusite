@@ -38,6 +38,10 @@ type PointerRect = Pick<DOMRect, 'left' | 'width'>
 interface ChikooCatcherGameProps {
   isSignedIn: boolean
   initialBestScore: number | null
+  /** Today's competition code the player joined with, or null to play normally. */
+  competitionCode?: string | null
+  onCompetitionRejected?: (message: string) => void
+  onCompetitionCounted?: () => void
 }
 
 type RoundRenderer = Pick<GameRenderer, 'clear' | 'setPointerX'>
@@ -158,6 +162,9 @@ const POWER_UP_ENDED_ANNOUNCEMENTS: Record<TimedPowerUpKind, string> = {
 export default function ChikooCatcherGame({
   isSignedIn,
   initialBestScore,
+  competitionCode = null,
+  onCompetitionRejected,
+  onCompetitionCounted,
 }: ChikooCatcherGameProps) {
   const router = useRouter()
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -185,6 +192,7 @@ export default function ChikooCatcherGame({
   const mountedRef = useRef(false)
   const isSignedInRef = useRef(isSignedIn)
   const routerRef = useRef(router)
+  const competitionRef = useRef({ code: competitionCode, onRejected: onCompetitionRejected, onCounted: onCompetitionCounted })
 
   const [playState, setPlayState] = useState<PlayState>('ready')
   const [snapshot, setSnapshot] = useState<GameSnapshot>(() => engineRef.current.snapshot())
@@ -261,7 +269,22 @@ export default function ChikooCatcherGame({
       const requestSequence = ++submissionSequenceRef.current
       setSubmitState('saving')
       setSubmitError('')
-      await runScoreSubmission(score, submitGameScore, {
+      // The code is read when the round is saved, so joining mid-round counts it.
+      const { code, onRejected, onCounted } = competitionRef.current
+      const submit = async (value: number) => {
+        const result = await submitGameScore(value, code ?? undefined)
+        // Report the competition outcome even if a new round has started, so a
+        // rejected code is cleared before it is sent again.
+        if (mountedRef.current && code) {
+          if (result.competition === 'not_counted') {
+            onRejected?.(result.competitionMessage ?? 'This round did not count for the competition.')
+          } else if (result.competition === 'counted') {
+            onCounted?.()
+          }
+        }
+        return result
+      }
+      await runScoreSubmission(score, submit, {
         isCurrent: () =>
           mountedRef.current &&
           requestSequence === submissionSequenceRef.current &&
@@ -616,6 +639,14 @@ export default function ChikooCatcherGame({
   useEffect(() => {
     routerRef.current = router
   }, [router])
+
+  useEffect(() => {
+    competitionRef.current = {
+      code: competitionCode,
+      onRejected: onCompetitionRejected,
+      onCounted: onCompetitionCounted,
+    }
+  }, [competitionCode, onCompetitionRejected, onCompetitionCounted])
 
   useEffect(() => {
     const canvas = canvasRef.current

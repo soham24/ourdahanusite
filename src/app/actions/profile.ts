@@ -80,3 +80,35 @@ export async function updateProfileFull(
   revalidatePath('/dashboard')
   return { success: true }
 }
+
+/**
+ * Sets only the signed-in user's display name (profiles.full_name), leaving
+ * every other profile field alone. Used by the /play competition card.
+ */
+export async function setDisplayName(name: string): Promise<{ error?: string }> {
+  const fullName = String(name ?? '').trim()
+  if (fullName.length < 2 || fullName.length > 40) {
+    return { error: 'Your name must be 2 to 40 characters.' }
+  }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Please sign in first.' }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ full_name: fullName })
+    .eq('id', user.id)
+    .select('id')
+  if (error) return { error: 'Could not save your name. Please try again.' }
+
+  if (!data || data.length === 0) {
+    const { error: insertError } = await supabase
+      .from('profiles')
+      .insert({ id: user.id, email: user.email, full_name: fullName })
+    if (insertError) return { error: 'Could not save your name. Please try again.' }
+  }
+
+  revalidatePath('/profile')
+  return {}
+}

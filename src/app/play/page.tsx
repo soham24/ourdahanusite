@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
+import { connection } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getCompetitionLeaderboard, getPastCompetitions, getTodayCompetition } from '@/lib/data/competition'
 import { getGameLeaderboard, getUserBestScore } from '@/lib/data/game'
-import ChikooCatcherGame from './ChikooCatcherGame'
 import Leaderboard from './Leaderboard'
+import PastCompetitions from './PastCompetitions'
+import PlayArea from './PlayArea'
 import { siteConfig } from '@/lib/site'
 
 const TITLE = `Chikoo Catcher — A ${siteConfig.town} Mini-Game`
@@ -24,15 +27,39 @@ export const metadata: Metadata = {
   },
 }
 
+type ServerClient = Awaited<ReturnType<typeof createClient>>
+
+async function userHasDisplayName(supabase: ServerClient, userId: string): Promise<boolean> {
+  try {
+    const { data } = await supabase.from('profiles').select('full_name').eq('id', userId).maybeSingle()
+    const name = (data as { full_name: string | null } | null)?.full_name
+    return typeof name === 'string' && name.trim().length > 0
+  } catch {
+    return false
+  }
+}
+
+async function getTodayWithBoard() {
+  const competition = await getTodayCompetition()
+  const board = competition ? await getCompetitionLeaderboard(competition.id, 10) : []
+  return { competition, board }
+}
+
 export default async function PlayPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [weekly, allTime, yourBestWeek, yourBestAllTime] = await Promise.all([
+  // Today's competition depends on the current India date, so render per request.
+  await connection()
+
+  const [weekly, allTime, yourBestWeek, yourBestAllTime, today, past, hasDisplayName] = await Promise.all([
     getGameLeaderboard('this_week'),
     getGameLeaderboard('all_time'),
     user ? getUserBestScore(user.id, 'this_week') : Promise.resolve(null),
     user ? getUserBestScore(user.id, 'all_time') : Promise.resolve(null),
+    getTodayWithBoard(),
+    getPastCompetitions(5),
+    user ? userHasDisplayName(supabase, user.id) : Promise.resolve(false),
   ])
 
   return (
@@ -47,9 +74,12 @@ export default async function PlayPage() {
             Race through a sunlit {siteConfig.town} orchard. Catch the ripe harvest, avoid rotten fruit, and keep your combo alive.
           </p>
         </header>
-        <ChikooCatcherGame
+        <PlayArea
           isSignedIn={Boolean(user)}
           initialBestScore={Math.max(yourBestWeek ?? 0, yourBestAllTime ?? 0) || null}
+          competition={today.competition}
+          board={today.board}
+          hasDisplayName={hasDisplayName}
         />
         <section className="w-full max-w-4xl" aria-labelledby="leaderboard-title">
           <div className="mb-4 text-center">
@@ -65,6 +95,7 @@ export default async function PlayPage() {
             yourBestAllTime={yourBestAllTime}
           />
         </section>
+        <PastCompetitions competitions={past} />
       </div>
     </div>
   )
