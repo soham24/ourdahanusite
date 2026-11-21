@@ -11,6 +11,7 @@ import {
   Sparkles,
   Store,
 } from 'lucide-react'
+import { team } from '@/content/local'
 import { siteConfig } from '@/lib/site'
 
 export const metadata: Metadata = {
@@ -22,14 +23,8 @@ export const metadata: Metadata = {
   },
 }
 
-const coreGroup = [
-  { name: 'Soham Railkar', role: 'Founder', detail: `Started ${siteConfig.name} as a local Facebook, Instagram and WhatsApp community.` },
-  { name: 'Ankit Thakkar', role: 'Core Group', detail: 'Helps manage community conversations and local coordination.' },
-  { name: 'Khushboo Kapadia', role: 'Core Group', detail: `Part of the team shaping useful community spaces for ${siteConfig.town}.` },
-  { name: 'Ajay Bari', role: 'Core Group', detail: 'Supports group management and day-to-day community operations.' },
-  { name: 'Nupur Mestry', role: 'Core Group', detail: `Helps keep ${siteConfig.name} active, helpful and locally relevant.` },
-  { name: 'Khushbu Bari', role: 'Content / Media', detail: 'Supports the community with content, media and storytelling.' },
-]
+// Kept with the other town-specific content, so the home page and this page agree.
+const coreGroup = team
 
 const founder = coreGroup[0]
 const teamMembers = coreGroup.slice(1)
