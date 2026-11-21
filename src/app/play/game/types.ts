@@ -1,8 +1,11 @@
 export type GamePhase = 'warmup' | 'flow' | 'rush' | 'harvestRush'
 export type PlayState = 'ready' | 'countdown' | 'playing' | 'paused' | 'gameOver'
 export type SubmitState = 'idle' | 'saving' | 'saved' | 'best' | 'error'
-/** golden: rare, worth more. bigBasket: a power-up that widens the basket for a while. */
-export type ItemKind = 'ripe' | 'rotten' | 'golden' | 'bigBasket'
+/** Top-ups that fall like fruit: three last a few seconds, the heart is instant. */
+export type PowerUpKind = 'bigBasket' | 'slowFall' | 'doubleHarvest' | 'extraLife'
+export type TimedPowerUpKind = Exclude<PowerUpKind, 'extraLife'>
+/** golden: rare, worth more. The rest are top-ups. */
+export type ItemKind = 'ripe' | 'rotten' | 'golden' | PowerUpKind
 export type QualityLevel = 'high' | 'reduced'
 
 export interface FallingItem {
@@ -43,10 +46,16 @@ export interface GameEngineState {
   score: number
   misses: number
   badCatches: number
-  /** Golden chikoos caught; each is a catch plus extra points. */
+  /** Golden chikoos caught. */
   goldens: number
-  /** Time left on the big-basket power-up, 0 when inactive. */
+  /** Points beyond one per catch: golden chikoos and double harvest. */
+  extraPoints: number
+  /** Time left on each timed top-up, 0 when inactive. */
   bigBasketMs: number
+  slowFallMs: number
+  doubleHarvestMs: number
+  /** Index into GAME_CONFIG.scoreMilestones of the next one to reach. */
+  nextMilestone: number
   phase: GamePhase
   nextItemId: number
   gameOver: boolean
@@ -57,10 +66,12 @@ export interface GameEngineState {
 export interface GameSnapshot extends Readonly<GameEngineState> {}
 
 export type GameEvent =
-  | { type: 'ripeCaught'; x: number; y: number; combo: number; bonusAwarded: number }
+  | { type: 'ripeCaught'; x: number; y: number; combo: number; bonusAwarded: number; points?: number }
   | { type: 'goldenCaught'; x: number; y: number; combo: number; points: number }
-  | { type: 'powerUp'; x: number; y: number; durationMs: number }
-  | { type: 'powerUpEnded' }
+  | { type: 'powerUp'; kind: PowerUpKind; x: number; y: number; durationMs: number }
+  | { type: 'powerUpEnded'; kind: TimedPowerUpKind }
+  | { type: 'lifeRestored'; source: 'powerUp' | 'milestone' }
+  | { type: 'milestone'; score: number }
   | { type: 'rottenCaught'; x: number; y: number }
   | { type: 'ripeMissed'; x: number }
   | { type: 'phaseChanged'; phase: GamePhase }

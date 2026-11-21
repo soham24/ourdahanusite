@@ -22,16 +22,24 @@ export const GAME_CONFIG = {
   comboMilestone: 5,
   fixedStepMs: 1000 / 120,
   maxCatchUpSteps: 8,
-  maxScore: 500,
+  /** A ceiling no real run reaches, so a forged score cannot be absurd. */
+  maxScore: 9_999,
   /** A golden chikoo counts as a catch and this many points in all. */
   goldenPoints: 3,
   /** Chance a spawn is golden, by phase: none while learning, rarer than rotten after. */
   goldenChance: { warmup: 0, flow: 0.035, rush: 0.05, harvestRush: 0.06 },
-  /** Chance a spawn is the big-basket power-up, once one can appear. */
-  powerUpChance: 0.03,
+  /** Chance a spawn is a top-up, once they can appear; split between the kinds that can. */
+  powerUpChance: 0.045,
   powerUpAfterMs: 12_000,
   bigBasketScale: 1.55,
   bigBasketMs: 6_500,
+  slowFallMs: 6_000,
+  /** Fall speed while the monsoon breeze lasts. */
+  slowFallFactor: 0.55,
+  doubleHarvestMs: 8_000,
+  /** Scores that get a banner. From milestoneRestoresFrom on, each also gives back a lost life. */
+  scoreMilestones: [50, 100, 200, 300, 500, 750, 1_000, 1_500, 2_000, 3_000, 5_000, 7_500],
+  milestoneRestoresFrom: 100,
   /** Catches in a row that get a banner and their own sound. */
   streakMilestones: [10, 20, 30, 50, 75, 100],
 } as const
@@ -67,8 +75,8 @@ export function getDifficulty(activeMs: number): Difficulty {
   }
 }
 
-export function scoreFor(catches: number, rawBonus: number, goldens = 0): { bonus: number; score: number } {
+/** One point a catch, the combo bonus (at most a fifth of catches), plus extra points from gold and double harvest. */
+export function scoreFor(catches: number, rawBonus: number, extraPoints = 0): { bonus: number; score: number } {
   const bonus = Math.min(Math.max(0, rawBonus), Math.floor(Math.max(0, catches) * 0.2))
-  const goldenExtra = Math.max(0, goldens) * (GAME_CONFIG.goldenPoints - 1)
-  return { bonus, score: Math.max(0, catches) + bonus + goldenExtra }
+  return { bonus, score: Math.max(0, catches) + bonus + Math.max(0, extraPoints) }
 }

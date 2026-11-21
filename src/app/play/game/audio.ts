@@ -2,7 +2,7 @@ import type { GamePhase } from './types'
 
 export type AudioCue =
   | 'countdown' | 'catch' | 'combo' | 'miss' | 'damage' | 'pause' | 'resume' | 'gameOver' | 'select'
-  | 'golden' | 'powerUp' | 'streak' | 'newBest'
+  | 'golden' | 'powerUp' | 'streak' | 'newBest' | 'milestone'
 
 export interface AudioController {
   unlock(): Promise<void>
@@ -52,6 +52,8 @@ const PHRASES: Partial<Record<AudioCue, readonly Note[]>> = {
   golden: [[784, 0.09, 0.05, 880], [988, 0.09, 0.05, 1100, 0.07], [1319, 0.18, 0.055, 1480, 0.14]],
   powerUp: [[330, 0.22, 0.05, 990], [495, 0.2, 0.035, 1320, 0.05]],
   streak: [[880, 0.08, 0.05, 990], [1175, 0.14, 0.05, 1320, 0.08]],
+  // A short two-step fanfare for a score milestone.
+  milestone: [[659, 0.09, 0.05, 659], [880, 0.09, 0.05, 880, 0.09], [1319, 0.24, 0.055, 1319, 0.18]],
   newBest: [[523, 0.1, 0.05, 523], [659, 0.1, 0.05, 659, 0.1], [784, 0.1, 0.05, 784, 0.2], [1047, 0.32, 0.06, 1047, 0.3]],
 }
 
@@ -70,6 +72,7 @@ const CUES: Record<AudioCue, readonly [number, number, number, number]> = {
   powerUp: [330, 0.22, 0.05, 990],
   streak: [880, 0.1, 0.05, 1175],
   newBest: [523, 0.3, 0.06, 1047],
+  milestone: [880, 0.2, 0.05, 1319],
 }
 
 const PHASE_INTERVALS: Record<GamePhase, number> = {

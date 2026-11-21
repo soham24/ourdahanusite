@@ -23,7 +23,9 @@ import type {
   GameSnapshot,
   InputState,
   PlayState,
+  PowerUpKind,
   SubmitState,
+  TimedPowerUpKind,
 } from './game/types'
 import './game.css'
 
@@ -36,6 +38,14 @@ type PointerRect = Pick<DOMRect, 'left' | 'width'>
 interface ChikooCatcherGameProps {
   isSignedIn: boolean
   initialBestScore: number | null
+  /**
+   * Today's competition code the player joined with, or null to play normally.
+   * A function is called when the round is saved, so the answer can depend on
+   * the moment of submission (for example the India day having rolled over).
+   */
+  competitionCode?: string | null | (() => string | null)
+  onCompetitionRejected?: (message: string) => void
+  onCompetitionCounted?: () => void
 }
 
 type RoundRenderer = Pick<GameRenderer, 'clear' | 'setPointerX'>
@@ -140,9 +150,25 @@ const phaseAnnouncement = (snapshot: GameSnapshot) => {
   }
 }
 
+const POWER_UP_ANNOUNCEMENTS: Record<PowerUpKind, string> = {
+  bigBasket: 'Big basket for a few seconds',
+  slowFall: 'Monsoon breeze: everything falls slower for a few seconds',
+  doubleHarvest: 'Double harvest: every catch counts twice for a few seconds',
+  extraLife: 'Extra life',
+}
+
+const POWER_UP_ENDED_ANNOUNCEMENTS: Record<TimedPowerUpKind, string> = {
+  bigBasket: 'Basket back to normal size',
+  slowFall: 'The breeze has passed',
+  doubleHarvest: 'Double harvest over',
+}
+
 export default function ChikooCatcherGame({
   isSignedIn,
   initialBestScore,
+  competitionCode = null,
+  onCompetitionRejected,
+  onCompetitionCounted,
 }: ChikooCatcherGameProps) {
   const router = useRouter()
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -170,6 +196,7 @@ export default function ChikooCatcherGame({
   const mountedRef = useRef(false)
   const isSignedInRef = useRef(isSignedIn)
   const routerRef = useRef(router)
+  const competitionRef = useRef({ code: competitionCode, onRejected: onCompetitionRejected, onCounted: onCompetitionCounted })
 
   const [playState, setPlayState] = useState<PlayState>('ready')
   const [snapshot, setSnapshot] = useState<GameSnapshot>(() => engineRef.current.snapshot())
@@ -246,7 +273,23 @@ export default function ChikooCatcherGame({
       const requestSequence = ++submissionSequenceRef.current
       setSubmitState('saving')
       setSubmitError('')
-      await runScoreSubmission(score, submitGameScore, {
+      // The code is read when the round is saved, so joining mid-round counts it.
+      const { code: codeSource, onRejected, onCounted } = competitionRef.current
+      const code = typeof codeSource === 'function' ? codeSource() : codeSource
+      const submit = async (value: number) => {
+        const result = await submitGameScore(value, code ?? undefined)
+        // Report the competition outcome even if a new round has started, so a
+        // rejected code is cleared before it is sent again.
+        if (mountedRef.current && code) {
+          if (result.competition === 'not_counted') {
+            onRejected?.(result.competitionMessage ?? 'This round did not count for the competition.')
+          } else if (result.competition === 'counted') {
+            onCounted?.()
+          }
+        }
+        return result
+      }
+      await runScoreSubmission(score, submit, {
         isCurrent: () =>
           mountedRef.current &&
           requestSequence === submissionSequenceRef.current &&
@@ -290,10 +333,18 @@ export default function ChikooCatcherGame({
           case 'powerUp':
             audioRef.current?.play('powerUp')
             hapticsRef.current?.play('combo', settingsRef.current.haptics)
-            setAnnouncement('Big basket for a few seconds')
+            setAnnouncement(POWER_UP_ANNOUNCEMENTS[event.kind])
             break
           case 'powerUpEnded':
-            setAnnouncement('Basket back to normal size')
+            setAnnouncement(POWER_UP_ENDED_ANNOUNCEMENTS[event.kind])
+            break
+          case 'milestone':
+            audioRef.current?.play('milestone')
+            hapticsRef.current?.play('golden', settingsRef.current.haptics)
+            setAnnouncement(`${event.score} points reached`)
+            break
+          case 'lifeRestored':
+            setAnnouncement(event.source === 'milestone' ? 'Milestone bonus: one life back' : 'Extra life: one life back')
             break
           case 'rottenCaught':
             audioRef.current?.play('damage')
@@ -593,6 +644,14 @@ export default function ChikooCatcherGame({
   useEffect(() => {
     routerRef.current = router
   }, [router])
+
+  useEffect(() => {
+    competitionRef.current = {
+      code: competitionCode,
+      onRejected: onCompetitionRejected,
+      onCounted: onCompetitionCounted,
+    }
+  }, [competitionCode, onCompetitionRejected, onCompetitionCounted])
 
   useEffect(() => {
     const canvas = canvasRef.current

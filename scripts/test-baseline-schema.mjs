@@ -47,7 +47,7 @@ for (const file of files) {
 }
 
 const count = async (sql) => Number((await db.query(sql)).rows[0].n)
-assert.equal(await count(`SELECT count(*) n FROM pg_tables WHERE schemaname = 'public'`), 35, 'public tables')
+assert.equal(await count(`SELECT count(*) n FROM pg_tables WHERE schemaname = 'public'`), 37, 'public tables')
 assert.equal(await count(`SELECT count(*) n FROM pg_policies WHERE schemaname = 'public'`), 57, 'public RLS policies (a change here should be deliberate)')
 assert.equal(
   await count(`SELECT count(*) n FROM pg_tables WHERE schemaname = 'public' AND NOT rowsecurity`),
@@ -253,6 +253,90 @@ await db.exec('RESET ROLE')
 await db.exec(`INSERT INTO public.listings (name, category, approved) VALUES ('Hidden Thali Kitchen', 'Restaurants', false)`)
 await db.exec('SET ROLE anon')
 assert.ok(!(await searchNames('thali kitchen')).includes('Hidden Thali Kitchen'), 'unapproved listings stay hidden')
+await db.exec('RESET ROLE')
+
+// ── Daily game competition ───────────────────────────────────────────────
+// The code is a shared secret: no public function may ever return it, and
+// players cannot tag their own scores with a competition from the API.
+await db.exec('RESET ROLE')
+const [compA, compB, compC] = [
+  '00000000-0000-0000-0000-0000000000b1',
+  '00000000-0000-0000-0000-0000000000b2',
+  '00000000-0000-0000-0000-0000000000b3',
+]
+for (const [id, name] of [[compA, 'Player A'], [compB, 'Player B'], [compC, 'Player C']]) {
+  await db.query(`INSERT INTO auth.users (id, email, raw_user_meta_data) VALUES ($1, $2, $3)`, [id, `${name.replace(' ', '').toLowerCase()}@example.test`, JSON.stringify({ full_name: name })])
+}
+const competitionId = (await db.query(
+  `INSERT INTO public.game_competitions (day, title, prize, code) VALUES ('2026-11-21', 'Chikoo Cup', 'A box of chikoos', 'SAPOTA21') RETURNING id`,
+)).rows[0].id
+await db.query(
+  `INSERT INTO public.game_scores (user_id, score, played_at, competition_id) VALUES
+     ($1, 50, '2026-11-21 10:00+00', $4), ($2, 50, '2026-11-21 09:00+00', $4), ($3, 70, '2026-11-21 11:00+00', $4)`,
+  [compA, compB, compC, competitionId],
+)
+// D scores 10 early, then ties with E on 50 AFTER E got there: E must rank above D
+// even though D's first round of the day is the earliest of all.
+const compD = '00000000-0000-0000-0000-0000000000b4'
+const compE = '00000000-0000-0000-0000-0000000000b5'
+for (const [id, name] of [[compD, 'Player D'], [compE, 'Player E']]) {
+  await db.query(`INSERT INTO auth.users (id, email, raw_user_meta_data) VALUES ($1, $2, $3)`, [id, `${name.replace(' ', '').toLowerCase()}@example.test`, JSON.stringify({ full_name: name })])
+}
+await db.query(
+  `INSERT INTO public.game_scores (user_id, score, played_at, competition_id) VALUES
+     ($1, 10, '2026-11-21 08:00+00', $3), ($1, 50, '2026-11-21 12:00+00', $3), ($2, 50, '2026-11-21 09:30+00', $3)`,
+  [compD, compE, competitionId],
+)
+await db.query(`INSERT INTO public.game_competition_exclusions (competition_id, user_id, reason) VALUES ($1, $2, 'cheating')`, [competitionId, compC])
+await assert.rejects(
+  db.query(`INSERT INTO public.game_competitions (day, title, prize, code) VALUES ('2026-11-22', 'Bad', 'x', 'lower')`),
+  /game_competitions_code_check/,
+  'code must be upper-case letters and digits',
+)
+await assert.rejects(
+  db.query(`INSERT INTO public.game_competitions (day, title, prize, code) VALUES ('2026-11-21', 'Dup', 'x', 'ABC')`),
+  /duplicate key/,
+  'one competition per game per day',
+)
+
+for (const role of ['anon', 'authenticated']) {
+  await db.exec(`SET ROLE ${role}`)
+  const board = (await db.query(`SELECT public.get_competition_leaderboard($1, 10) AS r`, [competitionId])).rows[0].r
+  assert.deepEqual(
+    board.map((r) => [r.full_name, r.best_score]),
+    [['Player B', 50], ['Player E', 50], ['Player A', 50], ['Player D', 50]],
+    `${role}: excluded player is hidden; ties go to whoever reached the score first, not who played first`,
+  )
+  assert.equal((await db.query(`SELECT public.get_competition_leaderboard($1, 1) AS r`, [competitionId])).rows[0].r.length, 1, 'limit applies')
+  const today = (await db.query(`SELECT public.get_today_competition('chikoo_catcher', '2026-11-21') AS r`)).rows[0].r
+  assert.equal(today.title, 'Chikoo Cup')
+  assert.equal(today.prize, 'A box of chikoos')
+  assert.equal((await db.query(`SELECT public.get_today_competition('chikoo_catcher', '2026-11-23') AS r`)).rows[0].r, null, 'no competition that day')
+  const past = (await db.query(`SELECT public.get_past_competitions('chikoo_catcher', '2026-11-22', 5) AS r`)).rows[0].r
+  assert.equal(past.length, 1)
+  assert.deepEqual(past[0].top.map((r) => r.full_name), ['Player B', 'Player E', 'Player A'], 'podium matches the live board order and omits the excluded player')
+  assert.equal((await db.query(`SELECT public.get_past_competitions('chikoo_catcher', '2026-11-21', 5) AS r`)).rows[0].r.length, 0, 'today is not past')
+  for (const text of [JSON.stringify(today), JSON.stringify(past), JSON.stringify(board)]) {
+    assert.ok(!text.includes('SAPOTA21'), `${role}: the code must never leave the database`)
+  }
+}
+await db.exec('RESET ROLE')
+await db.query(`UPDATE public.game_competitions SET active = false WHERE id = $1`, [competitionId])
+await db.exec('SET ROLE anon')
+assert.equal((await db.query(`SELECT public.get_today_competition('chikoo_catcher', '2026-11-21') AS r`)).rows[0].r, null, 'inactive competitions are hidden')
+assert.equal((await db.query(`SELECT public.get_past_competitions('chikoo_catcher', '2026-11-22', 5) AS r`)).rows[0].r.length, 0)
+await db.exec('RESET ROLE')
+await db.query(`UPDATE public.game_competitions SET active = true WHERE id = $1`, [competitionId])
+
+await asUser(compA)
+await assert.rejects(
+  db.query(`INSERT INTO public.game_scores (user_id, score, competition_id) VALUES ($1, 10, $2)`, [compA, competitionId]),
+  /row-level security/,
+  'a player cannot tag their own score with a competition',
+)
+await db.query(`INSERT INTO public.game_scores (user_id, score) VALUES ($1, 10)`, [compA])
+await assert.rejects(db.query(`SELECT * FROM public.game_competitions`), /permission denied/, 'competitions (and the code) are not readable')
+await assert.rejects(db.query(`SELECT * FROM public.game_competition_exclusions`), /permission denied/)
 await db.exec('RESET ROLE')
 
 await db.close()

@@ -138,7 +138,8 @@ test('reset clears a completed round and preserves no entity references', () => 
 test('score ceiling ends the round exactly once with a server-valid score', () => {
   const engine = createGameEngine(() => 0.5)
   engine.setInput({ targetX: GAME_CONFIG.width / 2, left: false, right: false })
-  const events = advanceUntil(engine, () => engine.snapshot().gameOver, 300_000)
+  // A perfect player needs about an hour of play to reach the ceiling.
+  const events = advanceUntil(engine, () => engine.snapshot().gameOver, 5_000_000)
   const gameOverEvents = events.filter((event) => event.type === 'gameOver')
 
   assert.equal(engine.snapshot().score, GAME_CONFIG.maxScore)

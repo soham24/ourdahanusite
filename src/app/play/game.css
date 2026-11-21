@@ -386,6 +386,113 @@
   background: #b77a3e;
 }
 
+/* The other top-ups reuse the token, recoloured, with a glyph instead of the basket. */
+.chikoo-powerup--slow,
+.chikoo-powerup--double,
+.chikoo-powerup--heart {
+  display: grid;
+  place-items: center;
+}
+
+.chikoo-powerup--slow::after,
+.chikoo-powerup--double::after,
+.chikoo-powerup--heart::after {
+  position: static;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.chikoo-powerup--slow {
+  border-color: #3f7fb5;
+  background: #eef6fc;
+  box-shadow: 0 0 12px rgba(110, 170, 220, 0.55);
+}
+
+.chikoo-powerup--slow::after {
+  content: '\2601';
+  font-size: 15px;
+  color: #5b8fbf;
+}
+
+.chikoo-powerup--double {
+  border-color: #b07a12;
+  background: #ffd86a;
+  box-shadow: 0 0 12px rgba(255, 200, 80, 0.6);
+}
+
+.chikoo-powerup--double::after {
+  content: '\00d7 2';
+  font-size: 11px;
+  color: #7a4f08;
+}
+
+.chikoo-powerup--heart {
+  border-color: #8e1f25;
+  background: #ffe3e3;
+  box-shadow: 0 0 12px rgba(240, 90, 90, 0.55);
+}
+
+.chikoo-powerup--heart::after {
+  content: '\2665';
+  font-size: 16px;
+  color: #e0474c;
+}
+
+.chikoo-overlay__topups {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chikoo-overlay__topups li {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 8px 4px;
+  border: 1px solid rgba(255, 239, 193, 0.14);
+  border-radius: 12px;
+  background: rgba(16, 40, 24, 0.3);
+  text-align: center;
+}
+
+.chikoo-overlay__topups li > span:last-child {
+  display: grid;
+  line-height: 1.1;
+}
+
+.chikoo-overlay__topups strong {
+  font-size: 11px;
+  color: #fff8e5;
+}
+
+.chikoo-overlay__topups small {
+  margin-top: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 248, 229, 0.58);
+}
+
+.chikoo-overlay__legend > .chikoo-overlay__legend-wide {
+  grid-column: 1 / -1;
+}
+
+.chikoo-overlay__milestones {
+  margin: 10px 0 0;
+  text-wrap: balance;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(255, 248, 229, 0.72);
+}
+
 .chikoo-fruit--ripe {
   border-radius: 48% 52% 45% 55% / 55% 46% 54% 45%;
 }
@@ -794,6 +901,11 @@
   .chikoo-overlay__legend,
   .chikoo-overlay__actions {
     margin-top: 12px;
+  }
+
+  /* Short screens: the top-up tiles stay, the milestone line goes. */
+  .chikoo-overlay__milestones {
+    display: none;
   }
 }
 
