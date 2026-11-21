@@ -34,15 +34,14 @@ function ComingSoonSection({ title, icon, color }: { title: string; icon: React.
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // getUserRole does the full auth.getUser() check and returns the user.
+  const { user, role, verified } = await getUserRole(supabase)
 
   if (!user) redirect('/login')
 
   const avatar = user.user_metadata?.avatar_url ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email || 'U')}&background=16a34a&color=fff&size=100`
   const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Member'
-
-  const { role, verified } = await getUserRole(supabase)
 
   let profileData: Record<string, unknown> | null = null
 

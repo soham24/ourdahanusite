@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import {
   DEFAULT_PREFERENCES,
   NOTIFICATION_TYPES,
@@ -47,7 +48,7 @@ export async function getRecentNotifications(
   limit = 20,
 ): Promise<NotificationRow[]> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return []
 
   const { data } = await supabase
@@ -62,7 +63,7 @@ export async function getRecentNotifications(
 
 export async function getUnreadCount(): Promise<number> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return 0
 
   const { count } = await supabase
@@ -76,7 +77,7 @@ export async function getUnreadCount(): Promise<number> {
 
 export async function getNotificationPreferences(): Promise<NotificationPreferencesRow | null> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return null
 
   const { data } = await supabase
@@ -98,7 +99,7 @@ export async function markNotificationRead(
 ): Promise<{ error?: string }> {
   if (!notificationId) return { error: 'Missing notification.' }
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return { error: 'Not signed in.' }
 
   const { error } = await supabase
@@ -115,7 +116,7 @@ export async function markNotificationRead(
 
 export async function markAllNotificationsRead(): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return { error: 'Not signed in.' }
 
   const { error } = await supabase
@@ -141,7 +142,7 @@ export async function updateNotificationPreferences(
   input: UpdatePreferencesInput,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return { error: 'Not signed in.' }
 
   const cleanMuted = Array.isArray(input.muted_types)
@@ -178,7 +179,7 @@ export async function setTypeMuted(
 ): Promise<{ error?: string }> {
   if (!NOTIFICATION_TYPE_SET.has(type)) return { error: 'Unknown notification type.' }
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return { error: 'Not signed in.' }
 
   const { data: current } = await supabase

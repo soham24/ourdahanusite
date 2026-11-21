@@ -6,6 +6,7 @@ import { getProfessionalById, getApprovedRatings, getApprovedProfessionals } fro
 import { truncateAtWord } from '@/lib/text'
 import { isProfileIndexable } from '@/lib/seo-thresholds'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import { professionFromSlug, professionSlug } from '@/lib/find/professions'
 import StructuredData from '@/components/StructuredData'
 import { BusinessAvatar, GoldStars, Monogram, Mr, premiumSurfaceClass, PremiumBadge, professionLabels, telHref, ratingDate, VisitBusinessLink, waHref } from '../../find-ui'
@@ -64,7 +65,7 @@ export default async function ProfessionalDetailPage({
   const ratings = await getApprovedRatings(id)
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   let alreadyRated = false
   if (user) {
     const { data: mine } = await supabase

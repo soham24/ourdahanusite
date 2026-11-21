@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import { revalidatePublicListingDetail } from '@/lib/cache-tags'
 import { normalizeInlineText, normalizeMultilineText } from '@/lib/listing-content'
 import { sendNotification } from '@/lib/notifications'
@@ -18,7 +19,7 @@ export async function toggleFavourite(
 ): Promise<{ isFavourited: boolean; error?: string }> {
   void subdomain
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return { isFavourited: false, error: 'Sign in to save favourites.' }
 
   const { data: existing } = await supabase
@@ -47,7 +48,7 @@ export async function toggleRecommendation(
 ): Promise<{ isRecommended: boolean; error?: string }> {
   void subdomain
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return { isRecommended: false, error: 'Sign in to recommend.' }
 
   const { data: existing } = await supabase
@@ -77,7 +78,7 @@ export async function askQuestion(
 ): Promise<{ error?: string }> {
   void subdomain
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return { error: 'Sign in to ask a question.' }
   const normalizedQuestion = normalizeInlineText(question, 220)
   if (!normalizedQuestion) return { error: 'Question cannot be empty.' }

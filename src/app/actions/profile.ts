@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -92,7 +93,7 @@ export async function setDisplayName(name: string): Promise<{ error?: string }> 
   }
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) return { error: 'Please sign in first.' }
 
   const { data, error } = await supabase

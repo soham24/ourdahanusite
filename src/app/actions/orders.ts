@@ -88,11 +88,10 @@ export async function getMyListingOrders(): Promise<{
 
 export async function getAllOrders(): Promise<Order[]> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return []
-
+  // getUserRole does the full auth.getUser() check (signed out → 'user').
   const { getUserRole } = await import('@/app/actions/admin')
-  const { role } = await getUserRole(supabase)
+  const { user, role } = await getUserRole(supabase)
+  if (!user) return []
   if (role !== 'admin' && role !== 'moderator') return []
 
   const adminClient = createAdminClient()

@@ -16,6 +16,7 @@ import {
 import { getMyMarketplaceOrder } from '@/app/actions/marketplace-orders'
 import { orderItemName } from '@/lib/catalog/catalog'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import { siteConfig } from '@/lib/site'
 
 interface PageProps {
@@ -75,9 +76,7 @@ function StatusRow({ status }: { status: string }) {
 
 export default async function MyOrderDetailPage({ params }: PageProps) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) {
     redirect('/login')
   }

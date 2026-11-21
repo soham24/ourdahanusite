@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 
 const ANON_VIEWER = {
   isLoggedIn: false,
@@ -24,7 +25,7 @@ export async function GET(
 ) {
   const { id: pollId } = await context.params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
 
   if (!user) {
     return NextResponse.json(ANON_VIEWER, { headers: ANON_CACHE_HEADERS })

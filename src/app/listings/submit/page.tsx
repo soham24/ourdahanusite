@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, Star, Edit3, ImageIcon, Package, ArrowRight } from 'lucide-react'
@@ -27,13 +28,13 @@ export default async function SubmitListingPage({
   searchParams: Promise<{ submitted?: string; name?: string }>
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) redirect('/login?next=/listings/submit')
 
   const { submitted, name } = await searchParams
 
   if (submitted === '1') {
-    const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'there'
+    const userName = (user.userMetadata.full_name as string | undefined) || user.email?.split('@')[0] || 'there'
     const firstName = userName.split(' ')[0]
     const bizName = name ? decodeURIComponent(name) : 'your business'
 
@@ -120,7 +121,7 @@ export default async function SubmitListingPage({
     )
   }
 
-  const userName  = user.user_metadata?.full_name || user.email?.split('@')[0] || ''
+  const userName  = (user.userMetadata.full_name as string | undefined) || user.email?.split('@')[0] || ''
   const userEmail = user.email || ''
 
   const pricing = await getPricingConfig()

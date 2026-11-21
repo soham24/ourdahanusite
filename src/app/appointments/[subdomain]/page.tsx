@@ -5,6 +5,7 @@ import BookingWidget from '@/components/appointments/BookingWidget'
 import { getBookableListingBySubdomain } from '@/lib/data/appointment-directory'
 import { buildAbsoluteUrl } from '@/lib/site'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import { siteConfig } from '@/lib/site'
 
 type Props = { params: Promise<{ subdomain: string }> }
@@ -32,7 +33,7 @@ export default async function AppointmentBookingPage({ params }: Props) {
   if (!listing) notFound()
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
 
   let viewerName = ''
   let viewerPhone = ''

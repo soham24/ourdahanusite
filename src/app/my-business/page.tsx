@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -155,7 +156,7 @@ export default async function MyBusinessPage({
   searchParams: Promise<{ renewed?: string }>
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
 
   if (!user) redirect('/login')
 

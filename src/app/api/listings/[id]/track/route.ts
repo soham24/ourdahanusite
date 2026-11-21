@@ -4,6 +4,7 @@ import { getIndiaToday } from '@/lib/india-time'
 import { getClientIp, rateLimit, tooManyRequests } from '@/lib/rate-limit'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import { ipRateLimitKey, isLikelyBot } from '@/lib/track-request'
 
 const KINDS = new Set(['view', 'phone', 'whatsapp'])
@@ -81,7 +82,7 @@ export async function POST(
   // does with a view counter is open their own listing and watch it; if it
   // climbs, they stop believing the contact figures too.
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (user) {
     const { data: listing } = await adminClient
       .from('listings')

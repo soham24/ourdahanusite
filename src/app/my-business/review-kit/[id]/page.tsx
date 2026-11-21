@@ -6,6 +6,7 @@ import QRCode from 'qrcode'
 import { getCanonicalListingUrl } from '@/lib/listing-url'
 import { siteConfig } from '@/lib/site'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthIdentity } from '@/lib/supabase/auth-claims'
 import CopyLinkButton from './CopyLinkButton'
 import PrintButton from './PrintButton'
 
@@ -16,7 +17,7 @@ import PrintButton from './PrintButton'
 export default async function ReviewKitPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthIdentity(supabase)
   if (!user) redirect('/login')
 
   const { data: listing } = await supabase

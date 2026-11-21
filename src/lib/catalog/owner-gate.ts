@@ -14,10 +14,9 @@ export async function assertListingOwner(listingId: string): Promise<
   { ok: true; userId: string } | { ok: false; error: string }
 > {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // getUserRole does the full auth.getUser() check and returns the user.
+  const { user, role } = await getUserRole(supabase)
   if (!user) return { ok: false, error: 'Please sign in.' }
-
-  const { role } = await getUserRole(supabase)
 
   // Admins manage products on any listing (including unapproved or
   // not-yet-payments-enabled ones, e.g. during onboarding). The listings RLS
