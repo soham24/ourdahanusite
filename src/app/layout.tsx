@@ -3,8 +3,7 @@ import { Suspense } from 'react'
 import localFont from 'next/font/local'
 import './globals.css'
 import { NavbarFallback } from '@/components/Navbar'
-import { EmergencyRibbonFallback } from '@/components/EmergencyRibbon'
-import { SiteNavbar, SiteFooter, SiteBottomTabBar, SiteEmergencyRibbon } from '@/components/SiteChrome'
+import { SiteNavbar, SiteFooter, SiteBottomTabBar } from '@/components/SiteChrome'
 import LoaderFontsReady from '@/components/LoaderFontsReady'
 import PaymentRecoveryWatcher from '@/components/PaymentRecoveryWatcher'
 import StructuredData from '@/components/StructuredData'
@@ -179,9 +178,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <StructuredData data={siteSchema} />
         <LoaderFontsReady />
         <AuthProvider>
-          <Suspense fallback={<EmergencyRibbonFallback />}>
-            <SiteEmergencyRibbon />
-          </Suspense>
+          {/* The emergency ribbon (SiteEmergencyRibbon in SiteChrome) is hidden
+              until the emergency section is finished. To bring it back, render
+              it here above the navbar inside
+              <Suspense fallback={<EmergencyRibbonFallback />}>. */}
           <Suspense fallback={<NavbarFallback />}>
             <SiteNavbar />
           </Suspense>
