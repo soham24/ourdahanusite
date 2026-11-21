@@ -23,6 +23,17 @@ export const GAME_CONFIG = {
   fixedStepMs: 1000 / 120,
   maxCatchUpSteps: 8,
   maxScore: 500,
+  /** A golden chikoo counts as a catch and this many points in all. */
+  goldenPoints: 3,
+  /** Chance a spawn is golden, by phase: none while learning, rarer than rotten after. */
+  goldenChance: { warmup: 0, flow: 0.035, rush: 0.05, harvestRush: 0.06 },
+  /** Chance a spawn is the big-basket power-up, once one can appear. */
+  powerUpChance: 0.03,
+  powerUpAfterMs: 12_000,
+  bigBasketScale: 1.55,
+  bigBasketMs: 6_500,
+  /** Catches in a row that get a banner and their own sound. */
+  streakMilestones: [10, 20, 30, 50, 75, 100],
 } as const
 
 function phaseFor(activeMs: number): GamePhase {
@@ -56,7 +67,8 @@ export function getDifficulty(activeMs: number): Difficulty {
   }
 }
 
-export function scoreFor(catches: number, rawBonus: number): { bonus: number; score: number } {
+export function scoreFor(catches: number, rawBonus: number, goldens = 0): { bonus: number; score: number } {
   const bonus = Math.min(Math.max(0, rawBonus), Math.floor(Math.max(0, catches) * 0.2))
-  return { bonus, score: Math.max(0, catches) + bonus }
+  const goldenExtra = Math.max(0, goldens) * (GAME_CONFIG.goldenPoints - 1)
+  return { bonus, score: Math.max(0, catches) + bonus + goldenExtra }
 }

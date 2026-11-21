@@ -1,6 +1,8 @@
 import type { GamePhase } from './types'
 
-export type AudioCue = 'countdown' | 'catch' | 'combo' | 'miss' | 'damage' | 'pause' | 'resume' | 'gameOver' | 'select'
+export type AudioCue =
+  | 'countdown' | 'catch' | 'combo' | 'miss' | 'damage' | 'pause' | 'resume' | 'gameOver' | 'select'
+  | 'golden' | 'powerUp' | 'streak' | 'newBest'
 
 export interface AudioController {
   unlock(): Promise<void>
@@ -42,6 +44,17 @@ interface RhythmTimer {
   clear(handle: number): void
 }
 
+type Note = readonly [frequency: number, duration: number, volume: number, endFrequency: number, delay?: number]
+
+// The moments worth celebrating get a few notes instead of one.
+const PHRASES: Partial<Record<AudioCue, readonly Note[]>> = {
+  // A rising major arpeggio: unmistakably "good".
+  golden: [[784, 0.09, 0.05, 880], [988, 0.09, 0.05, 1100, 0.07], [1319, 0.18, 0.055, 1480, 0.14]],
+  powerUp: [[330, 0.22, 0.05, 990], [495, 0.2, 0.035, 1320, 0.05]],
+  streak: [[880, 0.08, 0.05, 990], [1175, 0.14, 0.05, 1320, 0.08]],
+  newBest: [[523, 0.1, 0.05, 523], [659, 0.1, 0.05, 659, 0.1], [784, 0.1, 0.05, 784, 0.2], [1047, 0.32, 0.06, 1047, 0.3]],
+}
+
 const CUES: Record<AudioCue, readonly [number, number, number, number]> = {
   countdown: [440, 0.08, 0.05, 520],
   catch: [520, 0.07, 0.045, 680],
@@ -52,6 +65,11 @@ const CUES: Record<AudioCue, readonly [number, number, number, number]> = {
   resume: [330, 0.08, 0.04, 440],
   gameOver: [220, 0.4, 0.07, 90],
   select: [420, 0.05, 0.035, 500],
+  // Single-note fallbacks; PHRASES above is what plays.
+  golden: [988, 0.12, 0.05, 1320],
+  powerUp: [330, 0.22, 0.05, 990],
+  streak: [880, 0.1, 0.05, 1175],
+  newBest: [523, 0.3, 0.06, 1047],
 }
 
 const PHASE_INTERVALS: Record<GamePhase, number> = {
@@ -90,13 +108,13 @@ export function createGameAudio(factory: AudioContextFactory = createBrowserAudi
     }
   }
 
-  const tone = (frequency: number, duration: number, volume: number, endFrequency: number) => {
+  const tone = (frequency: number, duration: number, volume: number, endFrequency: number, delay = 0) => {
     if (!context || !enabled || suspended || destroyed) return
 
     try {
       const oscillator = context.createOscillator()
       const gain = context.createGain()
-      const startTime = context.currentTime
+      const startTime = context.currentTime + delay
       const endTime = startTime + duration
 
       oscillator.type = 'sine'
@@ -171,7 +189,9 @@ export function createGameAudio(factory: AudioContextFactory = createBrowserAudi
 
     play(cue) {
       if (!enabled || destroyed) return
-      tone(...CUES[cue])
+      const phrase = PHRASES[cue]
+      if (phrase) for (const note of phrase) tone(...note)
+      else tone(...CUES[cue])
     },
 
     async suspend() {

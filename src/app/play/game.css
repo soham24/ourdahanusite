@@ -357,6 +357,35 @@
   transform: rotate(-18deg);
 }
 
+/* Rarer and worth more: gold with a soft glow. */
+.chikoo-fruit--golden {
+  background: radial-gradient(circle at 35% 30%, #fff1b3, #f2c14e 55%, #b07a12);
+  box-shadow: 0 0 14px rgba(255, 214, 110, 0.65), inset -5px -7px 0 rgba(138, 91, 11, 0.3);
+}
+
+/* The big-basket power-up: a ringed token with a little basket. */
+.chikoo-powerup {
+  position: relative;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border: 3px solid #8ead56;
+  border-radius: 999px;
+  background: #fff8e8;
+  box-shadow: 0 0 12px rgba(142, 173, 86, 0.55);
+}
+
+.chikoo-powerup::after {
+  position: absolute;
+  left: 7px;
+  top: 11px;
+  width: 12px;
+  height: 8px;
+  content: '';
+  border-radius: 2px 2px 4px 4px;
+  background: #b77a3e;
+}
+
 .chikoo-fruit--ripe {
   border-radius: 48% 52% 45% 55% / 55% 46% 54% 45%;
 }

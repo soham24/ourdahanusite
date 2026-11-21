@@ -16,7 +16,7 @@ import type { ImmersiveMode } from './game/fullscreen'
 import { createHaptics } from './game/haptics'
 import type { GameRenderer } from './game/renderer'
 import { initializeRenderer } from './game/renderer-lifecycle'
-import { DEFAULT_SETTINGS, loadSettings, saveSettings } from './game/storage'
+import { DEFAULT_SETTINGS, loadBest, loadSettings, saveBest, saveSettings } from './game/storage'
 import type {
   GameEvent,
   GameSettings,
@@ -156,6 +156,10 @@ export default function ChikooCatcherGame({
   const lastFrameRef = useRef(0)
   const countdownTimersRef = useRef<number[]>([])
   const frozenScoreRef = useRef<number | null>(null)
+  // This device's best before the current run, and whether passing it has
+  // been celebrated yet this run.
+  const bestBeforeRunRef = useRef(0)
+  const bestCelebratedRef = useRef(false)
 
   const settingsRef = useRef<GameSettings>(DEFAULT_SETTINGS)
   const playStateRef = useRef<PlayState>('ready')
@@ -271,11 +275,26 @@ export default function ChikooCatcherGame({
       for (const event of events) {
         switch (event.type) {
           case 'ripeCaught': {
-            const cue = event.bonusAwarded > 0 ? 'combo' : 'catch'
+            const streak = (GAME_CONFIG.streakMilestones as readonly number[]).includes(event.combo)
+            const cue = streak ? 'streak' : event.bonusAwarded > 0 ? 'combo' : 'catch'
             audioRef.current?.play(cue)
-            hapticsRef.current?.play(cue, settingsRef.current.haptics)
+            hapticsRef.current?.play(cue === 'catch' ? 'catch' : 'combo', settingsRef.current.haptics)
+            if (streak) setAnnouncement(`${event.combo} in a row`)
             break
           }
+          case 'goldenCaught':
+            audioRef.current?.play('golden')
+            hapticsRef.current?.play('golden', settingsRef.current.haptics)
+            setAnnouncement(`Golden chikoo, ${event.points} points`)
+            break
+          case 'powerUp':
+            audioRef.current?.play('powerUp')
+            hapticsRef.current?.play('combo', settingsRef.current.haptics)
+            setAnnouncement('Big basket for a few seconds')
+            break
+          case 'powerUpEnded':
+            setAnnouncement('Basket back to normal size')
+            break
           case 'rottenCaught':
             audioRef.current?.play('damage')
             hapticsRef.current?.play('damage', settingsRef.current.haptics)
@@ -311,9 +330,23 @@ export default function ChikooCatcherGame({
             }
             hapticsRef.current?.play('gameOver', settingsRef.current.haptics)
             setAnnouncement(`Game over. Final score ${event.score}`)
+            saveBest(event.score)
             void saveScore(event.score)
             break
         }
+      }
+
+      if (
+        !bestCelebratedRef.current &&
+        bestBeforeRunRef.current > 0 &&
+        next.score > bestBeforeRunRef.current &&
+        !next.gameOver
+      ) {
+        bestCelebratedRef.current = true
+        rendererRef.current?.announce('New best!', '#FFE38A')
+        audioRef.current?.play('newBest')
+        hapticsRef.current?.play('golden', settingsRef.current.haptics)
+        setAnnouncement(`New personal best, beating ${bestBeforeRunRef.current}`)
       }
     },
     [clearHeldDirections, saveScore, transitionPlayState],
@@ -366,6 +399,8 @@ export default function ChikooCatcherGame({
     hapticsRef.current?.stop()
     submissionSequenceRef.current += 1
     frozenScoreRef.current = null
+    bestBeforeRunRef.current = loadBest()
+    bestCelebratedRef.current = false
 
     resetRoundResources(rendererRef.current, audioRef.current, settingsRef.current.sound)
 

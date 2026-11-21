@@ -1,6 +1,6 @@
 import { GAME_CONFIG, getDifficulty, scoreFor } from './config'
 import type { RandomSource } from './random'
-import type { FallingItem, GameEngineState, GameEvent, GameSnapshot, InputState } from './types'
+import type { FallingItem, GameEngineState, GameEvent, GameSnapshot, InputState, ItemKind } from './types'
 
 export interface GameEngine {
   reset(): void
@@ -23,12 +23,18 @@ const initialState = (): GameEngineState => ({
   score: 0,
   misses: 0,
   badCatches: 0,
+  goldens: 0,
+  bigBasketMs: 0,
   phase: 'warmup',
   nextItemId: 0,
   gameOver: false,
 })
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+
+/** The basket's catching width, wider while the big-basket power-up lasts. */
+export const basketWidthFor = (state: Pick<GameEngineState, 'bigBasketMs'>) =>
+  GAME_CONFIG.basketWidth * (state.bigBasketMs > 0 ? GAME_CONFIG.bigBasketScale : 1)
 
 export function createGameEngine(random: RandomSource = Math.random): GameEngine {
   let state = initialState()
@@ -47,7 +53,7 @@ export function createGameEngine(random: RandomSource = Math.random): GameEngine
 
   const positionBasket = (targetX: number) => {
     if (!Number.isFinite(targetX)) return
-    const minX = GAME_CONFIG.basketWidth / 2
+    const minX = basketWidthFor(state) / 2
     const maxX = GAME_CONFIG.width - minX
     state.basketX = clamp(targetX, minX, maxX)
     state.basketVelocity = 0
@@ -57,9 +63,24 @@ export function createGameEngine(random: RandomSource = Math.random): GameEngine
     const difficulty = getDifficulty(state.activeMs)
     if (state.items.length >= difficulty.maxItems) return
     const drift = random() < difficulty.driftChance
+    // One draw decides the kind, as before, so the order of random numbers
+    // (and every seeded test) is unchanged: rotten, then golden, then the
+    // power-up, then ripe, each taking a slice of the same roll.
+    const roll = random()
+    const goldenChance = GAME_CONFIG.goldenChance[difficulty.phase]
+    const powerUpChance =
+      state.activeMs >= GAME_CONFIG.powerUpAfterMs &&
+      state.bigBasketMs === 0 &&
+      !state.items.some((item) => item.kind === 'bigBasket')
+        ? GAME_CONFIG.powerUpChance
+        : 0
+    let kind: ItemKind = 'ripe'
+    if (roll < GAME_CONFIG.badItemChance) kind = 'rotten'
+    else if (roll < GAME_CONFIG.badItemChance + goldenChance) kind = 'golden'
+    else if (roll < GAME_CONFIG.badItemChance + goldenChance + powerUpChance) kind = 'bigBasket'
     state.items.push({
       id: state.nextItemId++,
-      kind: random() < GAME_CONFIG.badItemChance ? 'rotten' : 'ripe',
+      kind,
       x: GAME_CONFIG.itemRadius + random() * (GAME_CONFIG.width - GAME_CONFIG.itemRadius * 2),
       y: -GAME_CONFIG.itemRadius,
       vx: drift ? (random() * 2 - 1) * difficulty.maxDriftSpeed : 0,
@@ -79,7 +100,12 @@ export function createGameEngine(random: RandomSource = Math.random): GameEngine
     state.phase = difficulty.phase
     if (previousPhase !== state.phase) events.push({ type: 'phaseChanged', phase: state.phase })
 
-    const minX = GAME_CONFIG.basketWidth / 2
+    if (state.bigBasketMs > 0) {
+      state.bigBasketMs = Math.max(0, state.bigBasketMs - dt)
+      if (state.bigBasketMs === 0) events.push({ type: 'powerUpEnded' })
+    }
+    const basketWidth = basketWidthFor(state)
+    const minX = basketWidth / 2
     const maxX = GAME_CONFIG.width - minX
     const previousX = state.basketX
     if (input.targetX !== null) {
@@ -108,18 +134,30 @@ export function createGameEngine(random: RandomSource = Math.random): GameEngine
       const caught =
         moved.y + GAME_CONFIG.itemRadius >= GAME_CONFIG.basketY &&
         moved.y - GAME_CONFIG.itemRadius <= GAME_CONFIG.basketY + GAME_CONFIG.basketHeight &&
-        Math.abs(moved.x - state.basketX) <= GAME_CONFIG.basketWidth * 0.54
+        Math.abs(moved.x - state.basketX) <= basketWidth * 0.54
 
-      if (caught && item.kind === 'ripe') {
+      if (caught && (item.kind === 'ripe' || item.kind === 'golden')) {
+        const golden = item.kind === 'golden'
         state.catches += 1
+        if (golden) state.goldens += 1
         state.combo += 1
         const milestone = state.combo % GAME_CONFIG.comboMilestone === 0
         if (milestone) state.rawComboBonus += 1
-        const nextScore = scoreFor(state.catches, state.rawComboBonus)
+        const previousScore = state.score
+        const nextScore = scoreFor(state.catches, state.rawComboBonus, state.goldens)
         const bonusAwarded = nextScore.bonus - state.bonus
         state.bonus = nextScore.bonus
         state.score = Math.min(nextScore.score, GAME_CONFIG.maxScore)
-        events.push({ type: 'ripeCaught', x: moved.x, y: moved.y, combo: state.combo, bonusAwarded })
+        events.push(
+          golden
+            ? { type: 'goldenCaught', x: moved.x, y: moved.y, combo: state.combo, points: state.score - previousScore }
+            : { type: 'ripeCaught', x: moved.x, y: moved.y, combo: state.combo, bonusAwarded },
+        )
+        continue
+      }
+      if (caught && item.kind === 'bigBasket') {
+        state.bigBasketMs = GAME_CONFIG.bigBasketMs
+        events.push({ type: 'powerUp', x: moved.x, y: moved.y, durationMs: GAME_CONFIG.bigBasketMs })
         continue
       }
       if (caught && item.kind === 'rotten') {

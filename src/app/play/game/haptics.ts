@@ -1,7 +1,8 @@
-export type HapticCue = 'catch' | 'combo' | 'damage' | 'gameOver'
+export type HapticCue = 'catch' | 'combo' | 'golden' | 'damage' | 'gameOver'
 const PATTERNS: Record<HapticCue, number[]> = {
   catch: [12],
   combo: [18, 24, 18],
+  golden: [14, 30, 14, 30, 28],
   damage: [45],
   gameOver: [35, 35, 70],
 }
