@@ -7,6 +7,7 @@ import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
 import { logCacheRegeneration } from '@/lib/isr-debug'
 import { professionMarathi } from '@/lib/find/professions'
 import { createPublicClient } from '@/lib/supabase/public'
+import { isUuid, readOrThrow } from '@/lib/data/read'
 import type { FindRating, ProfessionalWithStats } from '@/lib/find/types'
 
 export type FindSort = 'top' | 'new'
@@ -51,12 +52,12 @@ async function getFindDirectory(): Promise<ProfessionalWithStats[]> {
   logCacheRegeneration({ scope: 'find:directory', tags: [CACHE_TAGS.find] })
 
   const supabase = createPublicClient()
-  const { data } = await supabase
+  const data = readOrThrow(await supabase
     .from('find_professionals')
     .select(`${PROFESSIONAL_COLUMNS}, business:listings(id, name, subdomain, image_url, image_thumb_url, approved)`)
     .eq('status', 'approved')
     .eq('is_active', true)
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: false }), 'find professionals')
 
   const rows = ((data ?? []) as unknown as (ProfessionalWithStats & { business: RawLinkedBusiness })[]).map((r) => ({
     ...r,
@@ -64,11 +65,11 @@ async function getFindDirectory(): Promise<ProfessionalWithStats[]> {
   }))
   if (rows.length === 0) return []
 
-  const { data: ratingRows } = await supabase
+  const ratingRows = readOrThrow(await supabase
     .from('find_ratings')
     .select('professional_id, rating')
     .eq('status', 'approved')
-    .in('professional_id', rows.map((r) => r.id))
+    .in('professional_id', rows.map((r) => r.id)), 'find ratings')
 
   const stats = new Map<string, { sum: number; count: number }>()
   for (const row of (ratingRows ?? []) as { professional_id: string; rating: number }[]) {
@@ -158,28 +159,30 @@ export async function getProfessionalById(
 ): Promise<ProfessionalWithStats | null> {
   'use cache'
 
+  if (!isUuid(id)) return null
+
   cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.find)
   logCacheRegeneration({ scope: 'find:professional', tags: [CACHE_TAGS.find] })
 
   const supabase = createPublicClient()
-  const { data } = await supabase
+  const data = readOrThrow(await supabase
     .from('find_professionals')
     .select(`${PROFESSIONAL_COLUMNS}, business:listings(id, name, subdomain, image_url, image_thumb_url, approved)`)
     .eq('id', id)
     .eq('status', 'approved')
     .eq('is_active', true)
-    .maybeSingle()
+    .maybeSingle(), 'find professionals')
   if (!data) return null
 
   const raw = data as unknown as ProfessionalWithStats & { business: RawLinkedBusiness }
   const business = normalizeLinkedBusiness(raw.business)
 
-  const { data: ratingRows } = await supabase
+  const ratingRows = readOrThrow(await supabase
     .from('find_ratings')
     .select('rating')
     .eq('professional_id', id)
-    .eq('status', 'approved')
+    .eq('status', 'approved'), 'find ratings')
 
   const ratings = (ratingRows ?? []) as { rating: number }[]
   const count = ratings.length
@@ -192,16 +195,18 @@ export async function getApprovedRatings(
 ): Promise<FindRating[]> {
   'use cache'
 
+  if (!isUuid(professionalId)) return []
+
   cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.find)
   logCacheRegeneration({ scope: 'find:ratings', tags: [CACHE_TAGS.find] })
 
   const supabase = createPublicClient()
-  const { data } = await supabase
+  const data = readOrThrow(await supabase
     .from('find_ratings')
     .select(RATING_COLUMNS)
     .eq('professional_id', professionalId)
     .eq('status', 'approved')
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: false }), 'find ratings')
   return (data ?? []) as unknown as FindRating[]
 }

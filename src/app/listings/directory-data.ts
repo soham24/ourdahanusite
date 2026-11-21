@@ -6,6 +6,7 @@ import { getCachedPricingConfig } from '@/lib/data/pricing'
 import { logCacheRegeneration } from '@/lib/isr-debug'
 import { sortCategoriesForDiscovery } from '@/lib/listing-category'
 import { createPublicClient } from '@/lib/supabase/public'
+import { readOrThrow } from '@/lib/data/read'
 import { siteConfig } from '@/lib/site'
 
 export interface DirectoryListing {
@@ -70,29 +71,21 @@ export async function getListingCategories() {
     tags: [CACHE_TAGS.listings, CACHE_TAGS.listingCategories],
   })
 
-  try {
-    const supabase = createPublicClient()
-    const { data } = await supabase
-      .from('listings')
-      .select('category')
-      .eq('approved', true)
-      .order('category', { ascending: true })
+  const supabase = createPublicClient()
+  const data = readOrThrow(await supabase
+    .from('listings')
+    .select('category')
+    .eq('approved', true)
+    .order('category', { ascending: true }), 'listing categories')
 
-    const categoryCounts = buildCategoryCounts((data || []) as Array<{ category?: string | null }>)
-    const categories = sortCategoriesForDiscovery(Object.entries(categoryCounts))
-      .map(([category]) => category)
+  const categoryCounts = buildCategoryCounts((data || []) as Array<{ category?: string | null }>)
+  const categories = sortCategoriesForDiscovery(Object.entries(categoryCounts))
+    .map(([category]) => category)
 
-    return {
-      categories,
-      categoryCounts,
-      sortedCategories: ['All', ...categories],
-    }
-  } catch {
-    return {
-      categories: [] as string[],
-      categoryCounts: {} as Record<string, number>,
-      sortedCategories: ['All'],
-    }
+  return {
+    categories,
+    categoryCounts,
+    sortedCategories: ['All', ...categories],
   }
 }
 
@@ -110,34 +103,26 @@ export async function getListingsDirectoryData(activeCategory: string | null = n
   })
 
   const [pricing, categoryData] = await Promise.all([
-    getCachedPricingConfig().catch(() => ({ current_price: 210, base_price: 500 })),
+    // Never rejects: it has its own fallback, kept in step with the real price.
+    getCachedPricingConfig(),
     getListingCategories(),
   ])
 
-  let listings: DirectoryListing[] = []
+  const supabase = createPublicClient()
+  let query = supabase
+    .from('listings')
+    .select('id, name, category, subdomain, phone, address, rating, review_count, image_url, image_thumb_url, tagline, description, plan, verified, updated_at, created_at')
+    .eq('approved', true)
+    .order('plan', { ascending: false })
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: true })
+    .limit(DIRECTORY_LISTING_CAP)
 
-  try {
-    const supabase = createPublicClient()
-    let query = supabase
-      .from('listings')
-      .select('id, name, category, subdomain, phone, address, rating, review_count, image_url, image_thumb_url, tagline, description, plan, verified, updated_at, created_at')
-      .eq('approved', true)
-      .order('plan', { ascending: false })
-      .order('created_at', { ascending: false })
-      .order('id', { ascending: true })
-      .limit(DIRECTORY_LISTING_CAP)
-
-    if (activeCategory) {
-      query = query.eq('category', activeCategory) as typeof query
-    }
-
-    const { data, error } = await query
-    if (!error) {
-      listings = (data || []) as DirectoryListing[]
-    }
-  } catch {
-    listings = []
+  if (activeCategory) {
+    query = query.eq('category', activeCategory) as typeof query
   }
+
+  const listings = (readOrThrow(await query, 'listings') || []) as DirectoryListing[]
 
   return {
     activeCategory,

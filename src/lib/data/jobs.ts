@@ -8,6 +8,7 @@ import { jobCategoryMarathi } from '@/lib/jobs/categories'
 import type { JobBusiness, PublicJobPost } from '@/lib/jobs/types'
 import type { JobKind } from '@/lib/jobs/validation'
 import { createPublicClient } from '@/lib/supabase/public'
+import { readOrThrow } from '@/lib/data/read'
 
 // Explicit columns, never `*`: job_posts holds moderation columns that must not
 // reach cached public payloads. Contact details live in a table the public
@@ -46,13 +47,13 @@ async function getLiveJobPosts(): Promise<PublicJobPost[]> {
   logCacheRegeneration({ scope: 'jobs:board', tags: [CACHE_TAGS.jobs] })
 
   const supabase = createPublicClient()
-  const { data } = await supabase
+  const data = readOrThrow(await supabase
     .from('job_posts')
     .select(`${PUBLIC_COLUMNS}, business:listings(id, name, subdomain, approved)`)
     .eq('status', 'approved')
     .order('published_at', { ascending: false })
     .order('id', { ascending: true })
-    .limit(LIVE_POST_CAP)
+    .limit(LIVE_POST_CAP), 'job posts')
 
   return ((data ?? []) as unknown as RawPost[]).map(toPublicPost)
 }

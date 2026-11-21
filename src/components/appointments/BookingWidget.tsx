@@ -184,7 +184,14 @@ export default function BookingWidget({
       setError('')
       setSelectedSlot(null)
 
-      const result = await getAvailableSlotsForDate(listingId, selectedDate)
+      let result: Awaited<ReturnType<typeof getAvailableSlotsForDate>>
+      try {
+        result = await getAvailableSlotsForDate(listingId, selectedDate)
+      } catch {
+        // A dropped connection rejects the action; without this the
+        // spinner never stopped.
+        result = { error: 'Could not load available times. Check your connection and try again.', slots: [] }
+      }
       if (!active) return
 
       setSlots(result.slots)

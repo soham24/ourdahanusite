@@ -27,7 +27,9 @@ export function EmergencyRibbonFallback() {
 }
 
 export default async function EmergencyRibbon() {
-  const topAlert = await getActiveEmergencyAlert()
+  // The loader throws on a failed read so it never caches "no alert" over a
+  // real one. On every page, a failed read shows the plain ribbon instead.
+  const topAlert = await getActiveEmergencyAlert().catch(() => null)
 
   if (topAlert && (topAlert.severity === 'critical' || topAlert.severity === 'warning')) {
     const bgClass =

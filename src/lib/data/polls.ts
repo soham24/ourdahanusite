@@ -7,6 +7,7 @@ import { PUBLIC_CONTENT_CACHE } from '@/lib/cache-policy'
 import { logCacheRegeneration } from '@/lib/isr-debug'
 import { createAdminClient } from '@/lib/supabase/admin-client'
 import { createPublicClient } from '@/lib/supabase/public'
+import { isUuid, readOrThrow } from '@/lib/data/read'
 
 export interface PollOption {
   id: string
@@ -55,10 +56,10 @@ export async function getLivePollVoteTotals(
 ): Promise<{ vote_counts: Record<string, number>; total_votes: number }> {
   const voteReader = getVoteReader()
 
-  const { data: voteData } = await voteReader
+  const voteData = readOrThrow(await voteReader
     .from('poll_votes')
     .select('option_id')
-    .eq('poll_id', pollId)
+    .eq('poll_id', pollId), 'poll votes')
 
   const votes = (voteData ?? []) as { option_id: string }[]
   return countVotes(votes, options)
@@ -99,14 +100,14 @@ export async function getActivePoll(): Promise<PollWithResults | null> {
 
   const supabase = createPublicClient()
 
-  const { data: pollData } = await supabase
+  const pollData = readOrThrow(await supabase
     .from('polls')
     .select('id, title, options, ends_at, created_at, active')
     .eq('active', true)
     .order('created_at', { ascending: false })
     .order('id', { ascending: true })
     .limit(1)
-    .maybeSingle()
+    .maybeSingle(), 'polls')
 
   const poll = pollData as PollRow | null
   if (!poll) return null
@@ -117,6 +118,7 @@ export async function getActivePoll(): Promise<PollWithResults | null> {
 
 export async function getPollById(id: string): Promise<PollWithResults | null> {
   'use cache'
+  if (!isUuid(id)) return null
   cacheLife(PUBLIC_CONTENT_CACHE)
   cacheTag(CACHE_TAGS.polls)
   logCacheRegeneration({
@@ -127,12 +129,12 @@ export async function getPollById(id: string): Promise<PollWithResults | null> {
 
   const supabase = createPublicClient()
 
-  const { data: pollData } = await supabase
+  const pollData = readOrThrow(await supabase
     .from('polls')
     .select('id, title, options, ends_at, created_at, active')
     .eq('id', id)
     .eq('active', true)
-    .maybeSingle()
+    .maybeSingle(), 'polls')
 
   const poll = pollData as PollRow | null
   if (!poll) return null
@@ -154,12 +156,12 @@ export async function getAllPolls(): Promise<PollWithResults[]> {
   const supabase = createPublicClient()
   type VoteRow = { poll_id: string; option_id: string }
 
-  const { data: pollsData } = await supabase
+  const pollsData = readOrThrow(await supabase
     .from('polls')
     .select('id, title, options, ends_at, created_at, active')
     .eq('active', true)
     .order('created_at', { ascending: false })
-    .order('id', { ascending: true })
+    .order('id', { ascending: true }), 'polls')
 
   const polls = (pollsData ?? []) as unknown as PollRow[]
   if (polls.length === 0) return []
@@ -167,10 +169,10 @@ export async function getAllPolls(): Promise<PollWithResults[]> {
   const pollIds = polls.map(p => p.id)
   const voteReader = getVoteReader()
 
-  const { data: allVotesData } = await voteReader
+  const allVotesData = readOrThrow(await voteReader
     .from('poll_votes')
     .select('poll_id, option_id')
-    .in('poll_id', pollIds)
+    .in('poll_id', pollIds), 'poll votes')
 
   const allVotes = (allVotesData ?? []) as VoteRow[]
 
