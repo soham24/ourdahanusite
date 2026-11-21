@@ -4,8 +4,8 @@
  * Sent as Content-Security-Policy-Report-Only for now (next.config.ts):
  * browsers report what the policy would block to /api/csp-report, which
  * logs it, and block nothing. Once the logs show no violations from real
- * traffic (checkout, Google sign-in, ads), switch the header name to
- * enforce it.
+ * traffic (checkout, Google sign-in, ads), set CSP_ENFORCE=true in the
+ * hosting environment and redeploy to enforce it; unset it to roll back.
  *
  * Every third party the site loads, and why:
  *  - Supabase: the database, auth and storage API (and its realtime websocket).

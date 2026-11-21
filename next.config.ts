@@ -9,8 +9,11 @@ const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$
 const BUSINESS_HOST = `(?!(?:${[...RESERVED_SUBDOMAINS].map(escapeRegex).join("|")})\\.)[^.]+\\.${escapeRegex(ROOT_DOMAIN)}`;
 
 // Baseline security headers applied to every route. The Content-Security-Policy
-// is report-only for now: browsers report what it would block to
-// /api/csp-report and block nothing. See src/lib/csp.ts for when to enforce it.
+// is report-only unless CSP_ENFORCE=true: browsers report what it would block
+// to /api/csp-report and block nothing. See src/lib/csp.ts for when to enforce
+// it; enforcing is then an environment variable and a redeploy, not a code
+// change, and unsetting it is the rollback.
+const enforceCsp = process.env.CSP_ENFORCE === 'true'
 const securityHeaders = [
   // Force HTTPS for 2 years, including subdomains (all *.ourdahanu.in are HTTPS).
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
@@ -23,7 +26,7 @@ const securityHeaders = [
   // Lock down powerful APIs we don't use.
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
   {
-    key: 'Content-Security-Policy-Report-Only',
+    key: enforceCsp ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only',
     value: buildContentSecurityPolicy({
       supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
       isDev: process.env.NODE_ENV !== 'production',

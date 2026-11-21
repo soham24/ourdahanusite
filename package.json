@@ -11,6 +11,7 @@
     "postbuild": "node scripts/check-action-boundaries.mjs",
     "start": "next start",
     "doctor": "node --env-file-if-exists=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/doctor.mjs",
+    "backup": "node --env-file-if-exists=.env.local scripts/backup.mjs",
     "setup": "node scripts/setup-local.mjs",
     "db:start": "npx --yes supabase@2.120.0 start",
     "db:stop": "npx --yes supabase@2.120.0 stop",

@@ -1,0 +1,89 @@
+name: Uptime
+
+# Checks the live site every hour. When a check keeps failing it opens an
+# issue labelled "outage" -- GitHub emails the repository's watchers -- and
+# when the site is back it comments and closes it. One issue per outage, not
+# one per run.
+#
+# Off until configured: set the repository variable UPTIME_SITE_URL to the
+# site's address (e.g. https://ourdahanu.in). Forks are not monitored.
+#
+# Hourly keeps a private repository well inside GitHub's free minutes; on a
+# public repository scheduled runs are free and this can run more often.
+
+permissions:
+  contents: read
+  issues: write
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    if: vars.UPTIME_SITE_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SITE: ${{ vars.UPTIME_SITE_URL }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Check the site
+        id: check
+        run: |
+          # path|text the page must contain. Each gets three tries, 20 s apart,
+          # so one slow request or a deploy in progress is not an outage.
+          checks=(
+            "/api/health|\"ok\":true"
+            "/|</html>"
+            "/listings|</html>"
+            "/sitemap.xml|<urlset"
+          )
+          failures=""
+          for entry in "${checks[@]}"; do
+            path="${entry%%|*}"; expect="${entry#*|}"
+            ok=""
+            for attempt in 1 2 3; do
+              body=$(curl --silent --show-error --max-time 30 --write-out '\n%{http_code}' "$SITE$path" 2>&1) || true
+              status="${body##*$'\n'}"
+              if [ "$status" = "200" ] && grep -qF -- "$expect" <<<"$body"; then ok=1; break; fi
+              [ "$attempt" -lt 3 ] && sleep 20
+            done
+            if [ -z "$ok" ]; then failures="$failures- \`$path\` answered HTTP $status"$'\n'; fi
+          done
+          {
+            echo "failures<<EOF"
+            printf '%s' "$failures"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          [ -z "$failures" ] && echo "All checks passed" || { echo "Failed:"; echo "$failures"; }
+
+      - name: Open or update the outage issue
+        if: steps.check.outputs.failures != ''
+        env:
+          FAILURES: ${{ steps.check.outputs.failures }}
+        run: |
+          gh label create outage --color B60205 --description "The site is down (opened by the Uptime workflow)" 2>/dev/null || true
+          issue=$(gh issue list --label outage --state open --json number --jq '.[0].number')
+          note="$(date -u '+%Y-%m-%d %H:%M UTC'): checks against $SITE failed:"$'\n\n'"$FAILURES"$'\n'"[Run]($GITHUB_SERVER_URL/$GH_REPO/actions/runs/$GITHUB_RUN_ID)"
+          if [ -z "$issue" ]; then
+            gh issue create --label outage --title "Site down: $SITE" --body "$note"
+          else
+            gh issue comment "$issue" --body "Still failing. $note"
+          fi
+          exit 1
+
+      - name: Close the outage issue
+        if: steps.check.outputs.failures == ''
+        run: |
+          issue=$(gh issue list --label outage --state open --json number --jq '.[0].number')
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --body "Recovered: every check passed at $(date -u '+%Y-%m-%d %H:%M UTC')."
+            gh issue close "$issue"
+          fi

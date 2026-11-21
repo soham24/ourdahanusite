@@ -60,3 +60,6 @@ docs/reviews/
 
 # Lighthouse CI output
 .lighthouseci/
+
+# npm run backup output: full copies of the database, never commit
+/backups/
