@@ -2,40 +2,8 @@ import { ArrowRight, MessageCircle } from 'lucide-react'
 
 import SafeAppLink from '@/components/SafeAppLink'
 import { contact, team } from '@/content/local'
+import TeamAvatar from '@/components/TeamAvatar'
 import { siteConfig } from '@/lib/site'
-
-// Warm, distinct backgrounds so six sets of initials don't read as one block.
-const AVATAR_TONES = [
-  'from-[#C0582E] to-[#8A3618]',
-  'from-[#D9944A] to-[#A8601F]',
-  'from-[#7A8F5A] to-[#4F6436]',
-  'from-[#B5654A] to-[#7E3A26]',
-  'from-[#C8881E] to-[#8C5A0E]',
-  'from-[#6F7FA0] to-[#45526E]',
-]
-
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]!.toUpperCase())
-    .join('')
-
-function Avatar({ name, photo, index, size }: { name: string; photo?: string; index: number; size: 'lg' | 'sm' }) {
-  const box = size === 'lg' ? 'h-16 w-16 rounded-[20px] text-xl' : 'h-11 w-11 rounded-[14px] text-sm'
-  if (photo) {
-    return <img src={photo} alt={name} loading="lazy" decoding="async" className={`${box} shrink-0 object-cover`} />
-  }
-  return (
-    <span
-      aria-hidden
-      className={`${box} flex shrink-0 items-center justify-center bg-gradient-to-br font-semibold tracking-wide text-white ${AVATAR_TONES[index % AVATAR_TONES.length]}`}
-    >
-      {initials(name)}
-    </span>
-  )
-}
 
 /** "Who runs OurDahanu": the real people behind the site, by name. */
 export default function HeritageSection() {
@@ -76,7 +44,7 @@ export default function HeritageSection() {
 
         <div className="rounded-3xl border border-[var(--od-border)] bg-[linear-gradient(160deg,#FFFDF9_0%,#FBF0E1_100%)] p-4 shadow-[0_24px_60px_-30px_rgba(110,43,19,0.35)] sm:p-6">
           <article className="flex items-start gap-4 rounded-2xl bg-white p-4 shadow-[0_1px_0_rgba(46,18,5,0.04)] ring-1 ring-[var(--od-border)] sm:p-5">
-            <Avatar name={founder.name} photo={founder.photo} index={0} size="lg" />
+            <TeamAvatar name={founder.name} photo={founder.photo} index={0} size="lg" />
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--od-brand)]">{founder.role}</p>
               <h3 className="mt-0.5 font-display text-[24px] leading-tight text-[var(--od-ink)]">{founder.name}</h3>
@@ -93,7 +61,7 @@ export default function HeritageSection() {
                   members.length % 2 === 1 && i === members.length - 1 ? 'sm:col-span-2' : ''
                 }`}
               >
-                <Avatar name={member.name} photo={member.photo} index={i + 1} size="sm" />
+                <TeamAvatar name={member.name} photo={member.photo} index={i + 1} size="sm" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-[var(--od-ink)]">{member.name}</p>
                   <p className="truncate text-xs text-[var(--od-muted)]">{member.role}</p>

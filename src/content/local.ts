@@ -70,3 +70,11 @@ export const team: ReadonlyArray<{ name: string; role: string; detail: string; p
   { name: 'Nupur Mestry', role: 'Core group', detail: 'Helps keep OurDahanu active, helpful and locally relevant.' },
   { name: 'Khushbu Bari', role: 'Content & media', detail: 'Supports the community with content, media and storytelling.' },
 ]
+
+/** People who advise the team, shown on /about. */
+export const advisors: ReadonlyArray<{ name: string; focus: string; photo?: string }> = [
+  { name: 'Mayur Vayeda', focus: 'Community guidance' },
+  { name: 'Mayuresh Patil', focus: 'Local network' },
+  { name: 'Ketan Patil', focus: 'Strategic support' },
+  { name: 'Tanvi Nayak', focus: 'Community perspective' },
+]
