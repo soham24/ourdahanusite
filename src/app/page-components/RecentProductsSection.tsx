@@ -17,7 +17,7 @@ export default function RecentProductsSection({ products }: RecentProductsSectio
       <div className="mx-auto max-w-[1160px] px-4 md:px-6">
         <SectionHeader
           label="Fresh in the shops"
-          title="Just Updated"
+          title="Just updated"
           sub="The latest products and services from local businesses"
         />
 

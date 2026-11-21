@@ -19,7 +19,7 @@ export default function FeaturedSpotlight({ listing }: { listing: FeaturedListin
           <div>
             <p className="od-eyebrow">Featured</p>
             <h2 className="mt-1 font-display text-[26px] leading-[1.15] text-[var(--od-ink)] md:text-[30px]">
-              A Local Standout
+              A local standout
             </h2>
           </div>
           <SafeAppLink
