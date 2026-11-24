@@ -197,7 +197,7 @@ export default function CompetitionCard({
       {/* Anyone can follow today's standings; the code is only needed to take part. */}
       <div className="mt-4 border-t border-[var(--od-border)] pt-3">
         <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--od-muted)]">
-          Today&apos;s top 10
+          Today&apos;s top 20
         </h3>
         <StandingsList entries={board} />
       </div>

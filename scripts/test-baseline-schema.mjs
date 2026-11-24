@@ -336,7 +336,7 @@ await db.exec('RESET ROLE')
   assert.equal((await db.query(`SELECT public.get_today_competition('chikoo_catcher', '2026-11-23') AS r`)).rows[0].r, null, 'no competition that day')
   const past = (await db.query(`SELECT public.get_past_competitions('chikoo_catcher', '2026-11-22', 5) AS r`)).rows[0].r
   assert.equal(past.length, 1)
-  assert.deepEqual(past[0].top.map((r) => r.full_name), ['Player B', 'Player E', 'Player A'], 'podium matches the live board order and omits the excluded player')
+  assert.deepEqual(past[0].top.map((r) => r.full_name), ['Player B', 'Player E', 'Player A', 'Player D'], 'final results match the live board order (up to 20) and omit the excluded player')
   assert.equal((await db.query(`SELECT public.get_past_competitions('chikoo_catcher', '2026-11-21', 5) AS r`)).rows[0].r.length, 0, 'today is not past')
   for (const text of [JSON.stringify(today), JSON.stringify(past)]) {
     assert.ok(!text.includes('SAPOTA21'), 'the code must never leave the database')
@@ -562,6 +562,10 @@ assert.equal(await affected(`DELETE FROM public.listing_favourites`), 0, 'signed
 await db.exec('RESET ROLE')
 
 await db.exec('RESET ROLE')
+for (const [fn, needle] of [['get_past_competitions', 'limit 20'], ['get_play_public', 'get_competition_leaderboard(comp.id, 20)']]) {
+  const src = (await db.query('SELECT prosrc FROM pg_proc WHERE proname = $1', [fn])).rows[0].prosrc
+  assert.ok(src.includes(needle), `${fn} shows the top 20`)
+}
 assert.equal((await db.query("SELECT count(*)::int AS n FROM pg_publication_tables WHERE pubname = 'supabase_realtime'")).rows[0].n, 0, 'nothing is streamed over Realtime: the notification bell polls')
 await db.close()
 console.log(`Baseline schema builds from ${files.length} migration file(s) and passed its checks`)
